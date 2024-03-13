@@ -20,7 +20,7 @@ return {
         ["Bookmarks"] = "Allison The Twilight Knight Bookmarks",
         ["Tactics"] = "Sneak Attack",
         ["Weapon Proficiencies"] = "Allison Twilight Sword Proficiency",
-        ["Patterns"] = "Allison The Twilight Knight Patterns",
+        ["Seed Patterns"] = "Allison The Twilight Knight Seed Patterns",
     },
 
     settlementEvents = {
@@ -118,7 +118,7 @@ return {
             { "Allison The Twilight Knight Abilities", "Abilities" },
             { "Quick Strike", "Fighting Arts" },
             { "Survivorship", "Secret Fighting Arts" },
-            { "Allison The Twilight Knight Patterns", "Patterns" },
+            { "Allison The Twilight Knight Seed Patterns", "Seed Patterns" },
 
             { "Mineral Vein", "Terrain" },
             { "Mineral Vein", "Terrain Tiles" },

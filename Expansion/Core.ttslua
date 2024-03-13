@@ -20,7 +20,7 @@ return {
         ["Rare Gear"] = "Core Rare Gear",
         ["Hunt Events"] = "Core Hunt Events",
 
-        ["Patterns"] = "Core Patterns",
+        ["Seed Patterns"] = "Core Seed Patterns",
     },
 
     settlementEvents = {
@@ -532,7 +532,7 @@ return {
             { "White Gigalion Basic Action", "AI" },
             { "White Gigalion Hit Locations", "Hit Locations" },
 
-            { "Core Patterns", "Patterns" },
+            { "Core Seed Patterns", "Seed Patterns" },
         },
     },
 

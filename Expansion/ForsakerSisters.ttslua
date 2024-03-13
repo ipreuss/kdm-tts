@@ -4,7 +4,7 @@ return {
     guidNames = { ["271f3a"] =  "Forsaker Sisters Archive" },
 
     components = {
-        ["Patterns"] = "Forsaker Sisters Patterns",
+        ["Seed Patterns"] = "Forsaker Sisters Seed Patterns",
         ["Rare Gear"] = "Forsaker Sisters Rare Gear",
         ["Strange Resources"] = "Forsaker Sisters Strange Resources",
         ["Disorders"] = "Forsaker Sisters Disorders",
@@ -38,7 +38,7 @@ return {
         archive = "Forsaker Sisters Archive",
         entries = {
             { "Forsaker Sisters Rules", "Rulebook" },
-            { "Forsaker Sisters Patterns", "Patterns" },
+            { "Forsaker Sisters Seed Patterns", "Seed Patterns" },
             { "Forsaker Sisters Rare Gear", "Gear" },
             { "Forsaker Sisters", "Monster Figurine" },
             { "Forsaker Sisters Strange Resources", "Strange Resources" },

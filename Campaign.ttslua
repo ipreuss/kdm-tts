@@ -514,7 +514,7 @@ function Campaign.Import(data)
     settlementEventsDeck:Take({ name = "First Day", type = "Settlement Events", location = "Drawn Settlement Events" })
     Campaign.SetupDeckFromExpansionComponents("Rare Gear", data, { type = "Gear" })
     Campaign.SetupDeckFromExpansionComponents("Hunt Events", data)
-    Campaign.SetupDeckFromExpansionComponents("Patterns", data, { type = "Patterns"})
+    Campaign.SetupDeckFromExpansionComponents("Seed Patterns", data, { type = "Seed Patterns"})
     log:Printf("Reached Bernard")
     local context = {
         cache = {},

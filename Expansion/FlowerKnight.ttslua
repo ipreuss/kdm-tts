@@ -9,7 +9,7 @@ return {
         ["Terrain"] = "Flower Patches",
         ["Terrain Tiles"] = { "Flower Patch" },
         ["Rare Gear"] = "Flower Knight Rare Gear",
-        ["Patterns"] = "Flower Knight Patterns",
+        ["Seed Patterns"] = "Flower Knight Seed Patterns",
     },
 
     timelineEvents = {
@@ -68,7 +68,7 @@ return {
             { "Flower Knight Special AI", "AI" },
             { "Flower Knight Hit Locations", "Hit Locations" },
             
-            { "Flower Knight Patterns", "Patterns" },
+            { "Flower Knight Seed Patterns", "Seed Patterns" },
 
         },
     },

@@ -28,7 +28,7 @@ local locationData = {
         p2 = { x = 9.370266, y = 10.741003, z = -2.04 },
         board = "Showdown Board",
     },
-    ["Patterns"] = {
+    ["Seed Patterns"] = {
         center = { x = 9.015150, y = 10.741002, z = -2.020570 },
         size = CARD_SIZE,
         board = "Showdown Board",

@@ -8,7 +8,7 @@ return {
         ["Terrain"] = "The Lonely Tree",
         ["Terrain Tiles"] = { "The Lonely Tree", "Lonely Fruit" },
 
-        ["Patterns"] =  "Afterdeath Brew",
+        ["Seed Patterns"] =  "Afterdeath Brew",
         ["Rare Gear"] = "Afterdeath Brew",
     },
 
@@ -55,7 +55,7 @@ return {
             { "Nightmare Fruit", "AI" },
             { "Monster Fruit", "AI" },
 
-            { "Afterdeath Brew", "Patterns" },
+            { "Afterdeath Brew", "Seed Patterns" },
             { "Afterdeath Brew", "Gear" },
         },
     },
