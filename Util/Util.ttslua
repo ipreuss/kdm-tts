@@ -3,7 +3,7 @@ local Util = {}
 ---------------------------------------------------------------------------------------------------
 
 function Util.TabStr(t)
-    if type(t) != "table" then
+    if type(t) ~= "table" then
         return tostring(t)
     end
 
@@ -315,7 +315,7 @@ end
 
 function Util.DeepCopy(source)
     local copy
-    if type(source) != "table" then
+    if type(source) ~= "table" then
         return source
     end
 

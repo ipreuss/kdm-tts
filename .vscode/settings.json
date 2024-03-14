@@ -1,6 +1,13 @@
 {
     "Lua.diagnostics.globals": [
         "spawnObjectData",
-        "log"
+        "log",
+        "Physics",
+        "Player",
+        "group",
+        "Color",
+        "Wait",
+        "JSON",
+        "spawnObject"
     ]
 }

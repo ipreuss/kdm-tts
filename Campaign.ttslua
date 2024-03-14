@@ -99,10 +99,10 @@ function Campaign.InitCampaignUi()
     local y = -268
     Campaign.expansionButtons = {}
     for i, expansion in ipairs(Expansion:All()) do
-        if expansion.name != "Core" then
+        if expansion.name ~= "Core" then
             Campaign.expansionButtons[expansion.name] = panel:CheckButton({ id = expansion.name, x = x, y = y, width = 200, height = 30, fontSize = 14, text = expansion.name, onClick = function()
                 local checked = not Campaign.selectedExpansionsNyName[expansion.name]
-                log:Debugf("%s expansion %s", value and "Selecting" or "Deselecting", expansion.name)
+                log:Debugf("%s expansion %s", checked and "Selecting" or "Deselecting", expansion.name)
                 Campaign.selectedExpansionsNyName[expansion.name] = checked
                 Campaign.expansionButtons[expansion.name]:Check(checked)
             end })
@@ -303,7 +303,7 @@ function Campaign.ImportFromOrb()
         return
     end
 
-    if object.getGMNotes() != "Campaign Orb" then
+    if object.getGMNotes() ~= "Campaign Orb" then
         log:Errorf("This object is not a campaign orb.")
         Util.Highlight(object)
         return
@@ -319,7 +319,7 @@ function Campaign.ImportFromOrb()
 
     local expansions = { Campaign.expansionsByName["Core"] }
     for _, expansionName in ipairs(state.expansions) do
-        if expansionName != "Core" then
+        if expansionName ~= "Core" then
             local expansion = Campaign.expansionsByName[expansionName]
             if not expansion then
                 log:Errorf("This campaign orb has an unrecognized expansion: %s; ignoring", expansionName)
@@ -341,8 +341,8 @@ end
 function Campaign.ImportFromCampaign()
     local campaign = Campaign.selectedCampaign
     local requiredExpansion = Campaign.expansionsByCampaignName[campaign.name]
-    if Campaign.unlockedMode != true then
-        if requiredExpansion.name != "Core" and not Campaign.selectedExpansionsNyName[requiredExpansion.name] then
+    if Campaign.unlockedMode ~= true then
+        if requiredExpansion.name ~= "Core" and not Campaign.selectedExpansionsNyName[requiredExpansion.name] then
             log:Broadcastf("%s requires %s expansion", campaign.name, requiredExpansion.name)
             return
         end
@@ -352,7 +352,7 @@ function Campaign.ImportFromCampaign()
 
     local expansions = { Campaign.expansionsByName["Core"] }
     for expansionName, enabled in pairs(Campaign.selectedExpansionsNyName) do
-        if expansionName != "Core" and enabled then
+        if expansionName ~= "Core" and enabled then
             table.insert(expansions, Campaign.expansionsByName[expansionName])
         end
     end
@@ -434,7 +434,7 @@ function Campaign.BuildImportTimeline(expansions, campaign)
 
     for _, event in ipairs(events) do
         local yearIndex, name, type = event.year, event.name, event.type
-
+        local year = years[yearIndex]
         if removeEvents[yearIndex][name] then
             log:Debugf("Skipping removed event [%d] %s", yearIndex, name)
 
@@ -442,7 +442,6 @@ function Campaign.BuildImportTimeline(expansions, campaign)
             log:Debugf("Skipping timeline event %s for campaign %s", name, campaign.name)
 
         elseif type == "RulebookEvent" then
-            local year = years[yearIndex]
             local eventIndex = FindFreeEvent(year)
             if eventIndex then
                 year.events[eventIndex] = { name = name, type = "RulebookEvent" }
@@ -511,6 +510,7 @@ function Campaign.Import(data)
     Campaign.SetupDeckFromExpansionComponents("Basic Resources", data, { shuffle = true })
     Campaign.SetupDeckFromExpansionComponents("Terrain", data, { shuffle = true })
     local settlementEventsDeck = Campaign.SetupDeckFromExpansionComponents("Settlement Events", data, { shuffle = true })
+    assert(settlementEventsDeck, "settlementEventsDeck is nil")
     settlementEventsDeck:Take({ name = "First Day", type = "Settlement Events", location = "Drawn Settlement Events" })
     Campaign.SetupDeckFromExpansionComponents("Rare Gear", data, { type = "Gear" })
     Campaign.SetupDeckFromExpansionComponents("Seed Pattern Gear", data, { type = "Gear" })
@@ -773,20 +773,22 @@ end
 function Campaign.SetupObject(locationName, objectData, context)
     local location = Location.Get(locationName)
     if not location then
-        return log:Errorf("Object '%s' (%s) was recorded at unrecognized location '%s'; spawning in the middle of the showdown board.", name, type, location)
+        return log:Errorf("Object '%s' (%s) was recorded at unrecognized location '%s'; spawning in the middle of the showdown board.", locationName, type, location)
     end
 
     local finalObject = nil
     local position = location:Center()
     position.y = position.y + 2
     log:Debugf("Adding %s '%s' (%s) at %s", objectData.tag, objectData.name, objectData.type, locationName)
-    if objectData.tag == "Card" then
+    local tag = objectData.tag
+
+    if tag == "Card" then
         finalObject = Campaign.Spawn(objectData.name, objectData.type, position, context)
         if not finalObject then
             return log:Errorf("Couldn't find card '%s' (%s) for location %s", objectData.name, objectData.type, locationName)
         end
 
-    elseif objectData.tag == "Deck" then
+    elseif tag == "Deck" then
         local objects = {}
         for _, card in ipairs(objectData.cards) do
             log:Debugf("  Adding '%s' (%s)", card.name, card.type)
@@ -866,7 +868,7 @@ end
 function Campaign.ShowUi(player)
     log:Debugf("Showing Campaign UI for " .. player.steam_name)
 
-    str = Campaign.panel:ShowForPlayer(player.color)
+    local str = Campaign.panel:ShowForPlayer(player.color)
 
     if str == player.color then
         Campaign.uiOpen = true
@@ -880,7 +882,7 @@ end
 function Campaign.HideUi(player)
     log:Debugf("Hiding Campaign UI for " .. player.steam_name)
 
-    str = Campaign.panel:HideForPlayer(player.color)
+    local str = Campaign.panel:HideForPlayer(player.color)
 
     if str == "None" or str == player.color then
         Campaign.uiOpen = false

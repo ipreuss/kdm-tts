@@ -30,7 +30,7 @@ function Check.Type(value, expectedType, fmt, ...)
         return false, Util.SafeFormat("Required %s is nil: "..(fmt or ""), expectedType, ...)
     end
     local actualType = type(value)
-    if actualType != expectedType then
+    if actualType ~= expectedType then
         return false, Util.SafeFormat("Required %s arg has type %s: "..(fmt or ""), expectedType, actualType, ...)
     end
     return true
@@ -39,9 +39,9 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Check.TypeOrNil(value, expectedType, fmt, ...)
-    if value != nil then
+    if value ~= nil then
         local actualType = type(value)
-        if actualType != expectedType then
+        if actualType ~= expectedType then
             return false, Util.SafeFormat("Required %s arg has type %s: "..(fmt or ""), expectedType, actualType, ...)
         end
     end
@@ -125,7 +125,7 @@ function Check.Color(value, fmt, ...)
     if not res then
         return res
     end
-    if #value != 3 and #value != 4 and (value.r == nil or value.g == nil or value.b == nil) then
+    if #value ~= 3 and #value ~= 4 and (value.r == nil or value.g == nil or value.b == nil) then
         return false, Util.SafeFormat("Required arg must be a color: "..(fmt or ""), ...)
     end
     return true
@@ -138,7 +138,7 @@ function Check.ColorOrNil(value, fmt, ...)
     if not res then
         return res
     end
-    if #value != 3 and #value != 4 and (value.r == nil or value.g == nil or value.b == nil) then
+    if #value ~= 3 and #value ~= 4 and (value.r == nil or value.g == nil or value.b == nil) then
         return false, Util.SafeFormat("Optional arg must be a color: "..(fmt or ""), ...)
     end
     return true

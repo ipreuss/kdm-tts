@@ -34,10 +34,10 @@ function BattleUi.Init(saveState)
         end
     end
 
-    BattleUi.InitUi(ui)
+    BattleUi.InitUi()
 end
 
-function BattleUi.InitUi(ui)
+function BattleUi.InitUi()
     local ui = Ui.Get2d()
     BattleUi.ui = ui
 
@@ -341,7 +341,7 @@ function BattleUi.NextTurn()
         local playerPrefix = "Player "..i
         local survivalTokens = Location.Get(playerPrefix.." Survival Tokens"):AllObjects("Survival Tokens")
         for _, token in ipairs(survivalTokens) do
-            rot = token.getRotation()
+            local rot = token.getRotation()
             if rot.z >= 15 and rot.z <= 345    then
                 token.flip()
             end

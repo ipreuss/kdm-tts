@@ -83,7 +83,7 @@ function Archive.RegisterEntries(params)
         return
     end
 
-    archive = params.archive
+    local archive = params.archive
     assert(archive)
     for _, entry in ipairs(params.entries) do
         local name, type = entry[1], entry[2]
