@@ -5,7 +5,7 @@ return {
 
     components = {
         ["Seed Patterns"] = "Forsaker Sisters Seed Patterns",
-        ["Rare Gear"] = "Forsaker Sisters Rare Gear",
+        ["Seed Pattern Gear"] = "Forsaker Sisters Rare Gear",
         ["Strange Resources"] = "Forsaker Sisters Strange Resources",
         ["Disorders"] = "Forsaker Sisters Disorders",
         ["Secret Fighting Arts"] = "Forsaker Sisters Secret Fighting Arts",

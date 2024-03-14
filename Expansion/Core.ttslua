@@ -18,6 +18,7 @@ return {
         ["Innovations"] = "Core Innovations",
         ["Settlement Locations"] = "Core Settlement Locations",
         ["Rare Gear"] = "Core Rare Gear",
+        ["Seed Pattern Gear"] = "Core Seed Pattern Gear",
         ["Hunt Events"] = "Core Hunt Events",
 
         ["Seed Patterns"] = "Core Seed Patterns",
@@ -426,6 +427,7 @@ return {
 
             { "Starting Gear", "Gear" },
             { "Core Rare Gear", "Gear" },
+            { "Core Seed Pattern Gear", "Gear" },
             { "Promo Gear", "Gear" },
             { "Barber Surgeon Gear", "Gear" },
             { "Blacksmith Gear", "Gear" },

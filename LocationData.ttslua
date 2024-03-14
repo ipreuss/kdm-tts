@@ -574,7 +574,12 @@ local locationData = {
         size = GEAR_SIZE,
         board = "Settlement Board",
     },
-
+    ["Seed Pattern Gear"] = {
+        center = { x = 7.415189, y = 0.595169, z = 6.351118 },
+        size = GEAR_SIZE,
+        board = "Settlement Board",
+    },
+    
     -----------------------------------------------------------------------------
 
     ["Survivor Box Spawn 1"] = {

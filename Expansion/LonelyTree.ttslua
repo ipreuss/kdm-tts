@@ -9,7 +9,7 @@ return {
         ["Terrain Tiles"] = { "The Lonely Tree", "Lonely Fruit" },
 
         ["Seed Patterns"] =  "Afterdeath Brew",
-        ["Rare Gear"] = "Afterdeath Brew",
+        ["Seed Pattern Gear"] = "Afterdeath Brew",
     },
 
     terrain = {

@@ -8,7 +8,7 @@ return {
         ["Innovations"] = "Petal Spiral - Forbidden Dance Consequence",
         ["Terrain"] = "Flower Patches",
         ["Terrain Tiles"] = { "Flower Patch" },
-        ["Rare Gear"] = "Flower Knight Rare Gear",
+        ["Seed Pattern Gear"] = "Flower Knight Rare Gear",
         ["Seed Patterns"] = "Flower Knight Seed Patterns",
     },
 

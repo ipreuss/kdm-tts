@@ -30,6 +30,7 @@ NamedObject.data = {
     ["2551b1"] = { name = "Terrain Tiles Archive" },
     ["916de5"] = { name = "Settlement Events Archive" },
     ["7a04ec"] = { name = "Rare Gear Archive" },
+    ["34b8a8"] = { name = "Seed Pattern Gear Archive" },
     ["166a4f"] = { name = "Gear Archive" },
     ["26dc61"] = { name = "Monster Resources Archive" },
     ["5d72f3"] = { name = "Hunt Events Archive" },

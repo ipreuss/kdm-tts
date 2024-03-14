@@ -30,7 +30,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function CircularArrayClass.Top(ca)
-    assert(ca.head != ca.tail, "Circular array is empty")
+    assert(ca.head ~= ca.tail, "Circular array is empty")
     if ca.head > 1 then
         return ca.array[ca.head - 1]
     else
@@ -60,7 +60,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function CircularArrayClass.Pop(ca)
-    assert(ca.head != ca.tail, "Circular array is empty")
+    assert(ca.head ~= ca.tail, "Circular array is empty")
 
     ca.head = ca.head - 1
     if ca.head == 0 then

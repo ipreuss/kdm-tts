@@ -28,6 +28,7 @@ Archive.data = {
     { "Settlement Events", "Settlement Events", "Settlement Events Archive" },
     { "Rare Gear", "Gear", "Rare Gear Archive" },
     { "All Gear", "Gear", "All Gear Archive" },
+    { "Seed Pattern Gear", "Gear", "Seed Pattern Gear Archive" },
     { "Monster Resources", "Monster Resources", "Monster Resources Archive" },
     { "Survivor Sheet", "Survivor Sheet", "Survivor Sheets Archive" },
     { "Survivor Box", "Survivor Box", "Survivor Boxes Archive" },
