@@ -93,7 +93,7 @@ function Log.Init()
     logStyle("error", { r = 1.0, g = 0.0, b = 0.0 }, "", "")
 
     Console.AddCommand("debug", function(args)
-        if #args != 3 or (args[3] != "on" and args[3] != "off") then
+        if #args ~= 3 or (args[3] ~= "on" and args[3] ~= "off") then
             return Console.Printf("Usage: debug <module> <on|off>")
         end
 

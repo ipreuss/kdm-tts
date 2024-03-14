@@ -67,7 +67,7 @@ function Location.Init()
     EventManager.AddHandler("onObjectDestroy", function(object) Location.OnLeave(object) end)
 
     Console.AddCommand("showloc", function(args)
-        if #args != 2 then
+        if #args ~= 2 then
             return Console.Printf("Usage: showloc <location>")
         end
 
@@ -80,7 +80,7 @@ function Location.Init()
     end, "Highlights a location")
 
     Console.AddCommand("locobjects", function(args)
-        if #args != 2 then
+        if #args ~= 2 then
             return Console.Printf("Usage: locobjects <location>")
         end
 
@@ -402,7 +402,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Location:Clean(params, castFunc)
-    tags, types, debug = params.tags, params.types, params.debug
+    local tags, types = params.tags, params.types
     log:Debugf("Cleaning %s", self)
 
     local hits = castFunc(self, { size = params.size, debug = params.debug })

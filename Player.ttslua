@@ -289,7 +289,7 @@ function Player.Create(ordinal, params)
     end
 
     if params.figurineGuid then
-        figurineObject = getObjectFromGUID(params.figurineGuid)
+        local figurineObject = getObjectFromGUID(params.figurineGuid)
         if not figurineObject then
             log:Errorf("Player %s was linked to figurine %s, but that object was deleted.", ordinal, params.figurineGuid)
         else
@@ -535,7 +535,7 @@ function Player:UpdateGear()
         end
     end
 
-    log:Debugf("Final %s weapons: %s", self, Util.TabStr(weapons))
+    log:Debugf("Final %s weapons: %s", self, Util.TabStr(weaponsAndModifiers))
     log:Debugf("Final %s armor: %s", self, Util.TabStr(armorTotals))
 
     self.weaponsAndModifiers = weaponsAndModifiers    -- purely a concession to make BattleUi updates easier
@@ -544,7 +544,7 @@ function Player:UpdateGear()
         self.armorCounters[hitLocation]:SetText(armorTotals[hitLocation])
     end
 
-    EventManager.FireEvent(EventManager.ON_PLAYER_WEAPONS_CHANGED, self, weapons)
+    EventManager.FireEvent(EventManager.ON_PLAYER_WEAPONS_CHANGED, self, weaponsAndModifiers)
 end
 
 function Player:WeaponsAndModifiers() return self.weaponsAndModifiers end
@@ -636,7 +636,7 @@ function Player:UpdateStats()
     }) do
 
         for _, object in ipairs(Location.Get(location):AllObjects()) do
-            if object.tag != "Card" then
+            if object.tag ~= "Card" then
                 local stat = Player.TOKEN_STATS[object.getName()]
                 if stat == "evasion" then
                     local value = Util.TokenValue(object)
@@ -692,7 +692,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Player:OnObjectDroppedOnSurvivorSheet(object)
-    if object.getGMNotes() != "Survivor Box" then
+    if object.getGMNotes() ~= "Survivor Box" then
         return
     end
 

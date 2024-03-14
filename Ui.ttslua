@@ -554,7 +554,7 @@ function Ui:SetWidth(width) self:SetAttribute("width", "number", width) end
 function Ui:SetHeight(height) self:SetAttribute("height", "number", height) end
 function Ui:SetText(text)
     local id = self.attributes.id
-    text = (text != nil) and tostring(text) or ""   -- nil will not actually clear the text
+    text = (text ~= nil) and tostring(text) or ""   -- nil will not actually clear the text
     log:Debugf("Setting %s text to '%s'", id, text)
     self.attributes.text = text
     self.object.UI.setAttribute(id, "text", self.attributes.text)

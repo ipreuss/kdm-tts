@@ -74,7 +74,7 @@ function Timeline.Init(saveState)
 
     Timeline.InitState(saveState)
     Timeline.InitExpansions()
-    Timeline.InitUi(ui)
+    Timeline.InitUi()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -229,7 +229,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-function Timeline.InitUi(ui)
+function Timeline.InitUi()
     Timeline.uiOpen = false
 
     local ui = Ui.Get2d()
@@ -545,7 +545,7 @@ end
 function Timeline.ShowUi(player)
     log:Debugf("Showing settlement UI for ".. player.steam_name)
 
-    str = Timeline.panel:ShowForPlayer(player.color)
+    local str = Timeline.panel:ShowForPlayer(player.color)
 
     if str == player.color then
         Timeline.uiOpen = true
@@ -559,7 +559,7 @@ end
 function Timeline.HideUi(player)
     log:Debugf("Hiding settlement UI for " .. player.steam_name)
 
-    str = Timeline.panel:HideForPlayer(player.color)
+    local str = Timeline.panel:HideForPlayer(player.color)
 
     if str == "None" or str == player.color then
         Timeline.uiOpen = false
@@ -792,7 +792,7 @@ Timeline.eventHandlersByType = {
         end
 
         Timeline.HideUiForAll()
-        rulebook, state = Rules.RulebookAndState(event.name)
+        local rulebook, state = Rules.RulebookAndState(event.name)
         Rules.SpawnRules(rulebook, state)
         --Location.Get("Rules Board"):LookAt({ pitch = 90 })
     end,

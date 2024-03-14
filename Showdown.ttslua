@@ -111,7 +111,7 @@ function Showdown.InitUi()
         end
 
         --log:Printf("Checking if isUnlockedMode")
-        if Expansion.IsUnlockedMode() != true then
+        if Expansion.IsUnlockedMode() ~= true then
             local expansion = Showdown.expansionsByMonsterName[Showdown.monster.name]
             if not Expansion.IsEnabled(expansion.name) then
                 return log:Broadcastf("Requires %s expansion.", expansion.name)
@@ -174,7 +174,7 @@ end
 function Showdown.ShowUi(player)
     log:Debugf("Showing showdown UI for ".. player.steam_name)
 
-    str = Showdown.panel:ShowForPlayer(player.color)
+    local str = Showdown.panel:ShowForPlayer(player.color)
 
     if str == player.color then
         Showdown.uiOpen = true
@@ -186,7 +186,7 @@ end
 function Showdown.HideUi(player)
     log:Debugf("Hiding showdown UI for ".. player.steam_name)
 
-    str = Showdown.panel:HideForPlayer(player.color)
+    local str = Showdown.panel:HideForPlayer(player.color)
 
     if str == "None" or str == player.color then
         Showdown.uiOpen = false
@@ -462,13 +462,13 @@ function Showdown.Setup(monsterOrName, levelOrName)
     local terrainOverflowRow = 2
     local NextTerrainLocation = function()
         if nextTerrainLocation <= Showdown.MAX_TERRAIN then
-            terrainLocation = "Terrain "..nextTerrainLocation
-            miscLocation = "Misc "..nextTerrainLocation
+            local terrainLocation = "Terrain "..nextTerrainLocation
+            local miscLocation = "Misc "..nextTerrainLocation
             nextTerrainLocation = nextTerrainLocation + 1
             return terrainLocation, miscLocation
         else
             log:Errorf("Not enough terrain spaces!")
-            location = string.format("(%d, %d)", terrainOverflowCol, terrainOverflowRow)
+            local location = string.format("(%d, %d)", terrainOverflowCol, terrainOverflowRow)
             terrainOverflowRow = terrainOverflowRow + 3
             if terrainOverflowRow >= 16 then
                 terrainOverflowRow = 2
@@ -543,7 +543,7 @@ function Showdown.Setup(monsterOrName, levelOrName)
     -- special terrain
     for _, terrainSetup in ipairs(showdownSetup.specialTerrain or monster.specialTerrain or {}) do
         if terrainSetup.terrain then
-            terrainLocation, miscLocation = NextTerrainLocation()
+            local terrainLocation, miscLocation = NextTerrainLocation()
             log:Debugf("Spawning special terrain card %s at %s", terrainSetup.terrain, terrainLocation)
             Archive.Take({ name = terrainSetup.terrain, type = "Terrain", location = terrainLocation })
         end
@@ -552,6 +552,7 @@ function Showdown.Setup(monsterOrName, levelOrName)
             Archive.Take({ name = terrainSetup.terrainTile, type = "Terrain Tiles", location = terrainSetup.position, rotation = terrainSetup.rotation })
         end
         if terrainSetup.miscObject then
+            -- needs fixing
             log:Debugf("Spawning special misc object %s/%s at %s", terrainSetup.miscObject.name, terrainSetup.miscObject.type, miscLocation)
             Archive.Take({ name = terrainSetup.miscObject.name, type = terrainSetup.miscObject.type, location = miscLocation })
         end

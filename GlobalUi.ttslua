@@ -31,7 +31,7 @@ function GlobalUi.Init()
                 end
             else
                 for _, other in ipairs(buttons) do
-                    if other.name != button.name then
+                    if other.name ~= button.name then
                         if other.name == "Timeline" then
                             other.module.HideUiForAll()
                         else

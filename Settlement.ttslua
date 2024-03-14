@@ -115,7 +115,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Settlement.OnDrop(index, object)
-    if object.getGMNotes() != "Settlement Locations" then
+    if object.getGMNotes() ~= "Settlement Locations" then
         return
     end
 
@@ -132,7 +132,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Settlement.OnPickUp(index, object)
-    if object.getGMNotes() != "Settlement Locations" then
+    if object.getGMNotes() ~= "Settlement Locations" then
         return
     end
 

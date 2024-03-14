@@ -12,13 +12,14 @@ function Console.Init()
     Console.commands = {}
 
     EventManager.AddHandler("onChat", function(message, player, previousReturnValue)
-        if message == "" or message:sub(1, 1) != ">" then
+        if message == "" or message:sub(1, 1) ~= ">" then
             return (previousReturnValue == nil) or previousReturnValue
         end
 
         Console.Printf(message)
 
         local args = Console.Tokenize(message)
+        assert(args, "Expected at least one token")
         local command = Console.commands[args[1]:lower()]
         if not command then
             Console.Printf("Unrecognized command: %s", args[1])
@@ -91,7 +92,7 @@ function Console.Tokenize(message)
             while i <= #bytes and bytes[i] ~= quote do
                 i = i + 1
             end
-            if bytes[i] != quote then
+            if bytes[i] ~= quote then
                 log:Errorf("String missing "..string.char(quote).." quote ")
                 return
             end

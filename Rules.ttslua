@@ -26,7 +26,7 @@ function Rules.Init()
     end
 
     local rules = Rules.GetCurrentRules()
-    if rules != nil then
+    if rules ~= nil then
         local currentState = rules.getStateId()
         local rulebookName = nil
         if currentState == -1 then
@@ -152,10 +152,10 @@ function Rules.RegisterExpansion(expansion)
 
             if pageData.huntEventStart then
                 local huntEventStart = pageData.huntEventStart
-                assert(Check.Num(huntEventStart, "rulebooks[%s].pages[%s].huntEventStart", rulebookName, pageName, keywordIndex))
+                assert(Check.Num(huntEventStart, "rulebooks[%s].pages[%s].huntEventStart", rulebookName, pageName))
 
                 local huntEventEnd = pageData.huntEventEnd
-                assert(Check.Num(huntEventEnd, "rulebooks[%s].pages[%s].huntEventEnd", rulebookName, pageName, keywordIndex))
+                assert(Check.Num(huntEventEnd, "rulebooks[%s].pages[%s].huntEventEnd", rulebookName, pageName))
 
                 for huntEventNumber = huntEventStart, huntEventEnd do
                     Rules.trie:Set(tostring(huntEventNumber), entry)

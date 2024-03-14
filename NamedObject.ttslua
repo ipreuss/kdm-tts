@@ -132,7 +132,7 @@ function NamedObject.Init()
     end)
 
     Console.AddCommand("interact", function(args)
-        if #args != 2 or (args[2] != "on" and args[2] != "off") then
+        if #args ~= 2 or (args[2] ~= "on" and args[2] ~= "off") then
             Console.Printf("Usage: interact <on|off>")
             return
         end
@@ -156,7 +156,7 @@ end
 
 function NamedObject.Set(name, guid)
     local object = getObjectFromGUID(guid)
-    assert(Check(object != nil, "Couldn't find critical component '%s' with guid %s. If you accidentally deleted this object, then you may need to restore an earlier save.", name, guid))
+    assert(Check(object ~= nil, "Couldn't find critical component '%s' with guid %s. If you accidentally deleted this object, then you may need to restore an earlier save.", name, guid))
     local existing = NamedObject.objectsByName[name]
     if existing then
         assert(Check.Fail("Tried to add object '%s' with guid %s, but already exists with guid %s", name, existing.getGUID(), guid))

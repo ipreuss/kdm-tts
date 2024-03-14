@@ -8,6 +8,16 @@
         "Color",
         "Wait",
         "JSON",
-        "spawnObject"
+        "spawnObject",
+        "onSave",
+        "onLoad",
+        "self",
+        "getPlayerInfo",
+        "printToAll",
+        "broadcastToAll",
+        "getAllObjects",
+        "logStyle",
+        "getObjectFromGUID",
+        "spawnObjectJSON"
     ]
 }

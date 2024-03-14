@@ -122,7 +122,7 @@ function Monster.SetStat(stat, value)
 
     log:Debugf("Setting monster stat %s to %d", stat, value)
 
-    if Monster.stats[stat] != value then
+    if Monster.stats[stat] ~= value then
         Monster.stats[stat] = value
         local newValue = Monster.Stat(stat)
         Monster.statCounters[stat]:SetText(newValue)
@@ -153,7 +153,7 @@ end
 function Monster.UpdateTokenStats(tokenStats)
     for stat, _ in pairs(Monster.STATS) do
         local tokenStat = tokenStats[stat] or 0
-        if Monster.tokenStats[stat] != tokenStat then
+        if Monster.tokenStats[stat] ~= tokenStat then
             Monster.tokenStats[stat] = tokenStat
             local newValue = Monster.Stat(stat)
             log:Debugf("Updating monster stat %s to %d", stat, newValue)
@@ -171,7 +171,7 @@ function Monster.OnObjectCollisionEnter(object, collisionInfo)
     -- of *already registered* tokens.
 
     local collisionObject = collisionInfo.collision_object
-    if collisionObject != Monster.boardObject then
+    if collisionObject ~= Monster.boardObject then
         return
     end
 

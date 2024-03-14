@@ -34,9 +34,8 @@ function Hunt.Init()
                     huntTrack = monster.huntTrack,
                     huntEventsDeck = monster.huntEventsDeck or monster.name.." Hunt Events",
                     levels = levels,
-                    levelMap = levelMap,
                 }
-                if monster.resourcesDeck != false then
+                if monster.resourcesDeck ~= false then
                     huntSetup.resourcesDeck = monster.resourcesDeck or monster.name.." Resources"
                 end
                 table.insert(Hunt.monsters, huntSetup)
@@ -89,7 +88,7 @@ function Hunt.Init()
         end
 
         --log:Printf("Checking if isUnlockedMode")
-        if Expansion.IsUnlockedMode() != true then
+        if Expansion.IsUnlockedMode() ~= true then
             local expansion = Hunt.expansionsByMonsterName[Hunt.monster.name]
             if not Expansion.IsEnabled(expansion.name) then
                 return log:Broadcastf("Requires %s expansion.", expansion.name)
@@ -243,7 +242,7 @@ end
 function Hunt.ShowUi(player)
     log:Debugf("Showing Hunt UI for " .. player.steam_name)
 
-    str = Hunt.panel:ShowForPlayer(player.color)
+    local str = Hunt.panel:ShowForPlayer(player.color)
 
     if str == player.color then
         Hunt.uiOpen = true
@@ -255,7 +254,7 @@ end
 function Hunt.HideUi(player)
     log:Debugf("Hiding Hunt UI for " .. player.steam_name)
 
-    str = Hunt.panel:HideForPlayer(player.color)
+    local str = Hunt.panel:HideForPlayer(player.color)
 
     if str == "None" or str == player.color then
         Hunt.uiOpen = false

@@ -842,8 +842,8 @@ function Survivor.MoveBefore(survivor, beforeSurvivor)
         end
     end
 
-    assert(Check(survivorIndex != nil))
-    assert(Check(beforeSurvivorIndex != nil))
+    assert(survivorIndex ~= nil)
+    assert(beforeSurvivorIndex ~= nil)
 
     table.insert(Survivor.survivors, beforeSurvivorIndex, Survivor.survivors[survivorIndex])
     if survivorIndex < beforeSurvivorIndex then
@@ -870,8 +870,8 @@ function Survivor.MoveAfter(survivor, afterSurvivor)
         end
     end
 
-    assert(Check(survivorIndex != nil))
-    assert(Check(afterSurvivorIndex != nil))
+    assert(Check(survivorIndex ~= nil))
+    assert(Check(afterSurvivorIndex ~= nil))
 
     table.insert(Survivor.survivors, afterSurvivorIndex + 1, Survivor.survivors[survivorIndex])
     if survivorIndex < afterSurvivorIndex then
@@ -1421,7 +1421,7 @@ function SurvivorClass:SetStr(stat, value)
 end
 
 function SurvivorClass:Name() return self.name end
-function SurvivorClass:NameOrUnnamed() return (self.name and self.name != "") and self.name or "Unnamed Survivor" end
+function SurvivorClass:NameOrUnnamed() return (self.name and self.name ~= "") and self.name or "Unnamed Survivor" end
 function SurvivorClass:SetName(value) self:SetStr("name", value) end
 
 function SurvivorClass:Marker() return self.marker end
@@ -1485,10 +1485,10 @@ function SurvivorClass:SetLuck(value) self:SetModified("luck", value) end
 
 function SurvivorClass:SetNum(stat, value, min, max)
     assert(Check.Num(value))
-    if min != nil and value < min then
+    if min ~= nil and value < min then
         value = min
     end
-    if max != nil and value > max then
+    if max ~= nil and value > max then
         value = max
     end
     log:Debugf("Setting %s to %s for %s", stat, value, self)
@@ -1589,7 +1589,7 @@ function SurvivorClass:SetModifiers(modifiers)
         self.modifiers[stat] = modifiers[stat] or 0
         local newValue = self:GetModified(stat)
         log:Debugf("Changed modified %s from %d to %d for %s", stat, oldValue, newValue, self)
-        if newValue != oldValue then
+        if newValue ~= oldValue then
             EventManager.FireEvent(EventManager.ON_SURVIVOR_STAT_CHANGED, self, Survivor.MODIFIED_STATS[stat], newValue)
         end
     end

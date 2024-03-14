@@ -27,6 +27,7 @@ local Terrain = require("Kdm/Terrain")
 local Timeline = require("Kdm/Timeline")
 local Ui = require("Kdm/Ui")
 local Weapon = require("Kdm/Weapon")
+local initialized = false
 
 ---------------------------------------------------------------------------------------------------
 
@@ -55,18 +56,18 @@ function onLoad(saveJson)
     Console.Init()
     Expansion.Init(saveState.Expansion or {})
     --
-    Log.Init(e)
+    Log.Init()
     log:Printf("Meï's Kingdom Death: Monster Mod v%s", KDM_VERSION)
     log:Printf("This mod is a fork of Misterslack's and Farbod's mods. Check'em out!")
     --
-    Armor.Init(e)
-    NamedObject.Init(e)
-    Terrain.Init(e)
-    Ui.Init(e)
-    Weapon.Init(e)
+    Armor.Init()
+    NamedObject.Init()
+    Terrain.Init()
+    Ui.Init()
+    Weapon.Init()
     --
-    Archive.Init(e)
-    Location.Init(e)
+    Archive.Init()
+    Location.Init()
     --
     Deck.Init()
     Hunt.Init()
