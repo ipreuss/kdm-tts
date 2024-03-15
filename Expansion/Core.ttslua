@@ -298,6 +298,7 @@ return {
         ["Gold Cat Costume"] = { head = 1, arms = 1, body = 1, waist = 1, legs = 1 },
         ["Screaming Costume"] = { head = 1, arms = 1, body = 1, waist = 1, legs = 1 },
 
+        ["Sprinter Helm"] = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
         ["White Sunlion Mask"] = { head = 1, arms = 0, body = 0, waist = 0, legs = 0 },
     },
 
@@ -373,11 +374,8 @@ return {
         ["Thunder Maul"] = { speed = 2, accuracy = 6, strength = 10},
         ["Twilight Sword"] = { speed = 1, accuracy = 9, strength = 9 },
         ["Brazen Bat"] = { speed = 2, accuracy = 5, strength = 6 },
-        ["Tempered Spear"] = { speed = 2, accuracy = 5, strength = 5 },
         ["Durendal"] = { speed = 2, accuracy = 6, strength = 9 },
-        ["Tempered Axe"] = { speed = 2, accuracy = 6, strength = 6, paired = true },
         ["Plated Shield"] = { speed = 1, accuracy = 8, strength = 3 },
-        ["Tempered Dagger"] = { speed = 3, accuracy = 7, strength = 4, paired = true },
         ["Black Ghost Dagger"] = { speed = 3, accuracy = 7, strength = 2 },        
 
         ["Rawhide Whip"] = { speed = 3, accuracy = 7, strength = 1 },
@@ -391,6 +389,12 @@ return {
         ["Skullcap Hammer"] = { speed = 2, accuracy = 7, strength = 3 },
         ["Zanbato"] = { speed = 1, accuracy = 6, strength = 6, slow = true, deadly = 1 },
         ["Scrap Bone Spear"] = { speed = 2, accuracy = 6, strength = 3 },
+
+        ["Tempered Axe"] = { speed = 2, accuracy = 6, strength = 6, paired = true },
+        ["Tempered Dagger"] = { speed = 3, accuracy = 7, strength = 4, paired = true },
+        ["Tempered Spear"] = { speed = 2, accuracy = 5, strength = 5 },
+        ["True Lantern Halberd"] = { speed = 2, accuracy = 4, strength = 14 },
+        ["Weaponsmith's Hammer"] = { speed = 2, accuracy = 5, strength = 2 },
 
     },
 
