@@ -80,7 +80,7 @@ function onLoad(saveJson)
     Player.Init(saveState.Player or {})
     --
     Showdown.Init()
-    BattleUi.Init()
+    BattleUi.Init(saveState.BattleUi or {})
     --
     GlobalUi.Init()
     Timeline.Init(saveState.Timeline or {})
