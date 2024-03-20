@@ -8,7 +8,8 @@ return {
         ["Innovations"] = "Petal Spiral - Forbidden Dance Consequence",
         ["Terrain"] = "Flower Patches",
         ["Terrain Tiles"] = { "Flower Patch" },
-        ["Seed Pattern Gear"] = "Flower Knight Rare Gear",
+        ["Rare Gear"] = "Flower Knight Rare Gear",
+        ["Seed Pattern Gear"] = "Flower Knight Seed Pattern Gear",
         ["Seed Patterns"] = "Flower Knight Seed Patterns",
     },
 
@@ -25,6 +26,7 @@ return {
     },
 
     armorStats = {
+        ["Flower Knight Costume"] = { head = 1, arms = 1, body = 1, waist = 1, legs = 1 },
         ["Flower Knight Helm"] = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
     },
 

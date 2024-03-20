@@ -380,7 +380,6 @@ return {
         ["Steel Sword"] = { speed = 1, accuracy = 4, strength = 5, sharp = true, slow = true },
         ["Thunder Maul"] = { speed = 2, accuracy = 6, strength = 10},
         ["Twilight Sword"] = { speed = 1, accuracy = 9, strength = 9 },
-        ["Black Ghost Dagger"] = { speed = 3, accuracy = 7, strength = 2 },        
 
         ["Rawhide Whip"] = { speed = 3, accuracy = 7, strength = 1 },
 

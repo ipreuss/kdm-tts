@@ -13,6 +13,8 @@ return {
         ["Innovations"] = "Dung Beetle Knight Innovations",
         ["Settlement Locations"] = "Wet Resin Crafter",
         ["Rare Gear"] = "Dung Beetle Knight Rare Gear",
+        ["Seed Patterns"] = "Black Ghost Dagger",
+        ["Seed Pattern Gear"] = "Black Ghost Dagger",
     },
 
     timelineEvents = {
@@ -43,6 +45,7 @@ return {
     },
 
     weaponStats = {
+        ["Black Ghost Dagger"]         = { speed = 3, accuracy = 7, strength = 2 },
         ["Digging Claw"]               = { speed = 1, accuracy = 4, strength = 5, paired = true },
         ["Calcified Digging Claw"]     = { speed = 1, accuracy = 4, strength = 5, sharp = true, paired = true },
         ["Calcified Juggernaut Blade"] = { speed = 1, accuracy = 5, strength = 9, slow = true },
@@ -88,6 +91,8 @@ return {
             { "Dung Beetle Knight Legendary AI", "AI" },
             { "Dung Beetle Knight Special AI", "AI" },
             { "Dung Beetle Knight Hit Locations", "Hit Locations" },
+            { "Black Ghost Dagger", "Seed Patterns" },
+            { "Black Ghost Dagger", "Gear" },
         },
     },
 
