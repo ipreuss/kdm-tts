@@ -4,13 +4,11 @@ backupfile="./savefile_backup.json"
 templatefile="./template_workshop.json"
 luascript_start='"LuaScript":'
 cp "$savefile" "$backupfile"
-# Check if there are changes in the backup file compared to the git repository
-if [[ $(git diff --quiet "$backupfile") ]]; then
-    # Push the backup file to the git repository
-    git add "$backupfile"
-    git commit -m "Update backup file"
-    git push origin master
-fi
+
+# Push the backup file to the git repository
+git add "$backupfile"
+git commit -m "Update backup file"
+git push origin master
 # Replace the value of "LuaScript" in the backup file with the Placeholder
 jq '.LuaScript = "Lua Script gets inserted here"' "$backupfile" > "$templatefile"
 cd ..

@@ -197,7 +197,7 @@ function Campaign.ExportToOrb()
         scanTypesByLocation["Settlement Gear "..i] = { "Gear" }
     end
     for i = 1, Campaign.MAX_SETTLEMENT_RESOURCES do
-        scanTypesByLocation["Settlement Resource "..i] = { "Basic Resources", "Monster Resources", "Strange Resources", "Vermin" }
+        scanTypesByLocation["Settlement Resource "..i] = { "Basic Resources", "Monster Resources", "Strange Resources", "Vermin", "Seed Patterns" }
     end
     for i = 1, Campaign.MAX_SETTLEMENT_LOCATIONS do
         scanTypesByLocation["Settlement Location "..i] = { "Settlement Locations" }
