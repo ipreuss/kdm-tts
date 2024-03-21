@@ -510,7 +510,7 @@ function Showdown.Setup(monsterOrName, levelOrName)
         else
             descriptor = "random"
         end
-        log:Debugf("Spawned %s %s terrain at %s", descriptor, terrainCard.getName(), location)
+        log:Debugf("Spawned %s %s terrain at %s", descriptor, terrainCard.getName(), terrainLocation)
 
         local data = Terrain.Data(terrainCard.getName())
         if locations then
