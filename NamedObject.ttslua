@@ -44,6 +44,13 @@ NamedObject.data = {
     ["740242"] = { name = "Overcharge Tokens" },
     ["97f88b"] = { name = "Endure Tokens" },
 
+    ["966a53"] = { name = "Seed Patterns Archive" },
+
+    ["b72021"] = { name = "Character Archive - Abilities" },
+    ["037186"] = { name = "Character Archive - Impairments" },
+    ["4218cb"] = { name = "Character Archive - Legendary Abilities" },
+    ["29845c"] = { name = "Character Archive" },
+
     ["437cd7"] = { name = "Showdown Board", noninteractible = true }, --(make false to change image)
     ["51a21e"] = { name = "Hunt Board", noninteractible = true },
     ["226d8a"] = { name = "Settlement Board", noninteractible = true },
@@ -90,7 +97,7 @@ NamedObject.data = {
     ["590a94"] = { name = "Ezra Archive" },
     ["962317"] = { name = "Lucy Archive" },
     ["0a73fe"] = { name = "Zachary Archive" },
-    ["966a53"] = { name = "Seed Patterns Archive" },
+    
 
 }
 

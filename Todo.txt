@@ -2,3 +2,4 @@
 - forsaker sisters seed patterns kartenrücken fixen
 - fix flower knight seed pattern gear backs
 - spawning of miniatures when new campaign started should remove old miniatures
+- crafting table innovation

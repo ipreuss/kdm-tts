@@ -60,7 +60,7 @@ end
 function Deck.ResetDeck(deck)
     log:Debugf("Resetting deck %s", deck)
 
-    location = Location.Get(deck)
+    local location = Location.Get(deck)
     local blocking = location:BoxClean({ types = { deck } })
     if #blocking > 0 then
         log:Broadcastf("Something is blocking the deck. Please move the highlighted objects out of the way and try again.")
@@ -77,6 +77,23 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+function Deck.Destroy(deck)
+    log:Debugf("Destroying deck %s", deck.getName())
+    if not deck then
+        log:Debugf("Deck is nil")   
+        return
+    end
+    if deck.getQuantity() <= 1 then
+        log:Debugf("Deck has 1 card")
+        local card = deck.takeObject()
+        card.destroy()
+    else
+        log:Debugf("Deck has %d cards", deck.getQuantity())
+        deck.destroy()
+    end
+end
+
 return {
-    Init = Deck.Init
+    Init = Deck.Init,
+    Destroy = Deck.Destroy,
 }

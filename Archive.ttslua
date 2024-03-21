@@ -44,6 +44,11 @@ Archive.data = {
     { "Lucy", "Player Figurine", "Lucy Archive" },
     { "Zachary", "Player Figurine", "Zachary Archive" },
     { "Seed Patterns", "Seed Patterns", "Seed Patterns Archive"},
+    { "Character - Abilities", "Character", "Character Archive - Abilities"},
+    { "Character - Impairments", "Character", "Character Archive - Impairments"},
+    { "Character - Legendary Abilities", "Character", "Character Archive - Legendary Abilities"},
+    { "Character", "Character", "Character Archive"},
+ 
 }
 
 ---------------------------------------------------------------------------------------------------
