@@ -77,7 +77,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Util.Intersect(t1, t2)
-    result = {}
+    local result = {}
     for k, v in pairs(t1) do
         if t2[k] ~= nil then
             result[k] = v
