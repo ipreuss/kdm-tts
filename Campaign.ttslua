@@ -35,6 +35,7 @@ function Campaign.Init(saveState)
     assert(Campaign.campaign)
     Campaign.InitCampaignUi()
     Campaign.InitExportImportBoardUi()
+    Campaign.spawnCharacterDeck()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -564,9 +565,35 @@ function Campaign.BuildImportTimeline(expansions, campaign)
 end
 
 ---------------------------------------------------------------------------------------------------
+function Campaign.spawnCharacterDeck()
+    local archive = NamedObject.Get("Character Archive")
+    local rotation = { x = 0, y = 180, z = 180 }
+    local location = Location.Get("Character Deck")
+    location:BoxClean({ tags = { "Card", "Deck" } })
+    local deck = archive.takeObject({
+        position = location:Center(),
+        rotation = rotation,
+        smooth = false,
+    })
+    deck.shuffle()
+
+    EventManager.AddHandler("onObjectLeaveContainer", function(container, _)
+        if container == deck then
+            deck.destroy()
+            deck = archive.takeObject({
+                position = location:Center(),
+                rotation = rotation,
+                smooth = false,
+            })
+            deck.shuffle()
+        end
+    end)
+end
+
 local function createCharacterDeck()
     local rotation = { x = 0, y = 180, z = 180 }
     local location = Location.Get("Character Deck")
+    location:BoxClean({ tags = { "Card", "Deck" } })
     local characters = Archive.Take({
         name = "Character - Abilities",
         type = "Character",
@@ -607,24 +634,7 @@ local function createCharacterDeck()
     local archive = NamedObject.Get("Character Archive")
     archive.reset()
     archive.putObject(characters)
-    local deck = archive.takeObject({
-        position = location:Center(),
-        rotation = rotation,
-        smooth = false,
-    })
-    deck.shuffle()
-
-    EventManager.AddHandler("onObjectLeaveContainer", function(container, _)
-        if container == deck then
-            deck.destroy()
-            deck = archive.takeObject({
-                position = location:Center(),
-                rotation = rotation,
-                smooth = false,
-            })
-            deck.shuffle()
-        end
-    end)
+    Campaign.spawnCharacterDeck()
 end
 
 function Campaign.Import(data)
