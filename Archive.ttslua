@@ -119,20 +119,25 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+function CalculatePosition(params)
+    if not params.location then
+        assert(Check.Vec3(params.position, "Either location or position is required"))
+        return params.position
+    end
+    local height = params.height or 2
+    local location = Location.Get(params.location)
+    local position = location:Center()
+    position.y = position.y + height
+    return position
+end
+
 function Archive.Take(params)
     local archive = params.archive
     local name = params.name
     local type = params.type
     local height = params.height or 2
-    local location = params.location
-    local position = params.position
-    if location then
-        location = Location.Get(location)
-        position = location:Center()
-        position.y = position.y + (height or 2)
-    else
-        assert(Check.Vec3(position, "Either location or position is required"))
-    end
+    local position = CalculatePosition(params)
+   
     local rotation = params.rotation or { x = 0, y = 180, z = 0 }
     local spawnFunc = params.spawnFunc
     assert(Check.StrOrNil(archive))
