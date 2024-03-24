@@ -27,3 +27,9 @@ jq -Rs . bundle.lua > bundle.json
 
 echo "Inserting LuaScript..."
 jq --slurpfile luascript bundle.json '.LuaScript = $luascript[0]' "kdm/$templatefile" > "$savefile"
+
+# Compare savefile to backupfile
+echo "Checking..."
+if cmp -s "$savefile" "$backupfile"; then
+    echo "Error: savefile and backupfile are the same. Forgot to save your changes?"
+fi

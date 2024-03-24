@@ -566,45 +566,44 @@ end
 ---------------------------------------------------------------------------------------------------
 local function createCharacterDeck()
     local location = Location.Get("Character Deck")
-    local tempLocation = Location.Get("Temp Character Deck")
     Archive.Take({
         name = "Character - Abilities",
         type = "Character",
         location = location,
         spawnFunc = function(characters)
+            characters.shuffle()
+            log:Debugf("size of character ability deck: %d", characters.getQuantity())
+            for _ = 21, characters.getQuantity() do
+                characters.takeObject().destroy()
+            end
             Archive.Take({
                 name = "Character - Impairments",
                 type = "Character",
                 location =
-                    tempLocation,
+                Location.Get("Temp Character Deck"),
                 spawnFunc = function(impairments)
                     impairments.shuffle()
-                    local noOfImpairments = math.min(math.ceil(characters.getQuantity() / 5), impairments.getQuantity())
-                    assert(noOfImpairments <= impairments.getQuantity(),
-                        "not enough impairments, case not yet implemented")
-
-                    for i = 1, noOfImpairments do
+                    for _ = 1, 4 do
                         characters.putObject(impairments.takeObject())
                     end
                     Deck.Destroy(impairments)
-
                     Archive.Take({
                         name = "Character - Legendary Abilities",
                         type = "Character",
                         location =
-                            tempLocation,
+                        Location.Get("Temp Character Deck"),
                         spawnFunc = function(legendaryAbilities)
                             legendaryAbilities.shuffle()
 
                             characters.putObject(legendaryAbilities.takeObject())
                             Deck.Destroy(legendaryAbilities)
-
+                            
                             characters.setName("Character Deck")
                             characters.shuffle()
                             log:Debugf("Putting character deck with %d cards into archive", characters.getQuantity())
                             local archive = NamedObject.Get("Character Archive")
                             archive.reset()
-                            archive.putObject(characters, {flip = true})
+                            archive.putObject(characters, { flip = true })
                             archive.takeObject({
                                 position = location:Center(),
                                 rotation = { x = 0, y = 180, z = 180 },

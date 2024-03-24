@@ -692,6 +692,10 @@ local locationData = {
         center = { x = 62, y = 1.730189, z = -77.679756 },
         size = CARD_SIZE,
     },
+    ["Temp2 Character Deck"] = {
+        center = { x = 66, y = 1.730189, z = -77.679756 },
+        size = CARD_SIZE,
+    },
     -----------------------------------------------------------------------------
 
     ["Campaign Orb"] = {
