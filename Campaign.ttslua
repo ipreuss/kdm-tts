@@ -614,7 +614,7 @@ local function createCharacterDeck()
     })
     deck.shuffle()
 
-    EventManager.AddHandler("onObjectLeaveContainer", function(container, object)
+    EventManager.AddHandler("onObjectLeaveContainer", function(container, _)
         if container == deck then
             deck.destroy()
             deck = archive.takeObject({
