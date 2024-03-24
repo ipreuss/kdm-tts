@@ -603,16 +603,28 @@ local function createCharacterDeck()
     Deck.Destroy(legendaryAbilities)
 
     characters.setName("Character Deck")
-    characters.shuffle()
     log:Debugf("Putting character deck with %d cards into archive", characters.getQuantity())
     local archive = NamedObject.Get("Character Archive")
     archive.reset()
     archive.putObject(characters)
-    archive.takeObject({
+    local deck = archive.takeObject({
         position = location:Center(),
         rotation = rotation,
         smooth = false,
     })
+    deck.shuffle()
+
+    EventManager.AddHandler("onObjectLeaveContainer", function(container, object)
+        if container == deck then
+            deck.destroy()
+            deck = archive.takeObject({
+                position = location:Center(),
+                rotation = rotation,
+                smooth = false,
+            })
+            deck.shuffle()
+        end
+    end)
 end
 
 function Campaign.Import(data)
