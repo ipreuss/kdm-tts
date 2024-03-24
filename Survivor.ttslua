@@ -52,6 +52,7 @@ Survivor.ALLOWED_CARD_TYPES = {
     ["Player Figurine"] = true,
     ["Portrait"] = true,
     ["Bingo Card"] = true,
+    ["Character"] = true,
 }
 
 Survivor.MARKER_EMPTY = "MarkerEmpty"
@@ -1035,6 +1036,7 @@ Survivor.ICONS_BY_TYPE = {
     ["Disorders"] = "IconDisorder",
     ["Abilities"] = "IconAbility",
     ["Severe Injuries"] = "IconSevereInjury",
+    ["Character"] = "IconAbility", 
 }
 
 function Survivor.UpdateCellCards(cell)
@@ -1044,6 +1046,7 @@ function Survivor.UpdateCellCards(cell)
         ["Fighting Arts"] = {},
         ["Secret Fighting Arts"] = {},
         ["Severe Injuries"] = {},
+        ["Character"] = {},
     }
     for _, card in ipairs(cell.survivor:Cards()) do
         if cardsByType[card.type] then
@@ -1073,7 +1076,7 @@ function Survivor.UpdateCellCards(cell)
     local right = { 14, 13, 12, 11, 10, 9, 8 }
 
     -- prefer left
-    for _, type in ipairs({ "Fighting Arts", "Secret Fighting Arts", "Abilities" }) do
+    for _, type in ipairs({ "Character", "Fighting Arts", "Secret Fighting Arts", "Abilities" }) do
         for _, card in ipairs(cardsByType[type]) do
             local i = PickIndex(left, right)
             if i then
