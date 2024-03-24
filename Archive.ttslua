@@ -167,11 +167,7 @@ function Archive.Take(params)
         end
     end
 
-    if location then
-        log:Debugf("Taking item %s (%s) in archive %s to %s +%f", name, type, archive, location:Name(), height)
-    else
-        log:Debugf("Taking item %s (%s) in archive %s to %s", name, type, archive, position)
-    end
+    log:Debugf("Taking item %s (%s) in archive %s to %s", name, type, archive, position)
 
     local container = Archive.containers[archive]
     if container then
