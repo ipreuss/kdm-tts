@@ -33,3 +33,6 @@ echo "Checking..."
 if cmp -s "$savefile" "$backupfile"; then
     echo "Error: savefile and backupfile are the same. Forgot to save your changes?"
 fi
+
+# Display the current time
+echo "Done: $(date)"
