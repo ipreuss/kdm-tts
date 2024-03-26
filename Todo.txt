@@ -4,3 +4,4 @@
 - spawning of miniatures when new campaign started should remove old miniatures
 - crafting table innovation
 - fix missing location for special terraion in Showdown.ttslu
+- create a juice hunter ability card for the velvet fog settlement event
