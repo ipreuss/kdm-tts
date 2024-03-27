@@ -11,3 +11,4 @@
 - create hunt event deck based on expansions
 - implement vignette fights
 - implement patterns and indomitable resources
+- create list of settlement events for Timeline from deck
