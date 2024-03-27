@@ -5,3 +5,9 @@
 - fix missing location for special terraion in Showdown.ttslu
 - create a juice hunter ability card for the velvet fog settlement event
 - settlement terrain should only be used for nemesis showdowns
+- automatically create all-gear Archive
+- automatically create monster resources archive?
+- automate and remember strain milestones
+- create hunt event deck based on expansions
+- implement vignette fights
+- implement patterns and indomitable resources
