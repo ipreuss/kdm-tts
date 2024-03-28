@@ -784,8 +784,9 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Campaign.ConvertToLatestVersion(data)
-    if data.version == Campaign.EXPORT_VERSION then
-        return true
+    if data.version > Campaign.EXPORT_VERSION then
+        log:Errorf("Exported campaign has unrecognized version %s", tostring(data.version))
+        return false
     end
 
     if data.version == 1 then
@@ -895,14 +896,17 @@ function Campaign.ConvertToLatestVersion(data)
         end
 
         data.timeline.years = data.timeline.timeline
-
-        data.version = Campaign.EXPORT_VERSION
-
-        return true
     end
+    if data.version <= 2 then
+        for _, object in pairs(data.objectsByLocation) do
+            if object.type == "Gear" then
+                object.archive = nil
+            end
+        end
+    end
+    data.version = Campaign.EXPORT_VERSION
 
-    log:Errorf("Exported campaign has unrecognized version %s", tostring(data.version))
-    return false
+    return true
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1011,6 +1015,8 @@ function Campaign.Spawn(name, type, position, context)
             object = context.innovationArchive:Take({ name = name, type = type, position = position })
         elseif type == "Settlement Locations" then
             object = context.settlementLocationDeck:Take({ name = name, type = type, position = position })
+        elseif type == "Gear" then
+            object = Archive.Take({ name = name, type = type, position = position })
         else
             object = Archive.Take({ archive = type .. " Archive", name = name, type = type, position = position })
         end
