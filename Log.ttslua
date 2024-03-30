@@ -11,10 +11,10 @@ Log.__call = function(self, ...) log(...) end
 Log.logsByModule = {}
 
 Log.DEBUG_MODULES = {
-    ["Archive"] = true,
+    --["Archive"] = true,
     --["BattleUi"] = true,
-    ["Campaign"] = true,
-    ["Deck"] = true,
+    --["Campaign"] = true,
+    --["Deck"] = true,
     --["Expansion"] = true,
     --["Hunt"] = true,
     --["Location"] = true,
