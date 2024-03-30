@@ -897,13 +897,6 @@ function Campaign.ConvertToLatestVersion(data)
 
         data.timeline.years = data.timeline.timeline
     end
-    if data.version <= 2 then
-        for _, object in pairs(data.objectsByLocation) do
-            if object.type == "Gear" then
-                object.archive = nil
-            end
-        end
-    end
     data.version = Campaign.EXPORT_VERSION
 
     return true
@@ -1015,9 +1008,7 @@ function Campaign.Spawn(name, type, position, context)
             object = context.innovationArchive:Take({ name = name, type = type, position = position })
         elseif type == "Settlement Locations" then
             object = context.settlementLocationDeck:Take({ name = name, type = type, position = position })
-        elseif type == "Gear" then
-            object = Archive.Take({ name = name, type = type, position = position })
-        else
+       else
             object = Archive.Take({ archive = type .. " Archive", name = name, type = type, position = position })
         end
         if not object then
