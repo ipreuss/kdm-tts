@@ -3,7 +3,7 @@ return {
 
     components = {
         ["Fighting Arts"] = "Manhunter Fighting Arts",
-        ["Secret Fighting Arts"] = "Eternal Will",
+        ["Secret Fighting Arts"] = "Manhunter Secret Fighting Arts",
         ["Strange Resources"] = "Manhunter Strange Resources",
         ["Innovations"] = "Manhunter Innovations",
         ["Rare Gear"] = "Manhunter Rare Gear",
@@ -24,7 +24,7 @@ return {
             { "Manhunter Rules", "Rulebook" },
 
             { "Manhunter Fighting Arts", "Fighting Arts" },
-            { "Eternal Will", "Secret Fighting Arts" },
+            { "Manhunter Secret Fighting Arts", "Secret Fighting Arts" },
             { "Manhunter Strange Resources", "Strange Resources" },
 
             { "Manhunter Innovations", "Innovations" },

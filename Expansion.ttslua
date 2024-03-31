@@ -16,13 +16,12 @@ local Slenderman = require("Kdm/Expansion/Slenderman")
 local Spidicules = require("Kdm/Expansion/Spidicules")
 local Sunstalker = require("Kdm/Expansion/Sunstalker")
 --local CcgHomebrew = require("Kdm/Expansion/CcgHomebrew")
---local ForsakerSisters = require("Kdm/Expansion/ForsakerSisters")
---local StormKnight = require("Kdm/Expansion/StormKnight")
---local KingsCoin = require("Kdm/Expansion/KingsCoin")
---local DrifterKnight = require("Kdm/Expansion/DrifterKnight")
+local ForsakerSisters = require("Kdm/Expansion/ForsakerSisters")
+local StormKnight = require("Kdm/Expansion/StormKnight")
+local KingsCoin = require("Kdm/Expansion/KingsCoin")
+local DrifterKnight = require("Kdm/Expansion/DrifterKnight")
 local AllisonTheTwilightKnight = require("Kdm/Expansion/AllisonTheTwilightKnight")
-local TracksOfDeath = require("Kdm/Expansion/TracksOfDeath")
---local HarvesterWorm = require("Kdm/Expansion/HarvesterWorm")
+local HarvesterWorm = require("Kdm/Expansion/HarvesterWorm")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -46,13 +45,12 @@ function Expansion.Init(saveState)
         Spidicules,
         Sunstalker,
         --CcgHomebrew,
-        --ForsakerSisters,
-        --StormKnight,
-        --KingsCoin,
-        --DrifterKnight,
+        ForsakerSisters,
+        StormKnight,
+        KingsCoin,
+        DrifterKnight,
         AllisonTheTwilightKnight,
-        TracksOfDeath,
-        --HarvesterWorm,
+        HarvesterWorm,
     }
 
     Expansion.expansionsByName = {}
