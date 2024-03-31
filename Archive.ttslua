@@ -87,6 +87,7 @@ function Archive.Init()
     end
     log:Debugf("#decks for gear deck: %d", #objects)
     local deck = Archive.CreateDeckFromTable(objects)
+    deck.setName("All Gear")
     log:Debugf("putting all gear deck in archive")
     local archive = NamedObject.Get("Gear Archive")
     archive.reset()
