@@ -125,6 +125,10 @@ Survivor.CUSTOM_ASSETS = {
         name = "IconSevereInjury",
         url = "http://cloud-3.steamusercontent.com/ugc/1790722535857515501/5DDEF532D75FEB02FC1DF5D924313E7A13ECE90A/",
     },
+    {
+        name = "IconCharacter",
+        url = "http://cloud-3.steamusercontent.com/ugc/2522652198440609802/B4681DFF1B377C5C96C50CF637E0AD4D74ADF63F/",
+    },
 }
 
 -------------------------------------------------------------------------------------------------
@@ -1036,7 +1040,7 @@ Survivor.ICONS_BY_TYPE = {
     ["Disorders"] = "IconDisorder",
     ["Abilities"] = "IconAbility",
     ["Severe Injuries"] = "IconSevereInjury",
-    ["Character"] = "IconAbility", 
+    ["Character"] = "IconCharacter", 
 }
 
 function Survivor.UpdateCellCards(cell)
