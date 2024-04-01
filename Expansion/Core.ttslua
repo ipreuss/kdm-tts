@@ -307,6 +307,9 @@ return {
         ["Screaming Costume"] = { head = 1, arms = 1, body = 1, waist = 1, legs = 1 },
         ["Sprinter Helm"] = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
         ["White Sunlion Mask"] = { head = 1, arms = 0, body = 0, waist = 0, legs = 0 },
+
+        ["Lantern Mantle"]         = { head = 0, arms = 0, body = 2, waist = 0, legs = 0 },
+        ["CCG Centipede Claw"]     = { head = 0, arms = 2, body = 0, waist = 0, legs = 0 },
     },
 
     weaponStats = {
@@ -413,6 +416,8 @@ return {
 
         ["Mirror Dagger"]     = { speed = 2, accuracy = 6, strength = 2, sharp = true },
         ["Prophetic Jawbone"] = { speed = 2, accuracy = 6, strength = 4, savage = true },
+
+        ["CCG Centipede Claw"]        = { speed = 2, accuracy = 6, strength = 3, sharp = true },
     },
 
     guidNames = { ["6392cb"] = "Core Archive" },
