@@ -6,6 +6,7 @@ local Location = require("Kdm/Location")
 local log = require("Kdm/Log").ForModule("Hunt")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
+local Survivor = require("Kdm/Survivor")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -153,6 +154,12 @@ function Hunt.Setup(monsterOrName, levelOrName)
     if Hunt.settingUpHunt == true then
         log:Errorf("Hunt setup currently in progress, please wait until finished before setting up another hunt. If the hunt appears to be stuck, click 'Cleanup Hunt' from the 'Cleanup' menu to reset.")
         return 1
+    end
+    for survivor in Survivor.IterateDepartingSurvivors() do
+        if survivor:skipNextHunt() then
+            log:Errorf("Survivor %s has to skip this hunt. Return them to the settlement.", survivor.name)
+            return 1
+        end
     end
 
     local monster = nil
