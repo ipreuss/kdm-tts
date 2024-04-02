@@ -237,14 +237,7 @@ function Survivor.InitUi()
         Survivor.SetPageAndRefresh(Survivor.MaxPage())
     end })
 
-    Survivor.clearSkipNextHuntButton = ui:Button({ id = "clearSkipNextHunt", topLeft = { x = -0.897427, y = -7.661951 }, bottomRight = { x = -2.819457, y = -7.049488 }, onClick = function()
-        for _, survivor in ipairs(Survivor.survivors) do
-            if survivor:SkipNextHunt() then
-                survivor:SetSkipNextHunt(false)
-                log:Printf("Cleared 'Skip Next Hunt' on %s", survivor:NameOrUnnamed())
-            end
-        end
-    end })
+    Survivor.clearSkipNextHuntButton = ui:Button({ id = "clearSkipNextHunt", topLeft = { x = -0.897427, y = -7.661951 }, bottomRight = { x = -2.819457, y = -7.049488 }, onClick = Survivor.ClearSkipNextHunt })
 
     Survivor.previousPageButton = ui:Button({ id = "previousPage", topLeft = { x = -6.576738, y = -7.658603 }, bottomRight = { x = -6.846550, y = -7.060284 }, onClick = function()
         Survivor.SetPageAndRefresh(Survivor.page - 1)
@@ -303,6 +296,15 @@ function Survivor.InitUi()
     Survivor.boardObject.UI.setCustomAssets(Survivor.CUSTOM_ASSETS)
     Survivor.ui:ApplyToObject()
 end
+
+function Survivor.ClearSkipNextHunt()
+    for _, survivor in ipairs(Survivor.survivors) do
+        if survivor:SkipNextHunt() then
+            survivor:SetSkipNextHunt(false)
+            log:Printf("Cleared 'Skip Next Hunt' on %s", survivor:NameOrUnnamed())
+        end
+    end
+end 
 
 ---------------------------------------------------------------------------------------------------
 
@@ -1885,6 +1887,11 @@ return {
         EventManager.FireEvent(EventManager.ON_SURVIVOR_GETS_IN_PLAY, survivor)
         return survivorSheet
     end,
+    GetDepartingSurvivors = function()
+        log:Debugf("Getting departing survivors")
+        return pairs(Survivor.survivorSheetsBySurvivor)
+    end,
+    ClearSkipNextHunt = Survivor.ClearSkipNextHunt,
 
     ALLOWED_CARD_TYPES = Survivor.ALLOWED_CARD_TYPES,
 }

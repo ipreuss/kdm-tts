@@ -155,8 +155,9 @@ function Hunt.Setup(monsterOrName, levelOrName)
         log:Errorf("Hunt setup currently in progress, please wait until finished before setting up another hunt. If the hunt appears to be stuck, click 'Cleanup Hunt' from the 'Cleanup' menu to reset.")
         return 1
     end
-    for survivor in Survivor.IterateDepartingSurvivors() do
-        if survivor:skipNextHunt() then
+    for survivor in Survivor.GetDepartingSurvivors() do
+        log:Debugf("Checking if %s has to skip this hunt", survivor.name)
+        if survivor:SkipNextHunt() then
             log:Errorf("Survivor %s has to skip this hunt. Return them to the settlement.", survivor.name)
             return 1
         end
@@ -236,6 +237,7 @@ function Hunt.Setup(monsterOrName, levelOrName)
     })
 
     Archive.Clean()
+    Survivor.ClearSkipNextHunt()
 
     log:Printf("Hunt ready. May your lanterns guide you in the darkness.")
 
