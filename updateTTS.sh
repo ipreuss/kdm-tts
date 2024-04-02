@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 savefile="$HOME/Library/Tabletop Simulator/Saves/TS_Save_54.json"
 backupfile="./savefile_backup.json"
 templatefile="./template_workshop.json"
