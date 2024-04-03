@@ -319,7 +319,15 @@ function Showdown.Setup(monsterOrName, levelOrName)
     -- AI
 
     Archive.Take({ name = monster.info, type = "AI", location = "Monster Info" })
-    Archive.Take({ name = monster.basicAction, type = "AI", location = "Basic Action" })
+    local basicAction = Archive.Take({ name = monster.basicAction, type = "AI", location = "Basic Action" })
+    log:Debugf("Basic action type: %s", basicAction.type)
+    if basicAction.type == "Deck" then
+        basicAction.shuffle()
+        while basicAction.getQuantity() > 1 do
+            basicAction.takeObject().destroy()
+        end
+    end
+    
 
     local basicAiDeck = Container(Archive.Take({ name = monster.basicAiDeck, type = "AI", location = "Unused Basic AI", rotation = { x = 0, y = 180, z = 180 } }))
     basicAiDeck:Shuffle()

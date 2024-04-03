@@ -20,7 +20,7 @@ Log.DEBUG_MODULES = {
     --["Location"] = true,
     --["Player"] = true,
     --["Rules"] = true,
-    --["Showdown"] = true,
+    ["Showdown"] = true,
     --["Survivor"] = true,
     --["Timeline"] = true,
 }
