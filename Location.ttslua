@@ -134,7 +134,7 @@ function Location.Get(locationOrName)
     assert(Check.Str(locationOrName))
     local location = Location.locationsByName[locationOrName:lower()]
     if not location then
-        log:Debugf("Unknown location: %s", locationOrName)
+        log:Errorf("Unknown location: %s", locationOrName)
     end
     return location
 end
