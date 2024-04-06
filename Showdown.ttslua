@@ -451,7 +451,7 @@ function Showdown.Setup(monsterOrName, levelOrName)
         log:Debugf("Found traps deck %s, creating container", monster.trapsDeck)
         trapsDeck = Container(trapsDeck)
         log:Debugf("Shuffling traps deck %s", monster.trapsDeck)
-        trapsDeck:shuffle()
+        trapsDeck:Shuffle()
         log:Debugf("Adding traps deck %s to sources", monster.trapsDeck)
         table.insert(sources, Archive.ContainerSource(trapsDeck))
     end
