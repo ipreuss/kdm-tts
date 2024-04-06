@@ -551,6 +551,7 @@ return {
             { "White Lion Legendary AI", "AI" },
             { "White Lion Special AI", "AI" },
             { "White Lion Hit Locations", "Hit Locations" },
+            { "White Lion Traps", "Hit Locations"},
             { "White Lion Resources", "Monster Resources" },
             { "White Lion Hunt Events", "Monster Hunt Events" },
 
@@ -1411,6 +1412,7 @@ return {
             specialAiDeck = "White Lion Special AI",
             legendaryAiDeck = "White Lion Legendary AI",
             basicAiDeck = "White Lion Basic AI",
+            trapsDeck = "White Lion Traps",
             huntEventsDeck = "White Lion Hunt Events",
             resourcesDeck = "White Lion Resources",
             huntTrack = { "H", "H", "H", "H", "M", "O", "M", "H", "M", "M", "H" },

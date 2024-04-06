@@ -45,14 +45,15 @@ function Showdown.InitExpansions()
 
     for _, expansion in ipairs(Expansion.All()) do
         for _, monster in ipairs(expansion.monsters or {}) do
-            if monster.resourcesDeck == nil then monster.resourcesDeck = monster.name.." Resources" end
-            if monster.info == nil then monster.info = monster.name.." Info" end
-            if monster.basicAction == nil then monster.basicAction = monster.name.." Basic Action" end
-            if monster.basicAiDeck == nil then monster.basicAiDeck = monster.name.." Basic AI" end
-            if monster.advancedAiDeck == nil then monster.advancedAiDeck = monster.name.." Advanced AI" end
-            if monster.legendaryAiDeck == nil then monster.legendaryAiDeck = monster.name.." Legendary AI" end
-            if monster.specialAiDeck == nil then monster.specialAiDeck = monster.name.." Special AI" end
-            if monster.hitLocationsDeck == nil then monster.hitLocationsDeck = monster.name.." Hit Locations" end
+            monster.resourcesDeck = monster.resourcesDeck or (monster.name.." Resources")
+            monster.info = monster.info or (monster.name.." Info")
+            monster.basicAction = monster.basicAction or (monster.name.." Basic Action")
+            monster.basicAiDeck = monster.basicAiDeck or (monster.name.." Basic AI")
+            monster.advancedAiDeck = monster.advancedAiDeck or (monster.name.." Advanced AI")
+            monster.legendaryAiDeck = monster.legendaryAiDeck or (monster.name.." Legendary AI")
+            monster.specialAiDeck = monster.specialAiDeck or (monster.name.." Special AI")
+            monster.hitLocationsDeck = monster.hitLocationsDeck or (monster.name.." Hit Locations")
+            monster.trapsDeck = monster.trapsDeck or (monster.name.." Traps")
             monster.expansion = expansion
             table.insert(Showdown.monsters, monster)
             Showdown.monstersByName[monster.name] = monster
@@ -444,6 +445,16 @@ function Showdown.Setup(monsterOrName, levelOrName)
     local sources = {
         Archive.ArchiveSource(monster.hitLocationsDeck, "Hit Locations")
     }
+    log:Debugf("looking for %s", monster.trapsDeck)
+    local trapsDeck = Archive.Take({ name = monster.trapsDeck, type = "Hit Locations", location = "Unused HL", rotation = { x = 0, y = 180, z = 180 } })
+    if trapsDeck then
+        log:Debugf("Found traps deck %s, creating container", monster.trapsDeck)
+        trapsDeck = Container(trapsDeck)
+        log:Debugf("Shuffling traps deck %s", monster.trapsDeck)
+        trapsDeck:shuffle()
+        log:Debugf("Adding traps deck %s to sources", monster.trapsDeck)
+        table.insert(sources, Archive.ContainerSource(trapsDeck))
+    end
     for _, card in ipairs(showdownSetup.miscHitLocations or {}) do
         table.insert(sources, Archive.ContainerSource(miscAiDeck, card, "Hit Locations"))
     end

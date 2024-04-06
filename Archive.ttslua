@@ -269,12 +269,14 @@ function Archive.CreateDeckFromSources(params)
         local takeParams = { name = source.name, type = source.type, location = location, height = (i - 1) * 0.5, rotation = rotation }
         local object = nil
         if source.source == "Archive" then
+            log:Debugf("Taking %s/%s from archive", source.name, source.type)
             object = Archive.Take(takeParams)
             if not object then
                 --log:Debugf("Couldn't find '%s' in archive", source.name)
                 table.insert(missing, source)
             end
         elseif source.source == "Container" then
+            log:Debugf("Taking %s/%s from container", source.name, source.type)
             object = source.container:Take(takeParams)
             if not object then
                 --log:Debugf("Couldn't find '%s' in container [%s] %s", source.name, source.container:Guid(), source.container:Name())
