@@ -88,6 +88,29 @@ function Archive.Init()
     log:Debugf("#decks for gear deck: %d", #objects)
     local deck = Archive.CreateDeckFromTable(objects)
     deck.setName("All Gear")
+    
+    local function CheckForDuplicates(deck)
+        local cardCounts = {}
+        local duplicates = {}
+
+        for _, card in ipairs(deck.getObjects()) do
+            local cardName = card.name
+            log:Debugf("Checking card: %s", cardName)
+            cardCounts[cardName] = (cardCounts[cardName] or 0) + 1
+
+            if cardCounts[cardName] > 1 then
+                table.insert(duplicates, cardName)
+            end
+        end
+
+        for _, duplicate in ipairs(duplicates) do
+            log:Errorf("Duplicate card found: %s", duplicate)
+        end
+    end
+
+    -- Call the function to check for duplicates in the "All Gear" deck
+    CheckForDuplicates(deck)
+
     log:Debugf("putting all gear deck in archive")
     local archive = NamedObject.Get("Gear Archive")
     archive.reset()
