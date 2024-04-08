@@ -7,6 +7,7 @@ local MessageBox = require("Kdm/MessageBox")
 local NamedObject = require("Kdm/NamedObject")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
+local Names = require("Kdm/Util/Names")
 
 -------------------------------------------------------------------------------------------------
 
@@ -229,7 +230,10 @@ function Survivor.InitUi()
         local id = Survivor.nextSurvivorId
         Survivor.nextSurvivorId = Survivor.nextSurvivorId + 1
         local survivor = SurvivorClass.Create({ id = id })
-        survivor[(math.random(2) == 1) and "SetMale" or "SetFemale"](survivor, true)
+        local isMale = math.random(2) == 1
+        survivor[isMale and "SetMale" or "SetFemale"](survivor, true)
+        --survivor:SetCards({ Survivor.characterProvider() })
+        survivor:SetName(Names.getName(isMale))
         table.insert(Survivor.survivors, survivor)
         Survivor.survivorsById[survivor.id] = survivor
 
@@ -296,6 +300,10 @@ function Survivor.InitUi()
 
     Survivor.boardObject.UI.setCustomAssets(Survivor.CUSTOM_ASSETS)
     Survivor.ui:ApplyToObject()
+end
+
+function Survivor.setCharacterProvider(characterProvider)
+    Survivor.characterProvider = characterProvider
 end
 
 function Survivor.ClearSkipNextHunt()
@@ -1872,6 +1880,7 @@ return {
     Save = Survivor.Save,
     Import = Survivor.Import,
     Export = Survivor.Export,
+    SetCharacterProvider = Survivor.setCharacterProvider,
 
     Survivors = function() return Survivor.survivors end,
 

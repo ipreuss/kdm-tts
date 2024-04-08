@@ -1,0 +1,44 @@
+local Check = require("Kdm/Util/Check")
+
+local Names = {}
+
+Names.names = {
+    [true] = {
+        "Thornwald", "Eldric", "Gravain", "Morcant", "Thrayce", "Darnath", "Broric",
+        "Calveron", "Drayson", "Gavrel", "Wulfric", "Sorn", "Ildar", "Fenmar", "Corvyn",
+        "Aldritch", "Theron", "Ravik", "Mordain", "Garrick", "Halvorn", "Durwald",
+        "Brayce", "Varick", "Ulthar", "Crevan", "Baelor", "Torrin", "Galdor", "Ebris",
+        "Jorvath", "Harken", "Zephyr", "Lorn", "Arkyn", "Cadmar", "Thorne", "Rendal",
+        "Skorn", "Fendrel", "Malric", "Vorn", "Alaric", "Draven", "Helmar", "Yorven",
+        "Gravus", "Keldan", "Orin", "Branok", "Torvald", "Ravos", "Ysarn", "Ealdor",
+        "Marrow", "Vyctor", "Dervin", "Brys", "Kaelen", "Varis", "Eldon", "Ghoran",
+        "Thrain", "Bregor", "Vardan", "Lorcan", "Drustan", "Sylas", "Rowan", "Haldor",
+        "Kendric", "Feral", "Tarik", "Zorander", "Nyven", "Balor", "Arthain", "Quillon",
+        "Zevran", "Orlan", "Ivor", "Halvar", "Gaius", "Faelan", "Cyric", "Belric", "Aedan",
+        "Wystan", "Vhalen", "Uldric", "Sydow", "Ryn", "Quorin", "Perin", "Orson", "Niro",
+        "Myron", "Lysander", "Kyran", "Jax"
+    },
+    [false] = {
+        "Amaris", "Bryndis", "Ceridwen", "Drusilla", "Eirlys", "Freyja", "Giselle", "Havilah",
+        "Ilyana", "Jael", "Kestra", "Liora", "Mireille", "Nimue", "Ondine", "Perrin", "Quilla",
+        "Ravenna", "Seraphine", "Tamsin", "Ulyssa", "Vespera", "Wynne", "Xylia", "Ysabel", "Zephyra",
+        "Aveline", "Briseis", "Calista", "Dahlia", "Elowen", "Fiora", "Grania", "Hestia", "Isolde",
+        "Jovena", "Keira", "Lunara", "Maelis", "Nyssa", "Orla", "Phaedra", "Quintessa", "Rhiannon",
+        "Sorcha", "Thalia", "Una", "Valora", "Wilhelmina", "Xanthe", "Yvaine", "Zelda", "Althea",
+        "Beatrix", "Clodagh", "Delphine", "Evanthe", "Faelina", "Gwenaelle", "Hecate", "Ianthe",
+        "Jessalyn", "Kaiara", "Lysandra", "Melisande", "Nephele", "Oriane", "Priya", "Qadira",
+        "Rosmerta", "Sylvi", "Tindra", "Ursa", "Vivica", "Wisteria", "Xenia", "Ygritte", "Zelie",
+        "Ariadne", "Bellatrix", "Cassiopeia", "Dione", "Elara", "Fauna", "Galatea", "Hypatia",
+        "Ismay", "Jocasta", "Klytie", "Leocadia", "Minerva", "Nerissa", "Olympia", "Penelope",
+        "Quintia", "Rosalind", "Selene", "Thalassa", "Umbria", "Valkyrie", "Wren", "Xanthea",
+        "Ysolde", "Zenobia"
+    }
+}
+
+function Names.getName(male)
+    assert(Check.Boolean(male, "male must be a boolean"))
+    local names = Names.names[male]
+    return names[math.random(#names)]
+end
+
+return { getName = Names.getName }

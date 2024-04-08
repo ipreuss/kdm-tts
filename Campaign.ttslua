@@ -41,6 +41,7 @@ function Campaign.Init(saveState)
             Campaign.spawnCharacterDeck()
         end
     end)
+    Survivor.SetCharacterProvider(Campaign.getCharacter)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -577,6 +578,10 @@ function Campaign.spawnCharacterDeck()
         smooth = false,
     })
     Campaign.characterDeck.shuffle()
+end
+
+function Campaign.getCharacter()
+    return Campaign.characterDeck.takeObject()
 end
 
 function Campaign.buildRandomCharacterDeck()
