@@ -69,10 +69,9 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Settlement.ResetGear(gear, locationName)
-    assert(Check.Str(gear))
     local location = Location.Get(locationName)
 
-    log:Debugf("Resetting gear %s at %s", gear, locationName)
+    log:Debugf("Resetting gear at %s", locationName)
 
     local blocking = location:RayClean({ types = { "Gear" } })
     if #blocking > 0 then
@@ -81,12 +80,15 @@ function Settlement.ResetGear(gear, locationName)
         return
     end
 
-    Archive.Take({
-        name = gear,
-        type = "Gear",
-        location = location,
-        rotation = { x = 0, y = 180, z = 180 },
-    })
+    for _, g in ipairs((type(gear) == "table") and gear or { gear }) do
+        log:Debugf("Taking %s", g)
+        Archive.Take({
+            name = g,
+            type = "Gear",
+            location = location,
+            rotation = { x = 0, y = 180, z = 180 },
+        })
+    end
     Archive.Clean()
 end
 

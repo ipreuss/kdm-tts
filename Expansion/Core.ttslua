@@ -186,7 +186,7 @@ return {
         ["Barber Surgeon"]           = "Barber Surgeon Gear",
         ["Mask Maker"]               = "Mask Maker Gear",
         ["Catarium"]                 = "Catarium Gear",
-        ["Giga-Catarium"]            = "Giga-Catarium Gear",
+        ["Giga-Catarium"]            = { "Catarium Gear", "Giga-Catarium Gear" },
         ["Stone Circle"]             = "Stone Circle Gear",
         ["Plumery"]                  = "Plumery Gear",
         ["Song of the Green Knight"] = "Green Armor",

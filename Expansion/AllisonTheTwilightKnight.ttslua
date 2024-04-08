@@ -119,6 +119,7 @@ return {
             { "Quick Strike", "Fighting Arts" },
             { "Survivorship", "Secret Fighting Arts" },
             { "Allison The Twilight Knight Seed Patterns", "Seed Patterns" },
+            { "Allison The Twilight Knight Seed Pattern Gear", "Gear"},
 
             { "Mineral Vein", "Terrain" },
             { "Mineral Vein", "Terrain Tiles" },
