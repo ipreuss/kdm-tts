@@ -232,10 +232,13 @@ function Survivor.InitUi()
         local survivor = SurvivorClass.Create({ id = id })
         local isMale = math.random(2) == 1
         survivor[isMale and "SetMale" or "SetFemale"](survivor, true)
+        local character = nil
         if Survivor.innovationsChecker("Character") then
-            survivor:SetCards({ Survivor.characterProvider() })
+            local characterCard = Survivor.characterProvider()
+            survivor:SetCards({ characterCard })
+            character = characterCard.name
         end
-        survivor:SetName(Names.getName(isMale))
+        survivor:SetName(Names.getName(isMale, character))
         table.insert(Survivor.survivors, survivor)
         Survivor.survivorsById[survivor.id] = survivor
 

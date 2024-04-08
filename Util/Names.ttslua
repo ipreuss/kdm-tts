@@ -4,40 +4,339 @@ local Names = {}
 
 Names.names = {
     [true] = {
-        "Thornwald", "Eldric", "Gravain", "Morcant", "Thrayce", "Darnath", "Broric",
-        "Calveron", "Drayson", "Gavrel", "Wulfric", "Sorn", "Ildar", "Fenmar", "Corvyn",
-        "Aldritch", "Theron", "Ravik", "Mordain", "Garrick", "Halvorn", "Durwald",
-        "Brayce", "Varick", "Ulthar", "Crevan", "Baelor", "Torrin", "Galdor", "Ebris",
-        "Jorvath", "Harken", "Zephyr", "Lorn", "Arkyn", "Cadmar", "Thorne", "Rendal",
-        "Skorn", "Fendrel", "Malric", "Vorn", "Alaric", "Draven", "Helmar", "Yorven",
-        "Gravus", "Keldan", "Orin", "Branok", "Torvald", "Ravos", "Ysarn", "Ealdor",
-        "Marrow", "Vyctor", "Dervin", "Brys", "Kaelen", "Varis", "Eldon", "Ghoran",
-        "Thrain", "Bregor", "Vardan", "Lorcan", "Drustan", "Sylas", "Rowan", "Haldor",
-        "Kendric", "Feral", "Tarik", "Zorander", "Nyven", "Balor", "Arthain", "Quillon",
-        "Zevran", "Orlan", "Ivor", "Halvar", "Gaius", "Faelan", "Cyric", "Belric", "Aedan",
-        "Wystan", "Vhalen", "Uldric", "Sydow", "Ryn", "Quorin", "Perin", "Orson", "Niro",
-        "Myron", "Lysander", "Kyran", "Jax"
+        none = {
+            "Thornwald", "Eldric", "Gravain", "Morcant", "Thrayce", "Darnath", "Broric",
+            "Calveron", "Drayson", "Gavrel", "Wulfric", "Sorn", "Ildar", "Fenmar", "Corvyn",
+            "Aldritch", "Theron", "Ravik", "Mordain", "Garrick", "Halvorn", "Durwald",
+            "Brayce", "Varick", "Ulthar", "Crevan", "Baelor", "Torrin", "Galdor", "Ebris",
+            "Jorvath", "Harken", "Zephyr", "Lorn", "Arkyn", "Cadmar", "Thorne", "Rendal",
+            "Skorn", "Fendrel", "Malric", "Vorn", "Alaric", "Draven", "Helmar", "Yorven",
+            "Gravus", "Keldan", "Orin", "Branok", "Torvald", "Ravos", "Ysarn", "Ealdor",
+            "Marrow", "Vyctor", "Dervin", "Brys", "Kaelen", "Varis", "Eldon", "Ghoran",
+            "Thrain", "Bregor", "Vardan", "Lorcan", "Drustan", "Sylas", "Rowan", "Haldor",
+            "Kendric", "Feral", "Tarik", "Zorander", "Nyven", "Balor", "Arthain", "Quillon",
+            "Zevran", "Orlan", "Ivor", "Halvar", "Gaius", "Faelan", "Cyric", "Belric", "Aedan",
+            "Wystan", "Vhalen", "Uldric", "Sydow", "Ryn", "Quorin", "Perin", "Orson", "Niro",
+            "Myron", "Lysander", "Kyran", "Jax" },
+        ["The Adventurer"] =
+        {
+            "Alden", "Brom", "Caius", "Davos", "Egon", "Falken", "Gareth", "Holt",
+            "Ivar", "Jaric", "Kael", "Lorcan", "Merrick", "Nyle", "Orrin", "Paxton",
+            "Quinlan", "Roric", "Soren", "Tybalt"
+        },
+        ["The Axe"] = {
+            "Brom", "Draven", "Gunnar", "Korin", "Leif", "Magnus", "Ragnar", "Sven", "Torin", "Ulric",
+            "Valgard", "Bjorn", "Einar", "Halvar", "Ivar", "Jorund", "Knud", "Rurik", "Sten", "Vidar"
+        },
+        ["The Berserker"] = {
+            "Barak", "Borin", "Crom", "Drang", "Eirik", "Fiske", "Gorm", "Harald",
+            "Ivor", "Jarl", "Knut", "Leif", "Magnar", "Njord", "Orvar", "Rune",
+            "Skarde", "Torvald", "Ulf", "Varg"
+        },
+        ["The Bow"] = {
+            "Archer", "Beckett", "Cedric", "Darian", "Edric", "Fletcher", "Garrett", "Hunter",
+            "Kael", "Lorcan", "Merrick", "Nyle", "Orrin", "Paxton", "Quinlan", "Roric",
+            "Soren", "Tristan", "Ulric", "Wyatt"
+        },
+        ["The Bright Knives"] = {
+            "Blade", "Caelum", "Dexter", "Enzo", "Finn", "Griff", "Hawk", "Jett",
+            "Kato", "Lucius", "Milo", "Nero", "Orion", "Pierce", "Quill", "Rex",
+            "Silas", "Talon", "Vale", "Zephyr",
+        },
+        ["The Bright Side"] = {
+            "Amos", "Bennett", "Cyrus", "Dorian", "Eamon", "Felix", "Gideon", "Hugo",
+            "Isaac", "Jasper", "Kian", "Leo", "Matthias", "Nathan", "Owen", "Pascal",
+            "Quentin", "Reuben", "Simon", "Theo",
+        },
+        ["The Clever"] = {
+            "Alden", "Byron", "Caius", "Dexter", "Eldon", "Felix", "Galen", "Hale",
+            "Iden", "Jasper", "Kai", "Lyle", "Milo", "Nevin", "Orin", "Pascal",
+            "Quint", "Reese", "Sage", "Tate",
+        },
+        ["The Clumsy"] = {
+            "Baxter", "Cedric", "Doyle", "Eldon", "Fergus", "Giles", "Horace", "Ives",
+            "Jasper", "Kelby", "Lester", "Mort", "Ned", "Ogden", "Percy", "Quincy",
+            "Roscoe", "Silas", "Thurston", "Wilbur",
+        },
+        ["The Dark"] = {
+            "Amon", "Bran", "Corvus", "Drake", "Erebus", "Fenris", "Grimm", "Hadrian",
+            "Ivar", "Jareth", "Kane", "Lucan", "Morpheus", "Nero", "Orion", "Phoenix",
+            "Quinlan", "Rune", "Soren", "Thorne",
+        },
+        ["Disorderly"] = {
+            "Barclay", "Cecil", "Dewey", "Egbert", "Floyd", "Gustav", "Herbert", "Irwin",
+            "Jethro", "Kerwin", "Lloyd", "Murray", "Norbert", "Oswald", "Percival", "Quincy",
+            "Rudyard", "Seymour", "Truman", "Vernon",
+        },
+        ["Dream of the Heart"] = {
+            "Amadeus", "Balthazar", "Cassian", "Darius", "Elian", "Faelan", "Gabriel",
+            "Isaias", "Jareth", "Lucian", "Mathias", "Nathaniel", "Oberon", "Peregrine",
+            "Raphael", "Sebastian", "Theon", "Uriel", "Valerian", "Xavier", "Azriel",
+            "Caspian", "Evander", "Gideon", "Icarus", "Leander", "Orion", "Phineas",
+            "Sylvan", "Thaddeus", "Zachariah",
+        },
+        ["The Dying"] = {
+            "Alaric", "Bram", "Caius", "Dorian", "Egon", "Fenrir", "Gareth", "Hadrian",
+            "Ivor", "Jareth", "Kane", "Lucius", "Morten", "Nero", "Orpheus", "Peregrine",
+            "Quentin", "Ragnar", "Soren", "Tristan",
+        },
+        ["The Fang"] = {
+            "Alec", "Blaise", "Corbin", "Drake", "Emeric", "Fang", "Griff", "Holt",
+            "Ivar", "Jett", "Kane", "Logan", "Mace", "Nash", "Orin", "Pike",
+            "Quint", "Ryker", "Slate", "Torin",
+        },
+        ["The Gaiety"] = {
+            "Aldo", "Brio", "Caden", "Dario", "Elvin", "Fintan", "Gio", "Hugo",
+            "Iolo", "Jovial", "Kiran", "Liron", "Milo", "Nario", "Oberon", "Piero",
+            "Quinto", "Rian", "Sunny", "Tajo",
+        },
+        ["The Gatherer"] = {
+            "Archer", "Benton", "Cyrus", "Dalton", "Eden", "Forrest", "Garner", "Harvest",
+            "Irwin", "Jasper", "Keaton", "Leland", "Mason", "Nolan", "Oakes", "Parker",
+            "Quinn", "Rowan", "Sawyer", "Thatcher",
+        },
+        ["The Hasty"] = {
+            "Blitz", "Cade", "Dart", "Ezra", "Flynn", "Guy", "Holt", "Ivo",
+            "Jett", "Kai", "Lev", "Miles", "Nash", "Orin", "Pax", "Quip",
+            "Rush", "Swift", "Tate", "Vek",
+        },
+        ["The Hoarder"] = {
+            "Barnaby", "Caspian", "Davenport", "Eustace", "Gawain", "Hadrian", "Ivar",
+            "Jasper", "Kendrick", "Lorcan", "Merrick", "Nathaniel", "Orson", "Percival",
+            "Quinlan", "Randolph", "Silas", "Thaddeus", "Ulysses", "Vance",
+        },
+        ["The Hunger"] = {
+            "Bane", "Creed", "Drake", "Fenris", "Grim", "Holt", "Kane", "Lycan",
+            "Mordred", "Nash", "Orrin", "Prowl", "Quake", "Ravage", "Slade", "Thorn",
+            "Ulric", "Vor", "Wolf", "Zane",
+        },
+        ["The Last Stand"] = {
+            "Alistair", "Barrett", "Caius", "Damon", "Evander", "Finnegan", "Garrick", "Hadrian",
+            "Isaac", "Jorah", "Kael", "Leonidas", "Magnus", "Nero", "Orion", "Paxton",
+            "Quinlan", "Ragnar", "Soren", "Thorin",
+        },
+        ["The Lithe"] = {
+            "Aiden", "Blaise", "Corin", "Dante", "Elio", "Finley", "Gale", "Hale",
+            "Ivo", "Jace", "Kai", "Lorcan", "Milo", "Niles", "Oriel", "Pace",
+            "Quin", "Reed", "Seth", "Tyrone",
+        },
+        ["The Lonely"] = {
+            "Blaine", "Cain", "Drystan", "Eldric", "Faine", "Gareth", "Hale", "Ivor",
+            "Jareth", "Keir", "Lorne", "Merrick", "Niall", "Oisin", "Perrin", "Quillan",
+            "Rhys", "Soren", "Torin", "Wystan",
+        },
+        ["The Mad"] = {
+            "Bran", "Cyrus", "Dax", "Egon", "Falk", "Gage", "Halvor", "Ivar",
+            "Jory", "Kael", "Lorcan", "Maddock", "Nero", "Orson", "Pax", "Quint",
+            "Riven", "Soren", "Tor", "Vane",
+        },
+        ["The Magma"] = {
+            "Brande", "Calder", "Dunstan", "Eldur", "Flint", "Garnet", "Hakan", "Ignatius",
+            "Keegan", "Lorcan", "Maddock", "Nero", "Orin", "Pyro", "Quintus", "Ragnar",
+            "Sulien", "Tyson", "Vulcan", "Wolf",
+        },
+        ["The Mighty"] = {
+            "Alexander", "Balthazar", "Conall", "Darius", "Evander", "Fergus", "Griffin", "Hector",
+            "Ivar", "Jarl", "Kane", "Leonidas", "Maximus", "Nolan", "Ozias", "Perseus",
+            "Quinlan", "Ragnar", "Samson", "Titus",
+        },
+        ["Out of Sync"] = {
+            "Baird", "Cassian", "Drexel", "Eldon", "Ferris", "Gannon", "Halden", "Ira",
+            "Jovan", "Kael", "Lysander", "Maddock", "Nash", "Orin", "Perrin", "Quentin",
+            "Rasmus", "Soren", "Tobin", "Varian",
+        },
+        ["The Parent"] = {
+            "Arthur", "Brennan", "Cedric", "Donovan", "Edwin", "Frederick", "Gerard", "Harold",
+            "Irving", "Joseph", "Kenneth", "Lionel", "Marshall", "Nathan", "Oscar", "Patrick",
+            "Quentin", "Raymond", "Stefan", "Theodore",
+        },
+        ["The Queen"] = {
+            "Arthur", "Benedict", "Constantine", "Duncan", "Edgar", "Frederick", "Geoffrey",
+            "Harold", "Leopold", "Maximilian", "Nathaniel", "Oswald", "Phillip", "Quentin",
+            "Richard", "Sebastian", "Theodore", "Ulysses", "Victor", "William",
+        },
+        ["The Shadow"] = {
+            "Arden", "Bram", "Caelum", "Dagan", "Erebus", "Fane", "Gavrel", "Hadeon",
+            "Ishkur", "Jareth", "Kael", "Lev", "Mordecai", "Nyx", "Orion", "Phelan",
+            "Quillon", "Raze", "Strider", "Talon",
+        },
+        ["The Spear"] = {
+            "Achilles", "Boris", "Castor", "Darius", "Evander", "Falcon", "Gareth", "Hector",
+            "Ivar", "Jarrod", "Kael", "Leon", "Mars", "Nolan", "Orin", "Percy",
+            "Quinn", "Ronan", "Spartacus", "Tyson",
+        },
+        
     },
+
+
     [false] = {
-        "Amaris", "Bryndis", "Ceridwen", "Drusilla", "Eirlys", "Freyja", "Giselle", "Havilah",
-        "Ilyana", "Jael", "Kestra", "Liora", "Mireille", "Nimue", "Ondine", "Perrin", "Quilla",
-        "Ravenna", "Seraphine", "Tamsin", "Ulyssa", "Vespera", "Wynne", "Xylia", "Ysabel", "Zephyra",
-        "Aveline", "Briseis", "Calista", "Dahlia", "Elowen", "Fiora", "Grania", "Hestia", "Isolde",
-        "Jovena", "Keira", "Lunara", "Maelis", "Nyssa", "Orla", "Phaedra", "Quintessa", "Rhiannon",
-        "Sorcha", "Thalia", "Una", "Valora", "Wilhelmina", "Xanthe", "Yvaine", "Zelda", "Althea",
-        "Beatrix", "Clodagh", "Delphine", "Evanthe", "Faelina", "Gwenaelle", "Hecate", "Ianthe",
-        "Jessalyn", "Kaiara", "Lysandra", "Melisande", "Nephele", "Oriane", "Priya", "Qadira",
-        "Rosmerta", "Sylvi", "Tindra", "Ursa", "Vivica", "Wisteria", "Xenia", "Ygritte", "Zelie",
-        "Ariadne", "Bellatrix", "Cassiopeia", "Dione", "Elara", "Fauna", "Galatea", "Hypatia",
-        "Ismay", "Jocasta", "Klytie", "Leocadia", "Minerva", "Nerissa", "Olympia", "Penelope",
-        "Quintia", "Rosalind", "Selene", "Thalassa", "Umbria", "Valkyrie", "Wren", "Xanthea",
-        "Ysolde", "Zenobia"
+        none = {
+            "Amaris", "Bryndis", "Ceridwen", "Drusilla", "Eirlys", "Freyja", "Giselle", "Havilah",
+            "Ilyana", "Jael", "Kestra", "Liora", "Mireille", "Nimue", "Ondine", "Perrin", "Quilla",
+            "Ravenna", "Seraphine", "Tamsin", "Ulyssa", "Vespera", "Wynne", "Xylia", "Ysabel", "Zephyra",
+            "Aveline", "Briseis", "Calista", "Dahlia", "Elowen", "Fiora", "Grania", "Hestia", "Isolde",
+            "Jovena", "Keira", "Lunara", "Maelis", "Nyssa", "Orla", "Phaedra", "Quintessa", "Rhiannon",
+            "Sorcha", "Thalia", "Una", "Valora", "Wilhelmina", "Xanthe", "Yvaine", "Zelda", "Althea",
+            "Beatrix", "Clodagh", "Delphine", "Evanthe", "Faelina", "Gwenaelle", "Hecate", "Ianthe",
+            "Jessalyn", "Kaiara", "Lysandra", "Melisande", "Nephele", "Oriane", "Priya", "Qadira",
+            "Rosmerta", "Sylvi", "Tindra", "Ursa", "Vivica", "Wisteria", "Xenia", "Ygritte", "Zelie",
+            "Ariadne", "Bellatrix", "Cassiopeia", "Dione", "Elara", "Fauna", "Galatea", "Hypatia",
+            "Ismay", "Jocasta", "Klytie", "Leocadia", "Minerva", "Nerissa", "Olympia", "Penelope",
+            "Quintia", "Rosalind", "Selene", "Thalassa", "Umbria", "Valkyrie", "Wren", "Xanthea",
+            "Ysolde", "Zenobia" },
+        ["The Adventurer"] = {
+            "Aria", "Brielle", "Cerys", "Daria", "Elara", "Faina", "Gaia", "Helia",
+            "Iris", "Juna", "Kira", "Lysa", "Mara", "Nessa", "Olena", "Phaedra",
+            "Quinn", "Riona", "Sari", "Thalia"
+        },
+        ["The Axe"] = {
+            "Astrid", "Brynja", "Freya", "Gudrun", "Helga", "Ingrid", "Jora", "Runa", "Sigrun", "Thyra",
+            "Ulfhild", "Alda", "Dagmar", "Eir", "Gerd", "Hilda", "Kari", "Liv", "Nanna", "Sigrid"
+        },
+        ["The Berserker"] = {
+            "Astrid", "Bodil", "Caja", "Dagny", "Edda", "Frigg", "Gudrid", "Hillevi",
+            "Inga", "Jorunn", "Kari", "Liv", "Maren", "Norna", "Oddny", "Pernille",
+            "Runa", "Signe", "Thora", "Ylva"
+        },
+        ["The Bow"] = {
+            "Aria", "Brielle", "Cerys", "Diana", "Elena", "Fiona", "Gwendolyn", "Heidi",
+            "Ivana", "Jenna", "Kara", "Lyla", "Mira", "Nadia", "Oriana", "Phoebe",
+            "Quinn", "Rosalind", "Sari", "Talia",
+        },
+        ["The Bright Knives"] = {
+            "Acacia", "Briar", "Celina", "Dahlia", "Elara", "Fay", "Garnet", "Hazel",
+            "Ivy", "Jade", "Kaida", "Luna", "Maeve", "Nyx", "Opal", "Petra",
+            "Quinn", "Raven", "Sable", "Tamsin",
+        },
+        ["The Bright Side"] = {
+            "Althea", "Beatrix", "Clara", "Diana", "Evelyn", "Felicity", "Grace", "Hope",
+            "Irene", "Joy", "Keira", "Lena", "Mila", "Nadia", "Olivia", "Phoebe",
+            "Quinn", "Rose", "Serenity", "Talia",
+        },
+        ["The Clever"] = {
+            "Alia", "Brielle", "Celia", "Dara", "Elodie", "Fia", "Giselle", "Hanna",
+            "Isla", "Jade", "Kiera", "Livia", "Mina", "Nora", "Odelia", "Penelope",
+            "Quincy", "Ria", "Sophie", "Tess",
+        },
+        ["The Clumsy"] = {
+            "Avis", "Bettina", "Clodagh", "Doris", "Ethel", "Fern", "Gertrude", "Hattie",
+            "Ida", "Joyce", "Klara", "Louise", "Mabel", "Nellie", "Olive", "Peggy",
+            "Queenie", "Ruth", "Selma", "Tilda",
+        },
+        ["The Dark"] = {
+            "Astra", "Bellatrix", "Circe", "Darcy", "Elvira", "Freya", "Hecate", "Isolde",
+            "Jinx", "Kali", "Lilith", "Morgana", "Nyx", "Ophelia", "Pandora", "Raven",
+            "Selene", "Thalia", "Ursula", "Vesper",
+        },
+        ["Disorderly"] = {
+            "Agatha", "Bertha", "Clementine", "Dorcas", "Ethel", "Flossie", "Gladys", "Hortense",
+            "Imelda", "Jemima", "Klara", "Lucinda", "Myrtle", "Nelda", "Opal", "Prudence",
+            "Queenie", "Rhoda", "Sylvia", "Trudy",
+        },
+        ["Dream of the Heart"] = {
+            "Aurelia", "Calista", "Evangeline", "Iliana", "Leandra", "Seraphina", "Viviana",
+            "Amara", "Cassiel", "Gabrielle", "Isra", "Lysandra", "Raphaela", "Ysadora",
+            "Celestine", "Elysia", "Imara", "Mireille", "Sariel", "Valora", "Anthea",
+            "Ceridwen", "Giselle", "Ione", "Melisande", "Thalassa", "Zephyrine",
+        },
+        ["The Dying"] = {
+            "Ariane", "Bronwen", "Ceridwen", "Desdemona", "Elora", "Fionna", "Griselda", "Hester",
+            "Isolde", "Jocasta", "Kerensa", "Lenore", "Morrigan", "Nimue", "Ophelia", "Persephone",
+            "Quintessa", "Ravenna", "Sibyl", "Thana",
+        },
+        ["The Fang"] = {
+            "Aella", "Blair", "Cleo", "Danica", "Eira", "Fawn", "Gaia", "Hera",
+            "Inga", "Jada", "Kara", "Luna", "Maia", "Nala", "Ondine", "Phaedra",
+            "Quinn", "Rhea", "Sable", "Tala",
+        },
+        ["The Gaiety"] = {
+            "Allegra", "Blythe", "Carina", "Dulcie", "Eulalia", "Felicity", "Gilda", "Hilary",
+            "Ilaria", "Jocelyn", "Keira", "Leda", "Mirtha", "Nara", "Olwen", "Phaedra",
+            "Rada", "Sena", "Tahlia", "Viva",
+        },
+        ["The Gatherer"] = {
+            "Aria", "Briar", "Ceres", "Diana", "Eden", "Flora", "Gaia", "Hazel",
+            "Ivy", "Juniper", "Kelda", "Linnea", "Meadow", "Nova", "Olive", "Phyllis",
+            "Quinta", "Rose", "Sylvie", "Terra",
+        },
+        ["The Hasty"] = {
+            "Alia", "Breeze", "Cleo", "Dara", "Eve", "Faye", "Gia", "Hope",
+            "Isla", "Joy", "Kira", "Lynn", "Mia", "Nola", "Ora", "Pia",
+            "Quinn", "Rae", "Sky", "Tess",
+        },
+        ["The Hoarder"] = {
+            "Ariadne", "Beatrix", "Calista", "Desdemona", "Euphemia", "Felicity", "Genevieve",
+            "Honoria", "Isolde", "Jessamine", "Katarina", "Lucinda", "Mirabelle", "Nerissa",
+            "Octavia", "Penelope", "Quintessa", "Rosalind", "Seraphina", "Temperance",
+        },
+        ["The Hunger"] = {
+            "Ardor", "Blaze", "Crimson", "Desiree", "Ember", "Fiera", "Gluttony", "Havoc",
+            "Inferno", "Jezebel", "Kenna", "Lust", "Mara", "Nyx", "Pyra", "Ravenous",
+            "Sable", "Temptress", "Vixen", "Wilda",
+        },
+        ["The Last Stand"] = {
+            "Athena", "Bridget", "Cassandra", "Diana", "Elara", "Freya", "Gwen", "Hera",
+            "Isolde", "Juno", "Kara", "Lyra", "Morgana", "Niamh", "Odessa", "Petra",
+            "Quintessa", "Rhiannon", "Sigrid", "Thalia",
+        },
+        ["The Lithe"] = {
+            "Aria", "Belle", "Calla", "Daphne", "Elise", "Faye", "Grace", "Hope",
+            "Isla", "Jade", "Kyra", "Lilah", "Maya", "Nina", "Orla", "Pearl",
+            "Quinn", "Rosa", "Skye", "Talia",
+        },
+        ["The Lonely"] = {
+            "Aislinn", "Bronwen", "Carys", "Dierdre", "Elowen", "Fawn", "Giselle", "Hollis",
+            "Iona", "Jenessa", "Kerensa", "Lyra", "Maeve", "Nara", "Orielle", "Perrine",
+            "Riona", "Seren", "Tamsin", "Wren",
+        },
+        ["The Mad"] = {
+            "Aella", "Bridget", "Cyra", "Dysis", "Eris", "Frenzy", "Hecate", "Ismene",
+            "Jinx", "Kali", "Lilith", "Mara", "Nyx", "Ondine", "Pandora", "Quilla",
+            "Rage", "Sable", "Trixie", "Vesper",
+        },
+        ["The Magma"] = {
+            "Aithne", "Blaise", "Cinder", "Ember", "Fiamma", "Hestia", "Ignacia", "Kalama",
+            "Lumi", "Nuria", "Oriana", "Phoenix", "Seraphine", "Tana", "Vesta", "Zarina",
+            "Brigid", "Enya", "Solana", "Tinder",
+        },
+        ["The Mighty"] = {
+            "Andromeda", "Bellona", "Calliope", "Diana", "Eudora", "Freya", "Gertrude", "Hilda",
+            "Isolde", "Juno", "Kara", "Lucretia", "Maia", "Nike", "Olympia", "Petra",
+            "Quintessa", "Rhea", "Saskia", "Thalassa",
+        },
+        ["Out of Sync"] = {
+            "Astra", "Bronte", "Clio", "Danae", "Echo", "Faelan", "Greta", "Hestia",
+            "Io", "Juna", "Kismet", "Liora", "Myst", "Nephele", "Orielle", "Pax",
+            "Quilla", "Rune", "Saga", "Terra",
+        },
+        ["The Parent"] = {
+            "Adelaide", "Beatrice", "Catherine", "Dorothy", "Eleanor", "Fiona", "Grace", "Harriet",
+            "Isabel", "Josephine", "Katherine", "Lydia", "Miriam", "Naomi", "Olivia", "Penelope",
+            "Quinn", "Rosemary", "Sophia", "Theresa",
+        },
+        ["The Queen"] = {
+            "Adelaide", "Beatrice", "Catherine", "Diana", "Eleanor", "Freya", "Genevieve",
+            "Helena", "Isabella", "Josephine", "Katherine", "Louise", "Margaret", "Natalia",
+            "Octavia", "Philippa", "Quintessa", "Regina", "Sophia", "Victoria",
+        },
+        ["The Shadow"] = {
+            "Astra", "Calypso", "Dusk", "Echo", "Fable", "Haven", "Indigo", "Jinx",
+            "Kismet", "Luna", "Mystery", "Nox", "Onyx", "Phantom", "Quintessence", "Rune",
+            "Sable", "Twilight", "Umbra", "Vesper",
+        },
+        ["The Spear"] = {
+            "Aella", "Bellatrix", "Cassandra", "Diana", "Enyo", "Freya", "Gwenllian", "Huntress",
+            "Ilma", "Jael", "Kaida", "Lysandra", "Maia", "Nike", "Orianna", "Penthesilea",
+            "Quintina", "Rhiannon", "Saxon", "Thalia",
+        },
+        
     }
 }
 
-function Names.getName(male)
+function Names.getName(male, character)
     assert(Check.Boolean(male, "male must be a boolean"))
-    local names = Names.names[male]
+    assert(Check.StrOrNil(character, "character must be a string"))
+    local names = Names.names[male][character] or Names.names[male].none
     return names[math.random(#names)]
 end
 
