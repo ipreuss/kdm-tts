@@ -229,6 +229,7 @@ function Survivor.InitUi()
         local id = Survivor.nextSurvivorId
         Survivor.nextSurvivorId = Survivor.nextSurvivorId + 1
         local survivor = SurvivorClass.Create({ id = id })
+        survivor[(math.random(2) == 1) and "SetMale" or "SetFemale"](survivor, true)
         table.insert(Survivor.survivors, survivor)
         Survivor.survivorsById[survivor.id] = survivor
 
