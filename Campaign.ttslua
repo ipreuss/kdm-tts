@@ -29,6 +29,16 @@ function Campaign.getCharacter()
     return { name = cards[math.random(#cards)].name, type = "Character"}
 end
 
+function Campaign.HasInnovated(innovation)
+    for i = 1, Campaign.MAX_INNOVATIONS do
+        local card = Campaign.Scan("Innovation " .. i, { "Innovations" })
+        if card and card.name:sub(1, #innovation) == innovation then
+            return true
+        end
+    end
+    return false
+end
+
 function Campaign.Init(saveState)
     Campaign.InitExpansions()
     Campaign.campaign = Campaign.campaignsByName[saveState.campaign] or Campaign.campaignsByName
@@ -47,6 +57,9 @@ function Campaign.Init(saveState)
         end
     end)
     Survivor.SetCharacterProvider(Campaign.getCharacter)
+    log:Debugf("setting Innovations checker")
+    Survivor.SetInnovationsChecker(Campaign.HasInnovated)
+    log:Debugf("Campaign initialized")
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -320,19 +333,6 @@ function ExportCharacterDeck()
     return cardNames
 end
 ---------------------------------------------------------------------------------------------------
-
-function Campaign.HasInnovated(innovation)
-    for i = 1, Campaign.MAX_INNOVATIONS do 
-        local card = Campaign.Scan("Innovation " .. i, { "Innovations" })
-        if card then
-            log:Debugf("Checking %s", card.name)
-        end
-        if card and card.name:sub(1, #innovation) == innovation then
-            return true
-        end
-    end
-    return false
-end
 
 function Campaign.Scan(location, types)
     log:Debugf("Scanning %s for %s", location, Util.TabStr(types))
@@ -1194,5 +1194,4 @@ return {
     HideUi = Campaign.HideUi,
     IsUiOpen = Campaign.IsUiOpen,
     Campaign = function() return Campaign.campaign end,
-    HasInnovated = Campaign.HasInnovated,
 }
