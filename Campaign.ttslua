@@ -24,6 +24,11 @@ Campaign.EXPORT_VERSION = 2
 
 ---------------------------------------------------------------------------------------------------
 
+function Campaign.getCharacter()
+    local cards = Campaign.characterDeck.getObjects()
+    return { name = cards[math.random(#cards)].name, type = "Character"}
+end
+
 function Campaign.Init(saveState)
     Campaign.InitExpansions()
     Campaign.campaign = Campaign.campaignsByName[saveState.campaign] or Campaign.campaignsByName
@@ -316,6 +321,19 @@ function ExportCharacterDeck()
 end
 ---------------------------------------------------------------------------------------------------
 
+function Campaign.HasInnovated(innovation)
+    for i = 1, Campaign.MAX_INNOVATIONS do 
+        local card = Campaign.Scan("Innovation " .. i, { "Innovations" })
+        if card then
+            log:Debugf("Checking %s", card.name)
+        end
+        if card and card.name:sub(1, #innovation) == innovation then
+            return true
+        end
+    end
+    return false
+end
+
 function Campaign.Scan(location, types)
     log:Debugf("Scanning %s for %s", location, Util.TabStr(types))
 
@@ -578,10 +596,6 @@ function Campaign.spawnCharacterDeck()
         smooth = false,
     })
     Campaign.characterDeck.shuffle()
-end
-
-function Campaign.getCharacter()
-    return Campaign.characterDeck.takeObject()
 end
 
 function Campaign.buildRandomCharacterDeck()
@@ -1180,4 +1194,5 @@ return {
     HideUi = Campaign.HideUi,
     IsUiOpen = Campaign.IsUiOpen,
     Campaign = function() return Campaign.campaign end,
+    HasInnovated = Campaign.HasInnovated,
 }

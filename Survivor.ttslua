@@ -8,6 +8,7 @@ local NamedObject = require("Kdm/NamedObject")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
 local Names = require("Kdm/Util/Names")
+local Campaign = require("Kdm/Campaign")
 
 -------------------------------------------------------------------------------------------------
 
@@ -232,7 +233,9 @@ function Survivor.InitUi()
         local survivor = SurvivorClass.Create({ id = id })
         local isMale = math.random(2) == 1
         survivor[isMale and "SetMale" or "SetFemale"](survivor, true)
-        --survivor:SetCards({ Survivor.characterProvider() })
+        --if Campaign.HasInnovated("Character") then
+        --    survivor:SetCards({ Survivor.characterProvider() })
+        --end
         survivor:SetName(Names.getName(isMale))
         table.insert(Survivor.survivors, survivor)
         Survivor.survivorsById[survivor.id] = survivor
