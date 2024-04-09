@@ -56,7 +56,7 @@ return {
     },
 
     weaponStats = {
-        ["Carving Knife"]            = { speed = 2, accuracy = 6, strength = 4 },
+        ["Carving Knife"]            = { speed = 2, accuracy = 6, strength = 4, paired = true },
         ["Horned Shield"]            = { speed = 1, accuracy = 4, strength = 6 },
         ["Diversion Blade"]          = { speed = 2, accuracy = 7, strength = 5, savage = true },
         ["Spiderbite Daggers"]       = { speed = 4, accuracy = 7, strength = 4 },
