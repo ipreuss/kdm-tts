@@ -76,12 +76,12 @@ function Archive.Init()
     end
 
     log:Debugf("creating all gear deck")
-    local allGearKey = Archive.Key("All Gear", "Gear")
     local objects = {}
     for key, name in pairs(Archive.keysByType["Gear"]) do
-        if key ~= allGearKey then 
+        if not Archive.direct[key] then
             log:Debugf("taking gear deck %s", key)
             local deck = Archive.Take({ name = name, type = "Gear", position = Archive.NextContainerPosition()})
+            assert(deck, "Couldn't find gear deck: "..name)
             table.insert(objects, deck)
         end
     end
@@ -115,6 +115,7 @@ function Archive.Init()
     local archive = NamedObject.Get("Gear Archive")
     archive.reset()
     archive.putObject(deck)
+    ::continue::
 end
 
 ---------------------------------------------------------------------------------------------------
