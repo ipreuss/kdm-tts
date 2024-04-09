@@ -1,5 +1,6 @@
 local Check = require("Kdm/Util/Check")
 local Expansion = require("Kdm/Expansion")
+local log = require("Kdm/Log").ForModule("Weapon")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -23,7 +24,29 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Weapon.Get(name)
-    return Weapon.weapons[name]
+    log:Debugf("Weapon.Get(%s)", name)
+    local weapon = Weapon.weapons[name]
+    if weapon then
+        return weapon
+    end
+    local canonicalName = Weapon.removeNonCanonical(name)
+    log:Debugf("canonicalName = %s", canonicalName)
+    local baseWeapon = Weapon.weapons[canonicalName]
+    if (baseWeapon == nil) then
+        return nil
+    end
+    weapon = {
+        name = name,
+        __index = baseWeapon,
+    }
+    setmetatable(weapon, weapon)
+    Weapon.weapons[name] = weapon
+    return weapon 
+end
+
+function Weapon.removeNonCanonical(name)
+    local pos = name:find("%[")
+    return pos and name:sub(1, pos - 2) or name
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -47,6 +70,7 @@ function Weapon.Create(name, expansion, stats)
 
     local weapon = {
         name = name,
+        canonicalName = Weapon.removeNonCanonical(name),
         expansion = expansion,
     }
     setmetatable(weapon, Weapon)

@@ -190,15 +190,15 @@ function BattleUi.CalcWeapons(player, survivor)
     local weaponCounts = {}
     for _, weaponAndModifiers in pairs(player:WeaponsAndModifiers()) do
         local weapon = weaponAndModifiers.weapon
-        if not hiddenWeapons[weapon.name] then
-            local count = weaponCounts[weapon.name] or 0
-            weaponCounts[weapon.name] = count + 1
+        if not hiddenWeapons[weapon.canonicalName] then
+            local count = weaponCounts[weapon.canonicalName] or 0
+            weaponCounts[weapon.canonicalName] = count + 1
             if count == 0 then
                 table.insert(weaponsAndModifiers, weaponAndModifiers)
             end
         end
     end
-    table.sort(weaponsAndModifiers, function(wm1, wm2) return wm1.weapon.name < wm2.weapon.name end)
+    table.sort(weaponsAndModifiers, function(wm1, wm2) return wm1.weapon.canonicalName < wm2.weapon.canonicalName end)
 
     local survivorSpeed = survivor:ModifiedSpeed()
     local survivorAccuracy = survivor:ModifiedAccuracy()
@@ -226,7 +226,7 @@ function BattleUi.CalcWeapons(player, survivor)
             crit = 'X'
         end
 
-        if weapon.paired and weaponCounts[weapon.name] > 1 then
+        if weapon.paired and weaponCounts[weapon.canonicalName] > 1 then
             speed = speed + weapon.speed
         end
         if weapon.slow and (weaponAndModifiers.modifiers["frenzy"] or 0) == 0 then
@@ -234,7 +234,7 @@ function BattleUi.CalcWeapons(player, survivor)
         end
 
         table.insert(results, {
-            name = weapon.name,
+            name = weapon.canonicalName,
             speed = speed,
             hit = hit,
             wound = wound,

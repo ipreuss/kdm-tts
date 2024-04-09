@@ -24,6 +24,7 @@ Log.DEBUG_MODULES = {
     --["Showdown"] = true,
     --["Survivor"] = true,
     --["Timeline"] = true,
+    --["Weapon"] = true,
 }
 
 Log.POST_INIT_DEBUG_MODULES = {
