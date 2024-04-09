@@ -239,6 +239,7 @@ function Survivor.InitUi()
             character = characterCard.name
         end
         survivor:SetName(Names.getName(isMale, character))
+        survivor:SetSurvival(1)
         table.insert(Survivor.survivors, survivor)
         Survivor.survivorsById[survivor.id] = survivor
 
