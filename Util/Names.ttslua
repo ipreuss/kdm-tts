@@ -165,6 +165,31 @@ Names.names = {
             "Ivar", "Jarrod", "Kael", "Leon", "Mars", "Nolan", "Orin", "Percy",
             "Quinn", "Ronan", "Spartacus", "Tyson",
         },
+        ["The Sword"] = {
+            "Alaric", "Bran", "Caius", "Draven", "Emeric", "Fane", "Gawain", "Hadrian",
+            "Ivor", "Jareth", "Kane", "Lucan", "Merrick", "Nero", "Orion", "Pyrus",
+            "Quillan", "Ragnar", "Soren", "Torin",
+        },
+        ["The Tough"] = {
+            "Baldur", "Crom", "Drogan", "Egon", "Falk", "Grendel", "Holt", "Iron",
+            "Jarl", "Kurgan", "Leif", "Magnus", "Njal", "Orloff", "Pruitt", "Quark",
+            "Roth", "Skoll", "Thorne", "Ulf",
+        },
+        ["The Unlucky"] = {
+            "Cain", "Tristan", "Dolor", "Marius", "Fenrir", "Hades", "Loki", "Sisyphus",
+            "Orpheus", "Morpheus", "Icarus", "Atlas", "Caliban", "Prometheus", "Galahad",
+            "Judas", "Oedipus", "Pandora", "Quirinus", "Vlad",
+        },
+        ["The Watched"] = {
+            "Azriel", "Branwen", "Celestine", "Darius", "Eliora", "Frey", "Gavriel", "Haniel",
+            "Ithuriel", "Jophiel", "Kaliel", "Lailah", "Muriel", "Nathaniel", "Orifiel", "Phanuel",
+            "Quabriel", "Raziel", "Seraphiel", "Tzadkiel",
+        },
+        ["Weapon Master"] = {
+            "Achilles", "Boromir", "Conan", "Drizzt", "El Cid", "Fergus", "Gawain", "Hector",
+            "Isildur", "Joan", "Kull", "Leonidas", "Mars", "Nakano", "Odysseus", "Percival",
+            "Questor", "Roland", "Siegfried", "Tyrfing",
+        },
         
     },
 
@@ -328,6 +353,31 @@ Names.names = {
             "Aella", "Bellatrix", "Cassandra", "Diana", "Enyo", "Freya", "Gwenllian", "Huntress",
             "Ilma", "Jael", "Kaida", "Lysandra", "Maia", "Nike", "Orianna", "Penthesilea",
             "Quintina", "Rhiannon", "Saxon", "Thalia",
+        },
+        ["The Sword"] = {
+            "Athena", "Boudica", "Circe", "Damaris", "Eirene", "Feyra", "Gaia", "Hestia",
+            "Ismene", "Jocasta", "Kallisto", "Lune", "Morgaine", "Nyx", "Ophelia", "Phaedra",
+            "Quintessa", "Rowena", "Seraphine", "Tisiphone",
+        },
+        ["The Tough"] = {
+            "Astrid", "Brynhild", "Cyra", "Drusilla", "Eldrid", "Frida", "Ghita", "Helga",
+            "Ingrid", "Jarnsaxa", "Kriemhild", "Ludmilla", "Maud", "Nessa", "Olrun", "Pilar",
+            "Quorra", "Runa", "Signe", "Thyra",
+        },
+        ["The Unlucky"] = {
+            "Cassandra", "Desdemona", "Eurydice", "Hecuba", "Ismene", "Jocasta", "Klytaemnestra",
+            "Medea", "Niobe", "Ophelia", "Phaedra", "Sappho", "Thalia", "Ursula", "Vanora",
+            "Wanda", "Xanthe", "Yseult", "Zelda", "Alecto",
+        },
+        ["The Watched"] = {
+            "Anael", "Bethel", "Cassiel", "Dina", "Evangeline", "Gabrielle", "Hemera", "Iriel",
+            "Jael", "Keriel", "Lysiel", "Mireille", "Naamah", "Oriel", "Pariel", "Qetesh",
+            "Raphaela", "Sariel", "Thalassa", "Uriela",
+        },
+        ["Weapon Master"] = {
+            "Artemisia", "Bellona", "Camilla", "Deianeira", "Enyo", "Freyja", "Griselda", "Harman",
+            "Igraine", "Judit", "Kriemhild", "Lucretia", "Minerva", "Nike", "Otrera", "Penthesilea",
+            "Quintilla", "Ran", "Sigrun", "Tomoe",
         },
         
     }
