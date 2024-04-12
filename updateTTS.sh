@@ -10,9 +10,15 @@ echo "Backing up..."
 cp "$savefile" "$backupfile"
 
 # Push the backup file to the git repository
-git add "$backupfile"
-git commit -q -m "Update backup file"
-git push -q origin master
+# Check if there are changes in the backup file
+if git diff --quiet "$backupfile"; then
+    echo "No changes in the backup file"
+else
+    echo "Changes detected in the backup file"
+    git add "$backupfile"
+    git commit -q -m "Update backup file"
+    git push -q origin master
+fi
 # Replace the value of "LuaScript" in the backup file with the Placeholder
 echo "creating template..."
 jq '.LuaScript = "Lua Script gets inserted here"' "$backupfile" > "$templatefile"
