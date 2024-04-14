@@ -603,7 +603,7 @@ function Campaign.buildRandomCharacterDeck()
     log:Debugf("building a random character deck")
     local rotation = { x = 0, y = 180, z = 180 }
     local location = Location.Get("Character Deck")
-    local tempCharacterDeckLocation = Location.Get("Temp Character Deck")
+    local tempCharacterDeckLocation = Location.Get("Temp Deck")
     location:BoxClean({ tags = { "Card", "Deck" } })
     tempCharacterDeckLocation:BoxClean({ tags = { "Card", "Deck" } })
     local deck = Archive.Take({

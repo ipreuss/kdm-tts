@@ -134,7 +134,7 @@ function Location.Get(locationOrName)
 
     assert(Check.Str(locationOrName))
     local location = Location.locationsByName[locationOrName:lower()]
-    assert(location, "Unknown location: %s", locationOrName)
+    assert(Check(location, "Unknown location: %s", locationOrName))
     return location
 end
 
