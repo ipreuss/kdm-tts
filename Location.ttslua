@@ -107,6 +107,7 @@ end
 
 function Location.Add(location)
     local name = location:Name()
+    log:Debugf("Adding location %s", name)
     assert(Check(not Location.locationsByName[name], "Location %s already registered: %s", name, Location.locationsByName[name]))
     Location.locationsByName[name:lower()] = location
 
@@ -133,9 +134,7 @@ function Location.Get(locationOrName)
 
     assert(Check.Str(locationOrName))
     local location = Location.locationsByName[locationOrName:lower()]
-    if not location then
-        log:Errorf("Unknown location: %s", locationOrName)
-    end
+    assert(location, "Unknown location: %s", locationOrName)
     return location
 end
 

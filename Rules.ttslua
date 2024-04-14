@@ -251,7 +251,7 @@ function Rules.SpawnRules(rules, state, dontRecordHistory)
         return
     end
 
-    if not Archive.Take({
+    Archive.Take({
         name = rules,
         type = "Rulebook",
         location = location,
@@ -270,9 +270,7 @@ function Rules.SpawnRules(rules, state, dontRecordHistory)
                 Wait.frames(function() obj.setLock(true) end, 3)
             end
         end,
-    }) then
-        log:Errorf("Unrecognized rules: %s[%d]", rules, state)
-    end
+    })
     Archive.Clean()
 
     if not dontRecordHistory then

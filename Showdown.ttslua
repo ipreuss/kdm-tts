@@ -445,14 +445,10 @@ function Showdown.Setup(monsterOrName, levelOrName)
     local sources = {
         Archive.ArchiveSource(monster.hitLocationsDeck, "Hit Locations")
     }
-    log:Debugf("looking for %s", monster.trapsDeck)
-    local trapsDeck = Archive.Take({ name = monster.trapsDeck, type = "Hit Locations", location = "Unused HL", rotation = { x = 0, y = 180, z = 180 } })
-    if trapsDeck then
-        log:Debugf("Found traps deck %s, creating container", monster.trapsDeck)
+    if monster.trapsDeck then
+        local trapsDeck = Archive.Take({ name = monster.trapsDeck, type = "Hit Locations", location = "Unused HL", rotation = { x = 0, y = 180, z = 180 } })
         trapsDeck = Container(trapsDeck)
-        log:Debugf("Shuffling traps deck %s", monster.trapsDeck)
         trapsDeck:Shuffle()
-        log:Debugf("Adding traps deck %s to sources", monster.trapsDeck)
         table.insert(sources, Archive.ContainerSource(trapsDeck))
     end
     for _, card in ipairs(showdownSetup.miscHitLocations or {}) do
