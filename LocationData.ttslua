@@ -688,7 +688,7 @@ local locationData = {
         center = { x = 58, y = 1.730189, z = -77.679756 },
         size = CARD_SIZE,
     },
-    ["Temp Character Deck"] = {
+    ["Temp Deck"] = {
         center = { x = 62, y = 1.730189, z = -77.679756 },
         size = CARD_SIZE,
     },
@@ -810,7 +810,6 @@ for _, locationGrid in ipairs(locationGrids) do
 
     local dx = (cols > 1) and ((br.x - tl.x) / (cols - 1)) or 0
     local dz = (rows > 1) and ((br.z - tl.z) / (rows - 1)) or 0
-    local locationList = {}
     for col = 1, cols do
         for row = 1, rows do
             local i = (row - 1) * cols + col

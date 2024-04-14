@@ -24,7 +24,7 @@ Campaign.EXPORT_VERSION = 2
 
 ---------------------------------------------------------------------------------------------------
 
-function Campaign.getCharacter()
+function Campaign.GetCharacter()
     local cards = Campaign.characterDeck.getObjects()
     return { name = cards[math.random(#cards)].name, type = "Character"}
 end
@@ -51,15 +51,13 @@ function Campaign.Init(saveState)
     Campaign.InitCampaignUi()
     Campaign.InitExportImportBoardUi()
     Campaign.spawnCharacterDeck()
-    EventManager.AddHandler("onObjectLeaveContainer", function(container, _)
+    EventManager.AddHandler("onObjectLeaveContainer", function(container)
         if container == Campaign.characterDeck then
             Campaign.spawnCharacterDeck()
         end
     end)
-    Survivor.SetCharacterProvider(Campaign.getCharacter)
-    log:Debugf("setting Innovations checker")
+    Survivor.SetCharacterProvider(Campaign.GetCharacter)
     Survivor.SetInnovationsChecker(Campaign.HasInnovated)
-    log:Debugf("Campaign initialized")
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -299,7 +297,8 @@ function Campaign.ExportToOrb()
         campaign = Campaign.campaign.name,
         unlockedMode = Campaign.unlockedMode,
         objectsByLocation = objectsByLocation,
-        characterDeck = ExportCharacterDeck(),
+        characterDeck = Campaign.ExportDeck("Character Deck", "Character"),
+        settlementEventsDeck = Campaign.ExportDeck("Settlement Events", "Settlement Events"),
         timeline = Timeline.Export(),
         survivor = Survivor.Export(),
     }
@@ -322,14 +321,15 @@ function Campaign.ExportToOrb()
     log:Printf("5. Click the 'Import Campaign' button.")
 end
 
-function ExportCharacterDeck()
-    local cards = Campaign.characterDeck.getObjects()
+function Campaign.ExportDeck(location, type)
+    log:Debugf("Exporting deck %s", type)
+    local deck = Campaign.Scan(location, { type })
+    assert(deck, "Deck %s not found at %s", type, location)
+    local cards = deck.cards
     local cardNames = {}
-
     for _, card in ipairs(cards) do
         cardNames[card.name] = true
     end
-
     return cardNames
 end
 ---------------------------------------------------------------------------------------------------
@@ -400,6 +400,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Campaign.ImportFromOrb()
+    log:Debugf("Importing campaign from orb")
     local location = Location.Get("Campaign Orb")
     local object = location:FirstObject({ types = { "Campaign Orb" } })
     if not object then
@@ -644,7 +645,7 @@ function Campaign.buildRandomCharacterDeck()
 end
 
 function Campaign.reconstructCharacterDeck(cardNames)
-    log:Debugf("reconstructing Character deck from card names with %d cards", #cardNames)
+    log:Debugf("reconstructing Character deck from card names")
     local rotation = { x = 0, y = 180, z = 180 }
     local location = Location.Get("Character Deck")
     location:BoxClean({ tags = { "Card", "Deck" } })
@@ -654,42 +655,55 @@ function Campaign.reconstructCharacterDeck(cardNames)
         location = location,
         rotation = rotation,
     })
-    log:Debugf("removing unused abilities")
+    Campaign.AdjustDeck(deck, cardNames, { "Character - Impairments", "Character - Legendary Abilities" })
+    return deck
+end
+
+function Campaign.AdjustDeck(deck, cardNames, archives)
+    log:Debugf("adjusting deck %s / %s", type(deck), deck.type)
     local objects = deck.getObjects()
+    local tempDeckLocation = Location.Get("Temp Deck")
+    tempDeckLocation:BoxClean({ tags = { "Card", "Deck" } })
     for i = #objects, 1, -1 do
+        --log:Debugf("checking %s", objects[i].name)
         if not cardNames[objects[i].name] then
-            deck.takeObject({index = objects[i].index}).destroy()
+            --log:Debugf("removing %s", objects[i].name)
+            deck.takeObject({
+                index = objects[i].index,
+                location = tempDeckLocation,
+                smooth = false,
+                callback_function = function(obj)
+                    obj.destroy()
+                end
+            })
         end
     end
-    assert(deck.getQuantity() == 20, "deck should have 20 abilities")
-    local tempCharacterDeckLocation = Location.Get("Temp Character Deck")
 
+    local rotation = { x = 0, y = 180, z = 180 }
     local function addCardsFromArchive(archiveName)
         log:Debugf("adding cards from %s", archiveName)
         local tempDeck = Archive.Take({
             name = archiveName,
-            type = "Character",
-            location = tempCharacterDeckLocation,
+            type = deck.getGMNotes(),
+            location = tempDeckLocation,
             rotation = rotation,
         })
         local objects = tempDeck.getObjects()
         for i = #objects, 1, -1 do
             if cardNames[objects[i].name] then
-                log:Debugf("adding card %s", objects[i].name)
-                deck.putObject(tempDeck.takeObject({index = objects[i].index}))
+                deck.putObject(tempDeck.takeObject({index = objects[i].index, position = deck.getPosition()}))
             end
         end
         Deck.Destroy(tempDeck)
     end
-    addCardsFromArchive("Character - Impairments")
-    assert(deck.getQuantity() == 24, "deck should have 4 impairments")
-    addCardsFromArchive("Character - Legendary Abilities")
-    assert(deck.getQuantity() == 25, "final deck should have 25 cards")
-    return deck
+    for _, archive in ipairs(archives) do
+        addCardsFromArchive(archive)
+    end
 end
     
 
 function Campaign.SetupCharacterDeck(cardNames)
+    log:Debugf("Setting up character deck with %s", Util.TabStr(cardNames))
     local deck = nil
     if cardNames then
         deck = Campaign.reconstructCharacterDeck(cardNames)
@@ -702,7 +716,16 @@ function Campaign.SetupCharacterDeck(cardNames)
     Campaign.spawnCharacterDeck()
 end
 
+function Campaign.SetupSettlementEventsDeck(cardNames)
+    log:Debugf("Setting up settlement events deck with %s", Util.TabStr(cardNames))
+    if not cardNames then
+        return
+    end
+    Campaign.AdjustDeck(Campaign.settlementEventsDeck, cardNames, { "Future Settlement Events" })
+end
+
 function Campaign.Import(data)
+    log:Debugf("Importing campaign from data")
     if not Campaign.ConvertToLatestVersion(data) then
         return
     end
@@ -737,6 +760,7 @@ function Campaign.Import(data)
     local settlementEventsDeck = Campaign.SetupDeckFromExpansionComponents("Settlement Events", data, { shuffle = true })
     assert(settlementEventsDeck, "settlementEventsDeck is nil")
     settlementEventsDeck:Take({ name = "First Day", type = "Settlement Events", location = "Drawn Settlement Events" })
+    Campaign.settlementEventsDeck = settlementEventsDeck:Object()
     Campaign.SetupDeckFromExpansionComponents("Rare Gear", data, { type = "Gear" })
     Campaign.SetupDeckFromExpansionComponents("Seed Pattern Gear", data, { type = "Gear" })
     Campaign.SetupDeckFromExpansionComponents("Hunt Events", data)
@@ -762,6 +786,7 @@ function Campaign.Import(data)
     Campaign.SetupReferences(data.campaign.references)
     Campaign.SetupMisc(data.campaign.misc)
     Campaign.SetupCharacterDeck(data.characterDeck);
+    Campaign.SetupSettlementEventsDeck(data.settlementEventsDeck)
 
     Archive.Take({ name = "Allister", type = "Player Figurine", location = "Player 1 Marker" })
     Archive.Take({ name = "Ezra", type = "Player Figurine", location = "Player 2 Marker" })
@@ -1027,11 +1052,8 @@ function Campaign.Spawn(name, type, position, context)
             object = context.innovationArchive:Take({ name = name, type = type, position = position })
         elseif type == "Settlement Locations" then
             object = context.settlementLocationDeck:Take({ name = name, type = type, position = position })
-       else
+        else
             object = Archive.Take({ archive = type .. " Archive", name = name, type = type, position = position })
-        end
-        if not object then
-            return
         end
         context.cache[key] = object
         return object
@@ -1103,11 +1125,7 @@ function Campaign.SetupSurvivalTokens(survivalActions)
                     type = "Survival Tokens",
                     location = "Player " .. ordinal .. " Survival Token " .. i
                 })
-                if not survivalToken then
-                    log:Errorf("Couldn't find survival token '%s'", survivalAction)
-                else
-                    survivalToken.setLock(false) -- for some reason these sometimes spawn locked
-                end
+                survivalToken.setLock(false) -- for some reason these sometimes spawn locked
             end
         end
         Archive.Clean()
@@ -1120,26 +1138,23 @@ function Campaign.SetupReferences(references)
     for _, reference in ipairs(references or {}) do
         local name, location = reference.name, reference.location
         -- height 0 because we lock these immediately after spawning
-        if not Archive.Take({ name = name, type = "References", location = location, height = 0, spawnFunc = function(
+        Archive.Take({
+            name = name,
+            type = "References",
+            location = location,
+            height = 0,
+            spawnFunc = function(
                 spawnedObject)
                 spawnedObject.setLock(true)
-            end }) then
-            log:Errorf("Couldn't find '%s'", name)
-        else
-            log:Debugf("Added reference '%s'", name)
-        end
+            end
+        })
     end
 end
-
 ---------------------------------------------------------------------------------------------------
 
 function Campaign.SetupMisc(misc)
     for _, m in ipairs(misc or {}) do
-        if not Archive.Take(m) then
-            log:Errorf("Couldn't find '%s' (%s)", m.name, m.type)
-        else
-            log:Debugf("Added misc item '%s' (%s)", m.name, m.type)
-        end
+        Archive.Take(m)
     end
 end
 

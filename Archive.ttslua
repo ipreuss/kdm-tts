@@ -26,6 +26,7 @@ Archive.data = {
     { "Terrain Tiles", "Terrain Tiles", "Terrain Tiles Archive" },
     { "Hunt Events", "Hunt Events", "Hunt Events Archive" },
     { "Settlement Events", "Settlement Events", "Settlement Events Archive" },
+    { "Future Settlement Events", "Settlement Events", "Future Settlement Events Archive"},
     { "Rare Gear", "Gear", "Rare Gear Archive" },
     { "Seed Pattern Gear", "Gear", "Seed Pattern Gear Archive" },
     { "All Gear", "Gear", "All Gear Archive" },
@@ -288,30 +289,21 @@ function Archive.CreateDeckFromSources(params)
     local sources, location, rotation = params.sources, Location.Get(params.location), params.rotation or { x = 0, y = 180, z = 0 }
 
     local objects = {}
-    local missing = {}
     for i, source in ipairs(sources) do
         local takeParams = { name = source.name, type = source.type, location = location, height = (i - 1) * 0.5, rotation = rotation }
         local object = nil
         if source.source == "Archive" then
             log:Debugf("Taking %s/%s from archive", source.name, source.type)
             object = Archive.Take(takeParams)
-            if not object then
-                --log:Debugf("Couldn't find '%s' in archive", source.name)
-                table.insert(missing, source)
-            end
+            assert(object, "Couldn't find "..source.name.." in archive")
         elseif source.source == "Container" then
             log:Debugf("Taking %s/%s from container", source.name, source.type)
             object = source.container:Take(takeParams)
-            if not object then
-                --log:Debugf("Couldn't find '%s' in container [%s] %s", source.name, source.container:Guid(), source.container:Name())
-                table.insert(missing, source)
-            end
+            assert(object, "Couldn't find "..source.name.." in container")
         else
             assert(Check.Fail("Unrecognized source: %s", source))
         end
-        if object then
-            table.insert(objects, object)
-        end
+        table.insert(objects, object)
     end
 
     local deckObject = Archive.CreateDeckFromTable(objects)
@@ -321,9 +313,7 @@ function Archive.CreateDeckFromSources(params)
     deckObject.setPositionSmooth(location:Center(), false, true)
     deckObject.setRotation(rotation)
 
-    --log:Debugf("Created deck [%s] %s at %s", deckObject.getGUID(), deckObject.getName(), location)
-
-    return Container(deckObject), missing
+    return Container(deckObject)
 end
 
 function Archive.CreateDeckFromTable(objects)
