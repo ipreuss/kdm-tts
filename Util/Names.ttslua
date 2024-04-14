@@ -69,11 +69,11 @@ Names.names = {
             "Rudyard", "Seymour", "Truman", "Vernon",
         },
         ["Dream of the Heart"] = {
-            "Amadeus", "Balthazar", "Cassian", "Darius", "Elian", "Faelan", "Gabriel",
-            "Isaias", "Jareth", "Lucian", "Mathias", "Nathaniel", "Oberon", "Peregrine",
-            "Raphael", "Sebastian", "Theon", "Uriel", "Valerian", "Xavier", "Azriel",
-            "Caspian", "Evander", "Gideon", "Icarus", "Leander", "Orion", "Phineas",
-            "Sylvan", "Thaddeus", "Zachariah",
+            "Amadeus the Savior", "Balthazar the Savior", "Cassian the Savior", "Darius the Savior", "Elian the Savior", "Faelan the Savior", "Gabriel the Savior",
+            "Isaias the Savior", "Jareth the Savior", "Lucian the Savior", "Mathias the Savior", "Nathaniel the Savior", "Oberon the Savior", "Peregrine the Savior",
+            "Raphael the Savior", "Sebastian the Savior", "Theon the Savior", "Uriel the Savior", "Valerian the Savior", "Xavier the Savior", "Azriel the Savior",
+            "Caspian the Savior", "Evander the Savior", "Gideon the Savior", "Icarus the Savior", "Leander the Savior", "Orion the Savior", "Phineas the Savior",
+            "Sylvan the Savior", "Thaddeus the Savior", "Zachariah the Savior",
         },
         ["The Dying"] = {
             "Alaric", "Bram", "Caius", "Dorian", "Egon", "Fenrir", "Gareth", "Hadrian",
@@ -259,10 +259,10 @@ Names.names = {
             "Queenie", "Rhoda", "Sylvia", "Trudy",
         },
         ["Dream of the Heart"] = {
-            "Aurelia", "Calista", "Evangeline", "Iliana", "Leandra", "Seraphina", "Viviana",
-            "Amara", "Cassiel", "Gabrielle", "Isra", "Lysandra", "Raphaela", "Ysadora",
-            "Celestine", "Elysia", "Imara", "Mireille", "Sariel", "Valora", "Anthea",
-            "Ceridwen", "Giselle", "Ione", "Melisande", "Thalassa", "Zephyrine",
+            "Aurelia the Savior", "Calista the Savior", "Evangeline the Savior", "Iliana the Savior", "Leandra the Savior", "Seraphina the Savior", "Viviana the Savior",
+            "Amara the Savior", "Cassiel the Savior", "Gabrielle the Savior", "Isra the Savior", "Lysandra the Savior", "Raphaela the Savior", "Ysadora the Savior",
+            "Celestine the Savior", "Elysia the Savior", "Imara the Savior", "Mireille the Savior", "Sariel the Savior", "Valora the Savior", "Anthea the Savior",
+            "Ceridwen the Savior", "Giselle the Savior", "Ione the Savior", "Melisande the Savior", "Thalassa the Savior", "Zephyrine the Savior",
         },
         ["The Dying"] = {
             "Ariane", "Bronwen", "Ceridwen", "Desdemona", "Elora", "Fionna", "Griselda", "Hester",
