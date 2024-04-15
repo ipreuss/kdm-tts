@@ -278,7 +278,7 @@ function Rules.SpawnRules(rules, state, dontRecordHistory)
                         obj.Book.setPage(state)
                     end
                     obj.setLock(true)
-                    Rules.spawnBookmarks(rules, state)
+                    Rules.UpdateBookmarks(rules, state)
                 end, 3)
             else
                 if state > 1 then
@@ -286,7 +286,7 @@ function Rules.SpawnRules(rules, state, dontRecordHistory)
                 end
                 Wait.frames(function()
                     obj.setLock(true)
-                    Rules.spawnBookmarks(rules, state)
+                    Rules.UpdateBookmarks(rules, state)
                 end, 3)
             end
         end,
@@ -299,7 +299,9 @@ function Rules.SpawnRules(rules, state, dontRecordHistory)
     Archive.Clean()
 end
 
-function Rules.spawnBookmarks(rules, state) 
+function Rules.UpdateBookmarks(rules, state) 
+    local location = Location.Get("Rules Board")
+    location:BoxClean({ types = { "Bookmarks" } })
     for _, bookmark in ipairs(Rules.bookmarks) do
         log:Debugf("Checking bookmark %s[%d] for %s[%d]", bookmark.rulebook, bookmark.state, rules, state)
         if bookmark.rulebook == rules and bookmark.state == state then
@@ -307,11 +309,12 @@ function Rules.spawnBookmarks(rules, state)
             Archive.Take({
                 name = bookmark.bookmark,
                 type = "Bookmarks",
-                location = Location.Get("Rules Board"),
+                location = location,
                 height = 5,
             })
         end
     end
+    Archive.Clean()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -386,11 +389,15 @@ function Rules.ChangePage(dir)
     if rules.Book ~= nil then
         if rules.Book.setPage(nextState) then
             Rules.history:Push({ rulebookName, nextState})
+            Rules.UpdateBookmarks(rulebookName, nextState)
         end
     else
-            Rules.history:Push({ rulebookName, nextState })
+        Rules.history:Push({ rulebookName, nextState })
         local finalObj = rules.setState(nextState)
-        Wait.frames(function() finalObj.setLock(true) end, 3)
+        Wait.frames(function()
+            finalObj.setLock(true)
+            Rules.UpdateBookmarks(rulebookName, nextState)
+        end, 3)
     end
 end
 
