@@ -200,18 +200,14 @@ function Archive.Take(params)
     if not archive then
         local key = params.key or Archive.Key(name, type)
         archive = Archive.index[key]
-        if not archive then
-            log:Errorf("%s is not in the archive", key)
-            return nil
-        end
-
+        assert(Check(archive, "Archive not found for %s", key))
         if Archive.direct[key] then
             -- for single item archives no need to pull intermediate container
             log:Debugf("Using direct from archive %s for %s ", archive, key)
             return NamedObject.Get(archive).takeObject({
                 position = position,
                 rotation = rotation,
-                smooth = false,
+                smooth = params.smooth,
                 callback_function = spawnFunc,
             })
         end
@@ -249,6 +245,7 @@ function Archive.Take(params)
         position = position,
         rotation = rotation,
         spawnFunc = spawnFunc,
+        smooth = params.smooth,
     })
     if not object then
         log:Errorf(

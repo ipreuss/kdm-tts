@@ -569,6 +569,10 @@ return {
         },
     },
 
+    bookmarks = {
+        ["Intimacy - Infant Adrift"] = { rulespage = "Intimacy" },
+    },
+
     rulebooks = {
         {
             name = "Core Rules",

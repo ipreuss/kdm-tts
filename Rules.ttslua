@@ -20,6 +20,7 @@ function Rules.Init()
     Rules.history = CircularArray(100)
     Rules.index = {}
     Rules.searchResultButtons = {}
+    Rules.bookmarks = {}
 
     for _, expansion in ipairs(Expansion.All()) do
         Rules.RegisterExpansion(expansion)
@@ -119,7 +120,8 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Rules.RegisterExpansion(expansion)
-    for rulebookIndex, rulebook in ipairs(expansion.rulebooks or {}) do
+    log:Debugf("Registering rules for %s", expansion.name)
+    for _, rulebook in ipairs(expansion.rulebooks or {}) do
         local rulebookName = rulebook.name
         assert(Check.Str(rulebookName, "rulebook.name"))
 
@@ -161,6 +163,20 @@ function Rules.RegisterExpansion(expansion)
                     Rules.trie:Set(tostring(huntEventNumber), entry)
                 end
             end
+        end
+    end
+    for name, bookmark in pairs(expansion.bookmarks or {}) do
+        log:Debugf("Registering bookmark %s", name)
+        if bookmark.rulespage then
+            local bookmarkPage = Rules.index[bookmark.rulespage]
+            assert(Check(bookmarkPage, "Unknown bookmark page %s for bookmark", bookmark.rulespage, name))
+            log:Debugf("Registering bookmark %s for %s[%d]", name, bookmarkPage.rulebook, bookmarkPage.state)
+            local entry = {
+                rulebook = bookmarkPage.rulebook,
+                state = bookmarkPage.state,
+                bookmark = name,
+            }
+            table.insert(Rules.bookmarks, entry)
         end
     end
 end
@@ -244,7 +260,7 @@ function Rules.SpawnRules(rules, state, dontRecordHistory)
     log:Debugf("Spawning rules %s[%d]", rules, state)
 
     local location = Location.Get("Rules Board")
-    local blocking = location:BoxClean({ types = { "Rulebook" } })
+    local blocking = location:BoxClean({ types = { "Rulebook", "Bookmarks" } })
     if #blocking > 0 then
         log:Broadcastf("Something is blocking the rules board. Please move the highlighted objects out of the way and try again.")
         Util.HighlightAll(blocking)
@@ -262,19 +278,39 @@ function Rules.SpawnRules(rules, state, dontRecordHistory)
                         obj.Book.setPage(state)
                     end
                     obj.setLock(true)
+                    Rules.spawnBookmarks(rules, state)
                 end, 3)
             else
                 if state > 1 then
                     obj = obj.setState(state)
                 end
-                Wait.frames(function() obj.setLock(true) end, 3)
+                Wait.frames(function()
+                    obj.setLock(true)
+                    Rules.spawnBookmarks(rules, state)
+                end, 3)
             end
         end,
     })
-    Archive.Clean()
 
     if not dontRecordHistory then
         Rules.history:Push({ rules, state })
+    end
+
+    Archive.Clean()
+end
+
+function Rules.spawnBookmarks(rules, state) 
+    for _, bookmark in ipairs(Rules.bookmarks) do
+        log:Debugf("Checking bookmark %s[%d] for %s[%d]", bookmark.rulebook, bookmark.state, rules, state)
+        if bookmark.rulebook == rules and bookmark.state == state then
+            log:Debugf("Found bookmark %s[%d]", bookmark.rulebook, bookmark.state)
+            Archive.Take({
+                name = bookmark.bookmark,
+                type = "Bookmarks",
+                location = Location.Get("Rules Board"),
+                height = 5,
+            })
+        end
     end
 end
 
