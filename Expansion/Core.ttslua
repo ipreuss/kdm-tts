@@ -22,6 +22,7 @@ return {
         ["Hunt Events"] = "Core Hunt Events",
 
         ["Seed Patterns"] = "Core Seed Patterns",
+        ["Bookmarks"] = "Intimacy - Infant Adrift",
     },
 
     settlementEvents = {
@@ -430,6 +431,7 @@ return {
             { "Intimacy Reference", "References" },
             { "Bold Reference", "References" },
             { "Insight Reference", "References" },
+            { "Intimacy - Infant Adrift", "Bookmarks" },
 
             { "Core Abilities", "Abilities" },
             { "Core Fighting Arts", "Fighting Arts" },
