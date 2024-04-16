@@ -8,6 +8,7 @@ local NamedObject = require("Kdm/NamedObject")
 local Trie = require("Kdm/Util/Trie")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
+local EventManager = require("Kdm/Util/EventManager")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -112,7 +113,18 @@ function Rules.Init()
     createButton("Back", 6, 2, Rules.Back)
     createButton("Previous Page", 7, 2, function() Rules.ChangePage(-1) end )
     createButton("Next Page", 8, 2, function() Rules.ChangePage(1) end)
-
+    
+    EventManager.AddHandler("onObjectStateChange", function(object, _)
+        log:Debugf("Object state changed %s", object.getGMNotes() or "nil")
+        if object.getGMNotes() ~= "Rulebook" then
+            return
+        end
+        local rulebook = Rules.getBookName(object)
+        local state = Rules.GetState(object)
+        log:Debugf("Object state changed to %s[%d]", rulebook, state)
+        Rules.addToHistory(rulebook, state)
+        Rules.UpdateBookmarks(rulebook, state)
+    end)
     ui:ApplyToObject()
 end
 
@@ -282,6 +294,7 @@ function Rules.SpawnRules(rules, state, dontRecordHistory)
                 end, 3)
             else
                 if state > 1 then
+                    Rules.skipNextHistory = dontRecordHistory
                     obj = obj.setState(state)
                 end
                 Wait.frames(function()
@@ -293,10 +306,22 @@ function Rules.SpawnRules(rules, state, dontRecordHistory)
     })
 
     if not dontRecordHistory then
-        Rules.history:Push({ rules, state })
+        Rules.addToHistory(rules, state)
     end
 
     Archive.Clean()
+end
+
+function Rules.addToHistory(rules, state)
+    if Rules.skipNextHistory then
+        Rules.skipNextHistory = false
+        return
+    end
+    local top = Rules.history:Top()
+    if (top and top[1] == rules and top[2] == state) then
+        return
+    end
+    Rules.history:Push({ rules, state })
 end
 
 function Rules.UpdateBookmarks(rules, state) 
@@ -345,6 +370,22 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+function Rules.GetState(rules)
+    return rules.Book and rules.Book.getPage() or rules.getStateId()
+end
+
+function Rules.getBookName(rules)
+    if rules.Book then
+        return rules.getName()
+    end
+    for _, state in ipairs(rules.getStates()) do
+        if state.id == 1 then
+            return state.name
+        end
+    end
+    return rules.getDescription()
+end
+
 function Rules.ChangePage(dir)
     local rules = Rules.GetCurrentRules()
     if not rules then
@@ -352,29 +393,19 @@ function Rules.ChangePage(dir)
         return
     end
 
-    local currentState = -1
-    if rules.Book ~= nil then
-        currentState = rules.Book.getPage()
-    else
-        currentState = rules.getStateId()
-    end
+    local currentState = Rules.GetState(rules)
     local nextState = currentState + dir
 
     log:Debugf("Found current rules %s (%s) at state %d, looking for state %d", rules.getName(), rules.getGUID(), currentState, nextState)
 
-    local rulebookName = (currentState == 1) and rules.getName() or nil
+    local rulebookName = Rules.getBookName(rules)
     local hasNext = false
 
-    if rules.Book ~= nil then
-        rulebookName = rules.getName()
+    if rules.Book then
         hasNext = true
     else
         for _, state in ipairs(rules.getStates()) do
-            if state.id == 1 then
-                rulebookName = state.name
-            end
             if state.id == nextState then
-                log:Debugf("Found next state %d: %s", state.id, state.name)
                 hasNext = true
             end
         end
@@ -387,7 +418,7 @@ function Rules.ChangePage(dir)
 
     assert(Check(rulebookName, "No rulebook name (page with state 1) in %s (%s)", rules.getName(), rules.getGUID()))
 
-    if rules.Book ~= nil then
+    if rules.Book then
         if rules.Book.setPage(nextState) then
             Rules.history:Push({ rulebookName, nextState})
             Rules.UpdateBookmarks(rulebookName, nextState)
