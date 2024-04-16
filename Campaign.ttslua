@@ -783,7 +783,7 @@ function Campaign.Import(data)
     end
 
     Campaign.SetupSurvivalTokens(data.timeline.survivalActions)
-    Campaign.SetupReferences(data.campaign.references)
+    Campaign.SetupReferences(data.campaign.references, data.expansions)
     Campaign.SetupMisc(data.campaign.misc)
     Campaign.SetupCharacterDeck(data.characterDeck);
     Campaign.SetupSettlementEventsDeck(data.settlementEventsDeck)
@@ -1134,7 +1134,7 @@ end
 
 -------------------------------------------------------------------------------------------------
 
-function Campaign.SetupReferences(references)
+function Campaign.SetupReferences(references, expansions)
     for _, reference in ipairs(references or {}) do
         local name, location = reference.name, reference.location
         -- height 0 because we lock these immediately after spawning
@@ -1148,6 +1148,18 @@ function Campaign.SetupReferences(references)
                 spawnedObject.setLock(true)
             end
         })
+        for _, expansion in ipairs(expansions) do
+            for bookmark, entry in pairs(expansion.bookmarks or {}) do
+                if entry.reference == name then
+                    Archive.Take({
+                        name = bookmark,
+                        type = "Bookmarks",
+                        location = location,
+                        height = 5,
+                    })
+                end
+            end
+        end
     end
 end
 ---------------------------------------------------------------------------------------------------

@@ -570,7 +570,7 @@ return {
     },
 
     bookmarks = {
-        ["Intimacy - Infant Adrift"] = { rulespage = "Intimacy" },
+        ["Intimacy - Infant Adrift"] = { rulespage = "Intimacy", reference = "Intimacy Reference" },
     },
 
     rulebooks = {

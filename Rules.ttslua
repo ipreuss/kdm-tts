@@ -302,6 +302,8 @@ end
 function Rules.UpdateBookmarks(rules, state) 
     local location = Location.Get("Rules Board")
     location:BoxClean({ types = { "Bookmarks" } })
+    local position = location:Center()
+    position.x, position.y, position.z = position.x -3, position.y + 3,  position.z + 14
     for _, bookmark in ipairs(Rules.bookmarks) do
         log:Debugf("Checking bookmark %s[%d] for %s[%d]", bookmark.rulebook, bookmark.state, rules, state)
         if bookmark.rulebook == rules and bookmark.state == state then
@@ -309,8 +311,7 @@ function Rules.UpdateBookmarks(rules, state)
             Archive.Take({
                 name = bookmark.bookmark,
                 type = "Bookmarks",
-                location = location,
-                height = 5,
+                position = position,
             })
         end
     end

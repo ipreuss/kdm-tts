@@ -6,7 +6,6 @@ backupfile="./savefile_backup.json"
 templatefile="./template_workshop.json"
 luascript_start='"LuaScript":'
 
-echo "Backing up..."
 cp "$savefile" "$backupfile"
 
 # Push the backup file to the git repository
@@ -15,6 +14,7 @@ if git diff --quiet "$backupfile"; then
     echo "No changes in the backup file"
 else
     echo "Changes detected in the backup file"
+    echo "Backing up..."
     git add "$backupfile"
     git commit -q -m "Update backup file"
     git push -q origin master
