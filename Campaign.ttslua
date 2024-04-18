@@ -770,8 +770,6 @@ function Campaign.Import(data)
     }
     context.innovationArchive = Campaign.SetupDeckFromExpansionComponents("Innovation Archive", data,
         { component = "Innovations", type = "Innovations", noArchive = true })
-    context.bookmarkArchive = Campaign.SetupDeckFromExpansionComponents("Bookmark Archive", data,
-        { component = "Bookmarks", type = "Bookmarks", noArchive = true, faceUp = true })
     context.settlementLocationDeck = Campaign.SetupDeckFromExpansionComponents("Settlement Locations", data,
         { faceUp = true, noArchive = true })
 

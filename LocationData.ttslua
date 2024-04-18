@@ -539,11 +539,6 @@ local locationData = {
         size = CARD_SIZE,
         board = "Settlement Board",
     },
-    ["Bookmark Archive"] = {
-        center = { x = 0, y = 0.595169, z = -7.673294 },
-        size = SETTLEMENT_EVENT_SIZE,
-        board = "Settlement Board",
-    },
     ["Principle: Society"] = {
         center = { x = -1.308862, y = 0.595169, z = -7.423294 },
         size = CARD_SIZE,
