@@ -75,16 +75,24 @@ function Archive.Init()
     for _, expansion in ipairs(Expansion.All()) do
         Archive.RegisterEntries(expansion.archiveEntries)
     end
+end
 
+function Archive.CreateAllGearDeck()
     log:Debugf("creating all gear deck")
     local objects = {}
-    for key, name in pairs(Archive.keysByType["Gear"]) do
-        if not Archive.direct[key] then
-            log:Debugf("taking gear deck %s", key)
-            local deck = Archive.Take({ name = name, type = "Gear", position = Archive.NextContainerPosition()})
-            assert(deck, "Couldn't find gear deck: "..name)
-            table.insert(objects, deck)
+    for _, expansion in ipairs(Expansion.All()) do
+        if not Expansion.IsEnabled(expansion.name) then
+            goto nextExpansion
         end
+        for _, entry in ipairs(expansion.archiveEntries.entries) do
+            local name, type = entry[1], entry[2]
+            if type == "Gear" then
+                log:Debugf("taking gear deck %s", name)
+                local deck = Archive.Take({ name = name, type = "Gear", position = Archive.NextContainerPosition()})
+                table.insert(objects, deck)
+            end
+        end
+        ::nextExpansion::
     end
     log:Debugf("#decks for gear deck: %d", #objects)
     local deck = Archive.CreateDeckFromTable(objects)
@@ -116,7 +124,7 @@ function Archive.Init()
     local archive = NamedObject.Get("Gear Archive")
     archive.reset()
     archive.putObject(deck)
-    ::continue::
+    Archive.Clean()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -366,4 +374,5 @@ return {
     ContainerSource = Archive.ContainerSource,
     CreateDeckFromSources = Archive.CreateDeckFromSources,
     Clean = Archive.Clean,
+    CreateAllGearDeck = Archive.CreateAllGearDeck,
 }

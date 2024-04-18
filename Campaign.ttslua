@@ -777,6 +777,7 @@ function Campaign.Import(data)
 
     Archive.Take({ name = "Starting Gear", type = "Gear", location = "Starting Gear", rotation = { x = 0, y = 180, z = 180 } })
     Archive.Take({ name = "Promo Gear", type = "Gear", location = "Promo Gear", rotation = { x = 0, y = 180, z = 180 } })
+    Archive.CreateAllGearDeck()
 
     for location, object in pairs(data.objectsByLocation) do
         Campaign.SetupObject(location, object, context)
