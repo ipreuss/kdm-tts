@@ -1,4 +1,5 @@
 local Archive = require("Kdm/Archive")
+local Bookmarks = require("Kdm/Bookmarks")
 local Check = require("Kdm/Util/Check")
 local CircularArray = require("Kdm/Util/CircularArray")
 local Expansion = require("Kdm/Expansion")
@@ -21,7 +22,6 @@ function Rules.Init()
     Rules.history = CircularArray(100)
     Rules.index = {}
     Rules.searchResultButtons = {}
-    Rules.bookmarks = {}
 
     for _, expansion in ipairs(Expansion.All()) do
         Rules.RegisterExpansion(expansion)
@@ -177,20 +177,6 @@ function Rules.RegisterExpansion(expansion)
             end
         end
     end
-    for name, bookmark in pairs(expansion.bookmarks or {}) do
-        log:Debugf("Registering bookmark %s", name)
-        if bookmark.rulespage then
-            local bookmarkPage = Rules.index[bookmark.rulespage]
-            assert(Check(bookmarkPage, "Unknown bookmark page %s for bookmark", bookmark.rulespage, name))
-            log:Debugf("Registering bookmark %s for %s[%d]", name, bookmarkPage.rulebook, bookmarkPage.state)
-            local entry = {
-                rulebook = bookmarkPage.rulebook,
-                state = bookmarkPage.state,
-                bookmark = name,
-            }
-            table.insert(Rules.bookmarks, entry)
-        end
-    end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -329,18 +315,10 @@ function Rules.UpdateBookmarks(rules, state)
     location:BoxClean({ types = { "Bookmarks" } })
     local position = location:Center()
     position.x, position.y, position.z = position.x -3, position.y + 3,  position.z + 14
-    for _, bookmark in ipairs(Rules.bookmarks) do
-        log:Debugf("Checking bookmark %s[%d] for %s[%d]", bookmark.rulebook, bookmark.state, rules, state)
-        if bookmark.rulebook == rules and bookmark.state == state then
-            log:Debugf("Found bookmark %s[%d]", bookmark.rulebook, bookmark.state)
-            Archive.Take({
-                name = bookmark.bookmark,
-                type = "Bookmarks",
-                position = position,
-            })
-        end
-    end
-    Archive.Clean()
+    Bookmarks.placeFor(function (bookmark)
+        local bookmarkrulebook, bookmarkstate = Rules.RulebookAndState(bookmark.rulespage)
+        return bookmarkrulebook == rules and bookmarkstate == state
+    end, { position = position })
 end
 
 ---------------------------------------------------------------------------------------------------

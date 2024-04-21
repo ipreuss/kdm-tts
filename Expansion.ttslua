@@ -1,5 +1,5 @@
 local Check = require("Kdm/Util/Check")
-
+local array = require("Kdm/Util/array")
 ---------------------------------------------------------------------------------------------------
 
 local Core = require("Kdm/Expansion/Core")
@@ -87,8 +87,8 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-function Expansion.All()
-    return Expansion.allExpansions
+function Expansion.All(filter)
+    return array.filter(Expansion.allExpansions, filter or array.All)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -133,4 +133,5 @@ return {
     IsEnabled = Expansion.IsEnabled,
     SetUnlockedMode = Expansion.SetUnlockedMode,
     IsUnlockedMode = Expansion.IsUnlockedMode,
+    EnabledFilter = function(expansion) return Expansion.IsEnabled(expansion.name) end,
 }

@@ -1,0 +1,21 @@
+local log = require("KDM/Log").ForModule("array")
+
+local array = {}
+
+function array.filter(array, filterFunction)
+    log:Debugf("Filtering array of length %d", #array)
+    local newArray = {}
+    for i, v in ipairs(array) do
+        if filterFunction(v) then
+            table.insert(newArray, v)
+        end
+    end
+    log:Debugf("Filtered array to length %d", #newArray)
+    return newArray
+end
+
+function array.All()
+    return true
+end
+
+return array

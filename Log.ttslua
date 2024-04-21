@@ -11,20 +11,21 @@ Log.__call = function(self, ...) log(...) end
 Log.logsByModule = {}
 
 Log.DEBUG_MODULES = {
+    --["array"] = true,
     ["Archive"] = true,
     --["BattleUi"] = true,
-    --["Campaign"] = true,
+    ["Campaign"] = true,
     --["Container"] = true,
     --["Deck"] = true,
-    --["Expansion"] = true,
+    ["Expansion"] = true,
     --["Hunt"] = true,
     --["Location"] = true,
     --["Player"] = true,
-    --["Rules"] = true,
+    ["Rules"] = true,
     --["Showdown"] = true,
     --["Survivor"] = true,
     --["Timeline"] = true,
-    --["Weapon"] = true,
+    ["Weapon"] = true,
 }
 
 Log.POST_INIT_DEBUG_MODULES = {

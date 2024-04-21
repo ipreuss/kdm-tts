@@ -10,15 +10,18 @@ Weapon.__index = Weapon
 ---------------------------------------------------------------------------------------------------
 
 function Weapon.Init()
+    log:Debugf("Weapon.Init()")
     Weapon.weapons = {}
     for _, expansion in ipairs(Expansion.All()) do
+        log:Debugf("Processing expansion %s", expansion.name)
         for name, stats in pairs(expansion.weaponStats or {}) do
             if Weapon.weapons[name] then
-                assert(false, string.format("Weapon %s was already registered by expansion %s", name, Weapon.weapons[name].expansion))
+                error(string.format("Weapon %s was already registered by expansion %s", name, Weapon.weapons[name].expansion))
             end
             Weapon.weapons[name] = Weapon.Create(name, expansion.name, stats)
         end
     end
+    log:Debugf("Weapon.Init() done")
 end
 
 ---------------------------------------------------------------------------------------------------

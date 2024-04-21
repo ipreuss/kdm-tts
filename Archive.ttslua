@@ -80,10 +80,7 @@ end
 function Archive.CreateAllGearDeck()
     log:Debugf("creating all gear deck")
     local objects = {}
-    for _, expansion in ipairs(Expansion.All()) do
-        if not Expansion.IsEnabled(expansion.name) then
-            goto nextExpansion
-        end
+    for _, expansion in ipairs(Expansion.All(Expansion.EnabledFilter)) do
         for _, entry in ipairs(expansion.archiveEntries.entries) do
             local name, type = entry[1], entry[2]
             if type == "Gear" then
@@ -92,7 +89,6 @@ function Archive.CreateAllGearDeck()
                 table.insert(objects, deck)
             end
         end
-        ::nextExpansion::
     end
     log:Debugf("#decks for gear deck: %d", #objects)
     local deck = Archive.CreateDeckFromTable(objects)
@@ -193,7 +189,6 @@ function Archive.Take(params)
     local archive = params.archive
     local name = params.name
     local type = params.type
-    local height = params.height or 2
     local position = CalculatePosition(params)
    
     local rotation = params.rotation or { x = 0, y = 180, z = 0 }
@@ -201,7 +196,6 @@ function Archive.Take(params)
     assert(Check.StrOrNil(archive))
     assert(Check.StrOrNil(name))
     assert(Check.StrOrNil(type))
-    assert(Check.NumOrNil(height))
     assert(Check.Vec3OrNil(rotation))
     assert(Check.FuncOrNil(spawnFunc))
 

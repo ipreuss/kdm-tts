@@ -1,0 +1,23 @@
+local Expansion = require("Kdm/Expansion")
+local Archive = require("Kdm/Archive")
+
+local Bookmarks = {}
+
+function Bookmarks.placeFor(selector, locationOrPosition)
+    for _, expansion in ipairs(Expansion.All(Expansion.EnabledFilter)) do
+        for bookmark, entry in pairs(expansion.bookmarks or {}) do
+            if selector(entry) then
+                Archive.Take({
+                    name = bookmark,
+                    type = "Bookmarks",
+                    location = locationOrPosition.location,
+                    position = locationOrPosition.position,
+                    height = 5,
+                })
+            end
+        end
+    end
+    Archive.Clean()
+end
+
+return Bookmarks

@@ -1,4 +1,5 @@
 local Archive = require("Kdm/Archive")
+local Bookmarks = require("Kdm/Bookmarks")
 local Check = require("Kdm/Util/Check")
 local Deck = require("Kdm/Deck")
 local Container = require("Kdm/Util/Container")
@@ -58,11 +59,13 @@ function Campaign.Init(saveState)
     end)
     Survivor.SetCharacterProvider(Campaign.GetCharacter)
     Survivor.SetInnovationsChecker(Campaign.HasInnovated)
+    log:Debugf("Campaign initialized")
 end
 
 ---------------------------------------------------------------------------------------------------
 
 function Campaign.InitExpansions()
+    log:Debugf("Initializing expansions")
     Campaign.expansionsByName = {}
     Campaign.expansionsByCampaignName = {}
     Campaign.campaigns = {}
@@ -76,20 +79,20 @@ function Campaign.InitExpansions()
         end
     end
 
-    for _, expansion in ipairs(Expansion.All()) do
-        if Expansion.IsEnabled(expansion.name) then
-            local overrides = expansion.archiveOverrides
-            if overrides then
-                log:Debugf("Overriding archive entries for %s", expansion.name)
-                Archive.RegisterEntries({ archive = overrides.newArchive, entries = overrides.entries, allowOverrides = true })
-            end
+    for _, expansion in ipairs(Expansion.All(Expansion.EnabledFilter)) do
+        local overrides = expansion.archiveOverrides
+        if overrides then
+            log:Debugf("Overriding archive entries for %s", expansion.name)
+            Archive.RegisterEntries({ archive = overrides.newArchive, entries = overrides.entries, allowOverrides = true })
         end
     end
+    log:Debugf("Expansions initialized")
 end
 
 ---------------------------------------------------------------------------------------------------
 
 function Campaign.InitCampaignUi()
+    log:Debugf("Initializing campaign UI")
     local panel = Ui.Get2d():Panel({ id = "Campaign", rectAlignment = "MiddleCenter", x = 0, y = 0, width = 885, height = 723, active = false })
     Campaign.panel = panel
     panel:Image({ id = "Campaign", image = "Campaign", x = 0, y = 0, width = 885, height = 723 })
@@ -155,7 +158,8 @@ function Campaign.InitCampaignUi()
     local x = 20
     local y = -268
     Campaign.expansionButtons = {}
-    for i, expansion in ipairs(Expansion:All()) do
+    for _, expansion in ipairs(Expansion.All()) do
+        log:Debugf("Adding expansion %s", expansion.name)
         if expansion.name ~= "Core" then
             Campaign.expansionButtons[expansion.name] = panel:CheckButton({
                 id = expansion.name,
@@ -195,6 +199,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Campaign.InitExportImportBoardUi()
+    log:Debugf("Initializing export/import board UI")
     local ui = Ui.Create3d("ExportImport", NamedObject.Get("Export/Import Board"), 0.11)
     ui:Button({
         id = "Export",
@@ -241,10 +246,8 @@ function Campaign.ExportToOrb()
     end
 
     local expansions = {}
-    for _, expansion in ipairs(Expansion.All()) do
-        if Expansion.IsEnabled(expansion.name) then
-            table.insert(expansions, expansion.name)
-        end
+    for _, expansion in ipairs(Expansion.All(Expansion.EnabledFilter)) do
+        table.insert(expansions, expansion.name)
     end
 
     local scanTypesByLocation = {}
@@ -587,6 +590,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 function Campaign.spawnCharacterDeck()
+    log:Debugf("spawning character deck")
     local archive = NamedObject.Get("Character Archive")
     local rotation = { x = 0, y = 180, z = 180 }
     local location = Location.Get("Character Deck")
@@ -782,7 +786,7 @@ function Campaign.Import(data)
     end
 
     Campaign.SetupSurvivalTokens(data.timeline.survivalActions)
-    Campaign.SetupReferences(data.campaign.references, data.expansions)
+    Campaign.SetupReferences(data.campaign.references)
     Campaign.SetupMisc(data.campaign.misc)
     Campaign.SetupCharacterDeck(data.characterDeck);
     Campaign.SetupSettlementEventsDeck(data.settlementEventsDeck)
@@ -1133,7 +1137,8 @@ end
 
 -------------------------------------------------------------------------------------------------
 
-function Campaign.SetupReferences(references, expansions)
+function Campaign.SetupReferences(references)
+    log:Debugf("Setting up references")
     for _, reference in ipairs(references or {}) do
         local name, location = reference.name, reference.location
         -- height 0 because we lock these immediately after spawning
@@ -1147,18 +1152,9 @@ function Campaign.SetupReferences(references, expansions)
                 spawnedObject.setLock(true)
             end
         })
-        for _, expansion in ipairs(expansions) do
-            for bookmark, entry in pairs(expansion.bookmarks or {}) do
-                if entry.reference == name then
-                    Archive.Take({
-                        name = bookmark,
-                        type = "Bookmarks",
-                        location = location,
-                        height = 5,
-                    })
-                end
-            end
-        end
+        Bookmarks.placeFor(function(bookmark)
+            return bookmark.reference == name
+        end, { location = location })
     end
 end
 ---------------------------------------------------------------------------------------------------
