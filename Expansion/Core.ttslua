@@ -103,6 +103,10 @@ return {
                     { name = "Protect the Young - New Life Principle", type = "Innovations" },
                     { name = "Survival of the Fittest - New Life Principle", type = "Innovations" },
                 } },
+                ["Principle: Bonding"] = { tag = "Deck", name = "Principle: Bonding", type = "Innovations", faceDown = true, cards = {
+                    { name = "Devoted Union - Bonding Principle", type = "Innovations" },
+                    { name = "Enduring Legacy - Bonding Principle", type = "Innovations" },
+                } },
                 ["Principle: Society"] = { tag = "Deck", name = "Principle: Society", type = "Innovations", faceDown = true, cards = {
                     { name = "Accept Darkness - Society Principle", type = "Innovations" },
                     { name = "Collective Toil - Society Principle", type = "Innovations" },

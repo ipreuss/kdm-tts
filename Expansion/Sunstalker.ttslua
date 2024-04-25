@@ -75,6 +75,10 @@ return {
                 } },
                 ["Innovation 1"] = { tag = "Card", name = "Sun Language", type = "Innovations" },
                 ["Principle: New Life"] = { tag = "Card", name = "Survival of the Fittest - New Life Principle", type = "Innovations" },
+                ["Principle: Bonding"] = { tag = "Deck", name = "Principle: Bonding", type = "Innovations", faceDown = true, cards = {
+                    { name = "Devoted Union - Bonding Principle", type = "Innovations" },
+                    { name = "Enduring Legacy - Bonding Principle", type = "Innovations" },
+                } },
                 ["Settlement Location 1"] = { tag = "Card", name = "The Sun", type = "Settlement Locations" },
                 ["Settlement Location 2"] = { tag = "Card", name = "Sacred Pool", type = "Settlement Locations" },
             },

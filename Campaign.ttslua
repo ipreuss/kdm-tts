@@ -21,7 +21,7 @@ local Util = require("Kdm/Util/Util")
 
 local Campaign = {}
 
-Campaign.EXPORT_VERSION = 2
+Campaign.EXPORT_VERSION = 3
 
 ---------------------------------------------------------------------------------------------------
 
@@ -255,6 +255,7 @@ function Campaign.ExportToOrb()
     for _, principle in ipairs({
         "Principle: Death",
         "Principle: New Life",
+        "Principle: Bonding",
         "Principle: Society",
         "Principle: Conviction",
     }) do
@@ -943,6 +944,18 @@ function Campaign.ConvertToLatestVersion(data)
         end
 
         data.timeline.years = data.timeline.timeline
+    end
+    if (data.version <= 2) then
+        data.objectsByLocation["Principle: Bonding"] = {
+            tag = "Deck",
+            name = "Principle: Bonding",
+            type = "Innovations",
+            faceDown = true,
+            cards = {
+                { name = "Devoted Union - Bonding Principle", type = "Innovations" },
+                { name = "Enduring Legacy - Bonding Principle", type = "Innovations" },
+            }
+        }
     end
     data.version = Campaign.EXPORT_VERSION
 
