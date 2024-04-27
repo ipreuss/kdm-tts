@@ -191,6 +191,7 @@ function Survivor.InitSaveState(saveState)
     end
 
     Survivor.newSurvivorBonuses = saveState.newSurvivorBonuses
+    log:Debugf("Loaded new survivor bonuses: %s", Survivor.newSurvivorBonuses)
     Survivor.page = saveState.page or 1
     Survivor.hideLiving = saveState.hideLiving
     Survivor.hideDead = saveState.hideDead
@@ -221,6 +222,7 @@ function Survivor.InitUi()
 
     Survivor.femaleSurvivorsText = ui:Text({ id = "femaleSurvivors", topLeft = { x = -7.769115, y = 7.134308 }, bottomRight = { x = -8.031291, y = 7.718416 }, fontSize = 220, alignment = "MiddleCenter" })
 
+    log:Debugf("Creating new survivor bonuses input with %s", Survivor.newSurvivorBonuses)
     Survivor.newSurvivorBonusesInput = ui:Input({ id = "newSurvivorBonuses", topLeft = { x = 3.778204, y = -7.33247 }, bottomRight = { x = 1.031039, y = -7.164494 }, fontSize = 80, alignment = "LowerLeft", text = Survivor.newSurvivorBonuses, onValueChanged = function(value)
         Survivor.newSurvivorBonuses = value
         Survivor.newSurvivorBonusesInput:SetText(value)
@@ -541,7 +543,6 @@ function Survivor.InitEvents()
     EventManager.AddHandler("onObjectDestroy", function(object)
         local survivorBox = Survivor.survivorBoxesByObject[object]
         if survivorBox then
-            log:Debugf("%s was destroyed", survivorBox)
             Survivor.survivorBoxesBySurvivor[survivorBox.survivor] = nil
             Survivor.survivorBoxesByObject[object] = nil
             return
@@ -549,7 +550,6 @@ function Survivor.InitEvents()
 
         local survivorSheet = Survivor.survivorSheetsByObject[object]
         if survivorSheet then
-            log:Debugf("%s was destroyed", survivorSheet)
             Survivor.survivorSheetsBySurvivor[survivorSheet.survivor] = nil
             Survivor.survivorSheetsByObject[object] = nil
             return
@@ -612,7 +612,6 @@ function Survivor.InitEvents()
         if survivorSheet then
             local updater = Survivor.statUpdaters[stat]
             if updater then
-                log:Debugf("%s %s changed to %s", survivor, stat, value)
                 updater(survivorSheet, stat, value)
             end
         end
@@ -721,6 +720,7 @@ function Survivor.Import(data)
 
     Survivor.UpdateLivingDeadCounts()
     Survivor.UpdateSexCounts()
+    Survivor.newSurvivorBonusesInput:SetText(Survivor.newSurvivorBonuses)
     Survivor.SetPageAndRefresh(Survivor.page)
 end
 
@@ -733,6 +733,7 @@ function Survivor.Export()
         table.insert(survivors, survivor:Save())
     end
 
+    log:Debugf("Exporting with bonuses", Survivor.newSurvivorBonuses)
     return {
         survivors = survivors,
 
@@ -827,10 +828,8 @@ function Survivor.SetPageAndRefresh(page)
 
     local maxPage = Util.Max(1, math.ceil(#survivors / 20))
     if page < 1 then
-        log:Debugf("Capping page to 1")
         page = 1
     elseif page > maxPage then
-        log:Debugf("Capping page to maxPage=%d", maxPage)
         page = maxPage
     end
 
@@ -838,8 +837,6 @@ function Survivor.SetPageAndRefresh(page)
 
     local baseIndex = (page - 1) * 20
     local numSurvivorsOnPage = Util.Min(baseIndex + 20, #survivors) - baseIndex
-
-    log:Debugf("Found %d survivors on page %d", numSurvivorsOnPage, page)
 
     for i = 1, numSurvivorsOnPage do
         Survivor.ShowCell(Survivor.cells[i], survivors[baseIndex + i])
@@ -954,8 +951,6 @@ function Survivor.DestroySurvivor(survivor)
                 EventManager.FireEvent(EventManager.ON_SURVIVOR_DESTROYED, survivor)
             end
         end
-
-        log:Debugf("Survivor %s not found, it must have already been deleted", survivor)
     end)
 end
 
@@ -993,10 +988,7 @@ Survivor.CELL_POSITIONS = {
 }
 
 function Survivor.ShowCell(cell, survivor)
-    log:Debugf("Showing cell %d with survivor %s", cell.ordinal, survivor)
-
     if cell.survivor == survivor then
-        log:Debugf("Cell %d already has survivor %s", cell.ordinal, survivor)
         return
     end
 
@@ -1105,8 +1097,6 @@ function Survivor.UpdateCellCards(cell)
         for _, card in ipairs(cardsByType[type]) do
             local i = PickIndex(left, right)
             if i then
-                log:Debugf("Picked %d for %s/%s", i, card.name, card.type)
-
                 local text = cell["card"..i.."Text"]
                 text:SetText(card.name)
                 text:Show()
@@ -1123,8 +1113,6 @@ function Survivor.UpdateCellCards(cell)
         for _, card in ipairs(cardsByType[type]) do
             local i = PickIndex(right, left)
             if i then
-                log:Debugf("Picked %d for %s/%s", i, card.name, card.type)
-
                 local text = cell["card"..i.."Text"]
                 text:SetText(card.name)
                 text:Show()
@@ -1140,7 +1128,6 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Survivor.HideCell(cell)
-    log:Debugf("Hiding cell %d", cell.ordinal)
     cell.object.setScale({ x = 0.01, y = 0.01, z = 0.01 })
     cell.object.setRotation({ x = 0, y = 180, z = 0 })
     local pos = Survivor.CELL_POSITIONS[cell.ordinal]
@@ -1264,9 +1251,6 @@ function Survivor.SpawnSurvivorBox(survivor, location)
             Survivor.survivorBoxesBySurvivor[survivor] = survivorBox
             Survivor.survivorBoxesByObject[survivorBoxObject] = survivorBox
 
-
-            log:Debugf("Created survivor box %s for survivor %s", survivorBoxObject.getGUID(), survivor)
-
             -- Custom model boxes are mad sketchy the turn they come into play: they're treated as "Generic" not "Boxes" for 1 frame
             Wait.frames(function()
                 -- Copy the cards table since we need to clear survivor cards before putting them into the box
@@ -1274,10 +1258,6 @@ function Survivor.SpawnSurvivorBox(survivor, location)
                 for _, card in ipairs(survivor:Cards()) do
                     table.insert(cardsToSpawn, card)
                 end
-                log:Debugf("%s cards to spawn: %s", survivor, cardsToSpawn)
-
-
-                log:Debugf("Clearing %s cards", survivor)
                 survivor:SetCards({})
 
                 -- Spawn all cards
@@ -1375,9 +1355,6 @@ function SurvivorClass.Create(params)
         positionsByCardNameType = params.positionsByCardNameType or {},
     }
     setmetatable(survivor, SurvivorClass)
-
-    log:Debugf("Created new %s", survivor)
-
     return survivor
 end
 
@@ -1435,7 +1412,6 @@ function SurvivorClass:Id() return self.id end
 ---------------------------------------------------------------------------------------------------
 
 function SurvivorClass:FireStatChangeEvent(stat, value)
-    log:Debugf("Firing self stat change event for %s", stat)
     EventManager.FireEvent(EventManager.ON_SURVIVOR_STAT_CHANGED, self, stat, value)
 end
 
@@ -1443,7 +1419,6 @@ end
 
 function SurvivorClass:SetStr(stat, value)
     assert(Check.Str(value))
-    log:Debugf("Setting %s to %s for %s", stat, value, self)
     self[stat] = value
     self:FireStatChangeEvent(stat, value)
 end
@@ -1479,7 +1454,6 @@ function SurvivorClass:GetModified(stat) return self[stat] + self.modifiers[stat
 function SurvivorClass:GetUnmodified(stat) return self[stat] end
 function SurvivorClass:SetModified(stat, value)
     assert(Check.Num(value))
-    log:Debugf("Setting %s to %d for %s", stat, value, self)
     self[stat] = value
     self:FireStatChangeEvent(stat, value)
     self:FireStatChangeEvent(Survivor.MODIFIED_STATS[stat], self[stat] + self.modifiers[stat])
@@ -1519,7 +1493,6 @@ function SurvivorClass:SetNum(stat, value, min, max)
     if max ~= nil and value > max then
         value = max
     end
-    log:Debugf("Setting %s to %s for %s", stat, value, self)
     self[stat] = value
     self:FireStatChangeEvent(stat, value)
 end
@@ -1546,7 +1519,6 @@ function SurvivorClass:SetWeaponProficiencyRank(value) self:SetNum("weaponProfic
 
 function SurvivorClass:SetBool(stat, value)
     assert(Check.BooleanOrNil(value))
-    log:Debugf("Setting %s to %s for %s", stat, value and "true" or "false", self)
     self[stat] = value
     self:FireStatChangeEvent(stat, value)
 end
@@ -1616,7 +1588,6 @@ function SurvivorClass:SetModifiers(modifiers)
         local oldValue = self:GetModified(stat)
         self.modifiers[stat] = modifiers[stat] or 0
         local newValue = self:GetModified(stat)
-        log:Debugf("Changed modified %s from %d to %d for %s", stat, oldValue, newValue, self)
         if newValue ~= oldValue then
             EventManager.FireEvent(EventManager.ON_SURVIVOR_STAT_CHANGED, self, Survivor.MODIFIED_STATS[stat], newValue)
         end
@@ -1628,8 +1599,6 @@ end
 function SurvivorBoxClass.Create(survivor, object)
     assert(SurvivorClass.Is(survivor))
     assert(Check.Object(object))
-
-    log:Debugf("Creating SurvivorBoxClass for %s", survivor)
 
     local survivorBox = {
         survivor = survivor,
@@ -1690,15 +1659,12 @@ function SurvivorBoxClass:UpdateCards()
             table.insert(cards, { name = objectInBox.name, type = objectInBox.gm_notes })
         end
     end
-    log:Debugf("Updated %s cards", self)
     self.survivor:SetCards(cards)
 end
 
 ---------------------------------------------------------------------------------------------------
 
 function SurvivorSheetClass.Create(survivor, object)
-    log:Debugf("Creating survivor sheet for %s and object %s", survivor, object.getGUID())
-
     local survivorSheet = {
         survivor = survivor,
         object = object,
@@ -1909,7 +1875,6 @@ return {
         return survivorSheet
     end,
     GetDepartingSurvivors = function()
-        log:Debugf("Getting departing survivors")
         return pairs(Survivor.survivorSheetsBySurvivor)
     end,
     ClearSkipNextHunt = Survivor.ClearSkipNextHunt,

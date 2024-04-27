@@ -12,7 +12,7 @@ Log.logsByModule = {}
 
 Log.DEBUG_MODULES = {
     --["array"] = true,
-    ["Archive"] = true,
+    --["Archive"] = true,
     --["BattleUi"] = true,
     --["Campaign"] = true,
     --["Container"] = true,
@@ -23,7 +23,7 @@ Log.DEBUG_MODULES = {
     --["Player"] = true,
     --["Rules"] = true,
     --["Showdown"] = true,
-    --["Survivor"] = true,
+    ["Survivor"] = true,
     --["Timeline"] = true,
     --["Weapon"] = true,
 }
