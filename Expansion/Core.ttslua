@@ -932,7 +932,7 @@ return {
                         "Puzzle", "Affinity", "Quarry", "Random", "Hunt", "Survivor", "Range",
                         "Ranged", "Rawhide", "Reach", "Reaction", "Record", "Archive", "Reflex", "Remove",
                         "Board", "Resolved", "Type", "Reveal", "Retired", "Returning", },
-                    state = 100,
+                    state = 101,
                 },
                 ["Glossary R-Z"] = {
                     keywords = { "Rewards", "Round", "Run", "Away", "Savage", "Secret", "Fighting", "Arts", "Selfish",
@@ -949,7 +949,7 @@ return {
                         "Unstoppable", "Unwieldy", "Vermin", "Victory", "Vital", "Waist", "Weapon",
                         "Mastery", "Proficiency", "Specialization", "Whip", "Wound", "Reaction", "Attempt", "Roll",
                         "Zone", },
-                    state = 100,
+                    state = 102,
                 },
             },
         },
