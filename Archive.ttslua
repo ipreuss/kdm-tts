@@ -299,7 +299,7 @@ function Archive.CreateDeckFromSources(params)
         elseif source.source == "Container" then
             log:Debugf("Taking %s/%s from container", source.name, source.type)
             object = source.container:Take(takeParams)
-            assert(object, "Couldn't find "..source.name.." in container")
+            assert(Check(object, "Couldn't find %s in container %s", source.name, source.container:Name()))
         else
             assert(Check.Fail("Unrecognized source: %s", source))
         end

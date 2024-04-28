@@ -153,19 +153,14 @@ end
 function Hunt.Setup(monsterOrName, levelOrName)
     if Hunt.settingUpHunt == true then
         log:Errorf("Hunt setup currently in progress, please wait until finished before setting up another hunt. If the hunt appears to be stuck, click 'Cleanup Hunt' from the 'Cleanup' menu to reset.")
-        return 1
+        return
     end
-    for survivor in Survivor.GetDepartingSurvivors() do
-        log:Debugf("Checking if %s has to skip this hunt", survivor.name)
-        if survivor:SkipNextHunt() then
-            log:Errorf("Survivor %s has to skip this hunt. Return them to the settlement.", survivor.name)
-            return 1
-        end
+    if Survivor.DepartingSurvivorNeedsToSkipNextHunt() then
+        return
     end
 
     local monster = nil
     if type(monsterOrName) == "string" then
---        monster = Hunt.monstersByMonsterName[monsterOrName]
         monster = Hunt.MonsterByNameForHunt(monsterOrName)
         assert(Check(monster, "Unknown monster %s", monsterOrName))
     else
@@ -243,7 +238,7 @@ function Hunt.Setup(monsterOrName, levelOrName)
 
     Hunt.settingUpHunt = false
 
-    --Location.Get("Hunt Track"):LookAt({ distance = 30 })
+    Location.Get("Hunt Track"):LookAt({ distance = 30 })
 end
 
 ---------------------------------------------------------------------------------------------------

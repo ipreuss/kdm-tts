@@ -14,6 +14,7 @@ local Rules = require("Kdm/Rules")
 local Terrain = require("Kdm/Terrain")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
+local Survivor = require("Kdm/Survivor")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -247,13 +248,16 @@ function Showdown.Setup(monsterOrName, levelOrName)
 
     local monster = nil
     if type(monsterOrName) == "string" then
---        monster = Showdown.monstersByName[monsterOrName]
         monster = Showdown.MonsterByNameForShowdown(monsterOrName)
         assert(Check(monster, "Unknown monster %s", monsterOrName))
     else
         monster = monsterOrName
     end
-
+    log:Debugf("checking for skip next hunt")
+    if monster.nemesis and Survivor.DepartingSurvivorNeedsToSkipNextHunt() then
+        return
+    end
+    log:Debugf("no skip next hunt")
     local level = nil
     if levelOrName == nil then -- Security check for Showdowns such as Watcher when launched from the Timeline.
         levelOrName = "Level 1"
@@ -627,7 +631,9 @@ function Showdown.Setup(monsterOrName, levelOrName)
     -----------------------------------------------------------------------------------------------
 
     Archive.Clean()
-
+    if monster.nemesis then
+        Survivor.ClearSkipNextHunt()
+    end
     Showdown.settingUp = false
     Wait.frames(function() log:Printf("Showdown ready. Adjust your survivor/terrain placement and prepare for death.") end, 120)
 

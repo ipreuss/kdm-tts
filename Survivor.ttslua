@@ -1305,6 +1305,21 @@ function Survivor.SpawnSurvivorBox(survivor, location)
     })
 end
 
+function Survivor.GetDepartingSurvivors()
+    return pairs(Survivor.survivorSheetsBySurvivor)
+end
+
+function Survivor.DepartingSurvivorNeedsToSkipNextHunt()
+    log:Debugf("Checking if any departing survivors need to skip next hunt.")
+    for survivor in Survivor.GetDepartingSurvivors() do
+        log:Debugf("Checking survivor %s", survivor.name)
+        if survivor:SkipNextHunt() then
+            log:Errorf("Survivor %s has to skip this hunt. Return them to the settlement.", survivor.name)
+            return true
+        end
+    end
+    return false
+end
 ---------------------------------------------------------------------------------------------------
 
 function SurvivorClass.Create(params)
@@ -1858,6 +1873,7 @@ return {
     Export = Survivor.Export,
     SetCharacterProvider = Survivor.SetCharacterProvider,
     SetInnovationsChecker = Survivor.SetInnovationsChecker,
+    DepartingSurvivorNeedsToSkipNextHunt = Survivor.DepartingSurvivorNeedsToSkipNextHunt,
 
     Survivors = function() return Survivor.survivors end,
 
@@ -1873,9 +1889,6 @@ return {
         Survivor.survivorSheetsByObject[object] = survivorSheet
         EventManager.FireEvent(EventManager.ON_SURVIVOR_GETS_IN_PLAY, survivor)
         return survivorSheet
-    end,
-    GetDepartingSurvivors = function()
-        return pairs(Survivor.survivorSheetsBySurvivor)
     end,
     ClearSkipNextHunt = Survivor.ClearSkipNextHunt,
 
