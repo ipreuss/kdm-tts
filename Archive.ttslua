@@ -203,7 +203,14 @@ function Archive.Take(params)
     if not archive then
         local key = params.key or Archive.Key(name, type)
         archive = Archive.index[key]
-        assert(Check(archive, "Archive not found for %s", key))
+        if not archive then
+            if params.lenient then
+                log:Debugf("Archive not found for %s, returning nil", key)
+                return nil
+            end
+            assert(Check(false, "Couldn't find archive for %s (%s)", name, type))
+        end
+        assert(Check(archive or params.lenient, "Archive not found for %s", key))
         if Archive.direct[key] then
             -- for single item archives no need to pull intermediate container
             log:Debugf("Using direct from archive %s for %s ", archive, key)
@@ -251,14 +258,11 @@ function Archive.Take(params)
         smooth = params.smooth,
     })
     if not object then
-        log:Errorf(
-            "Couldn't find %s (%s) in archive %s.",
-            name, type, archive)
         Util.Highlight(NamedObject.Get(archive))
-        return nil
+        assert(Check(false,
+            "Couldn't find %s (%s) in archive %s.",
+            name, type, archive))
     end
-    log:Debugf("Spawned object %s (%s)", object.getName(), object.getGUID())
-
     return object
 end
 

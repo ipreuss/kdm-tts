@@ -315,8 +315,8 @@ function Showdown.Setup(monsterOrName, levelOrName)
         end
 
         if not monsterResourcesAlreadyExist then
-            local monsterResourcesDeck = Archive.Take({ name = monster.resourcesDeck, type = "Monster Resources", location = monsterResourcesLocation, rotation = { x = 0, y = 180, z = 180 }})
-            monsterResourcesDeck.shuffle()
+            local monsterResourcesDeck = Archive.Take({ name = monster.resourcesDeck, type = "Monster Resources", lenient = true, location = monsterResourcesLocation, rotation = { x = 0, y = 180, z = 180 }})
+            if monsterResourcesDeck then monsterResourcesDeck.shuffle() end
         end
     end
 
@@ -337,19 +337,21 @@ function Showdown.Setup(monsterOrName, levelOrName)
     local basicAiDeck = Container(Archive.Take({ name = monster.basicAiDeck, type = "AI", location = "Unused Basic AI", rotation = { x = 0, y = 180, z = 180 } }))
     basicAiDeck:Shuffle()
 
-    local advancedAiDeck
-    if monster.advancedAiDeck then
-        advancedAiDeck = Container(Archive.Take({ name = monster.advancedAiDeck, type = "AI", location = "Unused Advanced AI", rotation = { x = 0, y = 180, z = 180 } }))
-        advancedAiDeck:Shuffle()
-    end
+    local advancedAiDeck = Container(Archive.Take({ name = monster.advancedAiDeck, type = "AI", location =
+    "Unused Advanced AI", rotation = { x = 0, y = 180, z = 180 } }))
+    advancedAiDeck:Shuffle()
 
-    local legendaryAiDeck
-    if monster.legendaryAiDeck then
-        legendaryAiDeck = Container(Archive.Take({ name = monster.legendaryAiDeck, type = "AI", location = "Unused Legendary AI", rotation = { x = 0, y = 180, z = 180 } }))
+    local legendaryAiDeck = Archive.Take({ name = monster.legendaryAiDeck, type = "AI", lenient = true, location =
+    "Unused Legendary AI", rotation = { x = 0, y = 180, z = 180 } })
+    if legendaryAiDeck then
+        legendaryAiDeck = Container(legendaryAiDeck)
+        log:Debugf("Shuffling legendary AI deck")
         legendaryAiDeck:Shuffle()
     end
 
-    local specialAiDeck = Container(Archive.Take({ name = monster.specialAiDeck, type = "AI", location = "Unused Special AI", rotation = { x = 0, y = 180, z = 180 } }))
+    log:Debugf("Monster special AI deck: %s", monster.specialAiDeck)
+    local specialAiDeck = Container(Archive.Take({ name = monster.specialAiDeck, type = "AI", location =
+    "Unused Special AI", rotation = { x = 0, y = 180, z = 180 } }))
 
     local miscAiDeck = Container(Archive.Take({ name = "Misc AI", type = "AI", location = "Unused Misc AI", rotation = { x = 0, y = 180, z = 180 } }))
 
@@ -449,12 +451,15 @@ function Showdown.Setup(monsterOrName, levelOrName)
     local sources = {
         Archive.ArchiveSource(monster.hitLocationsDeck, "Hit Locations")
     }
-    if monster.trapsDeck then
-        local trapsDeck = Archive.Take({ name = monster.trapsDeck, type = "Hit Locations", location = "Unused HL", rotation = { x = 0, y = 180, z = 180 } })
+
+    local trapsDeck = Archive.Take({ name = monster.trapsDeck, type = "Hit Locations", lenient = true, location =
+    "Unused HL", rotation = { x = 0, y = 180, z = 180 } })
+    if trapsDeck then
         trapsDeck = Container(trapsDeck)
         trapsDeck:Shuffle()
         table.insert(sources, Archive.ContainerSource(trapsDeck))
     end
+
     for _, card in ipairs(showdownSetup.miscHitLocations or {}) do
         table.insert(sources, Archive.ContainerSource(miscAiDeck, card, "Hit Locations"))
     end
