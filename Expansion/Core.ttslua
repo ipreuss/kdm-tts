@@ -520,6 +520,7 @@ return {
             { "Phoenix Legendary AI", "AI" },
             { "Phoenix Special AI", "AI" },
             { "Phoenix Hit Locations", "Hit Locations" },
+            { "Phoenix Traps", "Hit Locations"},
             { "Phoenix Resources", "Monster Resources" },
             { "Phoenix Hunt Events", "Monster Hunt Events" },
 
@@ -531,6 +532,7 @@ return {
             { "Screaming Antelope Legendary AI", "AI" },
             { "Screaming Antelope Special AI", "AI" },
             { "Screaming Antelope Hit Locations", "Hit Locations" },
+            { "Screaming Antelope Traps", "Hit Locations"},
             { "Screaming Antelope Resources", "Monster Resources" },
             { "Screaming Antelope Hunt Events", "Monster Hunt Events" },
 
