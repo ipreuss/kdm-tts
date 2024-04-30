@@ -54,6 +54,7 @@ Survivor.ALLOWED_CARD_TYPES = {
     ["Portrait"] = true,
     ["Bingo Card"] = true,
     ["Character"] = true,
+    ["Gear"] = true,
 }
 
 Survivor.MARKER_EMPTY = "MarkerEmpty"
@@ -129,6 +130,10 @@ Survivor.CUSTOM_ASSETS = {
     {
         name = "IconCharacter",
         url = "http://cloud-3.steamusercontent.com/ugc/2522652198440609802/B4681DFF1B377C5C96C50CF637E0AD4D74ADF63F/",
+    },
+    {
+        name = "IconGear",
+        url = "http://cloud-3.steamusercontent.com/ugc/2514773511439964704/F1CDA1D390F90BF3608E4BE22CE046673A0D9CC6/",
     },
 }
 
@@ -1054,6 +1059,7 @@ Survivor.ICONS_BY_TYPE = {
     ["Abilities"] = "IconAbility",
     ["Severe Injuries"] = "IconSevereInjury",
     ["Character"] = "IconCharacter", 
+    ["Gear"] = "IconGear",
 }
 
 function Survivor.UpdateCellCards(cell)
@@ -1064,6 +1070,7 @@ function Survivor.UpdateCellCards(cell)
         ["Secret Fighting Arts"] = {},
         ["Severe Injuries"] = {},
         ["Character"] = {},
+        ["Gear"] = {},
     }
     for _, card in ipairs(cell.survivor:Cards()) do
         if cardsByType[card.type] then
@@ -1109,7 +1116,7 @@ function Survivor.UpdateCellCards(cell)
     end
 
     -- prefer right
-    for _, type in ipairs({ "Disorders", "Severe Injuries" }) do
+    for _, type in ipairs({ "Disorders", "Severe Injuries", "Gear" }) do
         for _, card in ipairs(cardsByType[type]) do
             local i = PickIndex(right, left)
             if i then
