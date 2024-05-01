@@ -355,10 +355,12 @@ function Player.Create(ordinal, params)
     local gearLocation = Location.Get(playerPrefix.." Gear")
     gearLocation:AddDropHandler(function(object, location)
         player:UpdateGear(object)
+        player:UpdateCards()
     end)
     gearLocation:AddPickUpHandler(function(object, location)
         checkUnregisterCollisions(object)
         player:UpdateGear(object)
+        player:UpdateCards()
     end)
 
     local cardsLocation = Location.Get(playerPrefix.." Cards")
@@ -582,6 +584,34 @@ function Player:UpdateCards()
                         table.insert(positionsByCardNameType[nameType], localPosition)
                     else
                         positionsByCardNameType[nameType] = { localPosition }
+                    end
+                end
+            end
+        end
+    end
+
+    for _, object in ipairs(Location.Get("Player "..self.ordinal.." Gear"):AllObjects()) do
+        if object.tag == "Card" or object.tag == "Deck" then
+            local container = Container(object)
+            for _, card in ipairs(container:Objects()) do
+                if card.gm_notes == "Gear" then
+                    local gear = Gear.getByName(card.name)
+                    if gear and gear.stats.cursed then
+                        table.insert(cards, {
+                            name = card.name,
+                            type = card.gm_notes,
+                        })
+
+                        local nameType = (card.name or "") .. card.gm_notes
+                        local worldPosition = container:Object().getPosition()
+                        local localPosition = self.boardObject.positionToLocal(worldPosition)
+                        log:Debugf("Found card %s at world (%f, %f %f), local (%f, %f, %f)", card.name, worldPosition.x,
+                            worldPosition.y, worldPosition.z, localPosition.x, localPosition.y, localPosition.z)
+                        if positionsByCardNameType[nameType] then
+                            table.insert(positionsByCardNameType[nameType], localPosition)
+                        else
+                            positionsByCardNameType[nameType] = { localPosition }
+                        end
                     end
                 end
             end
@@ -999,6 +1029,24 @@ function Player:BackToSettlement()
             container:Delete(toDelete)
         else
             table.insert(remainingObjects, object)
+        end
+    end
+
+    for _, object in ipairs(Location.Get("Player "..self.ordinal.." Gear"):AllObjects()) do
+        if object.tag == "Card" or object.tag == "Deck" then
+            local container = Container(object)
+            local toDelete = {}
+            for _, entry in ipairs(container:Objects()) do
+                if entry.gm_notes == "Gear" then
+                    log:Debugf("checking %s/%s", entry.name, entry.gm_notes)
+                    local gear = Gear.getByName(entry.name)
+                    if gear and gear.stats.cursed then
+                        log:Debugf("taking %s/%s to settlement", entry.name, entry.gm_notes)
+                        table.insert(toDelete, entry.name)
+                    end
+                end
+            end
+            container:Delete(toDelete)
         end
     end
 

@@ -389,7 +389,7 @@ return {
         ["Steel Shield"] = { speed = 1, accuracy = 6, strength = 6 },
         ["Steel Sword"] = { speed = 1, accuracy = 4, strength = 5, sharp = true, slow = true },
         ["Thunder Maul"] = { speed = 2, accuracy = 6, strength = 10},
-        ["Twilight Sword"] = { speed = 1, accuracy = 9, strength = 9 },
+        ["Twilight Sword"] = { speed = 1, accuracy = 9, strength = 9, cursed = true },
 
         ["Rawhide Whip"] = { speed = 3, accuracy = 7, strength = 1 },
 
