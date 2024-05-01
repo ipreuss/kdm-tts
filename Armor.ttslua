@@ -1,10 +1,10 @@
 local Check = require("Kdm/Util/Check")
 local Expansion = require("Kdm/Expansion")
+local Gear = require("Kdm/Gear")
 
 ---------------------------------------------------------------------------------------------------
 
-local Armor = {}
-Armor.__index = Armor
+local Armor = Gear:new()
 
 ---------------------------------------------------------------------------------------------------
 
@@ -13,9 +13,9 @@ function Armor.Init()
     for _, expansion in ipairs(Expansion.All()) do
         for name, stats in pairs(expansion.armorStats or {}) do
             if Armor.armor[name] then
-                assert(false, string.format("Armor %s was already registered by expansion %s", name, Armor.armor[name].expansion))
+                assert(false, string.format("Armor %s was already registered", name))
             end
-            Armor.armor[name] = Armor.Create(name, expansion.name, stats)
+            Armor.armor[name] = Armor:new( { name = name, stats = stats } )
         end
     end
 end
@@ -28,34 +28,8 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-function Armor.Create(name, expansion, stats)
-    assert(Check.Str(name))
-    assert(Check.Str(expansion))
-    assert(Check.Num(stats.head))
-    assert(Check.Num(stats.arms))
-    assert(Check.Num(stats.body))
-    assert(Check.Num(stats.waist))
-    assert(Check.Num(stats.legs))
-
-    local armor = {
-        name = name,
-        expansion = expansion,
-        head = stats.head,
-        arms = stats.arms,
-        body = stats.body,
-        waist = stats.waist,
-        legs = stats.legs,
-        modifier = stats.modifier,
-    }
-    setmetatable(armor, Armor)
-
-    return armor
-end
-
----------------------------------------------------------------------------------------------------
-
 function Armor:__tostring()
-    return string.format("%s (%d/%d/%d/%d/%d)", self.name, self.head, self.arms, self.body, self.waist, self.legs)
+    return string.format("%s (%d/%d/%d/%d/%d)", self.name, self.stats.head, self.stats.arms, self.stats.body, self.stats.waist, self.stats.legs)
 end
 
 ---------------------------------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 local Check = require("Kdm/Util/Check")
 local Expansion = require("Kdm/Expansion")
+--local Gear = require("Kdm/Gear")
 local log = require("Kdm/Log").ForModule("Weapon")
 
 ---------------------------------------------------------------------------------------------------
@@ -16,7 +17,7 @@ function Weapon.Init()
         log:Debugf("Processing expansion %s", expansion.name)
         for name, stats in pairs(expansion.weaponStats or {}) do
             if Weapon.weapons[name] then
-                error(string.format("Weapon %s was already registered by expansion %s", name, Weapon.weapons[name].expansion))
+                error(string.format("Weapon %s was already registered", name))
             end
             Weapon.weapons[name] = Weapon.Create(name, expansion.name, stats)
         end

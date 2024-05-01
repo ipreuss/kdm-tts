@@ -511,7 +511,7 @@ function Player:UpdateGear()
                 if armor then
                     log:Debugf("Adding armor %s at %s", objectName, location)
                     for _, hitLocation in ipairs(Player.HIT_LOCATIONS) do
-                        armorTotals[hitLocation] = armorTotals[hitLocation] + armor[hitLocation]
+                        armorTotals[hitLocation] = armorTotals[hitLocation] + armor.stats[hitLocation]
                     end
                 end
 

@@ -1,0 +1,26 @@
+local Gear = {}
+
+local gearByName = {}
+
+function Gear:new(gear)
+    gear = gear or { }
+    self.__index = self
+    setmetatable(gear, self)
+    if gear.name then
+        gearByName[gear.name] = gear
+    end
+    return gear
+end
+
+function Gear:isCursed()
+    return self.stats.cursed
+end
+
+function Gear.getByName(name)
+    return gearByName[name]
+end
+
+return {
+    new = Gear.new,
+    getByName = Gear.getByName
+}
