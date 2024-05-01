@@ -213,11 +213,11 @@ function BattleUi.CalcWeapons(player, survivor)
     for _, weaponAndModifiers in ipairs(weaponsAndModifiers) do
         local weapon = weaponAndModifiers.weapon
 
-        local speed = Util.Max(1, weapon.speed + survivorSpeed + (weaponAndModifiers.modifiers["speed"] or 0))
+        local speed = Util.Max(1, weapon.stats.speed + survivorSpeed + (weaponAndModifiers.modifiers["speed"] or 0))
         -- accuracy goes the opposite way
-        local accuracy = weapon.accuracy - survivorAccuracy - (weaponAndModifiers.modifiers["accuracy"] or 0)  -- accuracy goes the opposite way
-        local strength = weapon.strength + survivorStrength + (weaponAndModifiers.modifiers["strength"] or 0)
-        local luck = (weapon.deadly or 0) + survivorLuck + (weaponAndModifiers.modifiers["luck"] or 0)
+        local accuracy = weapon.stats.accuracy - survivorAccuracy - (weaponAndModifiers.modifiers["accuracy"] or 0)  -- accuracy goes the opposite way
+        local strength = weapon.stats.strength + survivorStrength + (weaponAndModifiers.modifiers["strength"] or 0)
+        local luck = (weapon.stats.deadly or 0) + survivorLuck + (weaponAndModifiers.modifiers["luck"] or 0)
 
         local hit = Util.Clamp(accuracy + monsterEvasion, 2, 10)
         local wound = Util.Max(monsterToughness - strength, 2)    -- sharp weapons means we need to show the target roll if it's past 10
@@ -226,10 +226,10 @@ function BattleUi.CalcWeapons(player, survivor)
             crit = 'X'
         end
 
-        if weapon.paired and weaponCounts[weapon.canonicalName] > 1 then
+        if weapon.stats.paired and weaponCounts[weapon.canonicalName] > 1 then
             speed = speed + weapon.speed
         end
-        if weapon.slow and (weaponAndModifiers.modifiers["frenzy"] or 0) == 0 then
+        if weapon.stats.slow and (weaponAndModifiers.modifiers["frenzy"] or 0) == 0 then
             speed = 1
         end
 
