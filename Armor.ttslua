@@ -9,21 +9,12 @@ local Armor = Gear:new()
 ---------------------------------------------------------------------------------------------------
 
 function Armor.Init()
-    Armor.armor = {}
     for _, expansion in ipairs(Expansion.All()) do
         for name, stats in pairs(expansion.armorStats or {}) do
-            if Armor.armor[name] then
-                assert(false, string.format("Armor %s was already registered", name))
-            end
-            Armor.armor[name] = Armor:new( { name = name, stats = stats } )
+            stats.isArmor = true
+            Armor:new( { name = name, stats = stats } )
         end
     end
-end
-
----------------------------------------------------------------------------------------------------
-
-function Armor.Get(armor)
-    return Armor.armor[armor]
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -36,5 +27,4 @@ end
 
 return {
     Init = Armor.Init,
-    Get = Armor.Get,
 }

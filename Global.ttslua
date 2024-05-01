@@ -2,6 +2,7 @@ KDM_VERSION = "1.4.6"
 
 GLOBAL_OBJECT = self
 
+local Gear = require("Kdm/Gear")
 local Armor = require("Kdm/Armor")
 local Archive = require("Kdm/Archive")
 local BattleUi = require("Kdm/BattleUi")
@@ -60,6 +61,7 @@ function onLoad(saveJson)
     log:Printf("Meï's Kingdom Death: Monster Mod v%s", KDM_VERSION)
     log:Printf("This mod is a fork of Misterslack's and Farbod's mods. Check'em out!")
     --
+    Gear.Init()
     Armor.Init()
     NamedObject.Init()
     Terrain.Init()

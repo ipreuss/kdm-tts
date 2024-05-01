@@ -140,20 +140,24 @@ return {
         ["Dragon Armory"] = "Dragon Armory Gear",
     },
 
+    gearStats = {
+        ["Blast Shield"]     = { isArmor = true, head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true,
+            isWeapon = true, speed = 1, accuracy = 7, strength = 4 },
+        ["Hazmat Shield"]    = { isArmor = true, head = 2, arms = 2, body = 2, waist = 2, legs = 2, modifier = true,
+            isWeapon = true, speed = 2, accuracy = 4, strength = 7 },
+    },
+
     armorStats = {
         ["Dragon Armor"]     = { head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true },
-        ["Blast Shield"]     = { head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true },
         ["Dragonskull Helm"] = { head = 4, arms = 0, body = 0, waist = 0, legs = 0 },
         ["Dragon Gloves"]    = { head = 0, arms = 4, body = 0, waist = 0, legs = 0 },
         ["Dragon Mantle"]    = { head = 0, arms = 0, body = 4, waist = 0, legs = 0 },
         ["Dragon Belt"]      = { head = 0, arms = 0, body = 0, waist = 4, legs = 0 },
         ["Dragon Boots"]     = { head = 0, arms = 0, body = 0, waist = 0, legs = 4 },
         ["Dragon Vestments"] = { head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true },
-        ["Hazmat Shield"]    = { head = 2, arms = 2, body = 2, waist = 2, legs = 2, modifier = true },
     },
 
     weaponStats = {
-        ["Blast Shield"]     = { speed = 1, accuracy = 7, strength = 4 },
         ["Blast Sword"]      = { speed = 2, accuracy = 6, strength = 4 },
         ["Dragon Bite Bolt"] = { speed = 1, accuracy = 6, strength = 6, slow = true, devastating = 1 },
         ["Dragon Chakram"]   = { speed = 2, accuracy = 6, strength = 3 },
@@ -161,7 +165,6 @@ return {
         ["Nuclear Scythe"]   = { speed = 2, accuracy = 6, strength = 4 },
         ["Talon Knife"]      = { speed = 2, accuracy = 6, strength = 4, paired = true },
         ["Celestial Spear"]  = { speed = 2, accuracy = 5, strength = 4 },
-        ["Hazmat Shield"]    = { speed = 2, accuracy = 4, strength = 7 },
         ["Regal Edge"]       = { speed = 1, accuracy = 5, strength = 2, sharp = true },
     },
 

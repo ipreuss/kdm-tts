@@ -197,18 +197,28 @@ return {
         ["Song of the Green Knight"] = "Green Armor",
     },
 
-    armorStats = {
-        ["Oxidized Beacon Shield"]  = { head = 2, arms = 2, body = 2, waist = 2, legs = 2, modifier = true },
+    gearStats = {
+        ["Oxidized Beacon Shield"]  = { isArmor = true, head = 2, arms = 2, body = 2, waist = 2, legs = 2, modifier = true,
+            isWeapon = true, speed = 1, accuracy = 6, strength = 6 },
+        ["Beacon Shield"]     = { isArmor = true, head = 2, arms = 2, body = 2, waist = 2, legs = 2, modifier = true,
+            isWeapon = true, speed = 1, accuracy = 6, strength = 5 },
+        ["Scrap Shield"] = { isArmor = true, head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true,
+            isWeapon = true, speed = 2, accuracy = 7, strength = 3 },
+        ["Fetorsaurus"]  = { isArmor= true, head = 2, arms = 2, body = 2, waist = 2, legs = 2, modifier = true,
+            isWeapon = true, speed = 2, accuracy = 5, strength = 9 },
+        ["Leather Shield"]  = { isArmor = true, head = 1, arms = 1, body = 1, waist = 1, legs = 1,
+            isWeapon = true, speed = 1, accuracy = 8, strength = 1 },
+        ["CCG Centipede Claw"]     = { isArmor = true, head = 0, arms = 2, body = 0, waist = 0, legs = 0,
+            isWeapon = true, speed = 2, accuracy = 6, strength = 3, sharp = true },
+    },
 
-        ["Beacon Shield"]     = { head = 2, arms = 2, body = 2, waist = 2, legs = 2, modifier = true },
+    armorStats = {
         ["Lantern Helm"]      = { head = 5, arms = 0, body = 0, waist = 0, legs = 0 },
         ["Lantern Gauntlets"] = { head = 0, arms = 5, body = 0, waist = 0, legs = 0 },
         ["Lantern Cuirass"]   = { head = 0, arms = 0, body = 5, waist = 0, legs = 0 },
         ["Lantern Mail"]      = { head = 0, arms = 0, body = 0, waist = 5, legs = 0 },
         ["Lantern Greaves"]   = { head = 0, arms = 0, body = 0, waist = 0, legs = 5 },
-
-        ["Scrap Shield"] = { head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true },
-
+        
         ["Skull Helm"] = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
 
         ["White Lion Armor"]      = { head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true },
@@ -221,7 +231,6 @@ return {
         ["White Lion Boots"]      = { head = 0, arms = 0, body = 0, waist = 0, legs = 2 },
 
         ["Green Armor"]  = { head = 5, arms = 5, body = 5, waist = 5, legs = 5, modifier = true },
-        ["Fetorsaurus"]  = { head = 2, arms = 2, body = 2, waist = 2, legs = 2, modifier = true },
         ["Green Helm"]   = { head = 5, arms = 0, body = 0, waist = 0, legs = 0 },
         ["Green Gloves"] = { head = 0, arms = 5, body = 0, waist = 0, legs = 0 },
         ["Green Plate"]  = { head = 0, arms = 0, body = 5, waist = 0, legs = 0 },
@@ -229,7 +238,6 @@ return {
         ["Green Boots"]  = { head = 0, arms = 0, body = 0, waist = 0, legs = 5 },
 
         ["Leather Armor"]   = { head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true },
-        ["Leather Shield"]  = { head = 1, arms = 1, body = 1, waist = 1, legs = 1 },
         ["Leather Mask"]    = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
         ["Leather Bracers"] = { head = 0, arms = 3, body = 0, waist = 0, legs = 0 },
         ["Leather Cuirass"] = { head = 0, arms = 0, body = 3, waist = 0, legs = 0 },
@@ -314,22 +322,19 @@ return {
         ["White Sunlion Mask"] = { head = 1, arms = 0, body = 0, waist = 0, legs = 0 },
 
         ["Lantern Mantle"]         = { head = 0, arms = 0, body = 2, waist = 0, legs = 0 },
-        ["CCG Centipede Claw"]     = { head = 0, arms = 2, body = 0, waist = 0, legs = 0 },
     },
 
     weaponStats = {
         ["Founding Stone"] = { speed = 2, accuracy = 7, strength = 1 },
         ["Fist & Tooth"] = { speed = 2, accuracy = 8, strength = 0, deadly = 1 },
 
-        ["Beacon Shield"] = { speed = 1, accuracy = 6, strength = 5 },
         ["Dragon Slayer"] = { speed = 1, accuracy = 6, strength = 9, slow = true, sharp = true, devastating = 1, earlyIron = true },
         ["Lantern Dagger"] = { speed = 2, accuracy = 7, strength = 1, sharp = true, paired = true, earlyIron = true },
         ["Lantern Glaive"] = { speed = 2, accuracy = 6, strength = 4, sharp = true, earlyIron = true },
         ["Lantern Sword"] = { speed = 3, accuracy = 5, strength = 3, sharp = true, earlyIron = true },
         ["Perfect Slayer"] = { speed = 3, accuracy = 6, strength = 14, slow = true, sharp = true, devastating = 2 },
         ["Ring Whip"] = { speed = 2, accuracy = 5, strength = 0, sharp = true, earlyIron = true },
-        ["Scrap Shield"] = { speed = 2, accuracy = 7, strength = 3 },
-
+        
         ["Bone Axe"] = { speed = 2, accuracy = 6, strength = 3, savage = true },
         ["Bone Blade"] = { speed = 2, accuracy = 6, strength = 2 },
         ["Bone Club"] = { speed = 2, accuracy = 6, strength = 5 },
@@ -347,18 +352,15 @@ return {
         ["Lion Beast Katar"] = { speed = 2, accuracy = 7, strength = 3, deadly = 1, paired = true },
         ["Oxidized Beast Katar"] = { speed = 2, accuracy = 7, strength = 5, deadly = 1, sharp = true, paired = true },
 
-        ["Oxidized Beacon Shield"] = { speed = 1, accuracy = 6, strength = 6 },
         ["Oxidized Lantern Dagger"] = { speed = 3, accuracy = 6, strength = 4, sharp = true, paired = true },
         ["Oxidized Lantern Glaive"] = { speed = 2, accuracy = 5, strength = 6, sharp = true },
         ["Oxidized Lantern Sword"] = { speed = 3, accuracy = 5, strength = 5, sharp = true },
         ["Oxidized Ring Whip"] = { speed = 2, accuracy = 5, strength = 3, sharp = true },
 
-        ["Fetorsaurus"] = { speed = 2, accuracy = 5, strength = 9 },
         ["Griswaldo"] = { speed = 3, accuracy = 4, strength = 15, sharp = true, deadly = 1, savage = 1 },
 
         ["Hunter Whip"] = { speed = 3, accuracy = 6, strength = 3 },
-        ["Leather Shield"] = { speed = 1, accuracy = 8, strength = 1 },
-
+        
         ["Arc Bow"] = { speed = 1, accuracy = 6, strength = 9, slow = true },
         ["Feather Shield"] = { speed = 3, accuracy = 7, strength = 0 },
         ["Hollowpoint Arrow"] = { speed = 1, accuracy = 6, strength = 11, slow = true },
@@ -421,8 +423,6 @@ return {
 
         ["Mirror Dagger"]     = { speed = 2, accuracy = 6, strength = 2, sharp = true },
         ["Prophetic Jawbone"] = { speed = 2, accuracy = 6, strength = 4, savage = true },
-
-        ["CCG Centipede Claw"]        = { speed = 2, accuracy = 6, strength = 3, sharp = true },
     },
 
     guidNames = { ["6392cb"] = "Core Archive" },

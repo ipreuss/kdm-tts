@@ -150,24 +150,27 @@ return {
         ["Stone Distillery"] = "Stone Distillery Gear",
     },
 
+    gearStats = {
+        ["Concussion Shield"]   = { isArmor = true, head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true,
+            isWeapon = true, speed = 1, accuracy = 6, strength = 3 },
+        ["Face Fists"]          = { isArmor = true, head = 0, arms = 2, body = 0, waist = 0, legs = 0,
+            isWeapon = true, speed = 3, accuracy = 8, strength = 2, deadly = 1 },
+        ["Calcified Fists"]     = { isArmor = true, head = 0, arms = 6, body = 0, waist = 0, legs = 0,
+            isWeapon = true, speed = 3, accuracy = 6, strength = 5, deadly = 1 },
+    },
+
     armorStats = {
         ["Stone Mask"]          = { head = 2, arms = 0, body = 0, waist = 0, legs = 0 },
         ["Blindfold"]           = { head = 1, arms = 0, body = 0, waist = 0, legs = 0 },
-        ["Face Fists"]          = { head = 0, arms = 2, body = 0, waist = 0, legs = 0 },
-        ["Calcified Fists"]     = { head = 0, arms = 6, body = 0, waist = 0, legs = 0 }, 
         ["Tube Dress"]          = { head = 0, arms = 0, body = 2, waist = 2, legs = 0 },
         ["Stone Pauldrons"]     = { head = 0, arms = 0, body = 5, waist = 0, legs = 0 },
         ["Calcified Pauldrons"] = { head = 0, arms = 0, body = 15, waist = 0, legs = 0 }, 
-        ["Concussion Shield"]   = { head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true },
     },
 
     weaponStats = {
-        ["Concussion Shield"] = { speed = 1, accuracy = 6, strength = 3 },
         ["Founding Spear"]    = { speed = 2, accuracy = 6, strength = 2 },
         ["Mawhammer"]         = { speed = 2, accuracy = 5, strength = 8 },
         ["Ouroboros"]         = { speed = 2, accuracy = 4, strength = 8 },
-        ["Face Fists"]        = { speed = 3, accuracy = 8, strength = 2, deadly = 1 },
-        ["Calcified Fists"]   = { speed = 3, accuracy = 6, strength = 5, deadly = 1 },
         ["Noise Chain"]       = { speed = 3, accuracy = 7, strength = 2, paired = true },
         ["Gong Hammer"]       = { speed = 2, accuracy = 5, strength = 0, },
     },

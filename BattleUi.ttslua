@@ -184,6 +184,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function BattleUi.CalcWeapons(player, survivor)
+    log:Debugf("Calculating weapons for %s", survivor:NameOrUnnamed())
     -- dedup and consolidate weapons
     local hiddenWeapons = BattleUi.hiddenWeaponsBySurvivor[survivor] or {}
     local weaponsAndModifiers = {}
@@ -227,7 +228,7 @@ function BattleUi.CalcWeapons(player, survivor)
         end
 
         if weapon.stats.paired and weaponCounts[weapon.canonicalName] > 1 then
-            speed = speed + weapon.speed
+            speed = speed + weapon.stats.speed
         end
         if weapon.stats.slow and (weaponAndModifiers.modifiers["frenzy"] or 0) == 0 then
             speed = 1

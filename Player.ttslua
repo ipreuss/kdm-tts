@@ -1,5 +1,5 @@
 local Archive = require("Kdm/Archive")
-local Armor = require("Kdm/Armor")
+local Gear = require("Kdm/Gear")
 local Check = require("Kdm/Util/Check")
 local Container = require("Kdm/Util/Container")
 local EventManager = require("Kdm/Util/EventManager")
@@ -507,18 +507,21 @@ function Player:UpdateGear()
         for _, object in ipairs(Location.Get(location):AllObjects()) do
             local objectName = object.GetName()
             if object.tag == "Card" then
-                local armor = Armor.Get(objectName)
-                if armor then
+                local object = Gear.getByName(objectName)
+                if not object then
+                    goto continue
+                end
+                log:Debugf("Checking gear %s at %s", objectName, location)
+                if object.stats.isArmor then
                     log:Debugf("Adding armor %s at %s", objectName, location)
                     for _, hitLocation in ipairs(Player.HIT_LOCATIONS) do
-                        armorTotals[hitLocation] = armorTotals[hitLocation] + armor.stats[hitLocation]
+                        armorTotals[hitLocation] = armorTotals[hitLocation] + object.stats[hitLocation]
                     end
                 end
 
-                local weapon = Weapon.Get(objectName)
-                if weapon then
+                if object.stats.isWeapon then
                     log:Debugf("Adding weapon %s at %s", objectName, location)
-                    weaponAndModifiers.weapon = weapon
+                    weaponAndModifiers.weapon = object
                 end
             else
                 local stat = Player.TOKEN_STATS[objectName]
@@ -528,6 +531,7 @@ function Player:UpdateGear()
                     object.registerCollisions()
                 end
             end
+            ::continue::
         end
 
         if weaponAndModifiers.weapon then

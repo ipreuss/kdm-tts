@@ -1,26 +1,63 @@
+local Expansion = require("Kdm/Expansion")
+local log = require("Kdm/Log").ForModule("Gear")
+
 local Gear = {}
 
 local gearByName = {}
+
+function Gear.Init()
+    for _, expansion in ipairs(Expansion.All()) do
+        for name, stats in pairs(expansion.gearStats or {}) do
+            Gear:new( { name = name, stats = stats } )
+        end
+    end
+end
+
+function Gear.register(gear)
+    log:Debugf("Gear.register(%s)", gear.name)
+    assert(not gearByName[gear.name], string.format("Gear %s was already registered", gear.name))
+    gearByName[gear.name] = gear
+end
 
 function Gear:new(gear)
     gear = gear or { }
     self.__index = self
     setmetatable(gear, self)
     if gear.name then
-        gearByName[gear.name] = gear
+        gear.canonicalName = gear.canonicalName or gear.name
+        Gear.register(gear)
     end
     return gear
 end
 
-function Gear:isCursed()
-    return self.stats.cursed
+function Gear.getByName(name)
+    log:Debugf("Gear.getByName(%s)", name)
+    local gear = gearByName[name]
+    if gear then
+        return gear
+    end
+    local canonicalName = Gear.cannonicalFor(name)
+    log:Debugf("canonicalName = %s", canonicalName)
+    local baseGear = Gear.getByName(canonicalName)
+    if not baseGear then
+        return nil
+    end
+    gear = {
+        name = name,
+        __index = baseGear,
+    }
+    setmetatable(gear, gear)
+    Gear.register(gear)
+    return gear
 end
 
-function Gear.getByName(name)
-    return gearByName[name]
+function Gear.cannonicalFor(name)
+    local pos = name:find("%[")
+    return pos and name:sub(1, pos - 2) or name
 end
 
 return {
+    Init = Gear.Init,
     new = Gear.new,
     getByName = Gear.getByName
 }
