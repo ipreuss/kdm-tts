@@ -38,6 +38,10 @@ return {
         ["Mineral Vein"] = { x = 1, y = 1 },
     },
 
+    gearStats = {
+        ["Tome of the Twilight"] = { cursed = true },
+    },
+
     armorStats = {
         ["Bronze Armor"]             = { head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true },
         ["Bronze Cuirass"]           = { head = 0, arms = 0, body = 3, waist = 3, legs = 0 },
@@ -45,12 +49,12 @@ return {
         ["Bronze Greaves"]           = { head = 0, arms = 0, body = 0, waist = 0, legs = 3 },
         ["Awakened Twilight Cloak"]  = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
         ["Nerve Cuirass"]            = { head = 0, arms = 0, body = 6, waist = 0, legs = 0 },
-        ["Relic Hood"]               = { head = 2, arms = 0, body = 0, waist = 0, legs = 0 },
+        ["Relic Hood"]               = { head = 2, arms = 0, body = 0, waist = 0, legs = 0, cursed = true },
     },
 
     weaponStats = {
         ["Lantern Nerve Whip"]        = { speed = 2, accuracy = 6, strength = 9, deadly = 2 },
-        ["Allison's Twilight Sword"]  = { speed = 1, accuracy = 9, strength = 9 },
+        ["Allison's Twilight Sword"]  = { speed = 1, accuracy = 9, strength = 9, cursed = true, irreplaceable = true },
         ["Bronze Sword"]              = { speed = 2, accuracy = 6, strength = 6, deadly = 2 },
     },
 

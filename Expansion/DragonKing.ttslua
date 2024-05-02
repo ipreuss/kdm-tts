@@ -145,6 +145,7 @@ return {
             isWeapon = true, speed = 1, accuracy = 7, strength = 4 },
         ["Hazmat Shield"]    = { isArmor = true, head = 2, arms = 2, body = 2, waist = 2, legs = 2, modifier = true,
             isWeapon = true, speed = 2, accuracy = 4, strength = 7 },
+        ["Husk of Destiny"] = { cursed = true },
     },
 
     armorStats = {

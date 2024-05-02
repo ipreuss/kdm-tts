@@ -26,6 +26,10 @@ return {
         ["Sinkhole"] = { x = 3, y = 3 },
     },
 
+    gearStats = {
+        ["Death Mendi"] = { cursed = true },
+    },
+
     armorStats = {
         ["Ancient Lion Claws"] = { head = 0, arms = 2, body = 0, waist = 0, legs = 0 },
         ["Necromancer's Eye"]  = { head = 2, arms = 0, body = 0, waist = 0, legs = 0 },

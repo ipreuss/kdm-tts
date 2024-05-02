@@ -48,6 +48,12 @@ return {
     gearStats = {
         ["Acid Stained Shield"]     = { isArmor = true, head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true,
             isWeapon = true, speed = 2, accuracy = 6, strength = 4, deadly = 1 },
+        ["Mage Armor"] = { irreplaceable = true },
+        ["Regal Faulds (KC)"] = { cursed = true },
+        ["Regal Plackart (KC)"] = { cursed = true },
+        ["Regal Helm (KC)"] = { cursed = true },
+        ["Regal Greaves (KC)"] = { cursed = true },
+        ["Regal Gauntlets (KC)"] = { cursed = true },
     },
 
     armorStats = {

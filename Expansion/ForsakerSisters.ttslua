@@ -25,13 +25,18 @@ return {
         { year = 6, name = "Air of Dominance", type = "RulebookEvent" },
     },
 
+    gearStats = {
+        ["Packed Infant"] = { irreplaceable = true },
+        ["Baby Forsaker"] = { irreplaceable = true },
+    },
+
     weaponStats = {
         ["Pig Iron Blade"]    = { speed = 3, accuracy = 6, strength = 3 },
         ["Pig Iron Polearm"]  = { speed = 1, accuracy = 4, strength = 7 },
     },
 
     armorStats = {
-        ["Forsaker Veil"]     = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
+        ["Forsaker Veil"]     = { head = 3, arms = 0, body = 0, waist = 0, legs = 0, irreplaceable = true },
     },
 
     archiveEntries = {

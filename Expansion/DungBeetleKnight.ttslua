@@ -33,6 +33,10 @@ return {
         ["Wet Resin Crafter"] = "Wet Resin Crafter Gear",
     },
 
+    gearStats = {
+        ["Hidden Crimson Jewel"] = { irreplaceable = true },
+    },
+
     armorStats = {
         ["Rolling Armor"]           = { head = 2, arms = 2, body = 2, waist = 2, legs = 2, modifier = true },
         ["Calcified Greaves"]       = { head = 3, arms = 3, body = 3, waist = 3, legs = 3, modifier = true },

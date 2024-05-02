@@ -29,7 +29,7 @@ return {
         ["Brawler Armor"]    = { head = 1, arms = 2, body = 4, waist = 0, legs = 0, hybrid = true },
         ["Dancer Armor"]     = { head = 0, arms = 1, body = 2, waist = 0, legs = 0, hybrid = true },
         ["Warlord Armor"]    = { head = 2, arms = 2, body = 1, waist = 0, legs = 0, hybrid = true },
-        ["Hideous Disguise"] = { head = 2, arms = 0, body = 0, waist = 0, legs = 0 },
+        ["Hideous Disguise"] = { head = 2, arms = 0, body = 0, waist = 0, legs = 0, cursed = true },
     },
 
     weaponStats = {
