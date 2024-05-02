@@ -49,20 +49,15 @@ return {
         ["Acid Stained Shield"]     = { isArmor = true, head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true,
             isWeapon = true, speed = 2, accuracy = 6, strength = 4, deadly = 1 },
         ["Mage Armor"] = { irreplaceable = true },
-        ["Regal Faulds (KC)"] = { cursed = true },
-        ["Regal Plackart (KC)"] = { cursed = true },
-        ["Regal Helm (KC)"] = { cursed = true },
-        ["Regal Greaves (KC)"] = { cursed = true },
-        ["Regal Gauntlets (KC)"] = { cursed = true },
     },
 
     armorStats = {
         ["Gilded Crown"]            = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
-        ["Regal Helm (KC)"]         = { head = 4, arms = 0, body = 0, waist = 0, legs = 0 },
-        ["Regal Plackart (KC)"]     = { head = 0, arms = 0, body = 4, waist = 0, legs = 0 },
-        ["Regal Gauntlets (KC)"]    = { head = 0, arms = 4, body = 0, waist = 0, legs = 0 },
-        ["Regal Greaves (KC)"]      = { head = 0, arms = 0, body = 0, waist = 0, legs = 4 },
-        ["Regal Faulds (KC)"]       = { head = 0, arms = 0, body = 0, waist = 4, legs = 0 },
+        ["Regal Helm (KC)"]         = { head = 4, arms = 0, body = 0, waist = 0, legs = 0, cursed = true },
+        ["Regal Plackart (KC)"]     = { head = 0, arms = 0, body = 4, waist = 0, legs = 0, cursed = true },
+        ["Regal Gauntlets (KC)"]    = { head = 0, arms = 4, body = 0, waist = 0, legs = 0, cursed = true},
+        ["Regal Greaves (KC)"]      = { head = 0, arms = 0, body = 0, waist = 0, legs = 4, cursed = true },
+        ["Regal Faulds (KC)"]       = { head = 0, arms = 0, body = 0, waist = 4, legs = 0, cursed = true },
     },
 
     weaponStats = {
