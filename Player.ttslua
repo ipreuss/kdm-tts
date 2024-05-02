@@ -601,17 +601,6 @@ function Player:UpdateCards()
                             name = card.name,
                             type = card.gm_notes,
                         })
-
-                        local nameType = (card.name or "") .. card.gm_notes
-                        local worldPosition = container:Object().getPosition()
-                        local localPosition = self.boardObject.positionToLocal(worldPosition)
-                        log:Debugf("Found card %s at world (%f, %f %f), local (%f, %f, %f)", card.name, worldPosition.x,
-                            worldPosition.y, worldPosition.z, localPosition.x, localPosition.y, localPosition.z)
-                        if positionsByCardNameType[nameType] then
-                            table.insert(positionsByCardNameType[nameType], localPosition)
-                        else
-                            positionsByCardNameType[nameType] = { localPosition }
-                        end
                     end
                 end
             end
