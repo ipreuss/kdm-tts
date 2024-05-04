@@ -256,12 +256,12 @@ return {
         ["Leather Skirt"]   = { head = 0, arms = 0, body = 0, waist = 3, legs = 0 },
         ["Leather Boots"]   = { head = 0, arms = 0, body = 0, waist = 0, legs = 3 },
 
-        ["Antelope Mask"]   = { head = 2, arms = 0, body = 0, waist = 0, legs = 0 },
-        ["Death Mask"]      = { head = 2, arms = 0, body = 0, waist = 0, legs = 0 },
-        ["God Mask"]        = { head = 2, arms = 0, body = 0, waist = 0, legs = 0 },
-        ["Man Mask"]        = { head = 2, arms = 0, body = 0, waist = 0, legs = 0 },
-        ["Phoenix Mask"]    = { head = 2, arms = 0, body = 0, waist = 0, legs = 0 },
-        ["White Lion Mask"] = { head = 2, arms = 0, body = 0, waist = 0, legs = 0 },
+        ["Antelope Mask"]   = { head = 2, arms = 0, body = 0, waist = 0, legs = 0, irreplaceable = true },
+        ["Death Mask"]      = { head = 2, arms = 0, body = 0, waist = 0, legs = 0, irreplaceable = true },
+        ["God Mask"]        = { head = 2, arms = 0, body = 0, waist = 0, legs = 0, irreplaceable = true },
+        ["Man Mask"]        = { head = 2, arms = 0, body = 0, waist = 0, legs = 0, irreplaceable = true },
+        ["Phoenix Mask"]    = { head = 2, arms = 0, body = 0, waist = 0, legs = 0, irreplaceable = true },
+        ["White Lion Mask"] = { head = 2, arms = 0, body = 0, waist = 0, legs = 0, irreplaceable = true },
 
         ["Phoenix Armor"]    = { head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true },
         ["Phoenix Helm"]     = { head = 4, arms = 0, body = 0, waist = 0, legs = 0 },
@@ -344,7 +344,7 @@ return {
         ["Lantern Dagger"] = { speed = 2, accuracy = 7, strength = 1, sharp = true, paired = true, earlyIron = true },
         ["Lantern Glaive"] = { speed = 2, accuracy = 6, strength = 4, sharp = true, earlyIron = true },
         ["Lantern Sword"] = { speed = 3, accuracy = 5, strength = 3, sharp = true, earlyIron = true },
-        ["Perfect Slayer"] = { speed = 3, accuracy = 6, strength = 14, slow = true, sharp = true, devastating = 2 },
+        ["Perfect Slayer"] = { speed = 3, accuracy = 6, strength = 14, slow = true, sharp = true, devastating = 2, irreplaceable = true },
         ["Ring Whip"] = { speed = 2, accuracy = 5, strength = 0, sharp = true, earlyIron = true },
         
         ["Bone Axe"] = { speed = 2, accuracy = 6, strength = 3, savage = true },
@@ -406,7 +406,7 @@ return {
         ["Rawhide Whip"] = { speed = 3, accuracy = 7, strength = 1 },
 
         ["Beast Knuckle"] = { speed = 2, accuracy = 6, strength = 4, paired = true },
-        ["Lance of Longinus"] = { speed = 2, accuracy = 6, strength = 9 },
+        ["Lance of Longinus"] = { speed = 2, accuracy = 6, strength = 9, irreplaceable = true },
 
         ["Counterweighted Axe"] = { speed = 2, accuracy = 6, strength = 4 },
         ["Scrap Dagger"] = { speed = 3, accuracy = 7, strength = 2 },
@@ -424,13 +424,13 @@ return {
         ["Masamune"] = { speed = 7, accuracy = 7, strength = 7, deadly = 2 },
         ["Master Bone Dagger"] = { speed = 3, accuracy = 6, strength = 2 },
         ["Mighty Bone Axe"] = { speed = 2, accuracy = 5, strength = 6 },
-        ["Plasma Cutter"] = { speed = 3, accuracy = 6, strength = 21 },
+        ["Plasma Cutter"] = { speed = 3, accuracy = 6, strength = 21, irreplaceable = true },
         ["Plated Shield"] = { speed = 1, accuracy = 8, strength = 3 },
-        ["Scythe of Doom"] = { speed = 2, accuracy = 5, strength = 13, deadly = 1, sharp = true },
+        ["Scythe of Doom"] = { speed = 2, accuracy = 5, strength = 13, deadly = 1, sharp = true, devastating = 2 },
         ["Tempered Axe"] = { speed = 2, accuracy = 6, strength = 6, paired = true },
         ["Tempered Dagger"] = { speed = 3, accuracy = 7, strength = 4, paired = true },
         ["Tempered Spear"] = { speed = 2, accuracy = 5, strength = 5 },
-        ["True Lantern Halberd"] = { speed = 2, accuracy = 4, strength = 14 },
+        ["True Lantern Halberd"] = { speed = 2, accuracy = 4, strength = 14, irreplaceable = true },
         ["Weaponsmith's Hammer"] = { speed = 2, accuracy = 5, strength = 2 },
 
         ["Mirror Dagger"]     = { speed = 2, accuracy = 6, strength = 2, sharp = true, irreplaceable = true },
