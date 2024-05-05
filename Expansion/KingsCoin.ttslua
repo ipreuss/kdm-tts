@@ -49,10 +49,13 @@ return {
         ["Acid Stained Shield"]     = { isArmor = true, head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true,
             isWeapon = true, speed = 2, accuracy = 6, strength = 4, deadly = 1 },
         ["Mage Armor"] = { irreplaceable = true },
+        ["Silver Tome"] = { irreplaceable = true },
+        ["Golde Tome"] = { irreplaceable = true },
+        ["Scribe's Autograph"] = { irreplaceable = true},
     },
 
     armorStats = {
-        ["Gilded Crown"]            = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
+        ["Gilded Crown"]            = { head = 3, arms = 0, body = 0, waist = 0, legs = 0, irreplaceable = true },
         ["Regal Helm (KC)"]         = { head = 4, arms = 0, body = 0, waist = 0, legs = 0, cursed = true },
         ["Regal Plackart (KC)"]     = { head = 0, arms = 0, body = 4, waist = 0, legs = 0, cursed = true },
         ["Regal Gauntlets (KC)"]    = { head = 0, arms = 4, body = 0, waist = 0, legs = 0, cursed = true},
@@ -68,7 +71,7 @@ return {
         ["Shortbow"]                 = { speed = 2, accuracy = 6, strength = 8 },
         ["Stone Hammer"]             = { speed = 2, accuracy = 5, strength = 7 },
         ["Dagger Of Denial"]         = { speed = 2, accuracy = 6, strength = 5 },
-        ["Exotic Saber"]             = { speed = 3, accuracy = 5, strength = 5, sharp = true },
+        ["Exotic Saber"]             = { speed = 3, accuracy = 5, strength = 5, sharp = true, irreplaceable = true },
     },
 
     archiveEntries = {

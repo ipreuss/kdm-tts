@@ -47,7 +47,7 @@ return {
         ["Bronze Cuirass"]           = { head = 0, arms = 0, body = 3, waist = 3, legs = 0 },
         ["Bronze Gauntlets"]         = { head = 0, arms = 3, body = 0, waist = 0, legs = 0 },
         ["Bronze Greaves"]           = { head = 0, arms = 0, body = 0, waist = 0, legs = 3 },
-        ["Awakened Twilight Cloak"]  = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
+        ["Awakened Twilight Cloak"]  = { head = 3, arms = 0, body = 0, waist = 0, legs = 0, irreplaceable = true },
         ["Nerve Cuirass"]            = { head = 0, arms = 0, body = 6, waist = 0, legs = 0 },
         ["Relic Hood"]               = { head = 2, arms = 0, body = 0, waist = 0, legs = 0, cursed = true },
     },
@@ -55,7 +55,7 @@ return {
     weaponStats = {
         ["Lantern Nerve Whip"]        = { speed = 2, accuracy = 6, strength = 9, deadly = 2 },
         ["Allison's Twilight Sword"]  = { speed = 1, accuracy = 9, strength = 9, cursed = true, irreplaceable = true },
-        ["Bronze Sword"]              = { speed = 2, accuracy = 6, strength = 6, deadly = 2 },
+        ["Bronze Sword"]              = { speed = 2, accuracy = 6, strength = 6, deadly = 2, irreplaceable = true },
     },
 
     settlementLocationGear = {
