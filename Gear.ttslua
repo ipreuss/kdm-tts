@@ -38,7 +38,7 @@ function Gear.getByName(name)
     end
     local canonicalName = Gear.cannonicalFor(name)
     log:Debugf("canonicalName = %s", canonicalName)
-    local baseGear = Gear.getByName(canonicalName)
+    local baseGear = canonicalName and gearByName[canonicalName]
     if not baseGear then
         return nil
     end
