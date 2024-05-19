@@ -95,26 +95,28 @@ function Rules.Init()
         "MiddleCenter", color = Ui.LIGHT_BROWN })
     end
 
-    local buttons = {
-        { "Core Rules", 1, 1, "Core" },
-        { "Dragon King Rules", 2, 1, "Dragon Knight" },
-        { "Dung Beetle Knight Rules", 3, 1, "Dung Beetle Knight" },
-        { "Flower Knight Rules", 4, 1, "Flower Knight"},
-        { "Gorm Rules", 5, 1, "Gorm" },
-        { "Lion God Rules", 6, 1, "Lion God"},
-        { "Lion Knight Rules", 7, 1, "Lion Knight"},
-        { "Lonely Tree Rules", 8, 1, "Lonely Tree"},
-        { "Manhunter Rules", 9, 1, "Manhunter"},
-        { "Slenderman Rules", 10, 1, "Slenderman"},
-        { "Spidicules Rules", 11, 1, "Spidicules"},
-        { "Sunstalker Rules", 12, 1, "Sunstalker"},
-        { "White Gigalion Rules", 13, 1, "White Gigalion"},
-    }
+    
+    local buttons = {}
+    local i = 1
+    for _, expansion in ipairs(Expansion.All(Expansion.EnabledFilter)) do
+        local rulebooks = expansion.rulebooks or {}
+        for _, rulebook in ipairs(rulebooks) do
+            local name = rulebook.name
+            local label = name:gsub(" Rules", "")
+            table.insert(buttons, { name, i, 1, label })
+            i = i + 1
+        end
+    end
     for _, button in ipairs(buttons) do
         createButton(button[1], button[4], button[2], button[3], function() Rules.SpawnRules(button[1], 1) end)
     end
+    for j = i, 13 do
+        local topLeft = { x =  x1 + ((j - 1) * dx), y = y1 }
+        local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
+        ui:Panel({ id = "panel"..j, topLeft = topLeft, bottomRight = bottomRight, color = Ui.LIGHT_BROWN })
+    end
 
-    createButton("Back", "Back", 6, 2, Rules.Back)
+    createButton("Back", "@ Back", 6, 2, Rules.Back)
     createButton("Previous Page", "< Previous Page", 7, 2, function() Rules.ChangePage(-1) end )
     createButton("Next Page", "> Next Page", 8, 2, function() Rules.ChangePage(1) end)
     
