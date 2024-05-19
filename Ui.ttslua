@@ -417,12 +417,12 @@ end
 
 -- 2D elements use absolute pixel positioning (x, y, width, height), so no need for scaling factors
 function Ui:CreateElem2d(tag, params)
-    assert(Check.Table(params, params.id))
-    assert(Check.Str(params.id))
-    assert(Check.Num(params.x, params.id))
-    assert(Check.Num(params.y, params.id))
-    assert(Check.Num(params.width, params.id))
-    assert(Check.Num(params.height, params.id))
+    assert(Check.Table(params, "params"))
+    assert(Check.Str(params.id, "id"))
+    assert(Check.Num(params.x, "x for %s", params.id))
+    assert(Check.Num(params.y, "y for %s", params.id))
+    assert(Check.Num(params.width, "width for %s", params.id))
+    assert(Check.Num(params.height, "height for %s", params.id))
 
     local id = self.attributes.id.."_"..params.id..tag
 
@@ -450,9 +450,9 @@ end
 
 -- 3d uis must be scaled based on the size of the underlying object, hence position/width/heightFactor
 function Ui:CreateElem3d(tag, params)
-    assert(Check.Str(params.id, params.id))
-    assert(Check.Vec2(params.topLeft, params.id))
-    assert(Check.Vec2(params.bottomRight, params.id))
+    assert(Check.Str(params.id, "id for %s", tag))
+    assert(Check.Vec2(params.topLeft, "topLeft for %s", params.id))
+    assert(Check.Vec2(params.bottomRight, "bottomRight for %s", params.id))
 
     local id = self.attributes.id.."_"..params.id..tag
 

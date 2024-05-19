@@ -24,8 +24,9 @@ Log.DEBUG_MODULES = {
     --["Player"] = true,
     --["Rules"] = true,
     --["Showdown"] = true,
-    ["Survivor"] = true,
+    --["Survivor"] = true,
     --["Timeline"] = true,
+    ["Ui"] = true,
     --["Weapon"] = true,
 }
 

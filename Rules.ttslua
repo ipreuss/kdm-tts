@@ -85,34 +85,38 @@ function Rules.Init()
     local y2 = 0.392804
     local dy = y2 - y1
 
-    local createButton = function(name, col, row, onClick)
+    local createButton = function(name, labelText, col, row, onClick)
         local topLeft = { x =  x1 + ((col - 1) * dx), y = y1 + ((row - 1) * dy) }
         local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
+        ui:Panel({ id = name .. "panel", topLeft = topLeft, bottomRight = bottomRight, color = Ui.DARK_BROWN })
         ui:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
+        labelText = string.gsub(labelText, " ", "\n", 1)
+        ui:Text({ id = name .. "label", topLeft = topLeft, bottomRight = bottomRight, text = labelText, fontSize = 150, alignment =
+        "MiddleCenter", color = Ui.LIGHT_BROWN })
     end
 
     local buttons = {
-        { "Core Rules", 1, 1 },
-        { "Dragon King Rules", 2, 1 },
-        { "Dung Beetle Knight Rules", 3, 1 },
-        { "Flower Knight Rules", 4, 1 },
-        { "Gorm Rules", 5, 1 },
-        { "Lion God Rules", 6, 1 },
-        { "Lion Knight Rules", 7, 1 },
-        { "Lonely Tree Rules", 8, 1 },
-        { "Manhunter Rules", 9, 1 },
-        { "Slenderman Rules", 10, 1 },
-        { "Spidicules Rules", 11, 1 },
-        { "Sunstalker Rules", 12, 1 },
-        { "White Gigalion Rules", 13, 1 },
+        { "Core Rules", 1, 1, "Core" },
+        { "Dragon King Rules", 2, 1, "Dragon Knight" },
+        { "Dung Beetle Knight Rules", 3, 1, "Dung Beetle Knight" },
+        { "Flower Knight Rules", 4, 1, "Flower Knight"},
+        { "Gorm Rules", 5, 1, "Gorm" },
+        { "Lion God Rules", 6, 1, "Lion God"},
+        { "Lion Knight Rules", 7, 1, "Lion Knight"},
+        { "Lonely Tree Rules", 8, 1, "Lonely Tree"},
+        { "Manhunter Rules", 9, 1, "Manhunter"},
+        { "Slenderman Rules", 10, 1, "Slenderman"},
+        { "Spidicules Rules", 11, 1, "Spidicules"},
+        { "Sunstalker Rules", 12, 1, "Sunstalker"},
+        { "White Gigalion Rules", 13, 1, "White Gigalion"},
     }
     for _, button in ipairs(buttons) do
-        createButton(button[1], button[2], button[3], function() Rules.SpawnRules(button[1], 1) end)
+        createButton(button[1], button[4], button[2], button[3], function() Rules.SpawnRules(button[1], 1) end)
     end
 
-    createButton("Back", 6, 2, Rules.Back)
-    createButton("Previous Page", 7, 2, function() Rules.ChangePage(-1) end )
-    createButton("Next Page", 8, 2, function() Rules.ChangePage(1) end)
+    createButton("Back", "Back", 6, 2, Rules.Back)
+    createButton("Previous Page", "< Previous Page", 7, 2, function() Rules.ChangePage(-1) end )
+    createButton("Next Page", "> Next Page", 8, 2, function() Rules.ChangePage(1) end)
     
     EventManager.AddHandler("onObjectStateChange", function(object, _)
         log:Debugf("Object state changed %s", object.getGMNotes() or "nil")
