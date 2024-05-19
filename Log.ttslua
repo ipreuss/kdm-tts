@@ -13,20 +13,20 @@ Log.logsByModule = {}
 Log.DEBUG_MODULES = {
     --["array"] = true,
     --["Archive"] = true,
-    ["BattleUi"] = true,
+    --["BattleUi"] = true,
     --["Campaign"] = true,
     --["Container"] = true,
     --["Deck"] = true,
     --["Expansion"] = true,
-    ["Gear"] = true,
+    --["Gear"] = true,
     --["Hunt"] = true,
     --["Location"] = true,
-    ["Player"] = true,
+    --["Player"] = true,
     --["Rules"] = true,
     --["Showdown"] = true,
-    --["Survivor"] = true,
+    ["Survivor"] = true,
     --["Timeline"] = true,
-    ["Weapon"] = true,
+    --["Weapon"] = true,
 }
 
 Log.POST_INIT_DEBUG_MODULES = {

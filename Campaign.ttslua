@@ -21,7 +21,7 @@ local Util = require("Kdm/Util/Util")
 
 local Campaign = {}
 
-Campaign.EXPORT_VERSION = 3
+Campaign.EXPORT_VERSION = 4
 
 ---------------------------------------------------------------------------------------------------
 
@@ -277,13 +277,15 @@ function Campaign.ExportToOrb()
     for i = 1, Campaign.MAX_SETTLEMENT_LOCATIONS do
         scanTypesByLocation["Settlement Location " .. i] = { "Settlement Locations" }
     end
-    for ordinal, _ in ipairs(Player.Players()) do
+    local departingSurvivors = {}
+    for ordinal, player in ipairs(Player.Players()) do
         local playerPrefix = "Player " .. ordinal
         scanTypesByLocation[playerPrefix .. " Armor Set"] = { "Armor Sets" }
         scanTypesByLocation[playerPrefix .. " Fist & Tooth"] = { "Gear" }
         for i = 1, 9 do
             scanTypesByLocation[playerPrefix .. " Gear " .. i] = { "Gear" }
         end
+        departingSurvivors[ordinal] = player.survivorSheet and player.survivorSheet.survivor.id
     end
 
     local objectsByLocation = {}
@@ -301,6 +303,7 @@ function Campaign.ExportToOrb()
         campaign = Campaign.campaign.name,
         unlockedMode = Campaign.unlockedMode,
         objectsByLocation = objectsByLocation,
+        departingSurvivors = departingSurvivors,
         characterDeck = Campaign.ExportDeck("Character Deck", "Character"),
         settlementEventsDeck = Campaign.ExportDeck("Settlement Events", "Settlement Events"),
         timeline = Timeline.Export(),
@@ -802,26 +805,25 @@ function Campaign.Import(data)
     Survivor.Import(data.survivor)
     Timeline.Import(data.timeline)
 
-    if data.spawnInitialSurvivorSheets then
-        for i = 1, 4 do
-            local survivor = Survivor.Survivors()[i]
-            local player = Player.Players()[i]
-            Archive.Take({
-                name = "Survivor Sheet",
-                type = "Survivor Sheet",
-                location = "Player " .. i .. " Survivor Sheet",
-                height = 0,
-                spawnFunc = function(survivorSheetObject)
-                    -- We have to wait a single frame when taking from an infinite container or the objects will have the same equality/identity value as any other objects taken that frame
-                    Wait.frames(function()
-                        log:Debugf("Created survivor sheet for object %s and %s", survivorSheetObject.getGUID(), survivor)
-                        local survivorSheet = Survivor.CreateSurvivorSheet(survivor, survivorSheetObject)
-                        survivorSheetObject.setLock(true)
-                        player:LinkSurvivorSheet(survivorSheet)
-                    end, 1)
-                end
-            })
-        end
+    local departingSurvivors = data.departingSurvivors or { 1, 2, 3, 4 }
+    for playerId, survivorId in pairs(departingSurvivors) do
+        local survivor = Survivor.Survivors()[survivorId]
+        local player = Player.Players()[playerId]
+        Archive.Take({
+            name = "Survivor Sheet",
+            type = "Survivor Sheet",
+            location = "Player " .. playerId .. " Survivor Sheet",
+            height = 0,
+            spawnFunc = function(survivorSheetObject)
+                -- We have to wait a single frame when taking from an infinite container or the objects will have the same equality/identity value as any other objects taken that frame
+                Wait.frames(function()
+                    log:Debugf("Created survivor sheet for object %s and %s", survivorSheetObject.getGUID(), survivor)
+                    local survivorSheet = Survivor.CreateSurvivorSheet(survivor, survivorSheetObject)
+                    survivorSheetObject.setLock(true)
+                    player:LinkSurvivorSheet(survivorSheet)
+                end, 1)
+            end
+        })
     end
 
     Campaign.campaign = data.campaign
@@ -956,6 +958,9 @@ function Campaign.ConvertToLatestVersion(data)
                 { name = "Enduring Legacy - Bonding Principle", type = "Innovations" },
             }
         }
+    end
+    if (data.version <= 3) then
+        data.departingSurvivors = {}
     end
     data.version = Campaign.EXPORT_VERSION
 
