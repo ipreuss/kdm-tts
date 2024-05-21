@@ -22,11 +22,11 @@ Log.DEBUG_MODULES = {
     --["Hunt"] = true,
     --["Location"] = true,
     --["Player"] = true,
-    --["Rules"] = true,
+    ["Rules"] = true,
     --["Showdown"] = true,
     --["Survivor"] = true,
     --["Timeline"] = true,
-    ["Ui"] = true,
+    --["Ui"] = true,
     --["Weapon"] = true,
 }
 

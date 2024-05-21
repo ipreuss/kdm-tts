@@ -11,6 +11,7 @@ local Location = require("Kdm/Location")
 local MessageBox = require("Kdm/MessageBox")
 local NamedObject = require("Kdm/NamedObject")
 local Player = require("Kdm/Player")
+local Rules = require("Kdm/Rules")
 local Showdown = require("Kdm/Showdown")
 local Survivor = require("Kdm/Survivor")
 local Timeline = require("Kdm/Timeline")
@@ -750,6 +751,8 @@ function Campaign.Import(data)
     end
     Expansion.SetEnabled(enabledByExpansionName)
     Expansion.SetUnlockedMode(data.unlockedMode)
+
+    Rules.createRulebookButtons()
 
     Campaign.SetupArchiveOverrides(data.expansions)
 

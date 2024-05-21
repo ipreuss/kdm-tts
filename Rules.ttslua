@@ -14,6 +14,7 @@ local EventManager = require("Kdm/Util/EventManager")
 ---------------------------------------------------------------------------------------------------
 
 local Rules = {}
+local buttonComponents = {}
 
 ---------------------------------------------------------------------------------------------------
 
@@ -71,54 +72,13 @@ function Rules.Init()
 
     -----------------------------------------------------------------------------------------------
 
-    local ui = Ui.Create3d("RulesNav", NamedObject.Get("Rules Navigation Board"), 0.11)
+    Rules.navUi = Ui.Create3d("RulesNav", NamedObject.Get("Rules Navigation Board"), 0.11)
 
-    local x1 = 7.762758
-    local x1End = 6.705129
-    local width = x1End - x1
-    local x13 = -6.702875
-    local dx = (x13 - x1) / 12
+    Rules.createRulebookButtons()
 
-    local y1 = -0.401185
-    local y1End = 0.047924
-    local height = y1End - y1
-    local y2 = 0.392804
-    local dy = y2 - y1
-
-    local createButton = function(name, labelText, col, row, onClick)
-        local topLeft = { x =  x1 + ((col - 1) * dx), y = y1 + ((row - 1) * dy) }
-        local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
-        ui:Panel({ id = name .. "panel", topLeft = topLeft, bottomRight = bottomRight, color = Ui.DARK_BROWN })
-        ui:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
-        labelText = string.gsub(labelText, " ", "\n", 1)
-        ui:Text({ id = name .. "label", topLeft = topLeft, bottomRight = bottomRight, text = labelText, fontSize = 150, alignment =
-        "MiddleCenter", color = Ui.LIGHT_BROWN })
-    end
-
-    
-    local buttons = {}
-    local i = 1
-    for _, expansion in ipairs(Expansion.All(Expansion.EnabledFilter)) do
-        local rulebooks = expansion.rulebooks or {}
-        for _, rulebook in ipairs(rulebooks) do
-            local name = rulebook.name
-            local label = name:gsub(" Rules", "")
-            table.insert(buttons, { name, i, 1, label })
-            i = i + 1
-        end
-    end
-    for _, button in ipairs(buttons) do
-        createButton(button[1], button[4], button[2], button[3], function() Rules.SpawnRules(button[1], 1) end)
-    end
-    for j = i, 13 do
-        local topLeft = { x =  x1 + ((j - 1) * dx), y = y1 }
-        local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
-        ui:Panel({ id = "panel"..j, topLeft = topLeft, bottomRight = bottomRight, color = Ui.LIGHT_BROWN })
-    end
-
-    createButton("Back", "@ Back", 6, 2, Rules.Back)
-    createButton("Previous Page", "< Previous Page", 7, 2, function() Rules.ChangePage(-1) end )
-    createButton("Next Page", "> Next Page", 8, 2, function() Rules.ChangePage(1) end)
+    Rules.createButton("Back", "@ Back", 6, 2, Rules.Back)
+    Rules.createButton("Previous Page", "< Previous Page", 7, 2, function() Rules.ChangePage(-1) end )
+    Rules.createButton("Next Page", "> Next Page", 8, 2, function() Rules.ChangePage(1) end)
     
     EventManager.AddHandler("onObjectStateChange", function(object, _)
         log:Debugf("Object state changed %s", object.getGMNotes() or "nil")
@@ -134,7 +94,61 @@ function Rules.Init()
     ui:ApplyToObject()
 end
 
+local x1 = 7.762758
+local x1End = 6.705129
+local width = x1End - x1
+local x13 = -6.702875
+local dx = (x13 - x1) / 12
 
+local y1 = -0.401185
+local y1End = 0.047924
+local height = y1End - y1
+local y2 = 0.392804
+local dy = y2 - y1
+
+function Rules.createButton(name, labelText, col, row, onClick)
+    local topLeft = { x =  x1 + ((col - 1) * dx), y = y1 + ((row - 1) * dy) }
+    local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
+    local panel = Rules.navUi:Panel({ id = name .. "panel", topLeft = topLeft, bottomRight = bottomRight, color = Ui.DARK_BROWN })
+    local button = Rules.navUi:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
+    labelText = string.gsub(labelText, " ", "\n", 1)
+    local text = Rules.navUi:Text({ id = name .. "label", topLeft = topLeft, bottomRight = bottomRight, text = labelText, fontSize = 150, alignment =
+    "MiddleCenter", color = Ui.LIGHT_BROWN })
+    Rules.navUi:ApplyToObject()
+    return { button, panel, text }
+end
+
+
+function Rules.createRulebookButtons()
+    for _, button in ipairs(buttonComponents) do
+        for _, component in ipairs(button) do
+            log:Debugf("Destroying component %s", component)
+            Rules.navUi:remove(component)
+        end
+    end
+    local buttons = {}
+    local i = 1
+    for _, expansion in ipairs(Expansion.All(Expansion.EnabledFilter)) do
+        local rulebooks = expansion.rulebooks or {}
+        for _, rulebook in ipairs(rulebooks) do
+            local name = rulebook.name
+            local label = name:gsub(" Rules", "")
+            table.insert(buttons, { name, i, 1, label })
+            i = i + 1
+        end
+    end
+    for i, button in ipairs(buttons) do
+        buttonComponents[i] = Rules.createButton(button[1], button[4], button[2], button[3], function() Rules.SpawnRules(button[1], 1) end)
+    end
+    for j = i, 13 do
+        log:Debugf("Creating empty panel %d", j)
+        local topLeft = { x =  x1 + ((j - 1) * dx), y = y1 }
+        local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
+        local panel = Rules.navUi:Panel({ id = "panel"..j, topLeft = topLeft, bottomRight = bottomRight, color = Ui.LIGHT_BROWN })
+        buttonComponents[j] = { panel }
+    end
+    Rules.navUi:ApplyToObject()
+end
 ---------------------------------------------------------------------------------------------------
 
 function Rules.RegisterExpansion(expansion)
@@ -424,4 +438,5 @@ return {
     RulebookAndState = Rules.RulebookAndState,
     Search = Rules.Search,
     SpawnRules = Rules.SpawnRules,
+    createRulebookButtons = Rules.createRulebookButtons,
 }

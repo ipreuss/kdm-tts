@@ -626,6 +626,15 @@ function Ui:SetOnValueChanged(onValueChanged)
     self.onValueChanged = onValueChanged
 end
 
+function Ui:remove(component)
+    for i, child in ipairs(self.children) do
+        if child == component then
+            table.remove(self.children, i)
+            return
+        end
+    end
+    error("Component not found")
+end
 ---------------------------------------------------------------------------------------------------
 
 function Ui:ApplyToObject()
