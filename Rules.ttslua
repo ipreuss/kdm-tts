@@ -76,9 +76,7 @@ function Rules.Init()
 
     Rules.createRulebookButtons()
 
-    Rules.createButton("Back", "@ Back", 6, 2, Rules.Back)
-    Rules.createButton("Previous Page", "< Previous Page", 7, 2, function() Rules.ChangePage(-1) end )
-    Rules.createButton("Next Page", "> Next Page", 8, 2, function() Rules.ChangePage(1) end)
+    local staticUi = Ui.Create3d("RulesStaticNav", NamedObject.Get("Rules Navigation Board"), 0.11)
     
     EventManager.AddHandler("onObjectStateChange", function(object, _)
         log:Debugf("Object state changed %s", object.getGMNotes() or "nil")
@@ -109,6 +107,12 @@ local dy = y2 - y1
 function Rules.createButton(name, labelText, col, row, onClick)
     local topLeft = { x =  x1 + ((col - 1) * dx), y = y1 + ((row - 1) * dy) }
     local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
+    Rules.navUi:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
+end
+
+function Rules.createRuleBookButton(name, labelText, col, row, onClick)
+    local topLeft = { x =  x1 + ((col - 1) * dx), y = y1 + ((row - 1) * dy) }
+    local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
     local panel = Rules.navUi:Panel({ id = name .. "panel", topLeft = topLeft, bottomRight = bottomRight, color = Ui.DARK_BROWN })
     local button = Rules.navUi:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
     labelText = string.gsub(labelText, " ", "\n", 1)
@@ -118,14 +122,8 @@ function Rules.createButton(name, labelText, col, row, onClick)
     return { button, panel, text }
 end
 
-
 function Rules.createRulebookButtons()
-    for _, button in ipairs(buttonComponents) do
-        for _, component in ipairs(button) do
-            log:Debugf("Destroying component %s", component)
-            Rules.navUi:remove(component)
-        end
-    end
+    Rules.navUi:clear()
     local buttons = {}
     local i = 1
     for _, expansion in ipairs(Expansion.All(Expansion.EnabledFilter)) do
@@ -138,7 +136,7 @@ function Rules.createRulebookButtons()
         end
     end
     for i, button in ipairs(buttons) do
-        buttonComponents[i] = Rules.createButton(button[1], button[4], button[2], button[3], function() Rules.SpawnRules(button[1], 1) end)
+        buttonComponents[i] = Rules.createRuleBookButton(button[1], button[4], button[2], button[3], function() Rules.SpawnRules(button[1], 1) end)
     end
     for j = i, 13 do
         log:Debugf("Creating empty panel %d", j)
@@ -147,6 +145,9 @@ function Rules.createRulebookButtons()
         local panel = Rules.navUi:Panel({ id = "panel"..j, topLeft = topLeft, bottomRight = bottomRight, color = Ui.LIGHT_BROWN })
         buttonComponents[j] = { panel }
     end
+    Rules.createButton("Back", "@ Back", 6, 2, Rules.Back)
+    Rules.createButton("Previous Page", "< Previous Page", 7, 2, function() Rules.ChangePage(-1) end)
+    Rules.createButton("Next Page", "> Next Page", 8, 2, function() Rules.ChangePage(1) end)
     Rules.navUi:ApplyToObject()
 end
 ---------------------------------------------------------------------------------------------------
@@ -327,6 +328,7 @@ function Rules.addToHistory(rules, state)
     if (top and top[1] == rules and top[2] == state) then
         return
     end
+    log:Debugf("Adding to history %s[%d]", rules, state)
     Rules.history:Push({ rules, state })
 end
 

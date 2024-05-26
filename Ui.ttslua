@@ -635,6 +635,10 @@ function Ui:remove(component)
     end
     error("Component not found")
 end
+
+function Ui:clear()
+    self.children = {}
+end
 ---------------------------------------------------------------------------------------------------
 
 function Ui:ApplyToObject()
