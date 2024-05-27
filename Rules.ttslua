@@ -424,7 +424,6 @@ function Rules.ChangePage(dir)
             Rules.UpdateBookmarks(rulebookName, nextState)
         end
     else
-        Rules.history:Push({ rulebookName, nextState })
         local finalObj = rules.setState(nextState)
         Wait.frames(function()
             finalObj.setLock(true)
