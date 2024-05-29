@@ -17,6 +17,7 @@ local Survivor = require("Kdm/Survivor")
 local Timeline = require("Kdm/Timeline")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
+local Trash = require("Kdm/Trash")
 
 -------------------------------------------------------------------------------------------------
 
@@ -309,6 +310,7 @@ function Campaign.ExportToOrb()
         settlementEventsDeck = Campaign.ExportDeck("Settlement Events", "Settlement Events"),
         timeline = Timeline.Export(),
         survivor = Survivor.Export(),
+        trash = Trash.Export(),
     }
 
     local campaignOrb = spawnObject({
@@ -792,8 +794,10 @@ function Campaign.Import(data)
         Campaign.SetupObject(location, object, context)
     end
 
+    Trash.Import(data.trash)
+
     Campaign.SetupSurvivalTokens(data.timeline.survivalActions)
-    Campaign.SetupReferences(data.campaign.references)
+    Wait.frames( function () Campaign.SetupReferences(data.campaign.references) end, 20 ) -- must wait for bookmarks to enter trash can
     Campaign.SetupMisc(data.campaign.misc)
     Campaign.SetupCharacterDeck(data.characterDeck);
     Campaign.SetupSettlementEventsDeck(data.settlementEventsDeck)
@@ -807,6 +811,7 @@ function Campaign.Import(data)
 
     Survivor.Import(data.survivor)
     Timeline.Import(data.timeline)
+  
 
     local departingSurvivors = data.departingSurvivors or { 1, 2, 3, 4 }
     for playerId, survivorId in pairs(departingSurvivors) do

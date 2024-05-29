@@ -1,0 +1,41 @@
+local NamedObject = require("Kdm/NamedObject")
+local Archive = require("Kdm/Archive")
+local log = require("Kdm/Log").ForModule("Trash")
+
+local Trash = {}
+
+function Trash.IsInTrash(bookmarkName)
+    log:Debugf("Checking if bookmark '%s' is in trash", bookmarkName)
+    for _, object in ipairs(Trash.getObjects()) do
+        if object.name == bookmarkName and object.gm_notes == "Bookmarks" then
+            log:Debugf("Bookmark '%s' is in trash", bookmarkName)
+            return true
+        end
+    end
+    return false
+end
+
+function Trash.getObjects()
+    return NamedObject.Get("Trash").getObjects()
+end
+
+function Trash.Export()
+    local content = {}
+    for _, object in ipairs(Trash.getObjects()) do
+        table.insert(content, { name = object.name, type = object.gm_notes })
+    end
+    return content
+end
+
+function Trash.Import(content)
+    local trash = NamedObject.Get("Trash")
+    trash.reset()
+    local position = trash.getPosition()
+    position.y = position.y + 2
+    for _, object in ipairs(content) do
+        Archive.Take({ name = object.name, type = object.type, position = position})
+    end
+    Archive.Clean()
+end
+
+return Trash

@@ -1,15 +1,13 @@
 local Expansion = require("Kdm/Expansion")
 local Archive = require("Kdm/Archive")
-local NamedObject = require("Kdm/NamedObject")
-local Util = require("Kdm/Util/Util")
-local log = require("Kdm/Log").ForModule("Bookmarks")
+local Trash = require("Kdm/Trash")
 
 local Bookmarks = {}
 
 function Bookmarks.placeFor(selector, locationOrPosition)
     for _, expansion in ipairs(Expansion.All(Expansion.EnabledFilter)) do
         for bookmark, entry in pairs(expansion.bookmarks or {}) do
-            if  selector(entry) and not Bookmarks.IsInTrash(bookmark) then
+            if  selector(entry) and not Trash.IsInTrash(bookmark) then
                 Archive.Take({
                     name = bookmark,
                     type = "Bookmarks",
@@ -21,18 +19,6 @@ function Bookmarks.placeFor(selector, locationOrPosition)
         end
     end
     Archive.Clean()
-end
-
-function Bookmarks.IsInTrash(bookmarkName)
-    log:Debugf("Checking if bookmark '%s' is in trash", bookmarkName)
-    local trash = NamedObject.Get("Trash")
-    for _, object in ipairs(trash.getObjects()) do
-        if object.name == bookmarkName and object.gm_notes == "Bookmarks" then
-            log:Debugf("Bookmark '%s' is in trash", bookmarkName)
-            return true
-        end
-    end
-    return false
 end
 
 return Bookmarks
