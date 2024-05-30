@@ -785,9 +785,11 @@ function Player:UnpackSurvivorBox(survivorBox)
     for _, entry in ipairs(survivorBoxContainer:Objects()) do
         if entry.gm_notes == "Player Figurine" then
             log:Debugf("Unpacking figurine %s to self marker", entry.guid)
-            local figurineObject = survivorBoxContainer:Take({
+            local location = playerPrefix.." Marker"
+            Location.Get(location):BoxClean({ types = { "Player Figurine" }})
+            survivorBoxContainer:Take({
                 guid = entry.guid,
-                location = playerPrefix.." Marker",
+                location = location,
                 spawnFunc = function(figurineObj)
                     self:LinkFigurine(figurineObj)
                 end,
@@ -795,7 +797,7 @@ function Player:UnpackSurvivorBox(survivorBox)
             
         elseif entry.gm_notes == "Bingo Card" then
             log:Debugf("Unpacking bingo card %s to self bingo card", entry.guid)
-            local bingoCardObject = survivorBoxContainer:Take({
+            survivorBoxContainer:Take({
                 guid = entry.guid,
                 location = playerPrefix.." Bingo",
                 spawnFunc = function(bingoObj)
@@ -810,7 +812,7 @@ function Player:UnpackSurvivorBox(survivorBox)
             })
         elseif entry.gm_notes == "Portrait" then
             log:Debugf("Unpacking portrait %s to self portrait", entry.guid)
-            local portraitObject = survivorBoxContainer:Take({
+            survivorBoxContainer:Take({
                 guid = entry.guid,
                 location = playerPrefix.." Portrait",
                 spawnFunc = function(portraitObj)
