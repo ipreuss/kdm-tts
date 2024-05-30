@@ -815,23 +815,7 @@ function Campaign.Import(data)
 
     local departingSurvivors = data.departingSurvivors or { 1, 2, 3, 4 }
     for playerId, survivorId in pairs(departingSurvivors) do
-        local survivor = Survivor.Survivors()[survivorId]
-        local player = Player.Players()[playerId]
-        Archive.Take({
-            name = "Survivor Sheet",
-            type = "Survivor Sheet",
-            location = "Player " .. playerId .. " Survivor Sheet",
-            height = 0,
-            spawnFunc = function(survivorSheetObject)
-                -- We have to wait a single frame when taking from an infinite container or the objects will have the same equality/identity value as any other objects taken that frame
-                Wait.frames(function()
-                    log:Debugf("Created survivor sheet for object %s and %s", survivorSheetObject.getGUID(), survivor)
-                    local survivorSheet = Survivor.CreateSurvivorSheet(survivor, survivorSheetObject)
-                    survivorSheetObject.setLock(true)
-                    player:LinkSurvivorSheet(survivorSheet)
-                end, 1)
-            end
-        })
+        Wait.frames(function() Survivor.SpawnSurvivorBox(Survivor.Survivors()[survivorId], "Player "..playerId.." Survivor Sheet") end, 50)
     end
 
     Campaign.campaign = data.campaign
@@ -979,7 +963,7 @@ end
 
 function Campaign.Clean()
     for i = 1, 4 do
-        Location.Get("Player " .. i .. " Board"):BoxClean({ tags = { "Card", "Deck" }, types = { "Tokens", "Survival Tokens", "Player Figurine" } })
+        Location.Get("Player " .. i .. " Board"):BoxClean({ tags = { "Card", "Deck" }, types = { "Tokens", "Survival Tokens", "Player Figurine", "Survivor Sheet" } })
     end
     Location.Get("Showdown Board"):BoxClean({ types = { "Player Figurine" } })
     Location.Get("Deck Board"):BoxClean({ tags = { "Card", "Deck" }, ignoreTypes = { "Monster Resources" }, })

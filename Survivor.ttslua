@@ -1900,4 +1900,5 @@ return {
     ClearSkipNextHunt = Survivor.ClearSkipNextHunt,
 
     ALLOWED_CARD_TYPES = Survivor.ALLOWED_CARD_TYPES,
+    SpawnSurvivorBox = Survivor.SpawnSurvivorBox,
 }
