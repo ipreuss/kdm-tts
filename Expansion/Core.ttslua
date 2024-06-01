@@ -581,7 +581,7 @@ return {
             { "White Gigalion Basic Action", "AI" },
             { "White Gigalion Hit Locations", "Hit Locations" },
 
-            { "Gambler's Chest Rules", "Rulebook"}
+            { "Gambler's Chest Rules", "Rulebook"},
             { "Core Seed Patterns", "Seed Patterns" },
 
             { "Tracks Of Death Rules", "Rulebook" },
