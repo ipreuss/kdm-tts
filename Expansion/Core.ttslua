@@ -581,6 +581,7 @@ return {
             { "White Gigalion Basic Action", "AI" },
             { "White Gigalion Hit Locations", "Hit Locations" },
 
+            { "Gambler's Chest Rules", "Rulebook"}
             { "Core Seed Patterns", "Seed Patterns" },
 
             { "Tracks Of Death Rules", "Rulebook" },
@@ -986,6 +987,23 @@ return {
                     keywords = { "Showdown:", "White", "Gigalion" },
                     state = 4,
                 },
+            },
+        },
+        {
+            name = "Gambler's Chest Rules",
+            pages = {
+                ["Patterns"] = {
+                    keywords = { "Gambler's", "Chest", "Rules", "Patterns" },
+                    state = 1,
+                },
+                ["Seed Patterns"] = {
+                    keywords = { "Seed", "Patterns" },
+                    state = 2,
+                },
+                ["Designs & Dandelions"] = {
+                    keywords = { "Designs", "Dandelions" },
+                    state = 3,
+                }
             },
         },
         {
