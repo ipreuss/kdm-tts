@@ -49,6 +49,35 @@ return {
         "Stranger in the Dark",
         "Story in the Snow",  --1.6
         "Dark Seamstress",    --1.6
+
+        "Cries in the Distance",
+        "Night Raid",
+        "Prisoners",
+        "A Series of Unfortunate Events",
+        "Savage Bone Eater",
+        "Hunt Reprisal",
+        "Rumor Mill",
+        "Vivid Dreams",
+        "Talking Faces",
+        "Death of an Elder",
+        "Gore Silk",
+        "Fresh Tracks",
+        "Structural Collapse",
+        "Ceremony",
+        "Sick Monster",
+        "A Stranger's Sojourn",
+        "The Unblemished Man",
+        "The Potion Maker",
+        "Strange Twins",
+        "Sedition of a Settlement",
+        "Curious Twilight Knight",
+        "Messenger of the First Story",
+        "Messenger of Courage",
+        "Messenger of the Spiral Path",
+        "Messenger of Humanity",
+        "Sword Hunter", --Gets added to archive after "Sword in the Stone" hunt event manually
+        "A Strange Spot",
+
     },
 
     campaigns = {
@@ -195,6 +224,8 @@ return {
         ["Stone Circle"]             = "Stone Circle Gear",
         ["Plumery"]                  = "Plumery Gear",
         ["Song of the Green Knight"] = "Green Armor",
+        ["Bone Lodge"] = "Bone Lodge Gear",
+        ["Explorer's Shelter"] = "Explorer's Shelter Gear",
     },
 
     gearStats = {
@@ -222,6 +253,10 @@ return {
         ["Newborn"] = { irreplaceable = true },
         ["Prismatic Lantern"] = { irreplaceable = true },
         ["Nightmare Breast Pump"] = { irreplaceable = true },
+
+        ["Bone Buckler"]              = { isArmor = true, head = 0, arms = 1, body = 0, waist = 0, legs = 0,
+            isWeapon = true, speed = 1, accuracy = 6, strength = 1 },
+
     },
 
     armorStats = {
@@ -333,7 +368,23 @@ return {
         ["Sprinter Helm"] = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
         ["White Sunlion Mask"] = { head = 1, arms = 0, body = 0, waist = 0, legs = 0 },
 
-        ["Lantern Mantle"]         = { head = 0, arms = 0, body = 2, waist = 0, legs = 0 },
+        ["Lantern Mantle"]         = { head = 0, arms = 0, body = 2, waist = 0, legs = 0, irreplaceable = true},
+
+        ["Acanthus Armor"]        = { head = 2, arms = 2, body = 2, waist = 2, legs = 2, modifier = true },
+        ["Acanthus Cowl"]         = { head = 1, arms = 0, body = 0, waist = 0, legs = 0 },
+        ["Acanthus Vest"]         = { head = 0, arms = 0, body = 1, waist = 0, legs = 0 },
+        ["Acanthus Tabis"]        = { head = 0, arms = 0, body = 0, waist = 0, legs = 1 },
+        ["Acanthus Wraps"]        = { head = 0, arms = 1, body = 0, waist = 0, legs = 0 },
+        ["Acanthus Cloak"]        = { head = 0, arms = 0, body = 1, waist = 0, legs = 0 },
+        ["Acanthus Veil"]         = { head = 1, arms = 0, body = 0, waist = 0, legs = 0 },
+        ["Acanthus Sash"]         = { head = 0, arms = 0, body = 0, waist = 1, legs = 0 },
+        
+        -- Bone Lodge Armor Set
+        ["Bone Armor"]            = { head = 0, arms = 0, body = 0, waist = 0, legs = 0, modifier = true },
+        ["Bone Mail"]             = { head = 0, arms = 0, body = 2, waist = 2, legs = 0 },
+        ["Bone Greaves"]          = { head = 0, arms = 0, body = 0, waist = 0, legs = 2 },
+        ["Bone Helmet"]           = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
+        ["Bone Armguards"]        = { head = 0, arms = 2, body = 0, waist = 0, legs = 0 },
     },
 
     weaponStats = {
@@ -435,6 +486,20 @@ return {
 
         ["Mirror Dagger"]     = { speed = 2, accuracy = 6, strength = 2, sharp = true, irreplaceable = true },
         ["Prophetic Jawbone"] = { speed = 2, accuracy = 6, strength = 4, savage = true },
+
+        ["Big Bone Blade"]            = { speed = 1, accuracy = 5, strength = 4, deadly = 1 },
+        ["Big Bone Blade (Broken)"]   = { speed = 1, accuracy = 5, strength = 3 },
+        ["Bone Scythe"]               = { speed = 2, accuracy = 7, strength = 1 },
+        ["Bone Hatchet"]              = { speed = 1, accuracy = 6, strength = 3, paired = true },
+        ["Bone Spear"]                = { speed = 1, accuracy = 5, strength = 2 },
+        ["Scrap Knuckles"]            = { speed = 2, accuracy = 7, strength = 2 },
+        ["Scrap Darts"]               = { speed = 2, accuracy = 7, strength = 4, savage = 1 },
+        ["Skull Club"]                = { speed = 2, accuracy = 7, strength = 2 },
+
+        ["Acanthus Shield"]           = { speed = 1, accuracy = 8, strength = 1 },
+        ["Acanthus Bow"]              = { speed = 3, accuracy = 8, strength = 2 },
+        ["Acanthus Maul"]             = { speed = 2, accuracy = 7, strength = 3 },
+        ["Acanthus Whip"]             = { speed = 2, accuracy = 7, strength = 2 },
     },
 
     guidNames = { ["6392cb"] = "Core Archive" },
@@ -584,12 +649,19 @@ return {
             { "Gambler's Chest Rules", "Rulebook"},
             { "Core Seed Patterns", "Seed Patterns" },
 
-            { "Tracks Of Death Rules", "Rulebook" },
+            { "Custom Content Rules", "Rulebook" },
+            { "Bone Lodge Gear", "Gear" },
+            { "Explorer's Shelter Gear", "Gear" },
         },
     },
 
     bookmarks = {
         ["Intimacy - Infant Adrift"] = { rulespage = "Intimacy", reference = "Intimacy Reference" },
+    },
+
+    timelineEvents = {
+        { year = 1, name = "Bloodied Victors", type = "RulebookEvent" },
+        { year = 3, name = "Fresh Meat", type = "RulebookEvent" }, -- when The Butcher gets its own module, this should be moved there
     },
 
     rulebooks = {
@@ -799,7 +871,7 @@ return {
                     state = 76,
                     timelineEvent = true,
                 },
-                ["Principle: Death"] = {
+                ["Principle: Death (outdated core version)"] = {
                     keywords = { "Principle", "Death" },
                     state = 77,
                     timelineEvent = true,
@@ -976,7 +1048,7 @@ return {
                     state = 1,
                 },
                 ["White Gigalion Rules"] = {
-                    keywords = { "White", "Gigalion", "Rulebook", "Rules" },
+                    keywords = { "White", "Gigalion" },
                     state = 2,
                 },
                 ["Vignette: The Gigantic Cat"] = {
@@ -1007,15 +1079,35 @@ return {
             },
         },
         {
-            name = "Tracks Of Death Rules",
+            name = "Custom Content Rules",
             pages = {
-                ["Tracks Of Death Rules"] = {
-                    keywords = { "Tracks", "Of", "Death", "Rules" },
+                ["Alternate Prologue"] = {
+                    keywords = { "Alternate", "Prologue" },
                     state = 1,
                 },
-                ["Tracks Of Death: Hunt Event Tracker"] = {
-                    keywords = { "Tracks", "Of", "Death:", "Hunt", "Event", "Tracker" },
+                ["Bloodied Victors"] = {
+                    keywords = { "Bloodied", "Victors" },
+                    state = 2,
+                    timelineEvent = true,
+                },
+                ["Principle: Death"] = {
+                    keywords = { "Principle", "Death" },
                     state = 3,
+                    timelineEvent = true,
+                },
+                ["Overharvest"] = {
+                    keywords = { "Overharvest" },
+                    state = 4,
+                    timelineEvent = true,
+                },
+                ["Fresh Meat"] = {
+                    keywords = { "Fresh", "Meat" },
+                    state = 5,
+                    timelineEvent = true,
+                },
+                ["Tracks of Death"] = {
+                    keywords = { "Tracks", "Death", "Hunt", "Events" },
+                    state = 6,
                 },
             },
         },
