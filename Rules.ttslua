@@ -14,7 +14,6 @@ local EventManager = require("Kdm/Util/EventManager")
 ---------------------------------------------------------------------------------------------------
 
 local Rules = {}
-local buttonComponents = {}
 
 ---------------------------------------------------------------------------------------------------
 
@@ -136,14 +135,13 @@ function Rules.createRulebookButtons()
         end
     end
     for i, button in ipairs(buttons) do
-        buttonComponents[i] = Rules.createRuleBookButton(button[1], button[4], button[2], button[3], function() Rules.SpawnRules(button[1], 1) end)
+        Rules.createRuleBookButton(button[1], button[4], button[2], button[3], function() Rules.SpawnRules(button[1], 1) end)
     end
     for j = i, 13 do
         log:Debugf("Creating empty panel %d", j)
         local topLeft = { x =  x1 + ((j - 1) * dx), y = y1 }
         local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
-        local panel = Rules.navUi:Panel({ id = "panel"..j, topLeft = topLeft, bottomRight = bottomRight, color = Ui.LIGHT_BROWN })
-        buttonComponents[j] = { panel }
+        Rules.navUi:Panel({ id = "panel"..j, topLeft = topLeft, bottomRight = bottomRight, color = Ui.LIGHT_BROWN })
     end
     Rules.createButton("Back", "@ Back", 6, 2, Rules.Back)
     Rules.createButton("Previous Page", "< Previous Page", 7, 2, function() Rules.ChangePage(-1) end)
