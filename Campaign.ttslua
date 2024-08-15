@@ -46,10 +46,8 @@ function Campaign.Init(saveState)
     Campaign.InitExpansions()
     Campaign.campaign = Campaign.campaignsByName[saveState.campaign] or Campaign.campaignsByName
         ["People of the Lantern"]
-    Campaign.unlockedMode = saveState.unlockedMode
-    if Campaign.unlockedMode == nil then
-        Campaign.unlockedMode = false
-    end
+    Campaign.unlockedMode = saveState.unlockedMode or false
+    Campaign.settlementNo = saveState.settlementNo or 0
     assert(Campaign.campaign)
     Campaign.InitCampaignUi()
     Campaign.InitExportImportBoardUi()
@@ -185,6 +183,27 @@ function Campaign.InitCampaignUi()
             end
         end
     end
+
+    panel:Text({ id= "SettlementNoLabel", x = 20, y = -520, width = 200, height = 30, fontSize = 14, text = "Settlement Number" })
+    local settlementButtons = {}
+    for i = 1, 20 do
+        local x = 20 + i * 25
+        local y = -550
+        local width = 20
+        local height = 20
+        local fontSize = 7
+        if i % 5 == 0 then
+            x, y, width, height = x - 2, y + 2, width + 4, height + 4
+        end
+        settlementButtons[i] = panel:CheckButton({ id = "settlementNo" .. i, x = x, y = y, width = width, height = height, fontSize =
+            fontSize, text = tostring(i), checked = i <= Campaign.settlementNo, onClick = function() 
+                Campaign.settlementNo = i + (i == Campaign.settlementNo and -1 or 0)
+                for j = 1, 20 do
+                    settlementButtons[j]:Check(j <= Campaign.settlementNo)
+                end
+            end })
+    end
+
     panel:Button({
         id = "Begin",
         x = 117,
@@ -225,7 +244,8 @@ end
 function Campaign.Save()
     return {
         campaign = Campaign.campaign.name,
-        unlockedMode = Campaign.unlockedMode
+        unlockedMode = Campaign.unlockedMode,
+        settlementNo = Campaign.settlementNo,
     }
 end
 

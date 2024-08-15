@@ -216,8 +216,8 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Ui:CheckButton(params)
-    assert(Check.Num(params.fontSize))
-    assert(Check.Str(params.text))
+    assert(Check.Num(params.fontSize), "fontSize")
+    assert(Check.Str(params.text), "text")
 
     local checkButton = self:CreateElem("Button", params)
     checkButton.checkedColors = params.checkedColors or Ui.DARK_BROWN_COLORS
