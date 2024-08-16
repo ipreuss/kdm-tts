@@ -22,7 +22,7 @@ return {
         ["Hunt Events"] = "Core Hunt Events",
 
         ["Seed Patterns"] = "Core Seed Patterns",
-        ["Bookmarks"] = "Intimacy - Infant Adrift",
+        ["Bookmarks"] = "Core Bookmarks",
     },
 
     settlementEvents = {
@@ -512,7 +512,7 @@ return {
             { "Intimacy Reference", "References" },
             { "Bold Reference", "References" },
             { "Insight Reference", "References" },
-            { "Intimacy - Infant Adrift", "Bookmarks" },
+            { "Core Bookmarks", "Bookmarks" },
 
             { "Core Abilities", "Abilities" },
             { "Core Fighting Arts", "Fighting Arts" },
@@ -657,6 +657,7 @@ return {
 
     bookmarks = {
         ["Intimacy - Infant Adrift"] = { rulespage = "Intimacy", reference = "Intimacy Reference" },
+        ["Designs and Dandelions"] = { rulespage = "Insight", reference = "Insight Reference"},
     },
 
     timelineEvents = {
