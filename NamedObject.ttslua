@@ -37,6 +37,8 @@ NamedObject.data = {
     ["5d72f3"] = { name = "Hunt Events Archive" },
     ["fdb47b"] = { name = "Survivor Sheets Archive" },
     ["174926"] = { name = "Survivor Boxes Archive" },
+    ["1eb929"] = { name = "Bookmarks Archive"},
+
     ["54abe6"] = { name = "Dodge Tokens" },
     ["046b7f"] = { name = "Encourage Tokens" },
     ["692b54"] = { name = "Embolden Tokens" },
