@@ -847,7 +847,7 @@ return {
                     state = 70,
                 },
                 ["Legendary Monsters"] = {
-                    keywords = { "Legendary", "Monsters" },
+                    keywords = { "Legendary", "Monsters", "Beast", "Sorrow", "Great", "Golden", "Cat", "Mad", "Steed", "Golden", "Eyed", "King", "1000", "Years" },
                     state = 71,
                 },
                 ["Mineral Gathering"] = {
