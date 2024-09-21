@@ -315,9 +315,14 @@ return {
                     state = 17,
                     showdown = true,
                 },
-                ["Glossary (Harvester Worm)"] = {
-                    keywords = { "Glossary" },
+                ["Glossary (Harvester Worm) A-L"] = {
+                    keywords = { "Glossary", "archivable", "terrain", "autotomy", "basic", "action", "blind", "blood", "incantation", "bonus", "life", "circumised", "crawl",
+                        "dazed", "devoured", "survivors", "dive", "echolocation", "escapee", "Nickname", "facing", "focus", "guiding", "light", "indestructible", "knockback", "knockdown", "large", "minion" },
                     state = 17,
+                },
+                ["Glossary (Harvester Worm) L-Z"] = {
+                    keywords = { "living", "sculpture", "loudest", "survivor", "lurk", "mobile", "monster", "impassable", "segment", "head", "tail", "noise", "sibling", "silence", "stone", "body", "statues", "terrain", "with", "ressources", "worm", "food" },
+                    state = 18,
                 },
             },
         },
