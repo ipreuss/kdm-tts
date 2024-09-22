@@ -640,7 +640,8 @@ return {
             { "White Lion Resources", "Monster Resources" },
             { "White Lion Hunt Events", "Monster Hunt Events" },
 
-            { "White Gigalion Rules", "Rulebook" },
+            { "White Box Rules", "Rulebook" },
+
             { "White Gigalion", "Monster Figurine" },
             { "White Gigalion Info", "AI" },
             { "White Gigalion Basic Action", "AI" },
@@ -1042,24 +1043,21 @@ return {
             },
         },
         {
-            name = "White Gigalion Rules",
+            name = "White Box Rules",
             pages = {
-                ["White Gigalion Introduction"] = {
-                    keywords = { "White", "Gigalion", "Introduction" },
+                ["Vignette of Death"] = {
+                    keywords = { "Vignette", "Death", "White", "Gigalion", "Introduction", "Giga", "Catarium", "Oxidation" },
                     state = 1,
                 },
-                ["White Gigalion Rules"] = {
-                    keywords = { "White", "Gigalion" },
+                ["White Gigalion Showdowns"] = {
+                    keywords = { "White", "Gigalion", "Vignette", "Gigantic", "Cat", "Showdown" },
                     state = 2,
                 },
-                ["Vignette: The Gigantic Cat"] = {
-                    keywords = { "White", "Gigalion", "Vignette:", "the", "Gigantic", "Cat" },
+                ["Glossary (White Box)"] = {
+                    keywords = { "campaign", "limit", "load", "novel", "Proficiency", "olthawartta" },
                     state = 3,
                 },
-                ["Showdown: White Gigalion"] = {
-                    keywords = { "Showdown:", "White", "Gigalion" },
-                    state = 4,
-                },
+                
             },
         },
         {
