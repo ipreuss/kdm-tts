@@ -95,6 +95,11 @@ Names.names = {
             "Irwin", "Jasper", "Keaton", "Leland", "Mason", "Nolan", "Oakes", "Parker",
             "Quinn", "Rowan", "Sawyer", "Thatcher",
         },
+        ["The Glamorous"] = {
+            "Aziel", "Caspian", "Dorian", "Elion", "Faelan", "Gavriel", "Helios", "Iskander",
+            "Julius", "Kieran", "Lorian", "Malachai", "Neven", "Orion", "Phaedrus", "Quintin",
+            "Rafael", "Silvan", "Tiberius", "Valerius",
+        },        
         ["The Hasty"] = {
             "Blitz", "Cade", "Dart", "Ezra", "Flynn", "Guy", "Holt", "Ivo",
             "Jett", "Kai", "Lev", "Miles", "Nash", "Orin", "Pax", "Quip",
@@ -110,6 +115,11 @@ Names.names = {
             "Mordred", "Nash", "Orrin", "Prowl", "Quake", "Ravage", "Slade", "Thorn",
             "Ulric", "Vor", "Wolf", "Zane",
         },
+        ["The Impetuous"] = {
+            "Arden", "Bastian", "Caius", "Dorian", "Eryx", "Flint", "Galen", "Harrow",
+            "Icarus", "Jax", "Kael", "Luther", "Marek", "Nero", "Orren", "Pyran",
+            "Ronan", "Sirius", "Talon", "Varek",
+        },        
         ["The Last Stand"] = {
             "Alistair", "Barrett", "Caius", "Damon", "Evander", "Finnegan", "Garrick", "Hadrian",
             "Isaac", "Jorah", "Kael", "Leonidas", "Magnus", "Nero", "Orion", "Paxton",
@@ -124,6 +134,11 @@ Names.names = {
             "Blaine", "Cain", "Drystan", "Eldric", "Faine", "Gareth", "Hale", "Ivor",
             "Jareth", "Keir", "Lorne", "Merrick", "Niall", "Oisin", "Perrin", "Quillan",
             "Rhys", "Soren", "Torin", "Wystan",
+        },
+        ["The Lost Echo"] = {
+            "Echo", "Shade", "Eldrin", "Mirek", "Varel", "Noctis", "Thorne", "Calder",
+            "Erevan", "Luthias", "Vexis", "Sable", "Farren", "Orryn", "Drystan", "Sorren",
+            "Talon", "Vaylen", "Riven", "Kaelith",
         },
         ["The Mad"] = {
             "Bran", "Cyrus", "Dax", "Egon", "Falk", "Gage", "Halvor", "Ivar",
@@ -140,6 +155,11 @@ Names.names = {
             "Ivar", "Jarl", "Kane", "Leonidas", "Maximus", "Nolan", "Ozias", "Perseus",
             "Quinlan", "Ragnar", "Samson", "Titus",
         },
+        ["Natural Healer"] = {
+            "Alden", "Bran", "Caelum", "Darian", "Elwyn", "Faramir", "Gareth", "Haldor",
+            "Ilan", "Jareth", "Kaelen", "Lucius", "Milo", "Nerian", "Owen", "Phelan",
+            "Ronan", "Soren", "Theron", "Vale",
+        },        
         ["Out of Sync"] = {
             "Baird", "Cassian", "Drexel", "Eldon", "Ferris", "Gannon", "Halden", "Ira",
             "Jovan", "Kael", "Lysander", "Maddock", "Nash", "Orin", "Perrin", "Quentin",
@@ -155,6 +175,11 @@ Names.names = {
             "Harold", "Leopold", "Maximilian", "Nathaniel", "Oswald", "Phillip", "Quentin",
             "Richard", "Sebastian", "Theodore", "Ulysses", "Victor", "William",
         },
+        ["The Red Survivor"] = {
+            "Azrael", "Balor", "Carmine", "Draven", "Emrik", "Ferris", "Grimnar", "Hakon",
+            "Ignis", "Jareth", "Karn", "Lucan", "Magnar", "Nerion", "Orin", "Pyros",
+            "Ragnar", "Sirius", "Torrin", "Vargus",
+        },        
         ["The Shadow"] = {
             "Arden", "Bram", "Caelum", "Dagan", "Erebus", "Fane", "Gavrel", "Hadeon",
             "Ishkur", "Jareth", "Kael", "Lev", "Mordecai", "Nyx", "Orion", "Phelan",
@@ -175,11 +200,21 @@ Names.names = {
             "Jarl", "Kurgan", "Leif", "Magnus", "Njal", "Orloff", "Pruitt", "Quark",
             "Roth", "Skoll", "Thorne", "Ulf",
         },
+        ["The Unfettered"] = {
+            "Aeron", "Blaise", "Ciro", "Dante", "Elian", "Flint", "Gareth", "Hale",
+            "Iven", "Jareth", "Kalen", "Lior", "Malric", "Nero", "Oryn", "Phelan",
+            "Roderic", "Selar", "Torin", "Valen",
+        },        
         ["The Unlucky"] = {
             "Cain", "Tristan", "Dolor", "Marius", "Fenrir", "Hades", "Loki", "Sisyphus",
             "Orpheus", "Morpheus", "Icarus", "Atlas", "Caliban", "Prometheus", "Galahad",
             "Judas", "Oedipus", "Pandora", "Quirinus", "Vlad",
         },
+        ["The Versatile"] = {
+            "Caius", "Darian", "Eryndor", "Felix", "Galen", "Hadrian", "Idris", "Jorin",
+            "Kaelen", "Lorien", "Marik", "Nadir", "Orren", "Pryce", "Renar", "Soren",
+            "Tarin", "Vance", "Weylin", "Zarek",
+        },        
         ["The Watched"] = {
             "Azriel", "Branwen", "Celestine", "Darius", "Eliora", "Frey", "Gavriel", "Haniel",
             "Ithuriel", "Jophiel", "Kaliel", "Lailah", "Muriel", "Nathaniel", "Orifiel", "Phanuel",
@@ -284,6 +319,11 @@ Names.names = {
             "Ivy", "Juniper", "Kelda", "Linnea", "Meadow", "Nova", "Olive", "Phyllis",
             "Quinta", "Rose", "Sylvie", "Terra",
         },
+        ["The Glamorous"] = {
+            "Aurelia", "Belladonna", "Celestia", "Delphine", "Evangeline", "Faylinn", "Giselle", "Helene",
+            "Isolde", "Juliette", "Kyra", "Lysandra", "Melisandre", "Nerissa", "Ophelia", "Persephone",
+            "Rhiannon", "Seraphina", "Tahlia", "Valencia",
+        },        
         ["The Hasty"] = {
             "Alia", "Breeze", "Cleo", "Dara", "Eve", "Faye", "Gia", "Hope",
             "Isla", "Joy", "Kira", "Lynn", "Mia", "Nola", "Ora", "Pia",
@@ -299,6 +339,11 @@ Names.names = {
             "Inferno", "Jezebel", "Kenna", "Lust", "Mara", "Nyx", "Pyra", "Ravenous",
             "Sable", "Temptress", "Vixen", "Wilda",
         },
+        ["The Impetuous"] = {
+            "Aria", "Brienne", "Calista", "Daphne", "Elara", "Fiera", "Gaia", "Hestia",
+            "Isara", "Jade", "Kira", "Luna", "Maris", "Nia", "Ophira", "Phaedra",
+            "Raya", "Selene", "Thora", "Vanya",
+        },        
         ["The Last Stand"] = {
             "Athena", "Bridget", "Cassandra", "Diana", "Elara", "Freya", "Gwen", "Hera",
             "Isolde", "Juno", "Kara", "Lyra", "Morgana", "Niamh", "Odessa", "Petra",
@@ -314,6 +359,11 @@ Names.names = {
             "Iona", "Jenessa", "Kerensa", "Lyra", "Maeve", "Nara", "Orielle", "Perrine",
             "Riona", "Seren", "Tamsin", "Wren",
         },
+        ["The Lost Echo"] = {
+            "Eris", "Lyra", "Nyx", "Seraphine", "Velora", "Ishara", "Sylvaine", "Zephyra",
+            "Thalassa", "Nimue", "Elowen", "Vespera", "Lilith", "Eirlys", "Morwen", "Selene",
+            "Astrid", "Isolde", "Calista", "Faelwen",
+        },        
         ["The Mad"] = {
             "Aella", "Bridget", "Cyra", "Dysis", "Eris", "Frenzy", "Hecate", "Ismene",
             "Jinx", "Kali", "Lilith", "Mara", "Nyx", "Ondine", "Pandora", "Quilla",
@@ -329,6 +379,11 @@ Names.names = {
             "Isolde", "Juno", "Kara", "Lucretia", "Maia", "Nike", "Olympia", "Petra",
             "Quintessa", "Rhea", "Saskia", "Thalassa",
         },
+        ["Natural Healer"] = {
+            "Ariella", "Briala", "Carys", "Dahlia", "Eirlys", "Fiona", "Gaelle", "Halie",
+            "Isolde", "Jessa", "Kiera", "Liora", "Maeve", "Nerina", "Ophelia", "Rhea",
+            "Seren", "Talia", "Una", "Veda",
+        },        
         ["Out of Sync"] = {
             "Astra", "Bronte", "Clio", "Danae", "Echo", "Faelan", "Greta", "Hestia",
             "Io", "Juna", "Kismet", "Liora", "Myst", "Nephele", "Orielle", "Pax",
@@ -344,6 +399,11 @@ Names.names = {
             "Helena", "Isabella", "Josephine", "Katherine", "Louise", "Margaret", "Natalia",
             "Octavia", "Philippa", "Quintessa", "Regina", "Sophia", "Victoria",
         },
+        ["The Red Survivor"] = {
+            "Astra", "Briar", "Calanthe", "Dysis", "Elara", "Ferra", "Ghislaine", "Hespera",
+            "Ignia", "Juno", "Kaelis", "Lyssa", "Morrigan", "Neryth", "Orinthia", "Pyria",
+            "Rhea", "Sable", "Thyra", "Vesper",
+        },        
         ["The Shadow"] = {
             "Astra", "Calypso", "Dusk", "Echo", "Fable", "Haven", "Indigo", "Jinx",
             "Kismet", "Luna", "Mystery", "Nox", "Onyx", "Phantom", "Quintessence", "Rune",
@@ -364,11 +424,21 @@ Names.names = {
             "Ingrid", "Jarnsaxa", "Kriemhild", "Ludmilla", "Maud", "Nessa", "Olrun", "Pilar",
             "Quorra", "Runa", "Signe", "Thyra",
         },
+        ["The Unfettered"] = {
+            "Ayla", "Briseis", "Cyrene", "Delara", "Elara", "Fiora", "Galadriel", "Halia",
+            "Isolde", "Juna", "Kyra", "Lira", "Mirelle", "Nessa", "Orla", "Peri",
+            "Rhea", "Selene", "Talia", "Veya",
+        },        
         ["The Unlucky"] = {
             "Cassandra", "Desdemona", "Eurydice", "Hecuba", "Ismene", "Jocasta", "Klytaemnestra",
             "Medea", "Niobe", "Ophelia", "Phaedra", "Sappho", "Thalia", "Ursula", "Vanora",
             "Wanda", "Xanthe", "Yseult", "Zelda", "Alecto",
         },
+        ["The Versatile"] = {
+            "Althea", "Brynne", "Callista", "Delphine", "Elys", "Fiora", "Gwenyth", "Hestia",
+            "Isara", "Juna", "Kaida", "Lyric", "Mira", "Nerys", "Ophelia", "Phaedra",
+            "Reya", "Selise", "Thalia", "Viera",
+        },        
         ["The Watched"] = {
             "Anael", "Bethel", "Cassiel", "Dina", "Evangeline", "Gabrielle", "Hemera", "Iriel",
             "Jael", "Keriel", "Lysiel", "Mireille", "Naamah", "Oriel", "Pariel", "Qetesh",
