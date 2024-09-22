@@ -367,6 +367,7 @@ return {
         ["Screaming Costume"] = { head = 1, arms = 1, body = 1, waist = 1, legs = 1 },
         ["Sprinter Helm"] = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
         ["White Sunlion Mask"] = { head = 1, arms = 0, body = 0, waist = 0, legs = 0 },
+        ["Soldier Lantern Cuirass"] = { head = 0, arms = 0, body = 5, waist = 0, legs = 0},
 
         ["Lantern Mantle"]         = { head = 0, arms = 0, body = 2, waist = 0, legs = 0, irreplaceable = true},
 
@@ -483,6 +484,9 @@ return {
         ["Tempered Spear"] = { speed = 2, accuracy = 5, strength = 5 },
         ["True Lantern Halberd"] = { speed = 2, accuracy = 4, strength = 14, irreplaceable = true },
         ["Weaponsmith's Hammer"] = { speed = 2, accuracy = 5, strength = 2 },
+        ["Refined Lantern Axe"] = { speed = 2, accuracy = 6, strength = 11},
+        ["Sundering Crossbow"] = { speed = 1, accuracy = 5, strength = 7 },
+
 
         ["Mirror Dagger"]     = { speed = 2, accuracy = 6, strength = 2, sharp = true, irreplaceable = true },
         ["Prophetic Jawbone"] = { speed = 2, accuracy = 6, strength = 4, savage = true },
@@ -1054,7 +1058,7 @@ return {
                     state = 2,
                 },
                 ["Glossary (White Box)"] = {
-                    keywords = { "campaign", "limit", "load", "novel", "Proficiency", "olthawartta" },
+                    keywords = { "campaign", "limit", "load", "novel", "Proficiency", "olthawartta", "refined" },
                     state = 3,
                 },
                 
