@@ -8,8 +8,7 @@ function Bookmarks.placeFor(selector, locationOrPosition)
     for _, expansion in ipairs(Expansion.All(Expansion.EnabledFilter)) do
         for bookmark, entry in pairs(expansion.bookmarks or {}) do
             if  selector(entry) and not Trash.IsInTrash(bookmark) then
-                Archive.Take({
-                    archive = "Bookmarks Archive",
+                Archive.TakeObject({
                     name = bookmark,
                     type = "Bookmarks",
                     location = locationOrPosition.location,
