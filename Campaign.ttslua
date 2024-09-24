@@ -1086,7 +1086,7 @@ function Campaign.Spawn(name, type, position, context)
         elseif type == "Settlement Locations" then
             object = context.settlementLocationDeck:Take({ name = name, type = type, position = position })
         else
-            object = Archive.Take({ archive = type .. " Archive", name = name, type = type, position = position })
+            object = Archive.TakeObject({ name = name, type = type, position = position })
         end
         context.cache[key] = object
         return object

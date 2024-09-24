@@ -187,6 +187,11 @@ function CalculatePosition(params)
     return position
 end
 
+function Archive.TakeObject(params) 
+    params.archive = params.type .. " Archive"
+    return Archive.Take(params)
+end
+
 function Archive.Take(params)
     local archive = params.archive
     local name = params.name
@@ -370,6 +375,7 @@ return {
     Init = Archive.Init,
     RegisterEntries = Archive.RegisterEntries,
     Take = Archive.Take,
+    TakeObject = Archive.TakeObject,
     ArchiveSource = Archive.ArchiveSource,
     ContainerSource = Archive.ContainerSource,
     CreateDeckFromSources = Archive.CreateDeckFromSources,

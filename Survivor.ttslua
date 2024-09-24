@@ -1270,7 +1270,7 @@ function Survivor.SpawnSurvivorBox(survivor, location)
                 -- Spawn all cards
                 local height = 3
                 for _, card in ipairs(cardsToSpawn) do
-                    Archive.Take({ archive = card.type.." Archive", name = card.name, type = card.type, location = location, height = height, spawnFunc = function(cardObject)
+                    Archive.TakeObject({ name = card.name, type = card.type, location = location, height = height, spawnFunc = function(cardObject)
                         survivorBoxObject.putObject(cardObject)
                     end})
                     height = height + 0.5
