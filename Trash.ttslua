@@ -33,7 +33,7 @@ function Trash.Import(content)
     local position = trash.getPosition()
     position.y = position.y + 2
     for _, object in ipairs(content or {}) do
-        Archive.Take({ name = object.name, type = object.type, position = position})
+        Archive.Take({ archive = object.type .. " Archive", name = object.name, type = object.type, position = position})
     end
     Archive.Clean()
 end
