@@ -548,6 +548,7 @@ function Survivor.InitEvents()
     EventManager.AddHandler("onObjectDestroy", function(object)
         local survivorBox = Survivor.survivorBoxesByObject[object]
         if survivorBox then
+            log:Debugf("Survivor box %s was destroyed", survivorBox.survivor:NameOrUnnamed())
             Survivor.survivorBoxesBySurvivor[survivorBox.survivor] = nil
             Survivor.survivorBoxesByObject[object] = nil
             return
@@ -564,6 +565,7 @@ function Survivor.InitEvents()
     EventManager.AddHandler("onObjectEnterContainer", function(container, object)
         local survivorBox = Survivor.survivorBoxesByObject[container]
         if survivorBox then
+            log:Debugf("%s %s was put into survivor box %s", object.getGMNotes(), object.getName(), survivorBox.survivor:NameOrUnnamed())
             survivorBox:UpdateCards()
         end
     end)
@@ -1584,6 +1586,7 @@ function SurvivorClass:SetPositionsByCardNameType(positionsByCardNameType) self.
 
 function SurvivorClass:FigurineJSON() return self.figurineJSON end
 function SurvivorClass:SetFigurineJSON(value)
+    log:Debugf("Setting figurine JSON for survivor %s", self:NameOrUnnamed())
     self.figurineJSON = value
 end
 
@@ -1677,7 +1680,8 @@ end
 function SurvivorBoxClass:UpdateCards()
     local cards = {}
     for _, objectInBox in ipairs(self.object.getObjects()) do
-        if Survivor.ALLOWED_CARD_TYPES[objectInBox.gm_notes] then
+        log:Debugf("Checking object in box %s (%s)", objectInBox.name, objectInBox.gm_notes)
+        if Survivor.ALLOWED_CARD_TYPES[objectInBox.gm_notes] and objectInBox.gm_notes ~= "Player Figurine" then
             table.insert(cards, { name = objectInBox.name, type = objectInBox.gm_notes })
         end
     end

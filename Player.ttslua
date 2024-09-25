@@ -787,10 +787,12 @@ function Player:UnpackSurvivorBox(survivorBox)
             log:Debugf("Unpacking figurine %s to self marker", entry.guid)
             local location = playerPrefix.." Marker"
             Location.Get(location):BoxClean({ types = { "Player Figurine" }})
+            log:Debugf("unpacking Figurine: %s", Util.TabStr(entry))
             survivorBoxContainer:Take({
                 guid = entry.guid,
                 location = location,
                 spawnFunc = function(figurineObj)
+                    log:Debugf("unpacked Figurine: %s", Util.TabStr(figurineObj))
                     self:LinkFigurine(figurineObj)
                 end,
             })
@@ -1085,6 +1087,7 @@ function Player:LinkFigurine(figurineObject)
         local name = self.survivorSheet:Survivor():NameOrUnnamed()
         figurineObject.setName(name)
         self.survivorSheet:Survivor():SetFigurineJSON(figurineObject.getJSON())
+
         log:Printf("Linked figurine to player %s (%s)", self.ordinal, name)
     else
         log:Debugf("Linked figurine to player %s", self.ordinal)
