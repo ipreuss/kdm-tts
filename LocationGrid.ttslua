@@ -1,18 +1,19 @@
 local log = require("Kdm/Log").ForModule("LocationGrid")
+local ElementSizes = require("Kdm/ElementSizes")
 local Util = require("Kdm/Util/Util")
 
 local LocationGrid = {}
 LocationGrid.__index = LocationGrid
 
 -- Constructor
-function LocationGrid:new(cols, rows, topLeft, bottomRight)
+function LocationGrid:new(cols, rows, topLeft, bottomRight, size)
     log:Debugf("Creating new LocationGrid with rows=%d, cols=%d, topLeft=%s, bottomRight=%s", rows, cols, Util.TabStr(topLeft), Util.TabStr(bottomRight))
     local instance = setmetatable({}, LocationGrid)
     instance.rows = rows
     instance.cols = cols
     instance.topLeft = topLeft
     instance.bottomRight = bottomRight
-    
+    instance.size = size or ElementSizes.CARD
     return instance
 end
 
@@ -26,13 +27,13 @@ LocationGrid.GRIDS = {
     ["Weapon Mastery"] = LocationGrid:new(12, 1, { x = 4.794536, y = 0.602996, z = -4.306177 },
         { x = -4.799514, y = 0.602996, z = -4.306177 }),
     ["Settlement Gear"] = LocationGrid:new(18, 2, { x = 7.414486, y = 0.602996, z = -2.825781 },
-        { x = -7.415930, y = 0.602996, z = -2.123120 }),
+        { x = -7.415930, y = 0.602996, z = -2.123120 }, ElementSizes.GEAR),
     ["Settlement Resource"] = LocationGrid:new(18, 3, { x = 7.410852, y = 0.602996, z = -1.253595 },
         { x = -7.411582, y = 0.602996, z = 0.829436 }),
     ["Settlement Location"] = LocationGrid:new(10, 2, { x = 6.054009, y = 0.595169, z = 3.801595 },
-        { x = -7.115391, y = 0.595169, z = 6.102203 }),
+        { x = -7.115391, y = 0.595169, z = 6.102203 }, ElementSizes.SETTLEMENT_LOCATION),
     ["Settlement Location Gear"] = LocationGrid:new(10, 2, { x = 6.150475, y = 0.595169, z = 2.302748 },
-        { x = -7.021307, y = 0.595168, z = 7.602671 }),
+        { x = -7.021307, y = 0.595168, z = 7.602671 }, ElementSizes.GEAR),
 }
 
 return LocationGrid

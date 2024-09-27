@@ -1,0 +1,11 @@
+local ElementSizes = {}
+
+ElementSizes.REFERENCE = { x = 20, y = 10, z = 16 }
+ElementSizes.SETTLEMENT_LOCATION = { x = 4.5, y = 10, z = 9 }
+ElementSizes.SETTLEMENT_EVENT = { x = 3.5, y = 10, z = 6 }
+ElementSizes.CARD = { x = 2.695, y = 2, z = 4.1 }
+ElementSizes.GEAR = { x = 2.738, y = 10, z = 2.738 }
+ElementSizes.TOKEN = { x = 1.412567, y = 0.1, z = 1.405437 }
+ElementSizes.SURVIVAL_TOKEN = { x = 2.7, y = 0.1, z = 2.7 }
+
+return ElementSizes
