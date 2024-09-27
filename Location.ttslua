@@ -263,7 +263,7 @@ function Location.Create(params)
         }
 
     else
-        assert(Check.Fail("Invalid params for Location.Create. Requires either center+size or p1+p2: %s", params))
+        assert(Check.Fail("Invalid params for Location.Create. Requires either center+size or p1+p2: %s", Util.TabStr(params)))
     end
 
     return location

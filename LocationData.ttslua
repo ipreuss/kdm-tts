@@ -1,3 +1,6 @@
+local LocationGrid = require("Kdm/LocationGrid")
+local log = require("Kdm/Log").ForModule("LocationData")
+
 local REFERENCE_SIZE = { x = 20, y = 10, z = 16 }
 local SETTLEMENT_LOCATION_SIZE = { x = 4.5, y = 10, z = 9 }
 local SETTLEMENT_EVENT_SIZE = { x = 3.5, y = 10, z = 6 }
@@ -765,68 +768,32 @@ end
 
 -----------------------------------------------------------------------------------------------
 
-local locationGrids = {
-    {
-        name = "Innovation",
-        cols = 18, rows = 2,
-        topLeft     = { x = 7.414137, y = 0.602996, z = -6.384946 },
-        bottomRight = { x = -7.412908, y = 0.602996, z = -5.344013 },
-    },
-    {
-        name = "Weapon Mastery",
-        cols = 12, rows = 1,
-        topLeft     = { x = 4.794536, y = 0.602996, z = -4.306177 },
-        bottomRight = { x = -4.799514, y = 0.602996, z = -4.306177 },
-    },
-    {
-        name = "Settlement Gear",
-        cols = 18, rows = 2,
-        topLeft     = { x = 7.414486, y = 0.602996, z = -2.825781 },
-        bottomRight = { x = -7.415930, y = 0.602996, z = -2.123120 },
-    },
-    {
-        name = "Settlement Resource",
-        cols = 18, rows = 3,
-        topLeft     = { x = 7.410852, y = 0.602996, z = -1.253595 },
-        bottomRight = { x = -7.411582, y = 0.602996, z = 0.829436 },
-    },
-    {
-        name = "Settlement Location",
-        cols = 10, rows = 2,
-        topLeft     = { x = 6.054009, y = 0.595169, z = 3.801595 },
-        bottomRight = { x = -7.115391, y = 0.595169, z = 6.102203 },
-    },
-    {
-        name = "Settlement Location Gear",
-        cols = 10, rows = 2,
-        topLeft     = { x = 6.150475, y = 0.595169, z = 2.302748 },
-        bottomRight = { x = -7.021307, y = 0.595168, z = 7.602671 },
-    },
-}
-
-for _, locationGrid in ipairs(locationGrids) do
+log:Debugf("creating grids")
+for gridname, locationGrid in pairs(LocationGrid.GRIDS) do
+    log:Debugf("creating grid %s", gridname)
     local cols, rows = locationGrid.cols, locationGrid.rows
     local tl, br = locationGrid.topLeft, locationGrid.bottomRight
-
+    log:Debugf("grid %s: cols=%d, rows=%d, tl=(%f, %f), br=(%f, %f)", gridname, cols, rows, tl.x, tl.z, br.x, br.z)
     local dx = (cols > 1) and ((br.x - tl.x) / (cols - 1)) or 0
     local dz = (rows > 1) and ((br.z - tl.z) / (rows - 1)) or 0
     for col = 1, cols do
         for row = 1, rows do
             local i = (row - 1) * cols + col
-            local name = locationGrid.name.." "..i
+            local name = gridname.." "..i
+            log:Debugf("creating grid cell %s", name)
             locationData[name] = {
                 center = {
                     x = tl.x + (col - 1) * dx,
                     y = tl.y,
                     z = tl.z + (row - 1) * dz,
                 },
-                size = CARD_SIZE,
+                size = CARD_SIZE, -- FIX: das stimmt nicht für Gear und SettlementLocation
                 board = "Settlement Board",
             }
         end
     end
 end
-
+log:Debugf("created grids")
 -----------------------------------------------------------------------------------------------
 -- Player board locations
 

@@ -8,6 +8,8 @@ local Expansion = require("Kdm/Expansion")
 local Hunt = require("Kdm/Hunt")
 local log = require("Kdm/Log").ForModule("Campaign")
 local Location = require("Kdm/Location")
+local LocationData = require("Kdm/LocationData")
+local LocationGrid = require("Kdm/LocationGrid")
 local MessageBox = require("Kdm/MessageBox")
 local NamedObject = require("Kdm/NamedObject")
 local Player = require("Kdm/Player")
@@ -283,22 +285,20 @@ function Campaign.ExportToOrb()
     }) do
         scanTypesByLocation[principle] = { "Innovations" }
     end
-    for i = 1, Campaign.MAX_INNOVATIONS do
-        scanTypesByLocation["Innovation " .. i] = { "Innovations" }
+    local grids = {
+        ["Innovation"] = { "Innovations" },
+        ["Weapon Mastery"] = { "Weapon Proficiencies" },
+        ["Settlement Gear"] = { "Gear" },
+        ["Settlement Resource"] = { "Basic Resources", "Monster Resources", "Strange Resources", "Vermin", "Seed Patterns" },
+        ["Settlement Location"] = { "Settlement Locations" },
+
+    }
+    for gridName, cardTypes in pairs(grids) do
+        for i = 1, LocationGrid.GRIDS[gridName]:size() do
+            scanTypesByLocation[gridName .. " " .. i] = cardTypes
+        end
     end
-    for i = 1, Campaign.MAX_WEAPON_PROFICIENCIES do
-        scanTypesByLocation["Weapon Mastery " .. i] = { "Weapon Proficiencies" }
-    end
-    for i = 1, Campaign.MAX_SETTLEMENT_GEAR do
-        scanTypesByLocation["Settlement Gear " .. i] = { "Gear" }
-    end
-    for i = 1, Campaign.MAX_SETTLEMENT_RESOURCES do
-        scanTypesByLocation["Settlement Resource " .. i] = { "Basic Resources", "Monster Resources", "Strange Resources",
-            "Vermin", "Seed Patterns" }
-    end
-    for i = 1, Campaign.MAX_SETTLEMENT_LOCATIONS do
-        scanTypesByLocation["Settlement Location " .. i] = { "Settlement Locations" }
-    end
+
     local departingSurvivors = {}
     for ordinal, player in ipairs(Player.Players()) do
         local playerPrefix = "Player " .. ordinal
