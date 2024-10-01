@@ -146,6 +146,7 @@ return {
                 } },
                 ["Innovation 1"] = { tag = "Card", name = "Language", type = "Innovations" },
                 ["Settlement Location 1"] = { tag = "Card", name = "Lantern Hoard", type = "Settlement Locations" },
+                ["Settlement Location 2"] = { tag = "Card", name = "Promo Crafter", type = "Settlement Locations" },
             },
             references = {
                 { name = "Age Reference", location = "Reference 1" },
@@ -211,6 +212,7 @@ return {
 
     settlementLocationGear = {
         ["Exhausted Lantern Hoard"]  = "Exhausted Lantern Hoard Gear",
+        ["Promo Crafter"]            = "Promo Crafter Gear",
         ["Skinnery"]                 = "Skinnery Gear",
         ["Bone Smith"]               = "Bone Smith Gear",
         ["Organ Grinder"]            = "Organ Grinder Gear",
@@ -349,12 +351,17 @@ return {
         ["Lantern Brassiere"] = { head = 0, arms = 0, body = 0, waist = 0, legs = 0 },
         ["Rawhide Corset"] = { head = 0, arms = 0, body = 0, waist = 0, legs = 0 },
 
+        ["Acanthus Underwear"] = { head = 0, arms = 0, body = 1, waist = 1, legs = 0 },
+        ["Banshee Bedlah"] = { head = 0, arms = 0, body = 1, waist = 0, legs = 0 },
+        ["Banshee Loincloth"] = { head = 0, arms = 0, body = 0, waist = 1, legs = 0 },
         ["Beast Hunter Helm"] = { head = 4, arms = 0, body = 0, waist = 0, legs = 0 },
         ["Blackstar Bikini"] = { head = 0, arms = 0, body = 2, waist = 2, legs = 0 },
         ["Brave Dirndl"] = { head = 0, arms = 0, body = 1, waist = 1, legs = 0 },
         ["Big Bite Costume"] = { head = 1, arms = 1, body = 1, waist = 1, legs = 1 },
+        ["Cenobite Leotard"] = { head = 0, arms = 0, body = 2, waist = 0, legs = 0 },
         ["Ghost Garters - Arms"] = { head = 0, arms = 1, body = 0, waist = 0, legs = 0 },
         ["Ghost Garters - Legs"] = { head = 0, arms = 0, body = 0, waist = 0, legs = 1 },
+        ["Gloom Cowl"] = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
         ["Gold Cat Costume"] = { head = 1, arms = 1, body = 1, waist = 1, legs = 1 },
         ["Grim Muffler"] = { head = 0, arms = 0, body = 1, waist = 0, legs = 0 },
         ["Imitation Butcher Mask"] = { head = 4, arms = 0, body = 0, waist = 0, legs = 0 },
@@ -365,7 +372,10 @@ return {
         ["Retching Costume"] = { head = 1, arms = 1, body = 1, waist = 1, legs = 1 },
         ["Robes of Dedheim"] = { head = 0, arms = 0, body = 2, waist = 0, legs = 0 },
         ["Screaming Costume"] = { head = 1, arms = 1, body = 1, waist = 1, legs = 1 },
+        ["Sighing Acanthus Hat"] = { head = 1, arms = 0, body = 0, waist = 0, legs = 0 },
+        ["Sighing Sarong"] = { head = 0, arms = 0, body = 0, waist = 2, legs = 2 },
         ["Sprinter Helm"] = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
+        ["Sunlantern Mask"] = { head = 4, arms = 0, body = 0, waist = 0, legs = 0 },
         ["White Sunlion Mask"] = { head = 1, arms = 0, body = 0, waist = 0, legs = 0 },
         ["Soldier Lantern Cuirass"] = { head = 0, arms = 0, body = 5, waist = 0, legs = 0},
 
@@ -447,14 +457,21 @@ return {
 
         ["Adventure Sword"] = { speed = 3, accuracy = 6, strength = 0, irreplaceable = true },
         ["Butcher Cleaver"] = { speed = 2, accuracy = 5, strength = 5, paired = true },
+        ["Cold Face Dagger"] = { speed = 2, accuracy = 7, strength = 0 },
+        ["Crescent Tessen"] = { speed = 2, accuracy = 5, strength = 4 },
         ["Excalibur"] = { speed = 2, accuracy = 4, strength = 4, savage = true },
+        ["Globinsnarfer"] = { speed = 3, accuracy = 7, strength = 7, cursed = true },
         ["Lantern Halberd"] = { speed = 2, accuracy = 4, strength = 7, irreplaceable = true },
         ["Muramasa"] = { speed = 6, accuracy = 6, strength = 6, sharp = true, deadly = 2 },
+        ["Novice Dagger"] = { speed = 3, accuracy = 7, strength = 1, deadly = 1 },
         ["Steel Shield"] = { speed = 1, accuracy = 6, strength = 6, irreplaceable = true },
         ["Steel Sword"] = { speed = 1, accuracy = 4, strength = 5, sharp = true, slow = true, irreplaceable = true },
+        ["Stonesmasher"] = { speed = 1, accuracy = 6, strength = 8, irreplaceable = true, savage = true },
         ["Thunder Maul"] = { speed = 2, accuracy = 6, strength = 10, cursed = true, irreplaceable = true },
+        ["Toxicimitar"] = { speed = 2, accuracy = 6, strength = 2, sharp = true },
         ["Twilight Sword"] = { speed = 1, accuracy = 9, strength = 9, cursed = true, irreplaceable = true },
         ["Obsession"] = { speed = 3, accuracy = 6, strength = 3},
+    
 
         ["Rawhide Whip"] = { speed = 3, accuracy = 7, strength = 1 },
 
@@ -468,6 +485,7 @@ return {
         ["Zanbato"] = { speed = 1, accuracy = 6, strength = 6, slow = true, deadly = 1 },
         ["Scrap Bone Spear"] = { speed = 2, accuracy = 6, strength = 3 },
 
+        ["Ashen Shears"] = { speed = 1, accuracy = 6, strength = 6, slow = true},
         ["Backstabbing Stone"] = { speed = 2, accuracy = 6, strength = 1 },
         ["Brazen Bat"] = { speed = 2, accuracy = 5, strength = 6 },
         ["Durendal"] = { speed = 2, accuracy = 6, strength = 9 },
@@ -542,6 +560,7 @@ return {
             { "Starting Gear", "Gear" },
             { "Core Rare Gear", "Gear" },
             { "Core Seed Pattern Gear", "Gear" },
+            { "Promo Crafter Gear", "Gear" },
             { "Promo Gear", "Gear" },
             { "Barber Surgeon Gear", "Gear" },
             { "Blacksmith Gear", "Gear" },
@@ -1059,7 +1078,8 @@ return {
                     state = 2,
                 },
                 ["Glossary (White Box)"] = {
-                    keywords = { "campaign", "limit", "load", "novel", "Proficiency", "olthawartta", "refined" },
+                    keywords = { "banshee", "dura", "barbed", "bloodeater", "campaign", "limit", "cleavage", "cleave", "death", "token", "demolish", "insulated", "load", "melting", "novel", "Proficiency", "novice",
+                        "olthawartta", "refined", "reroll", "token", "scimitar", "sealed", "unfurled" },
                     state = 3,
                 },
                 
