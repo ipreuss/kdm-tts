@@ -1077,10 +1077,14 @@ return {
                     keywords = { "White", "Gigalion", "Vignette", "Gigantic", "Cat", "Showdown" },
                     state = 2,
                 },
+                ["Candy & Cola"] = {
+                    keywords = { "Candy", "Cola", "Young", "Lion", "bottle", "Showdown" },
+                    state = 3,
+                },
                 ["Glossary (White Box)"] = {
                     keywords = { "banshee", "dura", "barbed", "bloodeater", "campaign", "limit", "cleavage", "cleave", "death", "token", "demolish", "insulated", "load", "melting", "novel", "Proficiency", "novice",
                         "olthawartta", "refined", "reroll", "token", "scimitar", "sealed", "unfurled" },
-                    state = 3,
+                    state = 4,
                 },
                 
             },
@@ -1711,6 +1715,21 @@ return {
                         topHitLocationCards = { "Strange Hand" },
                         fixedTerrain = {},
                         randomTerrain = 0,
+                    },
+                },
+                {
+                    name = "Candy & Cola (The Young Lion)",
+                    level = 1,
+                    monsterHuntPosition = 4,
+                    showdown = {
+                        rules = { "White Box Rules", 3 },
+                        customBasic = { "Bat Around","Claw", "Claw", "Power Swat", "Size Up", "Chomp" },
+                        customAdvanced = { "Alert", "Lick Wounds" },
+                        starting = {
+                            advanced = { "Ground Fighting" },
+                        },
+                        movement = 7,
+                        toughness = 8,
                     },
                 },
                 {
