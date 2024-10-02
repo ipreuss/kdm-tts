@@ -1720,7 +1720,6 @@ return {
                 {
                     name = "Candy & Cola (The Young Lion)",
                     level = 1,
-                    monsterHuntPosition = 4,
                     showdown = {
                         rules = { "White Box Rules", 3 },
                         customBasic = { "Bat Around","Claw", "Claw", "Power Swat", "Size Up", "Chomp" },
