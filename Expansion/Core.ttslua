@@ -1081,10 +1081,14 @@ return {
                     keywords = { "Candy", "Cola", "Young", "Lion", "bottle", "Showdown" },
                     state = 3,
                 },
+                ["Kara Black"] = {
+                    keywords = { "Kara", "Black", "Silver", "Antelope", "giant", "stone", "face" },
+                    state = 4,
+                },
                 ["Glossary (White Box)"] = {
                     keywords = { "banshee", "dura", "barbed", "bloodeater", "campaign", "limit", "cleavage", "cleave", "death", "token", "demolish", "insulated", "load", "melting", "novel", "Proficiency", "novice",
                         "olthawartta", "refined", "reroll", "token", "scimitar", "sealed", "unfurled" },
-                    state = 4,
+                    state = 5,
                 },
                 
             },
@@ -1495,6 +1499,24 @@ return {
                         damage = 2,
                         accuracy = 2,
                         evasion = 1,
+                    },
+                },
+                {
+                    name = "Silver Antelope",
+                    level = 2,
+                    monsterHuntPosition = 8,
+                    showdown = {
+                        rules = { "White Box Rules", 4 },
+                        customBasic = { "Bite", "Chow Down", "Chow Down", "Bolt", "Gore", "Run Down" },
+                        customAdvanced = { "Stomp", "Lone Rampage", "Crush and Devour" },
+                        customLegendary = { "Skewer" },
+                        removeHitLocations = { "Wailing Slide", "Flogging Tongue", "Bottomless Pit", "Deformed Rampage" },
+                        ignoreMissingRemovedHitLocations = true,
+                        miscHitLocations = { "Overpower (Screaming Antelope)" },
+                        movement = 8,
+                        toughness = 10,
+                        speed = 1,
+                        damage = 1,
                     },
                 },
                 {

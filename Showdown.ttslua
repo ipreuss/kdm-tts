@@ -471,7 +471,7 @@ function Showdown.Setup(monsterOrName, levelOrName)
         for _, hl in ipairs(showdownSetup.removeHitLocations) do
             table.insert(sources, Archive.ContainerSource(hitLocationsDeck, hl, "Hit Locations"))
         end
-        Archive.CreateDeckFromSources({ sources = sources, location = "Unused HL", name = "Unused Hit Locations", type = "Hit Locations" })
+        Archive.CreateDeckFromSources({ sources = sources, location = "Unused HL", name = "Unused Hit Locations", type = "Hit Locations", ignoreMissingCards = showdownSetup.ignoreMissingRemovedHitLocations })
     end
     if showdownSetup.topHitLocationCards then
         log:Debugf("Putting %s on top of hit location deck", showdownSetup.topHitLocationCards)

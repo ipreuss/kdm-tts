@@ -305,11 +305,11 @@ function Archive.CreateDeckFromSources(params)
         if source.source == "Archive" then
             log:Debugf("Taking %s/%s from archive", source.name, source.type)
             object = Archive.Take(takeParams)
-            assert(object, "Couldn't find "..source.name.." in archive")
+            assert(object or params.ignoreMissingCards, "Couldn't find "..source.name.." in archive")
         elseif source.source == "Container" then
             log:Debugf("Taking %s/%s from container", source.name, source.type)
             object = source.container:Take(takeParams)
-            assert(Check(object, "Couldn't find %s in container %s", source.name, source.container:Name()))
+            assert(Check(object or params.ignoreMissingCards, "Couldn't find %s in container %s", source.name, source.container:Name()))
         else
             assert(Check.Fail("Unrecognized source: %s", source))
         end
