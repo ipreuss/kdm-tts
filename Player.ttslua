@@ -557,7 +557,7 @@ function Player:WeaponsAndModifiers() return self.weaponsAndModifiers end
 
 ---------------------------------------------------------------------------------------------------
 
-function Player:UpdateCards()
+function Player:UpdateCards(gearSelector)
     if not self.survivorSheet then
         return
     end
@@ -566,6 +566,7 @@ function Player:UpdateCards()
 
     local cards = {}
     local positionsByCardNameType = {}
+    gearSelector = gearSelector or function(gear) return gear.stats.cursed end
     for _, object in ipairs(Location.Get("Player "..self.ordinal.." Cards"):AllObjects()) do
         if object.tag == "Card" or object.tag == "Deck" then
             local container = Container(object)
@@ -596,7 +597,7 @@ function Player:UpdateCards()
             for _, card in ipairs(container:Objects()) do
                 if card.gm_notes == "Gear" then
                     local gear = Gear.getByName(card.name)
-                    if gear and gear.stats.cursed then
+                    if gear and gearSelector(gear) then
                         table.insert(cards, {
                             name = card.name,
                             type = card.gm_notes,
@@ -1033,7 +1034,7 @@ function Player:BackToSettlement()
                 if entry.gm_notes == "Gear" then
                     log:Debugf("checking %s/%s", entry.name, entry.gm_notes)
                     local gear = Gear.getByName(entry.name)
-                    if gear and (gear.stats.cursed or (gear.stats.irreplaceable and survivor:Dead()))then
+                    if gear and (gear.stats.cursed or (gear.stats.irreplaceable and survivor:Dead())) then
                         log:Broadcastf(gear.stats.cursed and "taking %s to settlement because it's cursed" or "archiving %s because it's irreplacaeble", entry.name)
                         table.insert(toDelete, entry.name)
                     end
