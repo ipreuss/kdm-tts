@@ -465,7 +465,7 @@ function Player.InitUi(player)
     local bottomRight = { x = 0.656384, y = -0.048424 }
 
     ui:Panel({ id = "backToSettlementWithGearPanel", topLeft = topLeft, bottomRight = bottomRight, color = Ui.DARK_BROWN })
-
+    ui:Text({ id = "backToSettlementWithGearlabel", topLeft = topLeft, bottomRight = bottomRight, text = "w/gear", fontSize = 15, alignment = "MiddleCenter", color = Ui.LIGHT_BROWN })
     ui:Button({ id = "backToSettlementWithGear", topLeft = topLeft, bottomRight = bottomRight, onClick = function()
         player:BackToSettlement(true)
     end })
