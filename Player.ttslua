@@ -461,6 +461,15 @@ function Player.InitUi(player)
         player:BackToSettlement()
     end })
 
+    local topLeft = { x = 0.707226, y = -0.139250 }
+    local bottomRight = { x = 0.656384, y = -0.048424 }
+
+    ui:Panel({ id = "backToSettlementWithGearPanel", topLeft = topLeft, bottomRight = bottomRight, color = Ui.DARK_BROWN })
+
+    ui:Button({ id = "backToSettlementWithGear", topLeft = topLeft, bottomRight = bottomRight, onClick = function()
+        player:BackToSettlement(true)
+    end })
+
     ui:ApplyToObject()
 
     return player
@@ -989,7 +998,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-function Player:BackToSettlement()
+function Player:BackToSettlement(withAllGear)
     local survivorSheet = self.survivorSheet
     if survivorSheet == nil then
         return log:Debugf("No survivor linked with %s", self)
@@ -1005,6 +1014,10 @@ function Player:BackToSettlement()
 
     if self:BingoObject() then
         self.survivorSheet:Survivor():SetBingoJSON(self:BingoObject().getJSON())
+    end
+
+    if withAllGear then
+        self:UpdateCards(function(gear) return true end)
     end
 
     self:UnlinkSurvivorSheet()
@@ -1034,8 +1047,8 @@ function Player:BackToSettlement()
                 if entry.gm_notes == "Gear" then
                     log:Debugf("checking %s/%s", entry.name, entry.gm_notes)
                     local gear = Gear.getByName(entry.name)
-                    if gear and (gear.stats.cursed or (gear.stats.irreplaceable and survivor:Dead())) then
-                        log:Broadcastf(gear.stats.cursed and "taking %s to settlement because it's cursed" or "archiving %s because it's irreplacaeble", entry.name)
+                    if gear and (withAllGear or gear.stats.cursed or (gear.stats.irreplaceable and survivor:Dead())) then
+                        log:Broadcastf(withAllGear and "taking %s to settlement" or gear.stats.cursed and "taking %s to settlement because it's cursed" or "archiving %s because it's irreplacaeble", entry.name)
                         table.insert(toDelete, entry.name)
                     end
                 end
