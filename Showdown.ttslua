@@ -93,7 +93,8 @@ function Showdown.InitUi()
         y = y - 30
     end
 
-    local levelPanel = panel:Panel({ id = "Level", x = 341+3, y = -(109+3), width = 306-6, height = 216-6 })
+    local levelScroll = panel:VerticalScroll({ id = "LevelScroll", x = 341+3, y = -(109+3), width = 306-6, height = 216-6 })
+    local levelPanel = levelScroll:Panel({ id = "Level", x = 0, y = 0, width = 280, height = Showdown.MAX_MONSTER_LEVEL_COUNT * 30 })
 
     Showdown.levelButtonGroup = levelPanel:OptionButtonGroup({ id = "Level", textAlignment = "MiddleLeft", fontSize = 16, onClick = function(option)
         local level = option:OptionValue()
@@ -391,11 +392,12 @@ function Showdown.Setup(monsterOrName, levelOrName)
             AddStartingCard(card, miscAiDeck)
         end
         -- special case life to the wound stack
-        if showdownSetup.life then
-            miscAiDeck:Take({ name = "Life", type = "AI", location = "Wound Stack" })
-        end
     end
-
+    if showdownSetup.life then
+        miscAiDeck:Take({ name = "Life", type = "AI", location = "Wound Stack" })
+        local counter = Archive.Take({ name = "Counter", type = "Counter", location = "Wound Stack", rotation = { x = 0, y = 0, z = 0 } })
+        counter.setValue(showdownSetup.life)
+    end
     -- survivor statuses
     if showdownSetup.survivorStatus then
         for i = 1, 4 do
@@ -677,12 +679,13 @@ function Showdown.CleanInternal()
         "Minion Figurine",
         "Tokens",
         "Archive Bag",
+        "Counter",
     }
     local debug = false
 
     local blocking = {}
     blocking = Util.ConcatArrays(blocking, Location.Get("Terrain Board"):BoxClean({ types = types, debug = debug }))
-    blocking = Util.ConcatArrays(blocking, Location.Get("Monster Board"):BoxClean({ tags = { "Deck" }, types = types, debug = debug }))
+    blocking = Util.ConcatArrays(blocking, Location.Get("Monster Board"):BoxClean({ tags = { "Deck", "Counter" }, types = types, debug = debug }))
 
     -- don't block for the huge showdown board clean
     Location.Get("Showdown Board"):BoxClean({ types = types, debug = debug })
