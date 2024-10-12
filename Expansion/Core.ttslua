@@ -1085,10 +1085,14 @@ return {
                     keywords = { "Kara", "Black", "Silver", "Antelope", "giant", "stone", "face" },
                     state = 4,
                 },
+                ["The Messenger of the First Story"] = {
+                    keywords = { "messenger", "first", "story", "radiant", "lion", "arm", "first", "tree" },
+                    state = 5,
+                },
                 ["Glossary (White Box)"] = {
                     keywords = { "banshee", "dura", "barbed", "bloodeater", "campaign", "limit", "cleavage", "cleave", "death", "token", "demolish", "insulated", "load", "melting", "novel", "Proficiency", "novice",
                         "olthawartta", "refined", "reroll", "token", "scimitar", "sealed", "unfurled" },
-                    state = 5,
+                    state = 6,
                 },
                 
             },
@@ -1804,7 +1808,7 @@ return {
                     name = "Radiant Lion",
                     level = 2,
                     showdown = {
-                        rules = { "White Box Rules", 4 },
+                        rules = { "White Box Rules", 5 },
                         customBasic = { "Claw", "Combo Claw", "Vicious Claw", },
                         customAdvanced = { "Terrifying Roar", },
                         customHitLocations = { "Beast's Ear", "Beast's Elbow",
