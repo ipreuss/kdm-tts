@@ -109,16 +109,23 @@ function Rules.createButton(name, col, row, onClick)
     Rules.navUi:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
 end
 
-function Rules.createRuleBookButton(name, labelText, col, row, onClick)
-    local topLeft = { x =  x1 + ((col - 1) * dx), y = y1 + ((row - 1) * dy) }
+function Rules.createRuleBookButton(name, labelText, col, onClick)
+    local topLeft = { x =  x1 + ((col - 1) * dx), y = y1 }
     local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
     local panel = Rules.navUi:Panel({ id = name .. "panel", topLeft = topLeft, bottomRight = bottomRight, color = Ui.DARK_BROWN })
     local button = Rules.navUi:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
     labelText = string.gsub(labelText, " ", "\n", 1)
-    local text = Rules.navUi:Text({ id = name .. "label", topLeft = topLeft, bottomRight = bottomRight, text = labelText, fontSize = 150, alignment =
-    "MiddleCenter", color = Ui.LIGHT_BROWN })
+    local text = Rules.navUi:Text({
+        id = name .. "label",
+        topLeft = topLeft,
+        bottomRight = bottomRight,
+        text = labelText,
+        fontSize = 150,
+        alignment =
+        "MiddleCenter",
+        color = Ui.LIGHT_BROWN
+    })
     Rules.navUi:ApplyToObject()
-    return { button, panel, text }
 end
 
 function Rules.createRulebookButtons()
@@ -131,11 +138,9 @@ function Rules.createRulebookButtons()
             local name = rulebook.name
             local label = name:gsub(" Rules", "")
             table.insert(buttons, { name, i, 1, label })
+            Rules.createRuleBookButton(name, label, i, function() Rules.SpawnRules(name, 1) end)
             i = i + 1
         end
-    end
-    for i, button in ipairs(buttons) do
-        Rules.createRuleBookButton(button[1], button[4], button[2], button[3], function() Rules.SpawnRules(button[1], 1) end)
     end
     Rules.createButton("Back", 6, 2, Rules.Back)
     Rules.createButton("Previous Page", 7, 2, function() Rules.ChangePage(-1) end)
