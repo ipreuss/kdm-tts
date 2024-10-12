@@ -103,7 +103,7 @@ local height = y1End - y1
 local y2 = 0.392804
 local dy = y2 - y1
 
-function Rules.createButton(name, labelText, col, row, onClick)
+function Rules.createButton(name, col, row, onClick)
     local topLeft = { x =  x1 + ((col - 1) * dx), y = y1 + ((row - 1) * dy) }
     local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
     Rules.navUi:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
@@ -137,15 +137,9 @@ function Rules.createRulebookButtons()
     for i, button in ipairs(buttons) do
         Rules.createRuleBookButton(button[1], button[4], button[2], button[3], function() Rules.SpawnRules(button[1], 1) end)
     end
-    for j = i, 13 do
-        log:Debugf("Creating empty panel %d", j)
-        local topLeft = { x =  x1 + ((j - 1) * dx), y = y1 }
-        local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
-        Rules.navUi:Panel({ id = "panel"..j, topLeft = topLeft, bottomRight = bottomRight, color = Ui.LIGHT_BROWN })
-    end
-    Rules.createButton("Back", "@ Back", 6, 2, Rules.Back)
-    Rules.createButton("Previous Page", "< Previous Page", 7, 2, function() Rules.ChangePage(-1) end)
-    Rules.createButton("Next Page", "> Next Page", 8, 2, function() Rules.ChangePage(1) end)
+    Rules.createButton("Back", 6, 2, Rules.Back)
+    Rules.createButton("Previous Page", 7, 2, function() Rules.ChangePage(-1) end)
+    Rules.createButton("Next Page", 8, 2, function() Rules.ChangePage(1) end)
     Rules.navUi:ApplyToObject()
 end
 ---------------------------------------------------------------------------------------------------
