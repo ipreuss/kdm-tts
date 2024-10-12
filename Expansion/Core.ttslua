@@ -1744,7 +1744,7 @@ return {
                     },
                 },
                 {
-                    name = "Candy & Cola (The Young Lion)",
+                    name = "The Young Lion",
                     level = 1,
                     showdown = {
                         rules = { "White Box Rules", 3 },
