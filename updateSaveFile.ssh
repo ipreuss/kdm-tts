@@ -1,0 +1,30 @@
+#!/bin/bash
+# set -e
+
+savefile="$HOME/Library/Tabletop Simulator/Saves/TS_Save_57.json"
+backupfile="../backup.json"
+templatefile="../template_workshop.json"
+
+cp "$savefile" "$backupfile"
+
+# Replace the value of "LuaScript" in the backup file with the Placeholder
+echo "creating template..."
+jq '.LuaScript = "Lua Script gets inserted here"' "$backupfile" > "$templatefile"
+cd ..
+rm -f bundle.*
+echo "Bundling..."
+luabundler bundle kdm/Global.ttslua \
+-p "?.ttslua" \
+-o bundle.lua
+
+luasrcdiet bundle.lua -o compressed.lua --basic
+
+# JSON-encode bundle.lua
+echo "JSON-encoding..."
+jq -Rs . compressed.lua > bundle.json
+
+echo "Inserting LuaScript..."
+jq --slurpfile luascript bundle.json '.LuaScript = $luascript[0]' "kdm/$templatefile" > "$savefile"
+
+# Display the current time
+echo "Done: $(date)"
