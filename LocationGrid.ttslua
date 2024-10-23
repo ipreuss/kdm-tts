@@ -17,7 +17,7 @@ function LocationGrid:new(cols, rows, topLeft, bottomRight, size)
     return instance
 end
 
-function LocationGrid:size()
+function LocationGrid:gridSize()
     return self.rows * self.cols
 end
 

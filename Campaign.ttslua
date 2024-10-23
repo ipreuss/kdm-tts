@@ -293,12 +293,16 @@ function Campaign.ExportToOrb()
         ["Settlement Location"] = { "Settlement Locations" },
 
     }
+    log:Debugf("Scanning grids")
     for gridName, cardTypes in pairs(grids) do
-        for i = 1, LocationGrid.GRIDS[gridName]:size() do
+        log:Debugf("Scanning grid %s", gridName)
+        log:Debugf("Scanning grid %s", Util.TabStr(LocationGrid.GRIDS[gridName]))
+        for i = 1, LocationGrid.GRIDS[gridName]:gridSize() do
+            log:Debugf("Scanning grid %s %d", gridName, i)
             scanTypesByLocation[gridName .. " " .. i] = cardTypes
         end
     end
-
+    log:Debugf("Scanning player cards")
     local departingSurvivors = {}
     for ordinal, player in ipairs(Player.Players()) do
         local playerPrefix = "Player " .. ordinal
