@@ -1427,7 +1427,7 @@ return {
             rules = { "Core Rules", 88 },
             huntTrack = { "M", "H", "M", "H", "H", "O", "M", "H", "M", "H", "H" },
             position = "(11.5, 8.5)",
-            rotation = { x = 0, y = 90, z = 0 },
+            rotation = { x = 0, y = 270, z = 0 },
             playerPositions = { "(22, 7)", "(22, 8)", "(22, 9)", "(22, 10)" },
             playerRotations = { { x = 0, y = -90, z = 0 }, { x = 0, y = -90, z = 0 }, { x = 0, y = -90, z = 0 }, { x = 0, y = -90, z = 0 } },
             fixedTerrain = {
