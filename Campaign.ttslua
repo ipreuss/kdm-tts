@@ -8,7 +8,6 @@ local Expansion = require("Kdm/Expansion")
 local Hunt = require("Kdm/Hunt")
 local log = require("Kdm/Log").ForModule("Campaign")
 local Location = require("Kdm/Location")
-local LocationData = require("Kdm/LocationData")
 local LocationGrid = require("Kdm/LocationGrid")
 local MessageBox = require("Kdm/MessageBox")
 local NamedObject = require("Kdm/NamedObject")
@@ -690,50 +689,8 @@ function Campaign.reconstructCharacterDeck(cardNames)
         location = location,
         rotation = rotation,
     })
-    Campaign.AdjustDeck(deck, cardNames, { "Character - Impairments", "Character - Legendary Abilities" })
+    Deck.AdjustDeck(deck, cardNames, { "Character - Impairments", "Character - Legendary Abilities" })
     return deck
-end
-
-function Campaign.AdjustDeck(deck, cardNames, archives)
-    log:Debugf("adjusting deck %s / %s", type(deck), deck.type)
-    local objects = deck.getObjects()
-    local tempDeckLocation = Location.Get("Temp Deck")
-    tempDeckLocation:BoxClean({ tags = { "Card", "Deck" } })
-    for i = #objects, 1, -1 do
-        --log:Debugf("checking %s", objects[i].name)
-        if not cardNames[objects[i].name] then
-            --log:Debugf("removing %s", objects[i].name)
-            deck.takeObject({
-                index = objects[i].index,
-                location = tempDeckLocation,
-                smooth = false,
-                callback_function = function(obj)
-                    obj.destroy()
-                end
-            })
-        end
-    end
-
-    local rotation = { x = 0, y = 180, z = 180 }
-    local function addCardsFromArchive(archiveName)
-        log:Debugf("adding cards from %s", archiveName)
-        local tempDeck = Archive.Take({
-            name = archiveName,
-            type = deck.getGMNotes(),
-            location = tempDeckLocation,
-            rotation = rotation,
-        })
-        local objects = tempDeck.getObjects()
-        for i = #objects, 1, -1 do
-            if cardNames[objects[i].name] then
-                deck.putObject(tempDeck.takeObject({index = objects[i].index, position = deck.getPosition()}))
-            end
-        end
-        Deck.Destroy(tempDeck)
-    end
-    for _, archive in ipairs(archives) do
-        addCardsFromArchive(archive)
-    end
 end
     
 

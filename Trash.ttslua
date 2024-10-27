@@ -4,11 +4,11 @@ local log = require("Kdm/Log").ForModule("Trash")
 
 local Trash = {}
 
-function Trash.IsInTrash(bookmarkName)
-    log:Debugf("Checking if bookmark '%s' is in trash", bookmarkName)
+function Trash.IsInTrash(name, type)
+    log:Debugf("Checking if %s '%s' is in trash", type, name)
     for _, object in ipairs(Trash.getObjects()) do
-        if object.name == bookmarkName and object.gm_notes == "Bookmarks" then
-            log:Debugf("Bookmark '%s' is in trash", bookmarkName)
+        if object.name == name and object.gm_notes == type then
+            log:Debugf("%s '%s' is in trash", type, name)
             return true
         end
     end

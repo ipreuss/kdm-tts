@@ -93,7 +93,58 @@ function Deck.Destroy(deck)
     end
 end
 
+function Deck.Remove(deck, selector) 
+    log:Debugf("removing from deck %s", deck.getName())
+    local objects = deck.getObjects()
+    local tempDeckLocation = Location.Get("Temp Deck")
+    tempDeckLocation:BoxClean({ tags = { "Card", "Deck" } })
+    for i = #objects, 1, -1 do
+        log:Debugf("checking %s", objects[i].name)
+        if selector(objects[i].name) then
+            log:Debugf("removing %s", objects[i].name)
+            deck.takeObject({
+                index = objects[i].index,
+                location = tempDeckLocation,
+                smooth = false,
+                callback_function = function(obj)
+                    obj.destroy()
+                end
+            })
+        end
+    end
+end
+
+function Deck.Adjust(deck, cardNames, archives)
+    log:Debugf("adjusting deck %s / %s", type(deck), deck.type)
+    Deck.Remove(deck, function(name)
+        return not cardNames[name]
+    end)
+    local tempDeckLocation = Location.Get("Temp Deck")
+    local rotation = { x = 0, y = 180, z = 180 }
+    local function addCardsFromArchive(archiveName)
+        log:Debugf("adding cards from %s", archiveName)
+        local tempDeck = Archive.Take({
+            name = archiveName,
+            type = deck.getGMNotes(),
+            location = tempDeckLocation,
+            rotation = rotation,
+        })
+        local objects = tempDeck.getObjects()
+        for i = #objects, 1, -1 do
+            if cardNames[objects[i].name] then
+                deck.putObject(tempDeck.takeObject({index = objects[i].index, position = deck.getPosition()}))
+            end
+        end
+        Deck.Destroy(tempDeck)
+    end
+    for _, archive in ipairs(archives) do
+        addCardsFromArchive(archive)
+    end
+end
+
 return {
     Init = Deck.Init,
     Destroy = Deck.Destroy,
+    Adjust = Deck.Adjust,
+    Remove = Deck.Remove,
 }
