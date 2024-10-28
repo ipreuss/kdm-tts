@@ -632,6 +632,7 @@ function Showdown.Setup(monsterOrName, levelOrName)
         type = "Monster Figurine",
         location = showdownSetup.position or monster.position,
         rotation = showdownSetup.rotation or monster.rotation,
+        height = 5,
     })
 
     -- stats
