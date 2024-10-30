@@ -1091,7 +1091,7 @@ return {
                 },
                 ["Glossary (White Box)"] = {
                     keywords = { "banshee", "dura", "barbed", "bloodeater", "campaign", "limit", "cleavage", "cleave", "death", "token", "demolish", "insulated", "load", "melting", "novel", "Proficiency", "novice",
-                        "olthawartta", "refined", "reroll", "token", "scimitar", "sealed", "unfurled" },
+                        "olthawartta", "refined", "reroll", "rush", "token", "scimitar", "sealed", "unfurled" },
                     state = 6,
                 },
                 
