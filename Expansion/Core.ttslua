@@ -1111,7 +1111,32 @@ return {
                 ["Designs & Dandelions"] = {
                     keywords = { "Designs", "Dandelions" },
                     state = 3,
-                }
+                },
+                ["GCE Glossary A-G"] = {
+                    keywords = { "Advance", "Advanced", "Play", "Anemic", "Arrogance", "Astute", "Psyche", "Ballad", "Blindside", "Body", "count", "catalyze", "character", "card", "cheer", "captain",
+                        "clobber", "closed", "meridians", "clothed", "satiated", "coagulated", "collective", "cognition", "rewards", "compelled", "compulsive", "reaction", "counter", "deck", "critical", "wound",
+                        "current", "cutthroat", "dangerous", "observation", "dark", "calling", "dead", "again", "death", "geometry", "deathmetal", "count", "token", "dilettante", "directional", "knockback",
+                        "disarm", "discourse", "savant", "disembodied", "disposition", "distracted", "cat", "dominated", "dreaded", "pack", "dream", "keeper's", "legacy", "elevated", "emotion", "enchanted", "reflection",
+                        "encounter", "energy", "card", "engorged", "cure", "epiphany", "expertise", "feinting", "shot", "fist", "pump", "fixated", "flesh", "flipper", "feet", "foresight",
+                        "fortune", "sight", "founder's", "eye", "frailty", "full", "ensemble", "gambler's", "die", "game", "master", "ghost", "godspeed"},
+                    state = 4,
+                },
+                ["GCE Glossary G-S"] = {
+                    keywords = { "grace", "power", "splendor", "valor", "grounded", "guardless", "guilty", "half", "kill", "harmony", "hated", "ones", "hemostasis", "heroic", "hit", "song", "honed", "hushed", 
+                        "ignore", "hit", "immortal", "spin", "impact", "force", "impeccable", "important", "indomitable", "ressource", "inevitable", "inferiority", "complex", "instrument", "force", "joyless",
+                        "jugular", "incision", "juice", "hunter", "keen", "kinetic", "discharge", "knowledge", "lapsed", "pathways", "levinblood", "limbic", "stimulation", "locked", "lumi", "manipulate", 
+                        "mark", "cyclops", "knight", "majestic", "invitation", "meal", "mentor", "mindlock", "murderer", "neurosis", "node", "specific", "resource", "north", "star", "observation", "opportunity", "deck", 
+                        "outrider", "overtone", "pattern", "perfect", "persistence", "philosophy", "phototaxis", "ponder", "precision", "prevail", "privileged", "pursue", "radiant", "presence", "ravenous",
+                        "razor", "sharp", "refined", "repeat", "reroll", "token", "reroller", "restless", "saw", "scout", "death", "discovery", "seed", "selfish", "selfless"},
+                    state = 5,
+                },
+                ["GCE Glossary S-Z"] = {
+                    keywords = { "servant", "fate", "shadow", "caesar", "share", "silent", "rebellion", "song", "sleepless", "slipped", "plate", "songheart", "spark", "aspiration", "joy", "spectral", "stomach",
+                    "spoiled", "stinging", "edge", "stone", "crusher", "face", "engraver", "subconcious", "surpass", "sword", "craft", "synchronic", "attack", "systemic", "pressure", "tenet", "terrified",
+                    "theory", "toned", "toothpicker", "torment", "true", "ghost", "step", "peace", "unburdened", "unforeseen", "strike", "unrestrained", "vasodilated", "venom", "token", "veteran", "vibration",
+                    "damage", "vocal", "force", "winged", "escape", "woebegone", "wrecked", "wrist"},
+                    state = 6,
+                },
             },
         },
         {
