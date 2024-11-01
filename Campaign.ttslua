@@ -689,7 +689,7 @@ function Campaign.reconstructCharacterDeck(cardNames)
         location = location,
         rotation = rotation,
     })
-    Deck.AdjustDeck(deck, cardNames, { "Character - Impairments", "Character - Legendary Abilities" })
+    Deck.Adjust(deck, cardNames, { "Character - Impairments", "Character - Legendary Abilities" })
     return deck
 end
     
@@ -713,7 +713,7 @@ function Campaign.SetupSettlementEventsDeck(cardNames)
     if not cardNames then
         return
     end
-    Campaign.AdjustDeck(Campaign.settlementEventsDeck, cardNames, { "Future Settlement Events" })
+    Deck.Adjust(Campaign.settlementEventsDeck, cardNames, { "Future Settlement Events" })
 end
 
 function Campaign.Import(data)
