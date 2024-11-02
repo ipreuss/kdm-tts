@@ -2,6 +2,7 @@ local Archive = require("Kdm/Archive")
 local Location = require("Kdm/Location")
 local log = require("Kdm/Log").ForModule("Deck")
 local NamedObject = require("Kdm/NamedObject")
+local Trash = require("Kdm/Trash")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
 
@@ -114,17 +115,28 @@ function Deck.Remove(deck, selector)
     end
 end
 
+function Deck.AdjustToTrash(deck, cardnames, archives, type)
+    log:Debugf("adjusting deck to Trash")
+    Deck.Remove(deck, function(name) return Trash.IsInTrash(name, type) end)
+    Deck.addCardsFromArchives(deck, cardnames, archives)
+    
+end
+
 function Deck.Adjust(deck, cardNames, archives)
-    log:Debugf("adjusting deck %s / %s", type(deck), deck.type)
+    log:Debugf("adjusting deck")
     Deck.Remove(deck, function(name)
         return not cardNames[name]
     end)
+    Deck.addCardsFromArchives(deck, cardNames, archives)
+end
+
+function Deck.addCardsFromArchives(deck, cardNames, archives)
     local tempDeckLocation = Location.Get("Temp Deck")
     local rotation = { x = 0, y = 180, z = 180 }
-    local function addCardsFromArchive(archiveName)
-        log:Debugf("adding cards from %s", archiveName)
+    for _, archive in ipairs(archives) do
+        log:Debugf("adding cards from %s", archive)
         local tempDeck = Archive.Take({
-            name = archiveName,
+            name = archive,
             type = deck.getGMNotes(),
             location = tempDeckLocation,
             rotation = rotation,
@@ -137,14 +149,6 @@ function Deck.Adjust(deck, cardNames, archives)
         end
         Deck.Destroy(tempDeck)
     end
-    for _, archive in ipairs(archives) do
-        addCardsFromArchive(archive)
-    end
 end
 
-return {
-    Init = Deck.Init,
-    Destroy = Deck.Destroy,
-    Adjust = Deck.Adjust,
-    Remove = Deck.Remove,
-}
+return Deck

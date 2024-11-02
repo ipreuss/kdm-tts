@@ -713,7 +713,7 @@ function Campaign.SetupSettlementEventsDeck(cardNames)
     if not cardNames then
         return
     end
-    Deck.Adjust(Campaign.settlementEventsDeck, cardNames, { "Future Settlement Events" })
+    Deck.AdjustToTrash(Campaign.settlementEventsDeck, cardNames, { "Future Settlement Events" }, "Settlement Events")
 end
 
 function Campaign.Import(data)
@@ -778,10 +778,12 @@ function Campaign.Import(data)
     Trash.Import(data.trash)
 
     Campaign.SetupSurvivalTokens(data.timeline.survivalActions)
-    Wait.frames( function () Campaign.SetupReferences(data.campaign.references) end, 20 ) -- must wait for bookmarks to enter trash can
+    Wait.frames(function()
+        Campaign.SetupReferences(data.campaign.references)
+        Campaign.SetupSettlementEventsDeck(data.settlementEventsDeck)
+    end, 20 ) -- must wait for items to enter trash can
     Campaign.SetupMisc(data.campaign.misc)
     Campaign.SetupCharacterDeck(data.characterDeck);
-    Campaign.SetupSettlementEventsDeck(data.settlementEventsDeck)
 
     Archive.Take({ name = "Allister", type = "Player Figurine", location = "Player 1 Marker" })
     Archive.Take({ name = "Ezra", type = "Player Figurine", location = "Player 2 Marker" })
