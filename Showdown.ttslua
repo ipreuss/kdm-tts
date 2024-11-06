@@ -371,7 +371,7 @@ function Showdown.Setup(monsterOrName, levelOrName)
         if not location then
             return log:Errorf("Not enough trait/mood slots for starting card %s from deck %s; please place this card manually", card, deck)
         end
-        return deck:Take({ name = card, type = "AI", location = location })
+        return deck:Take({ name = card, type = "AI", position = Location.Get(location):Position() })
     end
 
     -- starting cards
@@ -394,7 +394,7 @@ function Showdown.Setup(monsterOrName, levelOrName)
         -- special case life to the wound stack
     end
     if showdownSetup.life then
-        miscAiDeck:Take({ name = "Life", type = "AI", location = "Wound Stack" })
+        miscAiDeck:Take({ name = "Life", type = "AI", position = Location.Get("Wound Stack"):Position() })
         local counter = Archive.Take({ name = "Counter", type = "Counter", location = "Wound Stack", rotation = { x = 0, y = 0, z = 0 } })
         counter.setValue(showdownSetup.life)
     end
@@ -402,14 +402,14 @@ function Showdown.Setup(monsterOrName, levelOrName)
     if showdownSetup.survivorStatus then
         for i = 1, 4 do
             log:Debugf("Spawning survivor %d status %s", i, showdownSetup.survivorStatus[i])
-            specialAiDeck:Take({ name = showdownSetup.survivorStatus[i], type = "AI", location = "Player "..i.." Status" })
+            specialAiDeck:Take({ name = showdownSetup.survivorStatus[i], type = "AI", position = Location.Get("Player "..i.." Status"):Position() })
         end
     end
 
     if showdownSetup.survivorStatus2 then
         for i = 1, 4 do
             log:Debugf("Spawning survivor %d status %s", i, showdownSetup.survivorStatus2[i])
-            specialAiDeck:Take({ name = showdownSetup.survivorStatus2[i], type = "AI", location = "Player "..i.." Status" })
+            specialAiDeck:Take({ name = showdownSetup.survivorStatus2[i], type = "AI", position = Location.Get("Player "..i.." Status"):Position() })
         end
     end
 
@@ -529,7 +529,7 @@ function Showdown.Setup(monsterOrName, levelOrName)
     local SpawnTerrainTile = function(terrainTile, location, rotation)
         if not terrainTileObjects[terrainTile] then
             log:Debugf("Spawning new terrain tile %s to %s", terrainTile, location)
-            terrainTileObjects[terrainTile] = terrainTilesBag:Take({ name = terrainTile, type = "Terrain Tiles", location = location, rotation = rotation })
+            terrainTileObjects[terrainTile] = terrainTilesBag:Take({ name = terrainTile, type = "Terrain Tiles", position = Location.Get(location):Position(), rotation = rotation })
         else
             log:Debugf("Cloning terrain tile %s to %s", terrainTile, location)
             local clonePosition = Location.Get(location):Center()
@@ -542,7 +542,7 @@ function Showdown.Setup(monsterOrName, levelOrName)
     end
     local SpawnTerrain = function(terrain, locations, rotations)
         local terrainLocation, miscLocation = NextTerrainLocation()
-        local terrainCard = terrainDeck:Take({ name = terrain, type = "Terrain", location = terrainLocation })
+        local terrainCard = terrainDeck:Take({ name = terrain, type = "Terrain", position = Location.Get(terrainLocation):Position() })
         if not terrainCard then
             return log:Errorf("Couldn't find terrain '%s'", terrain)
         end

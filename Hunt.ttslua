@@ -111,6 +111,14 @@ function Hunt.Init()
     end })
 end
 
+function Hunt.Import(data)
+    Location.Get("Random Hunt Events"):BoxClean({ types = { "Hunt Events" } })
+    Archive.Take({ name = "Random Hunt Events", type = "Hunt Events", location = "Random Hunt Events", rotation = { x = 0, y = 180, z = 180 } })
+end
+
+function Hunt.Export()
+
+end
 ---------------------------------------------------------------------------------------------------
 
 function Hunt.CleanInternal()
@@ -204,16 +212,15 @@ function Hunt.Setup(monsterOrName, levelOrName)
     end
 
     for i, c in ipairs(monster.huntTrack) do
-        if c == 'H' then
-            huntEventsDeck:Take({ location = "Hunt Track "..i, rotation = { x = 0, y = 180, z = 180 } })
-        elseif c == 'M' then
-            monsterHuntEventsDeck:Take({ location = "Hunt Track "..i, rotation = { x = 0, y = 180, z = 180 } })
+        local huntTrackLocation = "Hunt Track " .. i
+        if c == 'H' or c == 'M' then
+            local deck = (c == 'H') and huntEventsDeck or monsterHuntEventsDeck
+            deck:Take({ position = Location.Get(huntTrackLocation):Position(), rotation = { x = 0, y = 180, z = 180 } })
         elseif c == 'O' then
             -- Overwhelming Darkness, no card
-        elseif c == 'F' then
-            Archive.Take({ name = "The Forest Gate", type = "Special Hunt Events", location = "Hunt Track "..i })
-        elseif c == 'L' then
-            Archive.Take({ name = "Underground Labyrinth", type = "Special Hunt Events", location = "Hunt Track "..i })
+        elseif c == 'F' or c == 'L' then
+            local names = { F = "The Forest Gate", L = "Underground Labyrinth" }
+            Archive.Take({ name = names[c], type = "Special Hunt Events", location = huntTrackLocation })
         else
             assert(Check.Fail("Unrecognized setup element %s at position %d in hunt setup %s %s", c, i, monster.name, level.name))
         end
@@ -310,4 +317,6 @@ return {
     HideUi = Hunt.HideUi,
     IsUiOpen = Hunt.IsUiOpen,
     Clean = Hunt.Clean,
+    Import = Hunt.Import,
+    Export = Hunt.Export,
 }

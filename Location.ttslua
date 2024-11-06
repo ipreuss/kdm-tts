@@ -1,5 +1,6 @@
 local Check = require("Kdm/Util/Check")
 local Console = require("Kdm/Console")
+local Container = require("Kdm/Util/Container")
 local EventManager = require("Kdm/Util/EventManager")
 local Expansion = require("Kdm/Expansion")
 local LocationData = require("Kdm/LocationData")
@@ -303,6 +304,12 @@ function Location:Center()
     return { x = c.x, y = c.y, z = c.z }
 end
 
+function Location:Position(height)
+    log:Debugf("getting position for %s", self)
+    local c = self:Center()
+    c.y = c.y + (height or 2)
+    return c
+end
 ---------------------------------------------------------------------------------------------------
 
 function Location:Size()
@@ -453,10 +460,86 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+function Location.Scan(location, types)
+    log:Debugf("Scanning %s for %s", location, Util.TabStr(types))
+
+    local objects = Location.Get(location):AllObjects()
+    if #objects > 1 then
+        log:Errorf("Found multiple objects at %s: please make sure there's only one object in each card slot.", location)
+        Util.HighlightAll(objects)
+        return nil, false
+    elseif #objects == 0 then
+        return nil, true
+    end
+
+    local object = objects[1]
+    if object.tag == "Card" then
+        if not Util.Find(types, object.getGMNotes()) then
+            log:Errorf(
+                "Found %s '%s' at '%s'. Export only records %s at this slot, so please move this card to it's correct location.",
+                object.getGMNotes(), object.getName(), location, Util.TabStr(types))
+            Util.Highlight(object)
+            return nil, false
+        end
+        log:Debugf("Recording %s '%s' at '%s'", object.getGMNotes(), object.getName(), location)
+        return
+            {
+                tag = "Card",
+                name = object.getName(),
+                type = object.getGMNotes(),
+                location = location,
+                faceDown = Util
+                    .IsFaceDown(object) or nil
+            }, true
+    elseif object.tag == "Deck" then
+        local deck = {
+            tag = "Deck",
+            name = object.getName(),
+            type = object.getGMNotes(),
+            location = location,
+            faceDown =
+                Util.IsFaceDown(object) or nil,
+            cards = {}
+        }
+        for _, card in ipairs(Container(object):Objects()) do
+            if not Util.Find(types, card.gm_notes) then
+                log:Errorf(
+                    "Found %s '%s' in deck at '%s'. Export only records %s at this slot, so please move this card to it's correct location.",
+                    card.gm_notes, card.name, location, Util.TabStr(types))
+                Util.Highlight(object)
+                return {}, false
+            end
+
+            log:Debugf("Recording %s '%s' at '%s'", card.gm_notes, card.name, location)
+            table.insert(deck.cards, { name = card.name, type = card.gm_notes })
+        end
+        return deck, true
+    end
+
+    log:Errorf(
+        "Found %s '%s' at '%s'. Export only records cards and decks (not other objects). Please move this object out of the way.",
+        object.tag, object.getName(), location)
+    Util.Highlight(object)
+    return nil, false
+end
+
+function Location.ExportDeck(location, type)
+    log:Debugf("Exporting deck %s", type)
+    local deck = Location.Scan(location, { type })
+    assert(deck, "Deck %s not found at %s", type, location)
+    local cards = deck.cards
+    local cardNames = {}
+    for _, card in ipairs(cards) do
+        cardNames[card.name] = true
+    end
+    return cardNames
+end
+
 return {
     Is = Location.Is,
     Init = Location.Init,
     Get = Location.Get,
     LocationsAtPosition = Location.LocationsAtPosition,
     ObjectLocations = Location.ObjectLocations,
+    Scan = Location.Scan,
 }

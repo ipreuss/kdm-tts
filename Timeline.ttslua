@@ -845,7 +845,7 @@ Timeline.eventHandlersByType = {
             deck = Archive.Take({ name = "Settlement Events", type = "Settlement Events", location = settlementEventsLocation, rotation = { x = 0, y = 180, z = 180 } })
             Util.Highlight(deck)
         end
-        local card = Container(deck):Take({ name = event.name, type = "Settlement Events", location = Location.Get("Drawn Settlement Events") })
+        local card = Container(deck):Take({ name = event.name, type = "Settlement Events", position = Location.Get("Drawn Settlement Events"):Position() })
         if not card then
             log:Broadcastf("Couldn't find the '%s' card in the Settlement Events Deck", event.name)
             Util.Highlight(deck)

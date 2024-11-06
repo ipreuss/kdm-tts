@@ -800,7 +800,7 @@ function Player:UnpackSurvivorBox(survivorBox)
             log:Debugf("unpacking Figurine: %s", Util.TabStr(entry))
             survivorBoxContainer:Take({
                 guid = entry.guid,
-                location = location,
+                position = Location.Get(location):Position(),
                 spawnFunc = function(figurineObj)
                     log:Debugf("unpacked Figurine: %s", Util.TabStr(figurineObj))
                     self:LinkFigurine(figurineObj)
@@ -811,7 +811,7 @@ function Player:UnpackSurvivorBox(survivorBox)
             log:Debugf("Unpacking bingo card %s to self bingo card", entry.guid)
             survivorBoxContainer:Take({
                 guid = entry.guid,
-                location = playerPrefix.." Bingo",
+                position = Location.Get(playerPrefix.." Bingo"):Position(),
                 spawnFunc = function(bingoObj)
                     local waitId = nil
                     waitId = Wait.time(function()
@@ -826,7 +826,7 @@ function Player:UnpackSurvivorBox(survivorBox)
             log:Debugf("Unpacking portrait %s to self portrait", entry.guid)
             survivorBoxContainer:Take({
                 guid = entry.guid,
-                location = playerPrefix.." Portrait",
+                position = Location.Get(playerPrefix.." Portrait"):Position(),
                 spawnFunc = function(portraitObj)
                     self:LinkPortrait(portraitObj)
                     portraitObj.setLock(true)
@@ -877,7 +877,7 @@ function Player:UnpackSurvivorBox(survivorBox)
         log:Debugf("Taking %s (%s) to %s", entry.name, entry.guid, location)
         survivorBoxContainer:Take({
             guid     = entry.guid,
-            location = location,
+            position = Location.Get(location):Position(),
             height   = height,
         })
         height = height + 0.5

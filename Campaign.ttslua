@@ -35,7 +35,7 @@ end
 
 function Campaign.HasInnovated(innovation)
     for i = 1, Campaign.MAX_INNOVATIONS do
-        local card = Campaign.Scan("Innovation " .. i, { "Innovations" })
+        local card = Location.Scan("Innovation " .. i, { "Innovations" })
         if card and card.name:sub(1, #innovation) == innovation then
             return true
         end
@@ -315,7 +315,7 @@ function Campaign.ExportToOrb()
 
     local objectsByLocation = {}
     for location, types in pairs(scanTypesByLocation) do
-        local object, success = Campaign.Scan(location, types)
+        local object, success = Location.Scan(location, types)
         if not success then
             return
         end
@@ -329,11 +329,12 @@ function Campaign.ExportToOrb()
         unlockedMode = Campaign.unlockedMode,
         objectsByLocation = objectsByLocation,
         departingSurvivors = departingSurvivors,
-        characterDeck = Campaign.ExportDeck("Character Deck", "Character"),
-        settlementEventsDeck = Campaign.ExportDeck("Settlement Events", "Settlement Events"),
+        characterDeck = Location.ExportDeck("Character Deck", "Character"),
+        settlementEventsDeck = Location.ExportDeck("Settlement Events", "Settlement Events"),
         timeline = Timeline.Export(),
         survivor = Survivor.Export(),
         trash = Trash.Export(),
+        hunt = Hunt.Export(),
     }
 
     local campaignOrb = spawnObject({
@@ -352,82 +353,6 @@ function Campaign.ExportToOrb()
     log:Printf("3. Load the latest version of the mod ('Games' button on the top bar).")
     log:Printf("4. Paste (right click anywhere -> Paste) the orb and drop it onto the same spot in the new version.")
     log:Printf("5. Click the 'Import Campaign' button.")
-end
-
-function Campaign.ExportDeck(location, type)
-    log:Debugf("Exporting deck %s", type)
-    local deck = Campaign.Scan(location, { type })
-    assert(deck, "Deck %s not found at %s", type, location)
-    local cards = deck.cards
-    local cardNames = {}
-    for _, card in ipairs(cards) do
-        cardNames[card.name] = true
-    end
-    return cardNames
-end
----------------------------------------------------------------------------------------------------
-
-function Campaign.Scan(location, types)
-    log:Debugf("Scanning %s for %s", location, Util.TabStr(types))
-
-    local objects = Location.Get(location):AllObjects()
-    if #objects > 1 then
-        log:Errorf("Found multiple objects at %s: please make sure there's only one object in each card slot.", location)
-        Util.HighlightAll(objects)
-        return nil, false
-    elseif #objects == 0 then
-        return nil, true
-    end
-
-    local object = objects[1]
-    if object.tag == "Card" then
-        if not Util.Find(types, object.getGMNotes()) then
-            log:Errorf(
-                "Found %s '%s' at '%s'. Export only records %s at this slot, so please move this card to it's correct location.",
-                object.getGMNotes(), object.getName(), location, Util.TabStr(types))
-            Util.Highlight(object)
-            return nil, false
-        end
-        log:Debugf("Recording %s '%s' at '%s'", object.getGMNotes(), object.getName(), location)
-        return
-            {
-                tag = "Card",
-                name = object.getName(),
-                type = object.getGMNotes(),
-                location = location,
-                faceDown = Util
-                    .IsFaceDown(object) or nil
-            }, true
-    elseif object.tag == "Deck" then
-        local deck = {
-            tag = "Deck",
-            name = object.getName(),
-            type = object.getGMNotes(),
-            location = location,
-            faceDown =
-                Util.IsFaceDown(object) or nil,
-            cards = {}
-        }
-        for _, card in ipairs(Container(object):Objects()) do
-            if not Util.Find(types, card.gm_notes) then
-                log:Errorf(
-                    "Found %s '%s' in deck at '%s'. Export only records %s at this slot, so please move this card to it's correct location.",
-                    card.gm_notes, card.name, location, Util.TabStr(types))
-                Util.Highlight(object)
-                return {}, false
-            end
-
-            log:Debugf("Recording %s '%s' at '%s'", card.gm_notes, card.name, location)
-            table.insert(deck.cards, { name = card.name, type = card.gm_notes })
-        end
-        return deck, true
-    end
-
-    log:Errorf(
-        "Found %s '%s' at '%s'. Export only records cards and decks (not other objects). Please move this object out of the way.",
-        object.tag, object.getName(), location)
-    Util.Highlight(object)
-    return nil, false
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -753,7 +678,10 @@ function Campaign.Import(data)
     Campaign.SetupDeckFromExpansionComponents("Terrain", data, { shuffle = true })
     local settlementEventsDeck = Campaign.SetupDeckFromExpansionComponents("Settlement Events", data, { shuffle = true })
     assert(settlementEventsDeck, "settlementEventsDeck is nil")
-    settlementEventsDeck:Take({ name = "First Day", type = "Settlement Events", location = "Drawn Settlement Events" })
+    log:Debugf("Taking first day")
+    settlementEventsDeck:Take({ name = "First Day", type = "Settlement Events", position = Location.Get(
+    "Drawn Settlement Events"):Position() })
+    log:Debugf("First Day added to settlement events deck")
     Campaign.settlementEventsDeck = settlementEventsDeck:Object()
     Campaign.SetupDeckFromExpansionComponents("Rare Gear", data, { type = "Gear" })
     Campaign.SetupDeckFromExpansionComponents("Seed Pattern Gear", data, { type = "Gear" })
@@ -794,6 +722,7 @@ function Campaign.Import(data)
 
     Survivor.Import(data.survivor)
     Timeline.Import(data.timeline)
+    Hunt.Import(data.hunt)
   
 
     local departingSurvivors = data.departingSurvivors or { 1, 2, 3, 4 }

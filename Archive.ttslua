@@ -51,6 +51,7 @@ Archive.data = {
     { "Character", "Character", "Character Archive"},
     { "Bookmarks", "Bookmarks", "Bookmarks Archive"},
     { "Counter", "Counter", "Counter Archive"},
+    { "Random Hunt Events", "Hunt Events", "Random Hunt Events Archive" },
  
 }
 
@@ -301,7 +302,7 @@ function Archive.CreateDeckFromSources(params)
 
     local objects = {}
     for i, source in ipairs(sources) do
-        local takeParams = { name = source.name, type = source.type, location = location, height = (i - 1) * 0.5, rotation = rotation }
+        local takeParams = { name = source.name, type = source.type, position = location:Position((i - 1) * 0.5), rotation = rotation }
         local object = nil
         if source.source == "Archive" then
             log:Debugf("Taking %s/%s from archive", source.name, source.type)
