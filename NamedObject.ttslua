@@ -105,6 +105,7 @@ NamedObject.data = {
     ["0b8684"] = { name = "Counter Archive" },
 
     ["1a177c"] = { name = "Random Hunt Events Archive"},
+    ["e07d0d"] = { name = "Evolving Hunt Events Archive"},
 
 }
 

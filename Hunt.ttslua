@@ -112,8 +112,10 @@ function Hunt.Init()
 end
 
 function Hunt.Import(data)
-    Location.Get("Random Hunt Events"):BoxClean({ types = { "Hunt Events" } })
-    Archive.Take({ name = "Random Hunt Events", type = "Hunt Events", location = "Random Hunt Events", rotation = { x = 0, y = 180, z = 180 } })
+    for _, deck in ipairs({"Random Hunt Events", "Evolving Hunt Events"}) do
+        Location.Get(deck):BoxClean({ types = { "Hunt Events" } })
+        Archive.Take({ name = deck, type = "Hunt Events", location = deck, rotation = { x = 0, y = 180, z = 180 } })
+    end
 end
 
 function Hunt.Export()

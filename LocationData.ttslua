@@ -519,6 +519,11 @@ local locationData = {
         size = ElementSizes.CARD,
         board = "Hunt Board",
     },
+    ["Evolving Hunt Events"] = {
+        center = { x = 7.273605, y = 0.860623, z = 17,60521 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
 
 
     -----------------------------------------------------------------------------

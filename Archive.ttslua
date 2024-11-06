@@ -52,6 +52,7 @@ Archive.data = {
     { "Bookmarks", "Bookmarks", "Bookmarks Archive"},
     { "Counter", "Counter", "Counter Archive"},
     { "Random Hunt Events", "Hunt Events", "Random Hunt Events Archive" },
+    { "Evolving Hunt Events", "Hunt Events", "Evolving Hunt Events Archive"},
  
 }
 
