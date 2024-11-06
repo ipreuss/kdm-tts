@@ -96,7 +96,7 @@ NamedObject.data = {
 
     ["b07b40"] = { name = "Overlay", noninteractible = true },
 
-    ["18a13f"] = { name = "Allister Archive" },
+    ["7f855c"] = { name = "Allister Archive" },
     ["29ac3a"] = { name = "Ezra Archive" },
     ["453144"] = { name = "Lucy Archive" },
     ["d3ef99"] = { name = "Zachary Archive" },
