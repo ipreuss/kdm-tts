@@ -1542,10 +1542,8 @@ return {
                         removeHitLocations = { "Wailing Slide", "Flogging Tongue", "Bottomless Pit", "Deformed Rampage" },
                         ignoreMissingRemovedHitLocations = true,
                         miscHitLocations = { "Overpower (Screaming Antelope)" },
-                        movement = 8,
-                        toughness = 10,
-                        speed = 1,
-                        damage = 1,
+                        movement = 6,
+                        toughness = 8,
                     },
                 },
                 {
