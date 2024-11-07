@@ -112,14 +112,27 @@ function Hunt.Init()
 end
 
 function Hunt.Import(data)
-    for _, deck in ipairs({"Random Hunt Events", "Evolving Hunt Events"}) do
-        Location.Get(deck):BoxClean({ types = { "Hunt Events" } })
-        Archive.Take({ name = deck, type = "Hunt Events", location = deck, rotation = { x = 0, y = 180, z = 180 } })
+    log:Debugf("Importing hunt data")
+    Location.Get("Random Hunt Events"):BoxClean({ types = { "Hunt Events" } })
+    log:Debugf("cleaned Random Hunt Events")
+    local randomHuntEventsDeck = Archive.Take({ name = "Random Hunt Events", type = "Hunt Events", location = "Random Hunt Events", rotation = { x = 0, y = 180, z = 180 } })
+    log:Debugf("took Random Hunt Events")
+    Location.Get("Evolving Hunt Events"):BoxClean({ types = { "Hunt Events" } })
+    log:Debugf("cleaned Evolving Hunt Events")
+    Archive.Take({ name = "Evolving Hunt Events", type = "Hunt Events", location = "Evolving Hunt Events", rotation = { x = 0, y = 180, z = 180 } })
+    log:Debugf("took Evolving Hunt Events")
+    if data and data.randomHuntEvents then
+        Deck.AdjustToTrash(randomHuntEventsDeck, data.randomHuntEvents, { "Evolving Hunt Events" }, "Hunt Events")
     end
+    log:Debugf("shuffle randomHuntEventsDeck")
+    randomHuntEventsDeck:Shuffle()
+    log:Debugf("shuffle randomHuntEventsDeck done")
 end
 
 function Hunt.Export()
-
+    return {
+        randomHuntEvents = Location.ExportDeck("Random Hunt Events", "Hunt Events"),
+    }
 end
 ---------------------------------------------------------------------------------------------------
 
@@ -233,6 +246,7 @@ function Hunt.Setup(monsterOrName, levelOrName)
         type = "Monster Figurine",
         location = "Hunt Track "..level.monsterHuntPosition,
         rotation = { x = 0, y = -90, z = 0 },
+        height = 5,
     })
     monsterFigurine.use_snap_points = true
 

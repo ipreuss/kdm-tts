@@ -1532,7 +1532,7 @@ return {
                 },
                 {
                     name = "Silver Antelope",
-                    level = 2,
+                    level = 1,
                     monsterHuntPosition = 8,
                     showdown = {
                         rules = { "White Box Rules", 4 },

@@ -542,4 +542,5 @@ return {
     LocationsAtPosition = Location.LocationsAtPosition,
     ObjectLocations = Location.ObjectLocations,
     Scan = Location.Scan,
+    ExportDeck = Location.ExportDeck,
 }

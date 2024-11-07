@@ -122,7 +122,7 @@ function Archive.CreateAllGearDeck()
     CheckForDuplicates(deck)
 
     log:Debugf("putting all gear deck in archive")
-    local archive = NamedObject.Get("Gear Archive")
+    local archive = NamedObject.Get("All Gear Archive")
     archive.reset()
     archive.putObject(deck)
     Archive.Clean()
@@ -191,8 +191,19 @@ function CalculatePosition(params)
 end
 
 function Archive.TakeObject(params) 
-    params.archive = params.type .. " Archive"
-    return Archive.Take(params)
+    local archiveParams = {}
+    for key, value in pairs(params) do
+        archiveParams[key] = value
+    end
+    archiveParams.lenient = true
+    for key, _ in pairs(Archive.keysByType[params.type] or {}) do
+        archiveParams.archive = Archive.index[key]
+        local object = Archive.Take(archiveParams)
+        if object then
+            return object
+        end
+    end
+    assert(Check(false, "Couldn't find object of type %s", params.type))
 end
 
 function Archive.Take(params)
@@ -267,6 +278,10 @@ function Archive.Take(params)
         smooth = params.smooth,
     })
     if not object then
+        if params.lenient then
+            log:Debugf("Couldn't find %s (%s) in archive %s, returning nil", name, type, archive)
+            return nil
+        end
         Util.Highlight(NamedObject.Get(archive))
         assert(Check(false,
             "Couldn't find %s (%s) in archive %s.",

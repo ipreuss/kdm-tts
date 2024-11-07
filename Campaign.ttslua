@@ -556,6 +556,7 @@ function Campaign.spawnCharacterDeck()
         smooth = false,
     })
     Campaign.characterDeck.shuffle()
+    log:Debugf("Character deck spawned")
 end
 
 function Campaign.buildRandomCharacterDeck()
