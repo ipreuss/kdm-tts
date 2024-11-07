@@ -665,75 +665,83 @@ function Campaign.Import(data)
 
     Campaign.SetupArchiveOverrides(data.expansions)
 
-    Campaign.SetupDeckFromExpansionComponents("Abilities", data)
-    Campaign.SetupDeckFromExpansionComponents("Fighting Arts", data, { shuffle = true })
-    Campaign.SetupDeckFromExpansionComponents("Secret Fighting Arts", data)
-    Campaign.SetupDeckFromExpansionComponents("Disorders", data, { shuffle = true })
-    Campaign.SetupDeckFromExpansionComponents("Severe Injuries", data)
-    Campaign.SetupDeckFromExpansionComponents("Tactics", data, { shuffle = true })
-    Campaign.SetupDeckFromExpansionComponents("Weapon Proficiencies", data)
-    Campaign.SetupDeckFromExpansionComponents("Armor Sets", data)
-    Campaign.SetupDeckFromExpansionComponents("Vermin", data, { shuffle = true })
-    Campaign.SetupDeckFromExpansionComponents("Strange Resources", data)
-    Campaign.SetupDeckFromExpansionComponents("Basic Resources", data, { shuffle = true })
-    Campaign.SetupDeckFromExpansionComponents("Terrain", data, { shuffle = true })
-    local settlementEventsDeck = Campaign.SetupDeckFromExpansionComponents("Settlement Events", data, { shuffle = true })
-    assert(settlementEventsDeck, "settlementEventsDeck is nil")
-    log:Debugf("Taking first day")
-    settlementEventsDeck:Take({ name = "First Day", type = "Settlement Events", position = Location.Get(
-    "Drawn Settlement Events"):Position() })
-    log:Debugf("First Day added to settlement events deck")
-    Campaign.settlementEventsDeck = settlementEventsDeck:Object()
-    Campaign.SetupDeckFromExpansionComponents("Rare Gear", data, { type = "Gear" })
-    Campaign.SetupDeckFromExpansionComponents("Seed Pattern Gear", data, { type = "Gear" })
-    Campaign.SetupDeckFromExpansionComponents("Hunt Events", data)
-    Campaign.SetupDeckFromExpansionComponents("Seed Patterns", data, { type = "Seed Patterns" })
-    local context = {
-        cache = {},
-    }
-    context.innovationArchive = Campaign.SetupDeckFromExpansionComponents("Innovation Archive", data,
-        { component = "Innovations", type = "Innovations", noArchive = true })
-    context.settlementLocationDeck = Campaign.SetupDeckFromExpansionComponents("Settlement Locations", data,
-        { faceUp = true, noArchive = true })
-
-    Archive.Take({ name = "Starting Gear", type = "Gear", location = "Starting Gear", rotation = { x = 0, y = 180, z = 180 } })
-    Archive.Take({ name = "Promo Gear", type = "Gear", location = "Promo Gear", rotation = { x = 0, y = 180, z = 180 } })
-    Archive.CreateAllGearDeck()
-
-    for location, object in pairs(data.objectsByLocation) do
-        Campaign.SetupObject(location, object, context)
-    end
-
     Trash.Import(data.trash)
+    Wait.frames(function() -- must wait for items to enter trash can
+        Campaign.SetupDeckFromExpansionComponents("Abilities", data)
+        Campaign.SetupDeckFromExpansionComponents("Fighting Arts", data, { shuffle = true })
+        Campaign.SetupDeckFromExpansionComponents("Secret Fighting Arts", data)
+        Campaign.SetupDeckFromExpansionComponents("Disorders", data, { shuffle = true })
+        Campaign.SetupDeckFromExpansionComponents("Severe Injuries", data)
+        Campaign.SetupDeckFromExpansionComponents("Tactics", data, { shuffle = true })
+        Campaign.SetupDeckFromExpansionComponents("Weapon Proficiencies", data)
+        Campaign.SetupDeckFromExpansionComponents("Armor Sets", data)
+        Campaign.SetupDeckFromExpansionComponents("Vermin", data, { shuffle = true })
+        Campaign.SetupDeckFromExpansionComponents("Strange Resources", data)
+        Campaign.SetupDeckFromExpansionComponents("Basic Resources", data, { shuffle = true })
+        Campaign.SetupDeckFromExpansionComponents("Terrain", data, { shuffle = true })
+        local settlementEventsDeck = Campaign.SetupDeckFromExpansionComponents("Settlement Events", data,
+            { shuffle = true })
+        assert(settlementEventsDeck, "settlementEventsDeck is nil")
+        log:Debugf("Taking first day")
+        settlementEventsDeck:Take({
+            name = "First Day",
+            type = "Settlement Events",
+            position = Location.Get(
+                "Drawn Settlement Events"):Position()
+        })
+        log:Debugf("First Day added to settlement events deck")
+        Campaign.settlementEventsDeck = settlementEventsDeck:Object()
+        Campaign.SetupDeckFromExpansionComponents("Rare Gear", data, { type = "Gear" })
+        Campaign.SetupDeckFromExpansionComponents("Seed Pattern Gear", data, { type = "Gear" })
+        Campaign.SetupDeckFromExpansionComponents("Hunt Events", data)
+        Campaign.SetupDeckFromExpansionComponents("Seed Patterns", data, { type = "Seed Patterns" })
+        local context = {
+            cache = {},
+        }
+        context.innovationArchive = Campaign.SetupDeckFromExpansionComponents("Innovation Archive", data,
+            { component = "Innovations", type = "Innovations", noArchive = true })
+        context.settlementLocationDeck = Campaign.SetupDeckFromExpansionComponents("Settlement Locations", data,
+            { faceUp = true, noArchive = true })
 
-    Campaign.SetupSurvivalTokens(data.timeline.survivalActions)
-    Wait.frames(function()
+        Archive.Take({ name = "Starting Gear", type = "Gear", location = "Starting Gear", rotation = { x = 0, y = 180, z = 180 } })
+        Archive.Take({ name = "Promo Gear", type = "Gear", location = "Promo Gear", rotation = { x = 0, y = 180, z = 180 } })
+        Archive.CreateAllGearDeck()
+
+        for location, object in pairs(data.objectsByLocation) do
+            Campaign.SetupObject(location, object, context)
+        end
+
+
+
+        Campaign.SetupSurvivalTokens(data.timeline.survivalActions)
         Campaign.SetupReferences(data.campaign.references)
         Campaign.SetupSettlementEventsDeck(data.settlementEventsDeck)
-    end, 20 ) -- must wait for items to enter trash can
-    Campaign.SetupMisc(data.campaign.misc)
-    Campaign.SetupCharacterDeck(data.characterDeck);
+        Campaign.SetupMisc(data.campaign.misc)
+        Campaign.SetupCharacterDeck(data.characterDeck);
 
-    Archive.Take({ name = "Allister", type = "Player Figurine", location = "Player 1 Marker" })
-    Archive.Take({ name = "Ezra", type = "Player Figurine", location = "Player 2 Marker" })
-    Archive.Take({ name = "Lucy", type = "Player Figurine", location = "Player 3 Marker" })
-    Archive.Take({ name = "Zachary", type = "Player Figurine", location = "Player 4 Marker" })
+        Archive.Take({ name = "Allister", type = "Player Figurine", location = "Player 1 Marker" })
+        Archive.Take({ name = "Ezra", type = "Player Figurine", location = "Player 2 Marker" })
+        Archive.Take({ name = "Lucy", type = "Player Figurine", location = "Player 3 Marker" })
+        Archive.Take({ name = "Zachary", type = "Player Figurine", location = "Player 4 Marker" })
 
-    Archive.Clean()
+        Archive.Clean()
 
-    Survivor.Import(data.survivor)
-    Timeline.Import(data.timeline)
-    Hunt.Import(data.hunt)
-  
+        Survivor.Import(data.survivor)
+        Timeline.Import(data.timeline)
+        Hunt.Import(data.hunt)
 
-    local departingSurvivors = data.departingSurvivors or { 1, 2, 3, 4 }
-    for playerId, survivorId in pairs(departingSurvivors) do
-        Wait.frames(function() Survivor.SpawnSurvivorBox(Survivor.Survivors()[survivorId], "Player "..playerId.." Survivor Sheet") end, 50)
-    end
 
-    Campaign.campaign = data.campaign
+        local departingSurvivors = data.departingSurvivors or { 1, 2, 3, 4 }
+        for playerId, survivorId in pairs(departingSurvivors) do
+            Wait.frames(
+            function() Survivor.SpawnSurvivorBox(Survivor.Survivors()[survivorId], "Player " ..
+                playerId .. " Survivor Sheet") end, 50)
+        end
 
-    log:Broadcastf("Campaign setup complete.")
+        Campaign.campaign = data.campaign
+
+        log:Broadcastf("Campaign setup complete.")
+    end, 20)
 end
 
 ---------------------------------------------------------------------------------------------------
