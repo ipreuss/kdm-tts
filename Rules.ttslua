@@ -112,10 +112,10 @@ end
 function Rules.createRuleBookButton(name, labelText, col, onClick)
     local topLeft = { x =  x1 + ((col - 1) * dx), y = y1 }
     local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
-    local panel = Rules.navUi:Panel({ id = name .. "panel", topLeft = topLeft, bottomRight = bottomRight, color = Ui.DARK_BROWN })
-    local button = Rules.navUi:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
+    Rules.navUi:Panel({ id = name .. "panel", topLeft = topLeft, bottomRight = bottomRight, color = Ui.DARK_BROWN })
+    Rules.navUi:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
     labelText = string.gsub(labelText, " ", "\n", 1)
-    local text = Rules.navUi:Text({
+    Rules.navUi:Text({
         id = name .. "label",
         topLeft = topLeft,
         bottomRight = bottomRight,
