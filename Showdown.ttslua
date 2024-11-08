@@ -585,7 +585,7 @@ function Showdown.Setup(monsterOrName, levelOrName)
     -- special terrain
     for _, terrainSetup in ipairs(showdownSetup.specialTerrain or monster.specialTerrain or {}) do
         if terrainSetup.terrain then
-            local terrainLocation, miscLocation = NextTerrainLocation()
+            local terrainLocation, _ = NextTerrainLocation()
             log:Debugf("Spawning special terrain card %s at %s", terrainSetup.terrain, terrainLocation)
             Archive.Take({ name = terrainSetup.terrain, type = "Terrain", location = terrainLocation })
         end
@@ -594,7 +594,7 @@ function Showdown.Setup(monsterOrName, levelOrName)
             Archive.Take({ name = terrainSetup.terrainTile, type = "Terrain Tiles", location = terrainSetup.position, rotation = terrainSetup.rotation })
         end
         if terrainSetup.miscObject then
-            -- needs fixing
+            local _, miscLocation = NextTerrainLocation()
             log:Debugf("Spawning special misc object %s/%s at %s", terrainSetup.miscObject.name, terrainSetup.miscObject.type, miscLocation)
             Archive.Take({ name = terrainSetup.miscObject.name, type = terrainSetup.miscObject.type, location = miscLocation })
         end
