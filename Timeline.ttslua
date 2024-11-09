@@ -261,76 +261,17 @@ function Timeline.InitUi()
         Timeline.arrivalBonusesInput:SetText(value)
     end })
 
-    local coords = {
-        { x = 1301, y = -112 },
-        { x = 1301, y = -142 },
-        { x = 1301, y = -173 },
-        { x = 1435, y = -112 },
-        { x = 1435, y = -142 },
-        { x = 1435, y = -172 },
-    }
-    for i, survivalAction in ipairs(Timeline.survivalActions) do
-        local x, y = coords[i].x, coords[i].y
-        survivalAction.checkBox = panel:CheckBox({ id = "SurvivalAction"..i, x = x, y = y, width = 20, height = 20, uncheckedImage = "CheckBoxEmpty", active = false, onClick = function()
-            local name = Timeline.survivalActions[i].name
-            if name then
-                local checked = not Timeline.survivalActions[i].checked
-                log:Debugf("%s survival action %s", checked and "Checking" or "Unchecking", name)
-                Timeline.survivalActions[i].checked = checked
-                Timeline.survivalActions[i].checkBox:Check(checked)
-            end
-        end })
-        survivalAction.text = panel:Text({ id = "SurvivalAction"..i, x = x+26, y = y + 5, width = 100, height = 30, fontSize = 12, fontStyle = "Bold", text = "Embolden", active = false })
-    end
+    -- Extrahierte Funktion zur Erstellung von Survival Actions
+    Timeline.CreateSurvivalActions(panel)
 
-    local checkBoxY = -277
-    local textY = checkBoxY + 2
-    local buttonY = -272
-    local dy = -40
-    for i, milestone in ipairs(Timeline.milestones) do
-        milestone.checkBox = panel:CheckBox( { id = "Milestone"..i, x = 1301, y = checkBoxY, width = 20, height = 20, uncheckedImage = "CheckBoxEmpty", active = false, onClick = function()
-            local milestone = Timeline.milestones[i]
-            assert(milestone)
-            local value = not milestone.checked
-            log:Debugf("%s milestone %s", value and "Checking" or "Unchecking", milestone.name)
-            milestone.checked = value
-            Timeline.milestones[i].checkBox:Check(value)
-        end })
-        milestone.text = panel:Text({ id = "Milestone"..i, x = 1326, y = textY, width = 86, height = 25, fontSize = 12, fontStyle = "Bold", active = false })
-        milestone.eventButton = panel:Button({ id = "MilestoneEvent"..i, x = 1417, y = buttonY, width = 145, height = 30, image = "MilestoneButton", active = false, onClick = function(mouseButton, player)
-            local milestone = Timeline.milestones[i]
-            assert(milestone)
-            Timeline.HideUiForAll()
-            local rulebook, state = Rules.RulebookAndState(milestone.event)
-            Rules.SpawnRules(rulebook, state)
-            --Location.Get("Rules Board"):LookAt({ pitch = 90 })
-        end })
-        milestone.eventText = panel:Text({ id = "MilestoneEvent"..i, x = 1447, y = buttonY, width = 108, height = 30, fontSize = 12, color = Ui.LIGHT_BROWN, active = false })
+    -- Extrahierte Funktion zur Erstellung von Milestones
+    Timeline.CreateMilestones(panel)
 
-        checkBoxY = checkBoxY + dy
-        textY = textY + dy
-        buttonY = buttonY + dy
-    end
+    -- Extrahierte Funktion zur Erstellung von Quarries
+    Timeline.CreateQuarries(panel)
 
-    local dy = 27
-    for i, quarry in ipairs(Timeline.quarries) do
-        local x = (i <= 5) and 1301 or 1437
-        local row = (i - 1) % 5
-        quarry.input = panel:Input({ id = "Quarries"..i, x = x, y = -499 - (row * dy), width = 125, height = 25, fontSize = 12, fontStyle = "Bold", onValueChanged = function(value)
-            log:Debugf("Setting quarries[%d] to %s", i, value)
-            Timeline.quarries[i].quarry = value
-            Timeline.quarries[i].input:SetText(value)
-        end })
-    end
-
-    local dy = 27
-    for i, note in ipairs(Timeline.notes) do
-        note.input = panel:Input({ id = "Notes"..i, x = 1301, y = -719 - (i - 1) * dy, width = 261, height = 25, onValueChanged = function(value)
-            log:Debugf("Setting settlement notes %d to %s", i, value)
-            Timeline.notes[i].note = value
-            Timeline.notes[i].input:SetText(value)
-        end })
-    end
+    -- Extrahierte Funktion zur Erstellung von Notes
+    Timeline.CreateNotes(panel)
 
     -----------------------------------------------------------------------------------------------
 
@@ -338,31 +279,8 @@ function Timeline.InitUi()
     local timelinePanel = scroll:Panel({ id = "Timeline", x = 0, y = 0, width = 1242, height = 1563 })
     timelinePanel:Image({ id = "Timeline", image = "Timeline30", x = 0, y = 0, width = 1242, height = 1563 })
 
-    local x1 = 78
-    local width = 172
-    local dx = 192
-    local dy = -52
-    local offset = 30
-
-    for i, year in ipairs(Timeline.years) do
-        local y = -15 + ((i - 1) * dy)
-        year.checkBox = timelinePanel:CheckBox({ id = "Year"..i, x = 10, y = y, width = 20, height = 20, uncheckedImage = "CheckBoxEmpty", onClick = function()
-            local checked = not Timeline.years[i].checked
-            log:Debugf("%s year %d", checked and "Checking" or "Unchecking", i)
-            Timeline.years[i].checked = checked
-            Timeline.years[i].checkBox:Check(checked)
-        end })
-
-        local y = -10 + ((i - 1) * dy)
-        for j, event in ipairs(year.events) do
-            local id = "Year"..i.."Event"..j
-            local x = x1 + ((j - 1) * dx)
-            year.events[j].button = timelinePanel:Button({ id = id, x = x, y = y, width = width, height = 30, onClick = function(mouseButton)
-                Timeline.ShowTimelineEventPopup(i, j)
-            end })
-            year.events[j].text = timelinePanel:Text({ id = id, x = x + offset, y = y, width = width - offset, height = 30, fontSize = 12, horizontalOverflow = "Wrap", color = Ui.LIGHT_BROWN })
-        end
-    end
+    -- Extrahierte Funktion zur Erstellung der Jahre und Events
+    Timeline.CreateYearsAndEvents(timelinePanel)
 
     -----------------------------------------------------------------------------------------------
 
@@ -413,6 +331,118 @@ function Timeline.InitUi()
         Timeline.HideTimelineEventPopup()
     end })
     popupPanel:Button({ id = "Cancel", x = 211, y = -450, width = 100, height = 30, onClick = Timeline.HideTimelineEventPopup })
+end
+
+-- Neue Hilfsfunktion zur Erstellung von Survival Actions
+function Timeline.CreateSurvivalActions(panel)
+    local coords = {
+        { x = 1301, y = -112 },
+        { x = 1301, y = -142 },
+        { x = 1301, y = -173 },
+        { x = 1435, y = -112 },
+        { x = 1435, y = -142 },
+        { x = 1435, y = -172 },
+    }
+    for i, survivalAction in ipairs(Timeline.survivalActions) do
+        local x, y = coords[i].x, coords[i].y
+        survivalAction.checkBox = panel:CheckBox({ id = "SurvivalAction"..i, x = x, y = y, width = 20, height = 20, uncheckedImage = "CheckBoxEmpty", active = false, onClick = function()
+            local name = Timeline.survivalActions[i].name
+            if name then
+                local checked = not Timeline.survivalActions[i].checked
+                log:Debugf("%s survival action %s", checked and "Checking" or "Unchecking", name)
+                Timeline.survivalActions[i].checked = checked
+                Timeline.survivalActions[i].checkBox:Check(checked)
+            end
+        end })
+        survivalAction.text = panel:Text({ id = "SurvivalAction"..i, x = x+26, y = y + 5, width = 100, height = 30, fontSize = 12, fontStyle = "Bold", text = "Embolden", active = false })
+    end
+end
+
+-- Neue Hilfsfunktion zur Erstellung von Milestones
+function Timeline.CreateMilestones(panel)
+    local checkBoxY = -277
+    local textY = checkBoxY + 2
+    local buttonY = -272
+    local dy = -40
+    for i, milestone in ipairs(Timeline.milestones) do
+        milestone.checkBox = panel:CheckBox( { id = "Milestone"..i, x = 1301, y = checkBoxY, width = 20, height = 20, uncheckedImage = "CheckBoxEmpty", active = false, onClick = function()
+            local milestone = Timeline.milestones[i]
+            assert(milestone)
+            local value = not milestone.checked
+            log:Debugf("%s milestone %s", value and "Checking" or "Unchecking", milestone.name)
+            milestone.checked = value
+            Timeline.milestones[i].checkBox:Check(value)
+        end })
+        milestone.text = panel:Text({ id = "Milestone"..i, x = 1326, y = textY, width = 86, height = 25, fontSize = 12, fontStyle = "Bold", active = false })
+        milestone.eventButton = panel:Button({ id = "MilestoneEvent"..i, x = 1417, y = buttonY, width = 145, height = 30, image = "MilestoneButton", active = false, onClick = function(mouseButton, player)
+            local milestone = Timeline.milestones[i]
+            assert(milestone)
+            Timeline.HideUiForAll()
+            local rulebook, state = Rules.RulebookAndState(milestone.event)
+            Rules.SpawnRules(rulebook, state)
+            --Location.Get("Rules Board"):LookAt({ pitch = 90 })
+        end })
+        milestone.eventText = panel:Text({ id = "MilestoneEvent"..i, x = 1447, y = buttonY, width = 108, height = 30, fontSize = 12, color = Ui.LIGHT_BROWN, active = false })
+
+        checkBoxY = checkBoxY + dy
+        textY = textY + dy
+        buttonY = buttonY + dy
+    end
+end
+
+-- Neue Hilfsfunktion zur Erstellung von Quarries
+function Timeline.CreateQuarries(panel)
+    local dy = 27
+    for i, quarry in ipairs(Timeline.quarries) do
+        local x = (i <= 5) and 1301 or 1437
+        local row = (i - 1) % 5
+        quarry.input = panel:Input({ id = "Quarries"..i, x = x, y = -499 - (row * dy), width = 125, height = 25, fontSize = 12, fontStyle = "Bold", onValueChanged = function(value)
+            log:Debugf("Setting quarries[%d] to %s", i, value)
+            Timeline.quarries[i].quarry = value
+            Timeline.quarries[i].input:SetText(value)
+        end })
+    end
+end
+
+-- Neue Hilfsfunktion zur Erstellung von Notes
+function Timeline.CreateNotes(panel)
+    local dy = 27
+    for i, note in ipairs(Timeline.notes) do
+        note.input = panel:Input({ id = "Notes"..i, x = 1301, y = -719 - (i - 1) * dy, width = 261, height = 25, onValueChanged = function(value)
+            log:Debugf("Setting settlement notes %d to %s", i, value)
+            Timeline.notes[i].note = value
+            Timeline.notes[i].input:SetText(value)
+        end })
+    end
+end
+
+-- Neue Hilfsfunktion zur Erstellung von Jahren und deren Events
+function Timeline.CreateYearsAndEvents(timelinePanel)
+    local x1 = 78
+    local width = 172
+    local dx = 192
+    local dy = -52
+    local offset = 30
+
+    for i, year in ipairs(Timeline.years) do
+        local y = -15 + ((i - 1) * dy)
+        year.checkBox = timelinePanel:CheckBox({ id = "Year"..i, x = 10, y = y, width = 20, height = 20, uncheckedImage = "CheckBoxEmpty", onClick = function()
+            local checked = not Timeline.years[i].checked
+            log:Debugf("%s year %d", checked and "Checking" or "Unchecking", i)
+            Timeline.years[i].checked = checked
+            Timeline.years[i].checkBox:Check(checked)
+        end })
+
+        local y = -10 + ((i - 1) * dy)
+        for j, event in ipairs(year.events) do
+            local id = "Year"..i.."Event"..j
+            local x = x1 + ((j - 1) * dx)
+            event.button = timelinePanel:Button({ id = id, x = x, y = y, width = width, height = 30, onClick = function(mouseButton)
+                Timeline.ShowTimelineEventPopup(i, j)
+            end })
+            event.text = timelinePanel:Text({ id = id, x = x + offset, y = y, width = width - offset, height = 30, fontSize = 12, horizontalOverflow = "Wrap", color = Ui.LIGHT_BROWN })
+        end
+    end
 end
 
 ---------------------------------------------------------------------------------------------------
