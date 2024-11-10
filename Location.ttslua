@@ -473,7 +473,7 @@ function Location.Scan(location, types)
     end
 
     local object = objects[1]
-    if object.tag == "Card" then
+    if Util.ArrayContains({ "Card", "Tile" }, object.tag) then
         if not Util.Find(types, object.getGMNotes()) then
             log:Errorf(
                 "Found %s '%s' at '%s'. Export only records %s at this slot, so please move this card to it's correct location.",
@@ -484,7 +484,7 @@ function Location.Scan(location, types)
         log:Debugf("Recording %s '%s' at '%s'", object.getGMNotes(), object.getName(), location)
         return
             {
-                tag = "Card",
+                tag = object.tag,
                 name = object.getName(),
                 type = object.getGMNotes(),
                 location = location,

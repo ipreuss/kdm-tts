@@ -40,6 +40,14 @@ Archive.data = {
     { "Surge Tokens", "Survival Tokens", "Surge Tokens" },
     { "Overcharge Tokens", "Survival Tokens", "Overcharge Tokens" },
     { "Endure Tokens", "Survival Tokens", "Endure Tokens" },
+    { "Movement Tokens", "Tokens", "Movement Tokens" },
+    { "Damage Tokens", "Tokens", "Damage Tokens"},
+    { "Toughness Tokens", "Tokens", "Toughness Tokens"},
+    { "Speed Tokens", "Tokens", "Speed Tokens"},
+    { "Accuracy Tokens", "Tokens", "Accuracy Tokens"},
+    { "Strength Tokens", "Tokens", "Strength Tokens"},
+    { "Evasion Tokens", "Tokens", "Evasion Tokens"},
+    { "Luck Tokens", "Tokens", "Luck Tokens"},
     { "Allister", "Player Figurine", "Allister Archive" },
     { "Ezra", "Player Figurine", "Ezra Archive" },
     { "Lucy", "Player Figurine", "Lucy Archive" },
@@ -203,7 +211,7 @@ function Archive.TakeObject(params)
             return object
         end
     end
-    assert(Check(false, "Couldn't find object of type %s", params.type))
+    assert(Check(false, "Couldn't find object %s/%s", params.name, params.type))
 end
 
 function Archive.Take(params)
@@ -246,7 +254,7 @@ function Archive.Take(params)
     log:Debugf("Taking item %s (%s) in archive %s to %s", name, type, archive, position)
 
     local container = Archive.containers[archive]
-    if container then
+    if container and not container:IsEmpty() then
         log:Debugf("Re-using already-spawned archive container %s for %s (%s)", container:Guid(), name, type)
 
     else
@@ -265,7 +273,7 @@ function Archive.Take(params)
 
         log:Debugf("Spawned archive container %s at (%f, %f) for %s (%s)", "", Archive.containerX, Archive.containerZ, name, type)
 
-        container:Lock(true)
+        --container:Lock(true)
         Archive.containers[archive] = container
     end
 

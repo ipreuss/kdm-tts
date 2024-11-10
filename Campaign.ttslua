@@ -290,6 +290,7 @@ function Campaign.ExportToOrb()
         ["Settlement Gear"] = { "Gear" },
         ["Settlement Resource"] = { "Basic Resources", "Monster Resources", "Strange Resources", "Vermin", "Seed Patterns" },
         ["Settlement Location"] = { "Settlement Locations" },
+        ["Player 1 Permanent Token"] = { "Tokens" },
 
     }
     log:Debugf("Scanning grids")
@@ -308,7 +309,7 @@ function Campaign.ExportToOrb()
         scanTypesByLocation[playerPrefix .. " Armor Set"] = { "Armor Sets" }
         scanTypesByLocation[playerPrefix .. " Fist & Tooth"] = { "Gear" }
         for i = 1, 9 do
-            scanTypesByLocation[playerPrefix .. " Gear " .. i] = { "Gear" }
+            scanTypesByLocation[playerPrefix .. " Gear " .. i] = { "Gear", "Tokens" }
         end
         departingSurvivors[ordinal] = player.survivorSheet and player.survivorSheet.survivor.id
     end
@@ -1012,7 +1013,7 @@ function Campaign.SetupObject(locationName, objectData, context)
     log:Debugf("Adding %s '%s' (%s) at %s", objectData.tag, objectData.name, objectData.type, locationName)
     local tag = objectData.tag
 
-    if tag == "Card" then
+    if tag == "Card" or tag == "Tile" then
         finalObject = Campaign.Spawn(objectData.name, objectData.type, position, context)
         if not finalObject then
             return log:Errorf("Couldn't find card '%s' (%s) for location %s", objectData.name, objectData.type,

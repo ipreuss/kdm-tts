@@ -47,6 +47,17 @@ NamedObject.data = {
     ["740242"] = { name = "Overcharge Tokens" },
     ["97f88b"] = { name = "Endure Tokens" },
 
+    ["0c6355"] = { name = "Movement Tokens" },
+    ["2e8bc3"] = { name = "Damage Tokens" },
+    ["0aaec3"] = { name = "Toughness Tokens" },
+    ["cb4144"] = { name = "Speed Tokens" },
+    ["33abb7"] = { name = "Accuracy Tokens" },
+    ["0e3e77"] = { name = "Strength Tokens" },
+    ["ee903a"] = { name = "Evasion Tokens" },
+    ["5ec1c7"] = { name = "Luck Tokens" },
+    
+    
+
     ["966a53"] = { name = "Seed Patterns Archive" },
 
     ["b72021"] = { name = "Character Archive - Abilities" },

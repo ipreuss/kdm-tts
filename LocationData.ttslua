@@ -794,7 +794,7 @@ for gridname, locationGrid in pairs(LocationGrid.GRIDS) do
                     z = tl.z + (row - 1) * dz,
                 },
                 size = locationGrid.size, 
-                board = "Settlement Board",
+                board = locationGrid.board,
             }
         end
     end

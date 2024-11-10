@@ -87,6 +87,9 @@ function ContainerClass:Lock(lock)
     self.object.setLock(lock)
 end
 
+function ContainerClass:IsEmpty()
+    return self.object == nil
+end
 ---------------------------------------------------------------------------------------------------
 
 function ContainerClass:Take(params)
@@ -112,8 +115,9 @@ function ContainerClass:Take(params)
 
     if not Container.TAGS[self.object.tag] then
         local lastObject = self.object
-        if name then
-            assert(Check(lastObject.getName() == name and lastObject.getGMNotes() == type, "Couldn't take %s/%s from self; last remaining object is %s/%s", name, type, lastObject.getName(), lastObject.getGMNotes()))
+        if name and (lastObject.getName() ~= name or lastObject.getGMNotes() ~= type) then
+            log:Debugf("Couldn't take %s/%s from self; last remaining object is %s/%s", name, type, lastObject.getName(), lastObject.getGMNotes())
+            return nil
         end
 
         lastObject.setPositionSmooth(position, false, true)
