@@ -291,7 +291,9 @@ function Campaign.ExportToOrb()
         ["Settlement Resource"] = { "Basic Resources", "Monster Resources", "Strange Resources", "Vermin", "Seed Patterns" },
         ["Settlement Location"] = { "Settlement Locations" },
         ["Player 1 Permanent Token"] = { "Tokens" },
-
+        ["Player 2 Permanent Token"] = { "Tokens" },
+        ["Player 3 Permanent Token"] = { "Tokens" },
+        ["Player 4 Permanent Token"] = { "Tokens" },
     }
     log:Debugf("Scanning grids")
     for gridName, cardTypes in pairs(grids) do

@@ -39,6 +39,12 @@ LocationGrid.GRIDS = {
         { x = -7.021307, y = 0.595168, z = 7.602671 }, ElementSizes.GEAR),
     ["Player 1 Permanent Token"] = LocationGrid:new(7, 2, { x = -0.122188 - tokenDx, y = 0.15, z = 0.762676 + tokenDz },
         { x = -0.878822 + tokenDx, y = 0.15, z = 0.976487 - tokenDz }, ElementSizes.TOKEN, "Player 1 Board"),
+    ["Player 2 Permanent Token"] = LocationGrid:new(7, 2, { x = -0.122188 - tokenDx, y = 0.15, z = 0.762676 + tokenDz },
+        { x = -0.878822 + tokenDx, y = 0.15, z = 0.976487 - tokenDz }, ElementSizes.TOKEN, "Player 2 Board"),
+    ["Player 3 Permanent Token"] = LocationGrid:new(7, 2, { x = -0.122188 - tokenDx, y = 0.15, z = 0.762676 + tokenDz },
+        { x = -0.878822 + tokenDx, y = 0.15, z = 0.976487 - tokenDz }, ElementSizes.TOKEN, "Player 3 Board"),
+    ["Player 4 Permanent Token"] = LocationGrid:new(7, 2, { x = -0.122188 - tokenDx, y = 0.15, z = 0.762676 + tokenDz },
+        { x = -0.878822 + tokenDx, y = 0.15, z = 0.976487 - tokenDz }, ElementSizes.TOKEN, "Player 4 Board"),
 }
 
 return LocationGrid
