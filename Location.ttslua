@@ -477,22 +477,23 @@ function Location.Scan(location, types)
                 Util.Highlight(object)
                 return nil, false
             end
-            log:Debugf("Recording %s '%s' at '%s'", object.getGMNotes(), object.getName(), location)
-            table.insert(collected, 
-                {
-                    tag = object.tag,
-                    name = object.getName(),
-                    type = object.getGMNotes(),
-                    --location = location,
-                    faceDown = Util
-                        .IsFaceDown(object) or nil
-                })
+            local objectCount = object.getQuantity() > 1 and object.getQuantity() or 1
+            log:Debugf("Recording %d x %s '%s' at '%s'", objectCount , object.getGMNotes(), object.getName(), location)
+            local thing = {
+                tag = object.tag,
+                name = object.getName(),
+                type = object.getGMNotes(),
+                faceDown = Util
+                    .IsFaceDown(object) or nil
+            }
+            for _ = 1, objectCount do
+                table.insert(collected, thing)
+            end
         elseif object.tag == "Deck" then
             local deck = {
                 tag = "Deck",
                 name = object.getName(),
                 type = object.getGMNotes(),
-                --location = location,
                 faceDown =
                     Util.IsFaceDown(object) or nil,
                 cards = {}
