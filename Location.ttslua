@@ -527,7 +527,7 @@ end
 function Location.ExportDeck(location, type)
     log:Debugf("Exporting deck %s", type)
     local objects = Location.Scan(location, { type })
-    local deck = objects and #objects > 0 and objects[1]
+    local deck = objects and #objects and objects[1]
     assert(deck, "Deck %s not found at %s", type, location)
     local cards = deck.cards
     local cardNames = {}
