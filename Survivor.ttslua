@@ -233,27 +233,48 @@ function Survivor.InitUi()
         Survivor.newSurvivorBonusesInput:SetText(value)
     end })
 
-    Survivor.newSurvivorButton = ui:Button({ id = "newSurvivor", topLeft = { x = 0.756925, y = -7.658921 }, bottomRight = { x = -0.617333,y = -7.045891 }, onClick = function()
-        local id = Survivor.nextSurvivorId
-        Survivor.nextSurvivorId = Survivor.nextSurvivorId + 1
-        local survivor = SurvivorClass.Create({ id = id })
-        local isMale = math.random(2) == 1
-        survivor[isMale and "SetMale" or "SetFemale"](survivor, true)
-        local character = nil
-        if Survivor.innovationsChecker("Character") then
-            local characterCard = Survivor.characterProvider()
-            survivor:SetCards({ characterCard })
-            character = characterCard.name
+    local dx = 0.19632257 * 0.6
+    local dy = 0.306515
+    Survivor.newSurvivorButton = ui:Button({
+        id = "newSurvivor",
+        topLeft = { x = 0.756925, y = -7.658921 },
+        bottomRight = { x = -0.617333 + dx, y = -7.045891 },
+        onClick = function()
+            local isMale = math.random(2) == 1
+            Survivor.newSurvivor(isMale)
         end
-        survivor:SetName(Names.getName(isMale, character))
-        survivor:SetSurvival(1)
-        table.insert(Survivor.survivors, survivor)
-        Survivor.survivorsById[survivor.id] = survivor
-
-        Survivor.UpdateLivingDeadCounts()
-        Survivor.UpdateSexCounts()
-        Survivor.SetPageAndRefresh(Survivor.MaxPage())
+    })
+    local maleTL, maleBR = { x = -0.617333 + dx,y = -7.658921 }, { x = -0.617333 - 2 * dx, y = -7.045891 - dy * 1.1 }
+    ui:Panel({ id = "malepanel", topLeft = maleTL, bottomRight = maleBR , color = Ui.DARK_BROWN })
+    ui:Button({ id = "MaleButton", topLeft = maleTL, bottomRight = maleBR, onClick = function()
+        Survivor.newSurvivor(true)
     end })
+    ui:Text({
+        id = "malelabel",
+        topLeft = maleTL,
+        bottomRight = maleBR,
+        text = "male",
+        fontSize = 100,
+        alignment =
+        "MiddleCenter",
+        color = Ui.LIGHT_BROWN
+    })
+
+    local femaleTL, femaleBR = { x = -0.617333 + dx, y = -7.045891 - dy * .9 }, { x = -0.617333 - 2 * dx, y = -7.045891 }
+    ui:Panel({ id = "femalepanel", topLeft = femaleTL, bottomRight = femaleBR , color = Ui.DARK_BROWN })
+    ui:Button({ id = "feMaleButton", topLeft = femaleTL, bottomRight = femaleBR, onClick = function()
+        Survivor.newSurvivor(false)
+    end })
+    ui:Text({
+        id = "femalelabel",
+        topLeft = femaleTL,
+        bottomRight = femaleBR,
+        text = "female",
+        fontSize = 100,
+        alignment =
+        "MiddleCenter",
+        color = Ui.LIGHT_BROWN
+    })
 
     Survivor.clearSkipNextHuntButton = ui:Button({ id = "clearSkipNextHunt", topLeft = { x = -0.897427, y = -7.661951 }, bottomRight = { x = -2.819457, y = -7.049488 }, onClick = Survivor.ClearSkipNextHunt })
 
@@ -315,6 +336,31 @@ function Survivor.InitUi()
     Survivor.ui:ApplyToObject()
 end
 
+function Survivor.newSurvivor(isMale)
+    log:Debugf("Creating new %s survivor", isMale and "male" or "female")
+    local id = Survivor.nextSurvivorId
+    Survivor.nextSurvivorId = Survivor.nextSurvivorId + 1
+    local survivor = SurvivorClass.Create({ id = id })
+
+    survivor[isMale and "SetMale" or "SetFemale"](survivor, true)
+    log:Debugf("optionally setting character")
+    local character = nil
+    if Survivor.innovationsChecker("Character") then
+        local characterCard = Survivor.characterProvider()
+        survivor:SetCards({ characterCard })
+        character = characterCard.name
+    end
+    log:Debugf("setting name")
+    survivor:SetName(Names.getName(isMale, character))
+    survivor:SetSurvival(1)
+    table.insert(Survivor.survivors, survivor)
+    Survivor.survivorsById[survivor.id] = survivor
+
+    Survivor.UpdateLivingDeadCounts()
+    Survivor.UpdateSexCounts()
+    Survivor.SetPageAndRefresh(Survivor.MaxPage())
+end
+ 
 function Survivor.SetCharacterProvider(characterProvider)
     Survivor.characterProvider = characterProvider
 end
