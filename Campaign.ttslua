@@ -35,8 +35,8 @@ end
 
 function Campaign.HasInnovated(innovation)
     for i = 1, Campaign.MAX_INNOVATIONS do
-        local card = Location.Scan("Innovation " .. i, { "Innovations" })
-        if card and card.name:sub(1, #innovation) == innovation then
+        local cards = Location.Scan("Innovation " .. i, { "Innovations" })
+        if cards and #cards and cards[1].name:sub(1, #innovation) == innovation then
             return true
         end
     end
