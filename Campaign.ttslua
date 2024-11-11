@@ -24,7 +24,7 @@ local Trash = require("Kdm/Trash")
 
 local Campaign = {}
 
-Campaign.EXPORT_VERSION = 4
+Campaign.EXPORT_VERSION = 5
 
 ---------------------------------------------------------------------------------------------------
 
@@ -879,6 +879,11 @@ function Campaign.ConvertToLatestVersion(data)
     end
     if (data.version <= 3) then
         data.departingSurvivors = {}
+    end
+    if (data.version <= 4) then
+        for key, object in pairs(data.objectsByLocation) do
+            data.objectsByLocation[key] = { object }
+        end
     end
     data.version = Campaign.EXPORT_VERSION
 
