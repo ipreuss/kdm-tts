@@ -295,7 +295,7 @@ function Campaign.ExportToOrb()
         ["Player 3 Permanent Token"] = { "Tokens" },
         ["Player 4 Permanent Token"] = { "Tokens" },
     }
-    log:Debugf("Scanning grids")
+    log:Debugf("prepare Scanning grids")
     for gridName, cardTypes in pairs(grids) do
         log:Debugf("Scanning grid %s", gridName)
         log:Debugf("Scanning grid %s", Util.TabStr(LocationGrid.GRIDS[gridName]))
@@ -304,7 +304,7 @@ function Campaign.ExportToOrb()
             scanTypesByLocation[gridName .. " " .. i] = cardTypes
         end
     end
-    log:Debugf("Scanning player cards")
+    log:Debugf("prepare Scanning player cards")
     local departingSurvivors = {}
     for ordinal, player in ipairs(Player.Players()) do
         local playerPrefix = "Player " .. ordinal
@@ -315,14 +315,16 @@ function Campaign.ExportToOrb()
         end
         departingSurvivors[ordinal] = player.survivorSheet and player.survivorSheet.survivor.id
     end
-
+    log:Debugf("starting scan")
     local objectsByLocation = {}
     for location, types in pairs(scanTypesByLocation) do
-        local object, success = Location.Scan(location, types)
+        log:Debugf("Scanning location %s", location)
+        local objects, success = Location.Scan(location, types)
         if not success then
             return
         end
-        objectsByLocation[location] = object
+        log:Debugf("Scanned %d objects from %s", objects and #objects or 0, location)
+        objectsByLocation[location] = objects
     end
 
     local data = {
@@ -710,8 +712,8 @@ function Campaign.Import(data)
         Archive.Take({ name = "Promo Gear", type = "Gear", location = "Promo Gear", rotation = { x = 0, y = 180, z = 180 } })
         Archive.CreateAllGearDeck()
 
-        for location, object in pairs(data.objectsByLocation) do
-            Campaign.SetupObject(location, object, context)
+        for location, objects in pairs(data.objectsByLocation) do
+            Campaign.SetupObjects(location, objects, context)
         end
 
 
@@ -1001,50 +1003,51 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-function Campaign.SetupObject(locationName, objectData, context)
+function Campaign.SetupObjects(locationName, objects, context)
     local location = Location.Get(locationName)
     if not location then
         return log:Errorf(
             "Object '%s' (%s) was recorded at unrecognized location '%s'; spawning in the middle of the showdown board.",
             locationName, type, location)
     end
+    for i, objectData in ipairs(objects) do
+        local finalObject = nil
+        local position = location:Center()
+        position.y = position.y + 2 * i
+        log:Debugf("Adding %s '%s' (%s) at %s", objectData.tag, objectData.name, objectData.type, locationName)
+        local tag = objectData.tag
 
-    local finalObject = nil
-    local position = location:Center()
-    position.y = position.y + 2
-    log:Debugf("Adding %s '%s' (%s) at %s", objectData.tag, objectData.name, objectData.type, locationName)
-    local tag = objectData.tag
-
-    if tag == "Card" or tag == "Tile" then
-        finalObject = Campaign.Spawn(objectData.name, objectData.type, position, context)
-        if not finalObject then
-            return log:Errorf("Couldn't find card '%s' (%s) for location %s", objectData.name, objectData.type,
-                locationName)
-        end
-    elseif tag == "Deck" then
-        local objects = {}
-        for _, card in ipairs(objectData.cards) do
-            log:Debugf("  Adding '%s' (%s)", card.name, card.type)
-            local object = Campaign.Spawn(card.name, card.type, position, context)
-            if not object then
-                return log:Errorf("  Couldn't find card '%s' (%s) for location %s", card.name, card.type, locationName)
+        if tag == "Card" or tag == "Tile" then
+            finalObject = Campaign.Spawn(objectData.name, objectData.type, position, context)
+            if not finalObject then
+                return log:Errorf("Couldn't find card '%s' (%s) for location %s", objectData.name, objectData.type,
+                    locationName)
             end
-            table.insert(objects, object)
-            position.y = position.y + 0.3
+        elseif tag == "Deck" then
+            local cards = {}
+            for _, card in ipairs(objectData.cards) do
+                log:Debugf("  Adding '%s' (%s)", card.name, card.type)
+                local object = Campaign.Spawn(card.name, card.type, position, context)
+                if not object then
+                    return log:Errorf("  Couldn't find card '%s' (%s) for location %s", card.name, card.type,
+                        locationName)
+                end
+                table.insert(cards, object)
+                position.y = position.y + 0.3
+            end
+            finalObject = group(cards)[1]
+            assert(Check(finalObject))
+            assert(Check(finalObject.tag == "Deck" or finalObject.tag == "Card"))
+            finalObject.setName(objectData.name)
+            finalObject.setGMNotes(objectData.type)
+        else
+            return log:Errof("Unrecognized object tag '%s' at location '%s'", tag, location)
         end
-        finalObject = group(objects)[1]
-        assert(Check(finalObject))
-        assert(Check(finalObject.tag == "Deck" or finalObject.tag == "Card"))
-        finalObject.setName(objectData.name)
-        finalObject.setGMNotes(objectData.type)
-    else
-        return log:Errof("Unrecognized object tag '%s' at location '%s'", tag, location)
-    end
-
-    if objectData.faceDown then
-        assert(finalObject)
-        --Wait.frames(function() finalObject.setRotation({ x = 0, y = 180, z = 180 }) end, 2)
-        finalObject.setRotation({ x = 0, y = 180, z = 180 })
+        log:Debugf("Object '%s' is %s", finalObject.getName(), objectData.faceDown and "facedown" or "faceup")
+        if objectData.faceDown then
+            assert(finalObject)
+            finalObject.setRotation({ x = 0, y = 180, z = 180 })
+        end
     end
 end
 

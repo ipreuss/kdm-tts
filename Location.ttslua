@@ -464,68 +464,69 @@ function Location.Scan(location, types)
     log:Debugf("Scanning %s for %s", location, Util.TabStr(types))
 
     local objects = Location.Get(location):AllObjects()
-    if #objects > 1 then
-        log:Errorf("Found multiple objects at %s: please make sure there's only one object in each card slot.", location)
-        Util.HighlightAll(objects)
-        return nil, false
-    elseif #objects == 0 then
+    if #objects == 0 then
         return nil, true
     end
+    local collected = {}
+    for _, object in ipairs(objects) do
+        if Util.ArrayContains({ "Card", "Tile" }, object.tag) then
+            if not Util.Find(types, object.getGMNotes()) then
+                log:Errorf(
+                    "Found %s '%s' at '%s'. Export only records %s at this slot, so please move this card to it's correct location.",
+                    object.getGMNotes(), object.getName(), location, Util.TabStr(types))
+                Util.Highlight(object)
+                return nil, false
+            end
+            log:Debugf("Recording %s '%s' at '%s'", object.getGMNotes(), object.getName(), location)
+            table.insert(collected, 
+                {
+                    tag = object.tag,
+                    name = object.getName(),
+                    type = object.getGMNotes(),
+                    --location = location,
+                    faceDown = Util
+                        .IsFaceDown(object) or nil
+                })
+        elseif object.tag == "Deck" then
+            local deck = {
+                tag = "Deck",
+                name = object.getName(),
+                type = object.getGMNotes(),
+                --location = location,
+                faceDown =
+                    Util.IsFaceDown(object) or nil,
+                cards = {}
+            }
+            for _, card in ipairs(Container(object):Objects()) do
+                if not Util.Find(types, card.gm_notes) then
+                    log:Errorf(
+                        "Found %s '%s' in deck at '%s'. Export only records %s at this slot, so please move this card to it's correct location.",
+                        card.gm_notes, card.name, location, Util.TabStr(types))
+                    Util.Highlight(object)
+                    return nil, false
+                end
 
-    local object = objects[1]
-    if Util.ArrayContains({ "Card", "Tile" }, object.tag) then
-        if not Util.Find(types, object.getGMNotes()) then
+                log:Debugf("Recording %s '%s' at '%s'", card.gm_notes, card.name, location)
+                table.insert(deck.cards, { name = card.name, type = card.gm_notes })
+            end
+            table.insert(collected, deck)
+            log:Debugf("finished recording deck %s", deck.name)
+        else
             log:Errorf(
-                "Found %s '%s' at '%s'. Export only records %s at this slot, so please move this card to it's correct location.",
-                object.getGMNotes(), object.getName(), location, Util.TabStr(types))
+                "Found %s '%s' at '%s'. Export only records cards, tokens, and decks (not other objects). Please move this object out of the way.",
+                object.tag, object.getName(), location)
             Util.Highlight(object)
             return nil, false
         end
-        log:Debugf("Recording %s '%s' at '%s'", object.getGMNotes(), object.getName(), location)
-        return
-            {
-                tag = object.tag,
-                name = object.getName(),
-                type = object.getGMNotes(),
-                location = location,
-                faceDown = Util
-                    .IsFaceDown(object) or nil
-            }, true
-    elseif object.tag == "Deck" then
-        local deck = {
-            tag = "Deck",
-            name = object.getName(),
-            type = object.getGMNotes(),
-            location = location,
-            faceDown =
-                Util.IsFaceDown(object) or nil,
-            cards = {}
-        }
-        for _, card in ipairs(Container(object):Objects()) do
-            if not Util.Find(types, card.gm_notes) then
-                log:Errorf(
-                    "Found %s '%s' in deck at '%s'. Export only records %s at this slot, so please move this card to it's correct location.",
-                    card.gm_notes, card.name, location, Util.TabStr(types))
-                Util.Highlight(object)
-                return {}, false
-            end
-
-            log:Debugf("Recording %s '%s' at '%s'", card.gm_notes, card.name, location)
-            table.insert(deck.cards, { name = card.name, type = card.gm_notes })
-        end
-        return deck, true
     end
-
-    log:Errorf(
-        "Found %s '%s' at '%s'. Export only records cards and decks (not other objects). Please move this object out of the way.",
-        object.tag, object.getName(), location)
-    Util.Highlight(object)
-    return nil, false
+    log:Debugf("Finished scanning %s", location)
+    return collected, true
 end
 
 function Location.ExportDeck(location, type)
     log:Debugf("Exporting deck %s", type)
-    local deck = Location.Scan(location, { type })
+    local objects = Location.Scan(location, { type })
+    local deck = objects and #objects > 0 and objects[1]
     assert(deck, "Deck %s not found at %s", type, location)
     local cards = deck.cards
     local cardNames = {}
