@@ -158,7 +158,7 @@ function Player.OnObjectCollisionEnter(object, collisionInfo)
     local permanentTokensLocation = Location.Get(playerPrefix.." Permanent Tokens")
     local gearLocation = Location.Get(playerPrefix.." Gear")
 
-    for _, location in ipairs(Location.ObjectLocations(object)) do
+    for _, location in ipairs(Location.ObjectLocations(object) or {}) do
         if location == temporaryTokensLocation or location == permanentTokensLocation then
             log:Debugf("Token [%s]%s found in %s, updating stats", object.getGUID(), object.getName(), location)
             player:UpdateStats()
