@@ -1018,11 +1018,14 @@ function Campaign.SetupObjects(locationName, objects, context)
     for i, objectData in ipairs(objects) do
         local finalObject = nil
         local position = location:Center()
-        position.y = position.y + 2 * i
+        position.y = position.y + 2
         log:Debugf("Adding %s '%s' (%s) at %s", objectData.tag, objectData.name, objectData.type, locationName)
         local tag = objectData.tag
 
         if tag == "Card" or tag == "Tile" then
+            if tag == "Tile" then
+                position.y = position.y + i * 2
+            end
             finalObject = Campaign.Spawn(objectData.name, objectData.type, position, context)
             if not finalObject then
                 return log:Errorf("Couldn't find card '%s' (%s) for location %s", objectData.name, objectData.type,
