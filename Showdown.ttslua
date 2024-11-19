@@ -157,10 +157,6 @@ function Showdown.InitOverlay()
         right = right - cellWidth / 2,
         top = top + cellHeight / 2,
         bottom = bottom - cellHeight / 2,
-        -- left = 6.0777295,
-        -- top = -2.86238375,
-        -- right = -5.73516825,
-        -- bottom = 5.527284,
         cols = 22,
         rows = 16,
     })
@@ -168,7 +164,6 @@ function Showdown.InitOverlay()
     Showdown.overlay = Overlay.Create({
         object = overlayObject,
         grid = Showdown.grid,
-        --height = 10.75,
         height = 11.750850,
     })
 end
@@ -724,7 +719,7 @@ end
 
 -------------------------------------------------------------------------------------------------
 
-function Showdown.OnObjectPickUp(_, object)
+function Showdown.OnObjectPickUp(playercolor, object)
     local type = object.getGMNotes()
     if type == "Player Figurine" then
         log:Debugf("Player figurine [%s] %s picked up", object.getGUID(), object.getName())
