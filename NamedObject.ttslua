@@ -8,6 +8,8 @@ local log = require("Kdm/Log").ForModule("NamedObject")
 
 local NamedObject = {}
 
+NamedObject.DEFAULT_CAST_HEIGHT = 20
+
 NamedObject.data = {
     ["0b2ed0"] = { name = "Table", noninteractible = true },
     ["bafa19"] = { name = "Top Table", noninteractible = true },
@@ -166,6 +168,27 @@ function NamedObject.Init()
         NamedObject.SetInteractable(interactible)
         Console.Printf("Set critical game objects to %s", interactible and "interactible" or "non-interactible")
     end, "Toggles whether critical game objects are interactible")
+    Console.AddCommand("showObject", function(args) 
+        if #args ~= 2 then
+            Console.Printf("Usage: showObject <object name>")
+            return
+        end
+        local object = NamedObject.Get(args[2])
+        if not object then
+            Console.Printf("Unknown object '%s'", args[2])
+            return
+        end
+        local position = object.getPosition()
+        position.y = position.y + NamedObject.DEFAULT_CAST_HEIGHT
+        local size = object.getBounds().size
+        Physics.cast({
+            origin = position,
+            direction = {0, -1, 0},
+            size = size,
+            type = 3,
+            debug = true,
+        })
+    end, "Shows the object with the given name")  
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -189,6 +212,7 @@ function NamedObject.Set(name, guid)
     end
 
     NamedObject.objectsByName[name] = object
+    NamedObject.objectsByName[name:lower()] = object
     NamedObject.guids[guid] = true
 end
 
@@ -205,4 +229,5 @@ end
 return {
     Init = NamedObject.Init,
     Get = NamedObject.Get,
+    DEFAULT_CAST_HEIGHT = NamedObject.DEFAULT_CAST_HEIGHT,
 }

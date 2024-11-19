@@ -15,7 +15,7 @@ Location.__index = Location
 function Location.Is(x) return getmetatable(x) == Location end
 
 Location.CELL_SIZE = 1
-Location.DEFAULT_CAST_HEIGHT = 20
+Location.DEFAULT_CAST_HEIGHT = NamedObject.DEFAULT_CAST_HEIGHT
 Location.CLEAN_IGNORE_TAGS = { "Board", "Table" }
 
 ---------------------------------------------------------------------------------------------------
