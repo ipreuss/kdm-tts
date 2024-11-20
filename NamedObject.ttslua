@@ -212,7 +212,7 @@ function NamedObject.Set(name, guid)
     end
 
     NamedObject.objectsByName[name] = object
-    NamedObject.objectsByName[name:lower()] = object
+    NamedObject.objectsByName[name:lower()] = object -- for case-insensitive lookup in console commands
     NamedObject.guids[guid] = true
 end
 
