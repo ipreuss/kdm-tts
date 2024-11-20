@@ -142,10 +142,6 @@ function Showdown.InitOverlay()
     local top = -15.859633
     local right = 76.526237
     local bottom  = -51.838516
-    -- local left = 6.363780
-    -- local top = -3.159184
-    -- local right = -6.015290
-    -- local bottom = 5.837886
     local width = right - left
     local cellWidth = width / 21
     local height = bottom - top
