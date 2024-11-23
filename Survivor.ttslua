@@ -825,7 +825,7 @@ end
 function Survivor.UpdateSexCounts()
     local numMales = 0
     local numFemales = 0
-    for _, survivor in ipairs(Survivor.survivors) do
+    for _, survivor in ipairs(Survivor.SurvivorsMatchingCurrentFilters()) do
         if survivor:Male() then
             numMales = numMales + 1
         end
@@ -896,6 +896,7 @@ function Survivor.SetPageAndRefresh(page)
     end
 
     Survivor.pageText:SetText("Page "..page.."/"..maxPage)
+    Survivor.UpdateSexCounts()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1206,11 +1207,8 @@ function Survivor.UpdateCounterStat(thing, stat, value)
     if counter then
         thing[stat.."Counter"]:SetText(value)
         if stat == "insanity" then
-            if value >= 3 then
-                thing[stat.."Counter"]:SetColor(Ui.LIGHT_RED)
-            else
-                thing[stat.."Counter"]:SetColor(Ui.LIGHT_BROWN)
-            end
+            local color = value >= 3 and Ui.LIGHT_RED or Ui.LIGHT_BROWN
+            thing[stat.."Counter"]:SetColor(color)
         end
     end
 end
