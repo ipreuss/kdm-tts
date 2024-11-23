@@ -156,12 +156,18 @@ function Showdown.InitOverlay()
         cols = 22,
         rows = 16,
     })
+    Showdown.overlay = {}
+end
 
-    Showdown.overlay = Overlay.Create({
-        object = overlayObject,
-        grid = Showdown.grid,
-        height = 11.750850,
-    })
+function Showdown.getOverlay(playerColor)
+    if not Showdown.overlay[playerColor] then
+        Showdown.overlay[playerColor] = Overlay.Create({
+            object = NamedObject.Get("Overlay"),
+            grid = Showdown.grid,
+            height = 11.750850,
+        })
+    end
+    return Showdown.overlay[playerColor]
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -717,6 +723,7 @@ end
 
 function Showdown.OnObjectPickUp(playercolor, object)
     local type = object.getGMNotes()
+    local overlay = Showdown.getOverlay(playercolor)
     if type == "Player Figurine" then
         log:Debugf("Player figurine [%s] %s picked up", object.getGUID(), object.getName())
 
@@ -726,7 +733,7 @@ function Showdown.OnObjectPickUp(playercolor, object)
         end
         local color = object.getColorTint()
         color[4] = 0.7
-        Showdown.overlay:Show(object.getPosition(), 1, player:SurvivorSheet():Survivor():ModifiedMovement(), color)
+        overlay:Show(object.getPosition(), 1, player:SurvivorSheet():Survivor():ModifiedMovement(), color)
         log(player:SurvivorSheet():Survivor():ModifiedMovement())
 
     elseif type == "Minion Figurine" then
@@ -737,7 +744,7 @@ function Showdown.OnObjectPickUp(playercolor, object)
             return log:Debugf("Unknown minion %s", object.getName())
         end
 
-        Showdown.overlay:Show(object.getPosition(), 1, minion.movement, { r = 0.0, g = 0.0, b = 0.0, a = 0.9 })
+        overlay:Show(object.getPosition(), 1, minion.movement, { r = 0.0, g = 0.0, b = 0.0, a = 0.9 })
 
     elseif type == "Monster Figurine" then
         log:Debugf("Monster figurine [%s] %s picked up", object.getGUID(), object.getName())
@@ -753,20 +760,21 @@ function Showdown.OnObjectPickUp(playercolor, object)
             return
         end
 
-        Showdown.overlay:Show(object.getPosition(), size.x, Monster.Movement(), { r = 0.0, g = 0.0, b = 0.0, a = 0.9 })
+        overlay:Show(object.getPosition(), size.x, Monster.Movement(), { r = 0.0, g = 0.0, b = 0.0, a = 0.9 })
     end
 end
 
 ---------------------------------------------------------------------------------------------------
 
-function Showdown.OnObjectDrop(_, object)
+function Showdown.OnObjectDrop(playerColor, object)
     local type = object.getGMNotes()
+    local overlay = Showdown.getOverlay(playerColor)
     if type == "Player Figurine" then
         log:Debugf("Player figurine [%s] %s picked up", object.getGUID(), object.getName())
 
         local player = Player.ForFigurine(object)
         if player then
-            Showdown.overlay:Hide()
+            overlay:Hide()
         end
         object.setPositionSmooth(Showdown.grid:Snap(object, { x = 1, y = 1 }), false, true)
 
@@ -779,7 +787,7 @@ function Showdown.OnObjectDrop(_, object)
         end
 
         object.setPositionSmooth(Showdown.grid:Snap(object, size), false, true)
-        Showdown.overlay:Hide()
+        overlay:Hide()
 
     elseif type == "Minion Figurine" then
         log:Debugf("Minion figurine [%s] %s dropped", object.getGUID(), object.getName())
@@ -790,7 +798,7 @@ function Showdown.OnObjectDrop(_, object)
         end
 
         object.setPositionSmooth(Showdown.grid:Snap(object, minion.size), false, true)
-        Showdown.overlay:Hide()
+        overlay:Hide()
 
 
     elseif type == "Terrain Tiles" then
