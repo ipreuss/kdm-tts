@@ -6,7 +6,6 @@ local log = require("Kdm/Log").ForModule("Survivor")
 local MessageBox = require("Kdm/MessageBox")
 local NamedObject = require("Kdm/NamedObject")
 local Names = require("Kdm/Util/Names")
-local Timeline = require("Kdm/Timeline")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
 
@@ -26,6 +25,8 @@ function SurvivorSheetClass.Is(x) return getmetatable(x) == SurvivorSheetClass e
 local SurvivorBoxClass = {}
 SurvivorBoxClass.__index = SurvivorBoxClass
 function SurvivorBoxClass.Is(x) return getmetatable(x) == SurvivorBoxClass end
+
+local survivalLimitProvider = nil
 
 -------------------------------------------------------------------------------------------------
 
@@ -1212,8 +1213,8 @@ function Survivor.UpdateCounterStat(thing, stat, value)
             local color = value >= 3 and Ui.LIGHT_RED or Ui.LIGHT_BROWN
             thing[stat.."Counter"]:SetColor(color)
         end
-        if stat == "survival" then
-            local limit = Timeline.GetSurvivalLimit()
+        if stat == "survival" and survivalLimitProvider then
+            local limit = survivalLimitProvider()
             log:Debugf("Survival value / limit is %d / %d", value, limit)
             log:Debugf("Limit is "..(value == limit and "reached" or "not reached"))
             local color = value == limit and Ui.LIGHT_GREEN or (value > limit and Ui.LIGHT_RED or Ui.LIGHT_BROWN)
@@ -1956,4 +1957,7 @@ return {
 
     ALLOWED_CARD_TYPES = Survivor.ALLOWED_CARD_TYPES,
     SpawnSurvivorBox = Survivor.SpawnSurvivorBox,
+    SetSurvivalLimitProvider = function(provider)
+        survivalLimitProvider = provider
+    end
 }

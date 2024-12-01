@@ -9,7 +9,6 @@ local NamedObject = require("Kdm/NamedObject")
 local Survivor = require("Kdm/Survivor")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
-local Weapon = require("Kdm/Weapon")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -104,6 +103,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Player.ForFigurine(figurineObject)
+    log:Debugf("Looking for player with figurine %s", figurineObject.getGUID())
     for _, player in ipairs(Player.players) do
         if player.figurineObject == figurineObject then
             return player

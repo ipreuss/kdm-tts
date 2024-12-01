@@ -60,6 +60,7 @@ function Campaign.Init(saveState)
     end)
     Survivor.SetCharacterProvider(Campaign.GetCharacter)
     Survivor.SetInnovationsChecker(Campaign.HasInnovated)
+    Survivor.SetSurvivalLimitProvider(Timeline.GetSurvivalLimit)
     log:Debugf("Campaign initialized")
 end
 

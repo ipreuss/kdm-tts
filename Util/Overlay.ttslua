@@ -68,6 +68,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function OverlayClass:Show(position, baseSize, radius, color)
+    log:Debugf("Show")
     assert(Check.Vec3(position, "position"))
     assert(Check.Num(baseSize, "baseSize"))
     assert(Check.Num(radius, "radius"))
@@ -134,7 +135,11 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function OverlayClass:Hide()
-    for _, button in ipairs(self.object.getButtons()) do
+    log:Debugf("Hide")
+    if self.color == nil then
+        return
+    end
+    for _, button in ipairs(self.object.getButtons() or {}) do
         if button.color.r == self.color.r and button.color.g == self.color.g and button.color.b == self.color.b then
             self.object.removeButton(button.index)
         end
