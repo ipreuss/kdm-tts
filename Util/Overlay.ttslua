@@ -19,7 +19,6 @@ function OverlayClass.Create(params)
         object = params.object,
         grid = params.grid,
         height = params.height,
-        buttons = {},
     }
     setmetatable(overlay, OverlayClass)
 
@@ -129,11 +128,6 @@ function OverlayClass:Show(position, baseSize, radius, color)
         distance = distance + 1
         offset = offset + 1
     end
-    for _, button in ipairs(self.object.getButtons()) do
-        if (button.color.r == color.r and button.color.g == color.g and button.color.b == color.b) then
-            table.insert(self.buttons, button)
-        end
-    end
     self.color = color
 end
 
@@ -147,7 +141,6 @@ function OverlayClass:Hide()
             self.object.removeButton(button.index)
         end
     end
-    self.buttons = {}
     self.color = nil
 end
 
