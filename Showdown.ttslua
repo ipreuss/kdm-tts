@@ -138,6 +138,7 @@ end
 
 function Showdown.InitOverlay()
     local overlayObject = NamedObject.Get("Overlay")
+    log:Debugf("Overlay object: %s", Util.TabStr(overlayObject))
     local left = 27.011892
     local top = -15.859633
     local right = 76.526237
@@ -159,15 +160,15 @@ function Showdown.InitOverlay()
     Showdown.overlay = {}
 end
 
-function Showdown.getOverlay(playerColor)
-    if not Showdown.overlay[playerColor] then
-        Showdown.overlay[playerColor] = Overlay.Create({
+function Showdown.getOverlay(object)
+    if not Showdown.overlay[object] then
+        Showdown.overlay[object] = Overlay.Create({
             object = NamedObject.Get("Overlay"),
             grid = Showdown.grid,
             height = 11.750850,
         })
     end
-    return Showdown.overlay[playerColor]
+    return Showdown.overlay[object]
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -721,9 +722,9 @@ end
 
 -------------------------------------------------------------------------------------------------
 
-function Showdown.OnObjectPickUp(playercolor, object)
+function Showdown.OnObjectPickUp(_, object)
     local type = object.getGMNotes()
-    local overlay = Showdown.getOverlay(playercolor)
+    local overlay = Showdown.getOverlay(object)
     if type == "Player Figurine" then
         log:Debugf("Player figurine [%s] %s picked up", object.getGUID(), object.getName())
 
@@ -766,9 +767,9 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-function Showdown.OnObjectDrop(playerColor, object)
+function Showdown.OnObjectDrop(_, object)
     local type = object.getGMNotes()
-    local overlay = Showdown.getOverlay(playerColor)
+    local overlay = Showdown.getOverlay(object)
     if type == "Player Figurine" then
         log:Debugf("Player figurine [%s] %s picked up", object.getGUID(), object.getName())
 

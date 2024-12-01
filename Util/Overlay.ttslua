@@ -19,6 +19,7 @@ function OverlayClass.Create(params)
         object = params.object,
         grid = params.grid,
         height = params.height,
+        buttons = {},
     }
     setmetatable(overlay, OverlayClass)
 
@@ -36,10 +37,10 @@ function OverlayClass:ClampAndAddRect(left, top, width, height, color)
     local right = left + width - 1
     local bottom = top + height - 1
 
-    if left < 0 then left = 0 end
-    if right >= grid:Cols() then right = grid:Cols() - 1 end
-    if top < 0 then top = 0 end
-    if bottom >= grid:Rows() then bottom = grid:Rows() - 1 end
+    left = math.max(0, left)
+    right = math.min(grid:Cols() - 1, right)
+    top = math.max(0, top)
+    bottom = math.min(grid:Rows() - 1, bottom)
 
     width = right - left + 1
     height = bottom - top + 1
@@ -73,7 +74,7 @@ function OverlayClass:Show(position, baseSize, radius, color)
     assert(Check.Num(radius, "radius"))
     assert(Check.Color(color, "color"))
 
-    self:Hide()
+    --self:Hide()
 
     -- the movement overlay looks like a diamond
     -- we want to draw this diamond using as few squares as possible, since each square must be represented by a button
@@ -128,12 +129,26 @@ function OverlayClass:Show(position, baseSize, radius, color)
         distance = distance + 1
         offset = offset + 1
     end
+    for _, button in ipairs(self.object.getButtons()) do
+        if (button.color.r == color.r and button.color.g == color.g and button.color.b == color.b) then
+            table.insert(self.buttons, button)
+        end
+    end
+    self.color = color
 end
 
 ---------------------------------------------------------------------------------------------------
 
 function OverlayClass:Hide()
-    self.object.clearButtons()
+    local allButtons = self.object.getButtons()
+    for i = #allButtons, 1, -1 do
+        local button = allButtons[i]
+        if (button.color.r == self.color.r and button.color.g == self.color.g and button.color.b == self.color.b) then
+            self.object.removeButton(button.index)
+        end
+    end
+    self.buttons = {}
+    self.color = nil
 end
 
 ---------------------------------------------------------------------------------------------------
