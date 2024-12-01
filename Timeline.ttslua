@@ -886,6 +886,10 @@ Timeline.eventHandlersByType = {
     end
 }
 
+function Timeline.GetSurvivalLimit()
+    return Timeline.survivalLimit
+end
+
 ---------------------------------------------------------------------------------------------------
 
 return {
@@ -901,4 +905,5 @@ return {
     IsUiOpen = Timeline.IsUiOpen,
     MAX_YEARS = Timeline.MAX_YEARS,
     MAX_YEAR_EVENTS = Timeline.MAX_YEAR_EVENTS,
+    GetSurvivalLimit = Timeline.GetSurvivalLimit,
 }

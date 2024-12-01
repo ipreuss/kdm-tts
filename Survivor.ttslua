@@ -5,9 +5,11 @@ local Location = require("Kdm/Location")
 local log = require("Kdm/Log").ForModule("Survivor")
 local MessageBox = require("Kdm/MessageBox")
 local NamedObject = require("Kdm/NamedObject")
+local Names = require("Kdm/Util/Names")
+local Timeline = require("Kdm/Timeline")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
-local Names = require("Kdm/Util/Names")
+
 
 -------------------------------------------------------------------------------------------------
 
@@ -1208,6 +1210,14 @@ function Survivor.UpdateCounterStat(thing, stat, value)
         thing[stat.."Counter"]:SetText(value)
         if stat == "insanity" then
             local color = value >= 3 and Ui.LIGHT_RED or Ui.LIGHT_BROWN
+            thing[stat.."Counter"]:SetColor(color)
+        end
+        if stat == "survival" then
+            local limit = Timeline.GetSurvivalLimit()
+            log:Debugf("Survival value / limit is %d / %d", value, limit)
+            log:Debugf("Limit is "..(value == limit and "reached" or "not reached"))
+            local color = value == limit and Ui.LIGHT_GREEN or (value > limit and Ui.LIGHT_RED or Ui.LIGHT_BROWN)
+            log:Debugf("Setting color to %s", color)
             thing[stat.."Counter"]:SetColor(color)
         end
     end
