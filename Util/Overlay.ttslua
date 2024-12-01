@@ -134,10 +134,8 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function OverlayClass:Hide()
-    local allButtons = self.object.getButtons()
-    for i = #allButtons, 1, -1 do
-        local button = allButtons[i]
-        if (button.color.r == self.color.r and button.color.g == self.color.g and button.color.b == self.color.b) then
+    for _, button in ipairs(self.object.getButtons()) do
+        if button.color.r == self.color.r and button.color.g == self.color.g and button.color.b == self.color.b then
             self.object.removeButton(button.index)
         end
     end
