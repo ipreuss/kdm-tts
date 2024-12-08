@@ -324,8 +324,8 @@ function Showdown.Setup(monsterOrName, levelOrName)
     -----------------------------------------------------------------------------------------------
     -- AI
 
-    Archive.Take({ name = monster.info, type = "AI", location = "Monster Info" })
-    local basicAction = Archive.Take({ name = monster.basicAction, type = "AI", location = "Basic Action" })
+    Archive.Take({ name = showdownSetup.info or monster.info, type = "AI", location = "Monster Info" })
+    local basicAction = Archive.Take({ name = showdownSetup.basicAction or monster.basicAction, type = "AI", location = "Basic Action" })
     log:Debugf("Basic action type: %s", basicAction.type)
     if basicAction.type == "Deck" then
         basicAction.shuffle()
@@ -451,7 +451,7 @@ function Showdown.Setup(monsterOrName, levelOrName)
     -- Hit Locations
 
     local sources = {
-        Archive.ArchiveSource(monster.hitLocationsDeck, "Hit Locations")
+        Archive.ArchiveSource(showdownSetup.hitLocationsDeck or monster.hitLocationsDeck, "Hit Locations")
     }
 
     local trapsDeck = Archive.Take({ name = monster.trapsDeck, type = "Hit Locations", lenient = true, location =
@@ -626,7 +626,7 @@ function Showdown.Setup(monsterOrName, levelOrName)
     -- monster
 
     Archive.Take({
-        name = monster.name,
+        name = showdownSetup.figurine or monster.name,
         type = "Monster Figurine",
         location = showdownSetup.position or monster.position,
         rotation = showdownSetup.rotation or monster.rotation,

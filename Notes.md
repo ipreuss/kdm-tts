@@ -16,6 +16,10 @@ Light: #d3cdc3ff
 Mid:   #71624cff
 Dark:  #453824ff
 
+# fonts:
+card text: amplitude
+card title: silverado
+
 # Colors (Old):
 Light: #bbb4a1ff
 Mid:   #7f7059ff

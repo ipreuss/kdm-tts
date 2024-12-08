@@ -613,6 +613,11 @@ return {
             { "King's Man Special AI", "AI" },
             { "King's Man Hit Locations", "Hit Locations" },
 
+            { "Twilight Knight", "Monster Figurine" },
+            { "Twilight Knight Info", "AI" },
+            { "Twilight Knight Basic Action", "AI" },
+            { "Twilight Knight HL", "Hit Locations" },
+
             { "Phoenix", "Monster Figurine" },
             { "Phoenix Info", "AI" },
             { "Phoenix Basic Action", "AI" },
@@ -1089,10 +1094,14 @@ return {
                     keywords = { "messenger", "first", "story", "radiant", "lion", "arm", "first", "tree" },
                     state = 5,
                 },
+                ["Allison the Twilight Knight"] = {
+                    keywords = { "allison", "twilight", "knight", "training" },
+                    state = 6,
+                },
                 ["Glossary (White Box)"] = {
                     keywords = { "banshee", "dura", "barbed", "bloodeater", "campaign", "limit", "cleavage", "cleave", "death", "token", "demolish", "insulated", "load", "melting", "novel", "Proficiency", "novice",
                         "olthawartta", "refined", "reroll", "rush", "token", "scimitar", "sealed", "unfurled" },
-                    state = 6,
+                    state = 7,
                 },
                 
             },
@@ -1343,6 +1352,22 @@ return {
                         speed = 2,
                         damage = 2,
                         accuracy = 2,
+                    },
+                },
+                {
+                    name = "Twilight Knight Training",
+                    level = 1,
+                    showdown = {
+                        info = "Twilight Knight Info",
+                        basicAction = "Twilight Knight Basic Action",
+                        hitLocationsDeck = "Twilight Knight HL",
+                        figurine = "Twilight Knight",
+                        rules = { "White Box Rules", 6 },
+                        customBasic = { "Cleave", "Coup de Grace" },
+                        miscAI = { "Hack (Allison)", "Hack City (Allison)", "Hew (Alliston)","Run Down (Allison)" },
+                        movement = 6,
+                        toughness = 11,
+                        life = 10,
                     },
                 },
             },
