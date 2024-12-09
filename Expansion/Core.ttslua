@@ -1364,7 +1364,7 @@ return {
                         figurine = "Twilight Knight",
                         rules = { "White Box Rules", 6 },
                         customBasic = { "Cleave", "Coup de Grace" },
-                        miscAI = { "Hack (Allison)", "Hack City (Allison)", "Hew (Alliston)","Run Down (Allison)" },
+                        miscAI = { "Hack (Allison)", "Hack City (Allison)", "Hew (Allison)","Run Down (Allison)" },
                         movement = 6,
                         toughness = 11,
                         life = 10,

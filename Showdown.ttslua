@@ -64,6 +64,9 @@ function Showdown.InitExpansions()
 
             for _, level in ipairs(monster.levels) do
                 Showdown.levelsByMonsterLevelName[monster.name..level.name] = level
+                if level.showdown.figurine then
+                    Showdown.sizesByMonsterName[level.showdown.figurine] = { x = monster.size.x, y = monster.size.y }
+                end
             end
         end
 
