@@ -310,7 +310,7 @@ function Campaign.ExportToOrb()
     for ordinal, player in ipairs(Player.Players()) do
         local playerPrefix = "Player " .. ordinal
         scanTypesByLocation[playerPrefix .. " Armor Set"] = { "Armor Sets" }
-        scanTypesByLocation[playerPrefix .. " Fist & Tooth"] = { "Gear" }
+        scanTypesByLocation[playerPrefix .. " Fist & Tooth"] = { "Gear", "Tokens" }
         for i = 1, 9 do
             scanTypesByLocation[playerPrefix .. " Gear " .. i] = { "Gear", "Tokens" }
         end
