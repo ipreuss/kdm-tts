@@ -444,8 +444,7 @@ return {
         ["Rainbow Katana"] = { speed = 4, accuracy = 4, strength = 4 },
 
         ["Arm of the First Tree"] = { speed = 2, accuracy = 6, strength = 4 },
-        ["Aya's Sword"] = { speed = 2, accuracy = 7, strength = 3 },
-        ["Aya's Spear"] = { speed = 2, accuracy = 7, strength = 3 },
+        ["Aya's"] = { speed = 2, accuracy = 7, strength = 3, paired = true },
         ["Blood Plasma Gun"] = { speed = 0, accuracy = 4, strength = 0 },
         ["Blood Plasma Katana"] = { speed = 9, accuracy = 6, strength = 9, sharp = true, devastating = 1 },
         ["Giant Stone Face"] = { speed = 1, accuracy = 6, strength = 5, devastating = 1 },
