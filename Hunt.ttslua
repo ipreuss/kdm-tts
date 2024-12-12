@@ -213,6 +213,7 @@ function Hunt.Setup(monsterOrName, levelOrName)
     Hunt.settingUpHunt = true
 
     local huntEventsDeck = Container(Archive.Take({ name = "Hunt Events", type = "Hunt Events", location = "Hunt Events", rotation = { x = 0, y = 180, z = 180 } }))
+    Deck.Remove(huntEventsDeck:Object(), function(name) return Trash.IsInTrash(name, "Hunt Events") end)
     huntEventsDeck:Shuffle()
     local monsterHuntEventsDeck = Container(Archive.Take({ name = monster.huntEventsDeck, type = "Monster Hunt Events",  location = "Monster Hunt Events", rotation = { x = 0, y = 180, z = 180 } }))
     Deck.Remove(monsterHuntEventsDeck:Object(), function(name) return Trash.IsInTrash(name, "Monster Hunt Events") end)
