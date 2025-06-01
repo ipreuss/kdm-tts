@@ -84,7 +84,7 @@ If you're experiencing search/preview issues, try clearing out your mod data dir
 * Hunt event buttons: random hunt event (show roll), forest gate, overwhelming darkness, sky fishing, herb gathering, mineral gathering.
 * Monster-specific quotes.
 * Lock terrain after setting up showdown.
-* Fixed Binge eating hagve misspelling.
+* Fixed Binge eating have misspelling.
 * Add reroll token and a slot on the token board.
 * Constellation and import/export boards have slightly different colors than the rest of the boards.
 * Rescan all gear.
