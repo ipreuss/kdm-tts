@@ -277,7 +277,7 @@ function Player.Create(ordinal, params)
     if params.survivorSheetGuid then
         local survivorSheetObject = getObjectFromGUID(params.survivorSheetGuid)
         if survivorSheetObject == nil then  -- compare nil for TTS objects
-            log:Errorf("Can't find survivor sheet %s that %d was linked to! Try recreating the it from the Population screen and dropping it back onto the player board.", params.linkedSurvivorSheetGuid, ordinal)
+            log:Errorf("Can't find survivor sheet %s that %d was linked to! Try recreating it from the Population screen and dropping it back onto the player board.", params.survivorSheetGuid, ordinal)
         else
             player.survivorSheet = Survivor.SurvivorSheetForObject(survivorSheetObject)
             if not player.survivorSheet then
