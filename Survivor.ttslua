@@ -167,7 +167,7 @@ function Survivor.InitSaveState(saveState)
     for _, survivorBoxSaveState in ipairs(saveState.survivorBoxes or {}) do
         local survivor = Survivor.survivorsById[survivorBoxSaveState.survivorId]
         if not survivor then
-            return log:Errorf("Survivor box %s was saved with non-existant survivor %d", survivorBoxSaveState.objectGuid, survivorBoxSaveState.survivorId)
+            return log:Errorf("Survivor box %s was saved with non-existent survivor %d", survivorBoxSaveState.objectGuid, survivorBoxSaveState.survivorId)
         end
 
         local object = getObjectFromGUID(survivorBoxSaveState.objectGuid)
@@ -185,7 +185,7 @@ function Survivor.InitSaveState(saveState)
     for _, survivorSheetSaveState in ipairs(saveState.survivorSheets or {}) do
         local survivor = Survivor.survivorsById[survivorSheetSaveState.survivorId]
         if not survivor then
-            return log:Errorf("Survivor sheet %s was saved with non-existant survivor %d", survivorSheetSaveState.survivorSheetGuid, survivorSheetSaveState.survivorId)
+            return log:Errorf("Survivor sheet %s was saved with non-existent survivor %d", survivorSheetSaveState.survivorSheetGuid, survivorSheetSaveState.survivorId)
         end
 
         local object = getObjectFromGUID(survivorSheetSaveState.objectGuid)
