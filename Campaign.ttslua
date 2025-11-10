@@ -1010,12 +1010,19 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Campaign.SetupObjects(locationName, objects, context)
+    log:Debugf("setting up objects at location %s", locationName)
     local location = Location.Get(locationName)
     if not location then
         return log:Errorf(
             "Object '%s' (%s) was recorded at unrecognized location '%s'; spawning in the middle of the showdown board.",
             locationName, type, location)
     end
+    
+    -- If objects is not an array (single table object), wrap it in an array
+    if objects[1] == nil and next(objects) ~= nil then
+        objects = { objects }
+    end
+    
     for i, objectData in ipairs(objects) do
         local finalObject = nil
         local position = location:Center()
