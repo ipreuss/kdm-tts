@@ -48,6 +48,7 @@ This document captures the shared conventions for working on the KDM Tabletop Si
 - Document how to run tests (commands, scripts) inside README sections if they change.
 
 ## Workflow Expectations
+See `PROCESS.md` for the full change-management loop (test-first, safety net, PR checklist). Highlights:
 - Coordinate changes through pull requests with clear descriptions and checklists of updated docs/tests.
 - Before opening a PR, run relevant tests and sanity-check TTS scripts locally (see `updateTTS.sh` workflow).
 - When reviews trigger follow-ups, keep commits clean and focused; avoid mixing refactors with feature changes unless validated by tests.

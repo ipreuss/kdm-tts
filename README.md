@@ -10,6 +10,9 @@ lua tests/run.lua
 
 Add new test files as `tests/<area>_test.lua` and list them inside `tests/run.lua`.
 
+## Development Workflow
+Follow the test-first process in `PROCESS.md` before changing files: add/verify coverage for existing behavior, describe the change via a failing test, implement the fix/feature, then rerun the full suite (and TTS smoke tests when relevant) prior to opening a PR.
+
 # Version 1.2
 * Fixed Gloom-Coated Arrow not showing up in Battle UI
 * Fixed Sky Harpoon stats: 1 -> 2 speed
