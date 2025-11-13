@@ -1,6 +1,15 @@
 # kdm-tts
 Source for my Kingdom Death: Monster mod for Tabletop Simulator (https://steamcommunity.com/sharedfiles/filedetails/?id=2112101994)
 
+## Tests
+Unit tests live under `tests/` so they are never bundled into the Tabletop Simulator save. Run the current suite with:
+
+```
+lua tests/run.lua
+```
+
+Add new test files as `tests/<area>_test.lua` and list them inside `tests/run.lua`.
+
 # Version 1.2
 * Fixed Gloom-Coated Arrow not showing up in Battle UI
 * Fixed Sky Harpoon stats: 1 -> 2 speed
