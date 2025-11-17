@@ -339,23 +339,13 @@ end
 function Survivor.newSurvivor(isMale)
     local gender = isMale and Names.Gender.male or Names.Gender.female
     log:Debugf("Creating new %s survivor", gender)
-    local id = Survivor.nextSurvivorId
-    Survivor.nextSurvivorId = Survivor.nextSurvivorId + 1
-    local survivor = SurvivorClass.Create({ id = id })
-
-    survivor[isMale and "SetMale" or "SetFemale"](survivor, true)
     log:Debugf("optionally setting character")
-    local character = nil
+    local characterCard = nil
     if Survivor.innovationsChecker("Character") then
-        local characterCard = Survivor.characterProvider()
-        survivor:SetCards({ characterCard })
-        character = characterCard.name
+        characterCard = Survivor.characterProvider()
     end
     log:Debugf("setting name")
-    survivor:SetName(Names.getName(gender, character))
-    survivor:SetSurvival(1)
-    table.insert(Survivor.survivors, survivor)
-    Survivor.survivorsById[survivor.id] = survivor
+    local survivor = Survivor.CreateSurvivor(gender, { characterCard = characterCard })
 
     Survivor.UpdateLivingDeadCounts()
     Survivor.UpdateSexCounts()
@@ -1929,6 +1919,34 @@ function SurvivorSheetClass:Object() return self.object end
 
 ---------------------------------------------------------------------------------------------------
 
+function Survivor.CreateSurvivor(gender, opts)
+    opts = opts or {}
+    assert(Check.Str(gender, "gender must be a string"))
+
+    local characterCard = opts.characterCard
+    local characterName = opts.character or (characterCard and characterCard.name)
+
+    local id = Survivor.nextSurvivorId
+    Survivor.nextSurvivorId = Survivor.nextSurvivorId + 1
+    local survivor = SurvivorClass.Create({ id = id })
+
+    survivor:SetMale(gender == Names.Gender.male)
+    survivor:SetFemale(gender == Names.Gender.female)
+
+    if characterCard then
+        survivor:SetCards({ characterCard })
+    end
+
+    survivor:SetName(Names.getName(gender, characterName))
+    survivor:SetSurvival(1)
+    table.insert(Survivor.survivors, survivor)
+    Survivor.survivorsById[survivor.id] = survivor
+
+    return survivor
+end
+
+---------------------------------------------------------------------------------------------------
+
 -- Test helper to stub UI-dependent counters and related hooks.
 function Survivor.TestStubUi(counters)
     Survivor.livingSurvivorsText = counters.livingSurvivorsText or Survivor.livingSurvivorsText
@@ -1953,6 +1971,7 @@ return {
     SetInnovationsChecker = Survivor.SetInnovationsChecker,
     DepartingSurvivorNeedsToSkipNextHunt = Survivor.DepartingSurvivorNeedsToSkipNextHunt,
     NewSurvivor = Survivor.newSurvivor,
+    CreateSurvivor = Survivor.CreateSurvivor,
 
     Survivors = function() return Survivor.survivors end,
 

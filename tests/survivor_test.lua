@@ -93,3 +93,35 @@ Test.test("newSurvivor passes gender constants to Names.getName", function(t)
         t:assertEqual("female", captured.getNameArgs[2].gender)
     end)
 end)
+
+Test.test("CreateSurvivor registers survivor and sets gender/name", function(t)
+    withStubbedModules(function(Survivor, captured)
+        local characterCard = { name = "Hero" }
+        local survivor = Survivor.CreateSurvivor("male", { characterCard = characterCard })
+
+        t:assertEqual(1, #Survivor.Survivors())
+        t:assertEqual(survivor, Survivor.Survivors()[1])
+        t:assertTrue(survivor:Male())
+        t:assertFalse(survivor:Female())
+        t:assertEqual("Stub Name", survivor:Name())
+
+        t:assertEqual(1, #captured.getNameArgs)
+        t:assertEqual("male", captured.getNameArgs[1].gender)
+        t:assertEqual("Hero", captured.getNameArgs[1].character)
+        t:assertEqual(1, survivor:Survival())
+    end)
+end)
+
+Test.test("NewSurvivor handles character card path", function(t)
+    withStubbedModules(function(Survivor, captured)
+        local characterCard = { name = "Hero" }
+        Survivor.SetInnovationsChecker(function() return true end)
+        Survivor.SetCharacterProvider(function() return characterCard end)
+
+        Survivor.NewSurvivor(true)
+
+        t:assertEqual(1, #Survivor.Survivors())
+        t:assertEqual("Hero", captured.getNameArgs[1].character)
+        t:assertEqual(characterCard, Survivor.Survivors()[1]:Cards()[1])
+    end)
+end)
