@@ -2,6 +2,13 @@
 
 This document captures the shared conventions for working on the KDM Tabletop Simulator scripts. Follow it for all new code and whenever refactoring existing code.
 
+## Clarity First
+- Make code self-explanatory before reaching for documentation: prefer named constants/enums over raw booleans/strings, intention-revealing function arguments, and small helpers over inline ambiguity.
+- Remove magic values; give them names where they are defined.
+- Comments are a last resort when structure and names cannot convey intent.
+- Expose test-only helpers with a leading underscore (e.g., `_TestStubUi`) and keep them clearly segregated from production APIs.
+  - Preferred pattern: place test-only helpers under a `Module.Test` table (e.g., `Module.Test.stubUi`) so intent is explicit and separated from runtime APIs.
+
 ## Documentation Strategy
 1. **Self-speaking code** – choose expressive names, extract helper methods/objects, and keep logic small enough to read without comments. Prefer removing ambiguity over adding prose.
 2. **Executable specifications** – encode behavior in automated tests (unit, integration, or high-level regression scripts) so readers can run them to learn and verify intent.

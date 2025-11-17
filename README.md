@@ -10,6 +10,9 @@ lua tests/run.lua
 
 Add new test files as `tests/<area>_test.lua` and list them inside `tests/run.lua`.
 
+## Names
+`Util/Names.ttslua` holds the name pools. Use `Names.getName(gender, character)` with `Names.Gender.male`/`Names.Gender.female`; it falls back to the gendered `none` list when no character-specific list exists. The generic lists live at the top of the file, with one name per line to simplify edits and diff reviews.
+
 ## Development Workflow
 Follow the test-first process in `PROCESS.md` before changing files: add/verify coverage for existing behavior, describe the change via a failing test, implement the fix/feature, then rerun the full suite (and TTS smoke tests when relevant) prior to opening a PR.
 

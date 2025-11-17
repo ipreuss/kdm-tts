@@ -337,7 +337,8 @@ function Survivor.InitUi()
 end
 
 function Survivor.newSurvivor(isMale)
-    log:Debugf("Creating new %s survivor", isMale and "male" or "female")
+    local gender = isMale and Names.Gender.male or Names.Gender.female
+    log:Debugf("Creating new %s survivor", gender)
     local id = Survivor.nextSurvivorId
     Survivor.nextSurvivorId = Survivor.nextSurvivorId + 1
     local survivor = SurvivorClass.Create({ id = id })
@@ -351,7 +352,7 @@ function Survivor.newSurvivor(isMale)
         character = characterCard.name
     end
     log:Debugf("setting name")
-    survivor:SetName(Names.getName(isMale, character))
+    survivor:SetName(Names.getName(gender, character))
     survivor:SetSurvival(1)
     table.insert(Survivor.survivors, survivor)
     Survivor.survivorsById[survivor.id] = survivor
@@ -1928,15 +1929,30 @@ function SurvivorSheetClass:Object() return self.object end
 
 ---------------------------------------------------------------------------------------------------
 
+-- Test helper to stub UI-dependent counters and related hooks.
+function Survivor.TestStubUi(counters)
+    Survivor.livingSurvivorsText = counters.livingSurvivorsText or Survivor.livingSurvivorsText
+    Survivor.deadSurvivorsText = counters.deadSurvivorsText or Survivor.deadSurvivorsText
+    Survivor.maleSurvivorsText = counters.maleSurvivorsText or Survivor.maleSurvivorsText
+    Survivor.femaleSurvivorsText = counters.femaleSurvivorsText or Survivor.femaleSurvivorsText
+    Survivor.UpdateLivingDeadCounts = counters.UpdateLivingDeadCounts or Survivor.UpdateLivingDeadCounts
+    Survivor.UpdateSexCounts = counters.UpdateSexCounts or Survivor.UpdateSexCounts
+    Survivor.SetPageAndRefresh = counters.SetPageAndRefresh or Survivor.SetPageAndRefresh
+end
+
+---------------------------------------------------------------------------------------------------
+
 return {
     Init = Survivor.Init,
     PostInit = Survivor.PostInit,
+    InitSaveState = Survivor.InitSaveState,
     Save = Survivor.Save,
     Import = Survivor.Import,
     Export = Survivor.Export,
     SetCharacterProvider = Survivor.SetCharacterProvider,
     SetInnovationsChecker = Survivor.SetInnovationsChecker,
     DepartingSurvivorNeedsToSkipNextHunt = Survivor.DepartingSurvivorNeedsToSkipNextHunt,
+    NewSurvivor = Survivor.newSurvivor,
 
     Survivors = function() return Survivor.survivors end,
 
@@ -1954,6 +1970,9 @@ return {
         return survivorSheet
     end,
     ClearSkipNextHunt = Survivor.ClearSkipNextHunt,
+    Test = {
+        stubUi = Survivor.TestStubUi,
+    },
 
     ALLOWED_CARD_TYPES = Survivor.ALLOWED_CARD_TYPES,
     SpawnSurvivorBox = Survivor.SpawnSurvivorBox,

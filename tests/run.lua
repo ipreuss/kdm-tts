@@ -7,6 +7,8 @@ local Test = require("tests.framework")
 
 local testFiles = {
     "tests.array_test",
+    "tests.names_test",
+    "tests.survivor_test",
 }
 
 for _, file in ipairs(testFiles) do
