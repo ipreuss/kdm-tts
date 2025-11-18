@@ -272,6 +272,32 @@ Names.names = {
             "Kelthor", "Bravran", "Sovrek", "Draven", "Malkor", "Jorlen", "Tarvos", "Fesrol", "Velgan", "Sornik",
             "Torvak", "Jekran", "Mavlos", "Delkor", "Varkas", "Frenlor", "Sovlen", "Tranor", "Morvek", "Kalthus",
         },
+        ["The Challenger"] = {
+            "Kavren", "Solthor", "Dravik", "Marnok", "Velron", "Torvek", "Jalthor", "Sornik", "Ferlos", "Branik",
+            "Kelvros", "Dornak", "Tralos", "Jorvek", "Mavrak", "Sorvon", "Delkus", "Frenlor", "Varkon", "Tenvik",
+        },
+        ["The Ardent"] = {
+            "Bravren", "Kelros", "Vornik", "Tralven", "Sorvak", "Mavren", "Kalthis", "Surnok", "Delvar", "Jekthor",
+            "Morven", "Frenrak", "Sovlen", "Velkor", "Tarnok", "Jorlan", "Fesrid", "Korvak", "Drelthor", "Mavros",
+        },
+        ["The Crabby"] = {
+            "Kavros", "Sornek", "Tralvos", "Mavril", "Jorvek", "Frenrak", "Velmin", "Delkor", "Sovnik", "Bralos",
+            "Tarnel", "Fesruk", "Kelnor", "Sornath", "Varkis", "Jekran", "Sorvak", "Malven", "Torlik", "Drelmos",
+        },
+        ["Sanctimonious"] = {
+            "Varkel", "Jorvas", "Kelthor", "Branek", "Torvan", "Sovrel", "Frenrok", "Delthor", "Sorvran", "Mavrek",
+            "Kornil", "Velthas", "Jekram", "Dravos", "Tranel", "Surnik", "Feslor", "Morvek", "Kalthor", "Tervan",
+        },
+        ["The Disinterested"] = {
+            "Melkor", "Sovrak", "Jalthos", "Torvik", "Frenvar", "Velros", "Kalven", "Sorlan", "Bravos", "Tralok",
+            "Mavris", "Delvar", "Kelnor", "Sornik", "Fesrok", "Jorven", "Tavros", "Dranik", "Sovlen", "Morvak",
+        },
+        ["The Savior"] = {
+            "Kelren the Savior", "Sovrik the Savior", "Tralok the Savior", "Mavrel the Savior", "Jorlin the Savior",
+            "Velkor the Savior", "Sornek the Savior", "Delran the Savior", "Bravos the Savior", "Fesrol the Savior",
+            "Morlan the Savior", "Tavrik the Savior", "Frenlor the Savior", "Kelnor the Savior", "Surnak the Savior",
+            "Varkos the Savior", "Jekron the Savior", "Solvek the Savior", "Terlos the Savior", "Dravos the Savior",
+        },
         
     },
     [Names.Gender.female] = {
@@ -539,6 +565,32 @@ Names.names = {
         ["Weapon Master"] = {
             "Sovra", "Melsri", "Korla", "Velsha", "Thalra", "Kelrin", "Jorna", "Fesla", "Mivrin", "Relka",
             "Sorli", "Vesra", "Jelsra", "Ovrin", "Tavri", "Delsa", "Sovlis", "Marsha", "Tersin", "Vorli",
+        },
+        ["The Challenger"] = {
+            "Vesrin", "Solka", "Thalra", "Mivsha", "Jorna", "Velsha", "Sorli", "Kelsra", "Terin", "Dalva",
+            "Fesrin", "Sovra", "Ovrin", "Relsha", "Mavla", "Jelsri", "Vorna", "Kelra", "Sorsha", "Melni",
+        },
+        ["The Ardent"] = {
+            "Kelsha", "Sovlin", "Melra", "Veska", "Thesra", "Mivra", "Jorna", "Relsin", "Vorla", "Delni",
+            "Fesla", "Marsha", "Korla", "Jelsra", "Tavri", "Sorla", "Ovrin", "Velsin", "Tersha", "Mavlis",
+        },
+        ["The Crabby"] = {
+            "Kelra", "Sovsha", "Velsri", "Mivla", "Sorli", "Jorna", "Dalka", "Fesrin", "Vorna", "Telsra",
+            "Jelsin", "Korni", "Vesla", "Relsa", "Marla", "Sovlis", "Mavri", "Tervi", "Ovrin", "Delsha",
+        },
+        ["Sanctimonious"] = {
+            "Sorla", "Kelsha", "Mavrin", "Velsra", "Thalra", "Jorna", "Delka", "Fesra", "Sovrin", "Melsha",
+            "Ovrin", "Tavri", "Relsin", "Kelsra", "Veska", "Marla", "Tersin", "Vornis", "Sorva", "Jelsra",
+        },
+        ["The Disinterested"] = {
+            "Telsin", "Sovra", "Kelni", "Vesra", "Mavla", "Sorli", "Ralsha", "Vorni", "Melra", "Jorna",
+            "Dalvi", "Fesrin", "Ovrin", "Jelsra", "Theska", "Korla", "Sovlis", "Tervi", "Kelra", "Marsha",
+        },
+        ["The Savior"] = {
+            "Vesrin the Savior", "Kelsha the Savior", "Sovla the Savior", "Jorna the Savior", "Mivra the Savior",
+            "Sorli the Savior", "Melsha the Savior", "Delni the Savior", "Ralsha the Savior", "Tersin the Savior",
+            "Vorla the Savior", "Jelsra the Savior", "Tavri the Savior", "Fesla the Savior", "Marla the Savior",
+            "Sovrin the Savior", "Kelra the Savior", "Mavlis the Savior", "Ovrin the Savior", "Velsra the Savior",
         },
         
     }
