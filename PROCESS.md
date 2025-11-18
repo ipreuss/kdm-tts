@@ -14,11 +14,54 @@ This document defines the default workflow for making changes to the KDM TTS mod
 4. **Verify** – run `lua tests/run.lua` (and any scenario scripts) until everything passes. If the change affects Tabletop Simulator behavior, run `updateTTS.sh` and perform a quick manual smoke test.
 5. **Refine** – after green tests, scan for smells (brittle test setup, hidden dependencies, duplication) and introduce/refine seams or small refactors while keeping tests green; then re-verify.
 
+## Code Review Documentation
+
+All code review findings must be documented in `codereview.md` at the repository root.
+
+**Important:** Each new review **replaces** the previous content—`codereview.md` always contains only the latest review.
+
+**Structure:**
+- Start with a header: `# Code Review - [Brief Description]`
+- Include date, list of changes (new/modified files)
+- Document positive aspects, issues found, and recommendations
+- Conclude with overall assessment and test results
+
+**Guidelines:**
+- **Do not create temporary files** for review summaries—always write to `codereview.md`
+- **Replace the entire file** with each new review; do not append
+- Keep review documentation in the repository, not external files
+- Use clear severity labels (Low/Medium/High) for issues
+- Include specific examples and line references where helpful
+- Document any follow-up actions taken in response to the review
+
+**Example:**
+```markdown
+# Code Review - Feature Name
+
+## Date
+2025-11-18
+
+## Changes
+- Modified: Feature.lua
+- New: tests/feature_test.lua
+
+## Positive Aspects
+...
+
+## Issues & Recommendations
+...
+
+## Summary
+Overall Assessment: ✅ Approved
+```
+
 ## Pull Request Checklist
 - [ ] All affected docs updated (`README.md`, `CODING_STYLE.md`, ADRs, UI instructions, etc.).
 - [ ] Code reads as self-explanatory as possible (clear names/structures/constants instead of magic values); documentation added only where code cannot be made clear enough.
 - [ ] Tests exist for every new or changed behavior and the full suite passes locally.
 - [ ] Manual verification performed when the change affects TTS interactions or UI.
 - [ ] Commits tell a reviewable story (separate refactors from behavior changes when practical).
+- [ ] After each new code review, assess suggested improvements; implement beneficial recommendations promptly rather than deferring them indefinitely, and document rationale when choosing not to act.
+- [ ] Code review findings documented in `codereview.md`.
 
 Following this process keeps the mod safe to iterate on, makes regressions obvious, and ensures contributors can trust each other’s changes without rediscovering tribal knowledge.

@@ -9,6 +9,7 @@ local testFiles = {
     "tests.array_test",
     "tests.names_test",
     "tests.survivor_test",
+    "tests.savefile_decks_test",
 }
 
 for _, file in ipairs(testFiles) do
