@@ -12,10 +12,6 @@ return {
         ["Settlement Locations"] = "Gorm Settlement Locations",
     },
 
-    settlementEvents = {
-        "Gorm Climate",
-    },
-
     timelineEvents = {
         { year = 1, name = "The Approaching Storm", type = "RulebookEvent" },
     },

@@ -23,11 +23,6 @@ return {
         ["Seed Patterns"] = "Allison The Twilight Knight Seed Patterns",
     },
 
-    settlementEvents = {
-        "Training Day",
-        "Coming Of Age",
-    },
-
     replaceNemesis = { nemesis = "Watcher", replacement = "Allison Watcher" },
 
     terrain = {

@@ -107,13 +107,6 @@ return {
         },
         
     },
-
-    settlementEvents = {
-        "The Ground Hungers",
-        "Settlement Caravan",
-        "Harvested",
-    },
-
     timelineEvents = {
         { year = 2, name = "Hollow Grave", type = "RulebookEvent" },
     },

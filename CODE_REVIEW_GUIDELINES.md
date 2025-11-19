@@ -82,7 +82,7 @@ Module.Test = {
 ## Test Coverage for Changed Code
 
 ### All Changed Code Must Be Tested
-Every line of changed production code should have corresponding test coverage.
+Every line of changed production code should have corresponding test coverage. Cover the implementation details with unit tests and capture the user-visible intent with executable behavior/acceptance tests whenever a change affects functionality.
 
 **Example from this review:**
 - Initially, `Names.getName` parameter rename from `male` to `gender` changed production code.
@@ -96,12 +96,7 @@ Every line of changed production code should have corresponding test coverage.
 4. Check that all code paths in the change are exercised
 5. Verify callers are updated if the signature changed
 
-### Coverage Checklist
-- [ ] Changed function has unit tests
-- [ ] All code paths in changed functions are tested
-- [ ] Integration tests cover changed component interactions
-- [ ] Callers of changed APIs are tested
-- [ ] Edge cases are covered (nil, empty, boundary values)
+- [ ] Behavior/acceptance test documents user-facing changes or regression fixes
 
 ## Test Categories and Dependencies
 
@@ -236,6 +231,12 @@ end
 
 Use this checklist for every code review:
 
+### Diff Inspection
+- [ ] **Verify actual file content for suspected syntax errors** - Git diff output can contain formatting artifacts that look like syntax errors but aren't in the actual file
+- [ ] Look for stray characters like "m", "2m+", or other prefixes that may be diff line markers
+- [ ] When in doubt, view the actual file content directly rather than relying solely on diff output
+- [ ] Run syntax checks or tests to confirm the file is valid before reporting syntax errors
+
 ### Bug Prevention
 - [ ] Are there regression tests for any bugs that were fixed?
 - [ ] Do tests cover the bug scenario explicitly?
@@ -284,6 +285,11 @@ These guidelines should be applied at multiple stages:
 This document should evolve based on lessons learned from future code reviews. When you discover a pattern or issue not covered here, add it to maintain a living reference of best practices.
 
 ### Recent Updates
+
+**2025-11-18: Added Diff Inspection to Review Checklist**
+- Added section on verifying actual file content vs. diff artifacts
+- Git diff output can contain formatting artifacts (like "m", "2m+") that appear as syntax errors
+- Emphasized viewing actual files and running syntax checks before reporting errors
 
 **2025-11-18: Added Test Categories and Dependencies section**
 - Clarified when external test dependencies are appropriate (validation tests)

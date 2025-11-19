@@ -47,6 +47,13 @@ Key points:
 | UI Components | `Ui`, `GlobalUi`, `MessageBox`, `BattleUi`, `Rules`, `Bookmarks` | Low-level UI DSL plus composable panels and overlays. |
 | Tooling | `updateTTS.sh`, `restoreBackup.sh`, `template_workshop.json` | Bundle scripts, push backups, generate workshop template. |
 
+### Settlement Event Search
+- **Single source of truth**: The settlement event search trie is populated exclusively from the physical Settlement Events deck on the board. Expansion definitions no longer list settlement event names.
+- **Why**: keeps the UI in lockstep with the actual cards present in a campaign (including custom/remixed decks) and avoids keeping large hardcoded arrays synchronized with assets.
+- **Behavior**: if the deck is missing (or unreadable), settlement events simply disappear from search results until the deck is restored; other timeline events remain searchable.
+- **Flow**: `Timeline.RefreshSettlementEventSearchFromDeck()` inspects the deck (via `Container(deck):Objects()`), filters to cards whose `gm_notes` equals `"Settlement Events"`, derives a sorted name list, and feeds it into `Timeline.RebuildSearchTrie()`.
+- **Implications**: campaign import/export and deck setup must keep the Settlement Events deck accurate, because any edits (e.g., trashing cards) immediately affect the search UI.
+
 ## Infrastructure Highlights
 - **EventManager** intercepts TTS global callbacks (e.g., `onObjectDrop`) and fans them out to registered handlers while preserving original return values (`Util/EventManager.ttslua:25-56`). Synthetic enumerations (like `ON_PLAYER_SURVIVOR_LINKED`) let modules broadcast high-level intents without relying on raw TTS callbacks.
 - **Logging & debugging** use the module-scoped logger (`Log.ttslua:1-108`). Enabling debug output per module is done through the chat console (`>debug <module> on`).

@@ -6,6 +6,7 @@ This document defines the default workflow for making changes to the KDM TTS mod
 - **Baseline tests before edits** – confirm existing behavior has automated coverage (unit/integration). If coverage is missing for the code you are about to edit, add characterization tests that express the current behavior before changing logic.
 - **Protect regressions** – when a bug is reported, reproduce it in a failing test before touching implementation code. The test should prove the fix and guard against future regressions.
 - **Keep tests close to code** – place new specs in `tests/<area>_test.lua` and register them in `tests/run.lua` so they are part of the default `lua tests/run.lua` run.
+- **Executable behavior specs** – when work changes a user-visible behavior or acceptance criteria, add/refresh a high-level test (integration/behavior) that documents the intent (the “what”) alongside unit tests that cover “how.” This applies to feature additions, refactors that intentionally change UX, and bug fixes with customer-facing impact.
 
 ## Test-First Loop
 1. **Plan** – clarify the intent of the change (behavior, data shape, UI outcome) and note which modules are involved. Update or create ADRs/notes if the change affects architecture decisions.
@@ -16,9 +17,9 @@ This document defines the default workflow for making changes to the KDM TTS mod
 
 ## Code Review Documentation
 
-All code review findings must be documented in `codereview.md` at the repository root.
+All code review findings must be documented in `LATEST_REVIEW.md` at the repository root.
 
-**Important:** Each new review **replaces** the previous content—`codereview.md` always contains only the latest review.
+**Important:** Each new review **completely replaces** the previous content—`LATEST_REVIEW.md` always contains only the most recent review, never historical reviews.
 
 **Structure:**
 - Start with a header: `# Code Review - [Brief Description]`
@@ -27,7 +28,7 @@ All code review findings must be documented in `codereview.md` at the repository
 - Conclude with overall assessment and test results
 
 **Guidelines:**
-- **Do not create temporary files** for review summaries—always write to `codereview.md`
+- **Do not create temporary files** for review summaries—always write to `LATEST_REVIEW.md`
 - **Replace the entire file** with each new review; do not append
 - Keep review documentation in the repository, not external files
 - Use clear severity labels (Low/Medium/High) for issues
@@ -59,9 +60,10 @@ Overall Assessment: ✅ Approved
 - [ ] All affected docs updated (`README.md`, `CODING_STYLE.md`, ADRs, UI instructions, etc.).
 - [ ] Code reads as self-explanatory as possible (clear names/structures/constants instead of magic values); documentation added only where code cannot be made clear enough.
 - [ ] Tests exist for every new or changed behavior and the full suite passes locally.
+- [ ] Behavior/acceptance tests exist or were updated for any functional requirement changes.
 - [ ] Manual verification performed when the change affects TTS interactions or UI.
 - [ ] Commits tell a reviewable story (separate refactors from behavior changes when practical).
-- [ ] After each new code review, assess suggested improvements; implement beneficial recommendations promptly rather than deferring them indefinitely, and document rationale when choosing not to act.
-- [ ] Code review findings documented in `codereview.md`.
+- [ ] After each new code review, assess suggested improvements; implement beneficial recommendations promptly rather than deferring them indefinitely, and document rationale when choosing not to act. When a review identifies process/documentation gaps (e.g., missing guidance or ADRs), update the relevant documentation as part of addressing the review.
+- [ ] Code review findings documented in `LATEST_REVIEW.md`.
 
 Following this process keeps the mod safe to iterate on, makes regressions obvious, and ensures contributors can trust each other’s changes without rediscovering tribal knowledge.

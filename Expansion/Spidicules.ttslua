@@ -15,10 +15,6 @@ return {
         ["Rare Gear"] = "Spidicules Rare Gear",
     },
 
-    settlementEvents = {
-        "Silk Storm",
-    },
-
     timelineEvents = {
         { year = 2, name = "Young Rivals", type = "RulebookEvent" },
     },

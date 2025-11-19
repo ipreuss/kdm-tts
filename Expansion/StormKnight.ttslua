@@ -16,11 +16,6 @@ return {
         ["Armor Sets"] = "Michishio Armor",
     },
 
-    settlementEvents = {
-        "Wandering Master",
-        "Beats Of The Hammer",
-    },
-
     removeTimelineEvent = { year = 11, name = "Regal Visit" },
     replaceNemesis = { nemesis = "The Hand", replacement = "Storm Knight" },
     timelineEvents = {

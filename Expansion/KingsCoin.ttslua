@@ -26,11 +26,6 @@ return {
         --{ "Core Rules", "Rulebook" },
         }
     },
-
-    settlementEvents = {
-        "King's Merchant",
-    },
-
     terrain = {
         ["Shiny Somethings"] = { terrainTile = "Shiny Somethings", count = 1 },
         ["King's Merchant"] = { terrainTile = "King's Merchant", count = 1 },

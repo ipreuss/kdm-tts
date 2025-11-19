@@ -18,11 +18,6 @@ return {
 
     },
 
-    settlementEvents = {
-        "Morbid Fog Bank",
-        "Ghostly Carrion",
-    },
-
     timelineEvents = {
         { year = 8, name = "A Parade Of Ghosts", type = "RulebookEvent"  },
     },
