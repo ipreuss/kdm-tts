@@ -129,6 +129,10 @@ function Showdown.InitUi()
         end,
     })
 
+    if Showdown.monsterList.buttons and Showdown.monsterList.buttons[1] then
+        Showdown.SelectMonster(Showdown.monsterList.buttons[1])
+    end
+
     Showdown.panel:Button({ id = "Begin", x = 183, y = -345, width = 301, height = 60, onClick = function(mouseButton, player)
         if not Showdown.monster or not Showdown.level then
             return log:Broadcastf("Please select a monster and level")

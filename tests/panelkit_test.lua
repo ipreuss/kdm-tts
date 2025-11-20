@@ -95,3 +95,21 @@ Test.test("global dialog returns 'All' when ShowForPlayer is used", function(t)
     t:assertEqual("All", hideResult)
     t:assertFalse(dialog:IsOpen())
 end)
+
+Test.test("per-player dialog returns caller color and toggles open", function(t)
+    local dialog = PanelKit.Dialog({
+        id = "PlayerDialog",
+        width = 10,
+        height = 10,
+        ui = stubUi(),
+        perPlayer = true,
+    })
+
+    local result = dialog:ShowForPlayer({ color = "Blue" })
+    t:assertEqual("Blue", result)
+    t:assertTrue(dialog:IsOpen())
+
+    local hideResult = dialog:HideForPlayer({ color = "Blue" })
+    t:assertEqual("Blue", hideResult)
+    t:assertFalse(dialog:IsOpen())
+end)

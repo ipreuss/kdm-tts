@@ -99,6 +99,10 @@ function Hunt.Init()
         end
     })
 
+    if Hunt.monsterList.buttons and Hunt.monsterList.buttons[1] then
+        Hunt.SelectMonsterInternal(Hunt.monsterList.buttons[1])
+    end
+
     Hunt.panel:Button({ id = "Begin", x = 183, y = -345, width = 301, height = 60, onClick = function(mouseButton, player)
         if not Hunt.monster or not Hunt.level then
             log:Broadcastf("Please select a monster and level")

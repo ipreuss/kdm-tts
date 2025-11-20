@@ -13,6 +13,7 @@ This document defines the default workflow for making changes to the KDM TTS mod
 - **Produce a plan** – write down the proposed approach (touch points, test strategy, migration steps) alongside all assumptions and open questions that could influence the solution.
 - **Share before coding** – present that plan to the reviewer/requester and wait for explicit confirmation before touching production code. Only start implementation work after all blocking questions are answered or assumptions validated.
 - **Use debug logging when stuck** – when a TTS error is unclear (e.g., only visible in the in-game console), add targeted `log:Debugf(...)` statements near the failing code path to surface argument values and flow. This is often faster than guessing and helps pinpoint nils/missing callbacks during load.
+- **One role per chat (read-only git state)** – every chat is either implementing or reviewing, never both. Implementation chats: you may only read `LATEST_REVIEW.md` and apply agreed guidance; do not edit the review log or write to git state (no staging/commits). Review chats: you only author `LATEST_REVIEW.md` and review process docs; do not change code/other files and do not write to git state. Keep duties separate and avoid any git writes while in either role.
 
 ## Test-First Loop
 1. **Plan** – clarify the intent of the change (behavior, data shape, UI outcome) and note which modules are involved. Update or create ADRs/notes if the change affects architecture decisions.
