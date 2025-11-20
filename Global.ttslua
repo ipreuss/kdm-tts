@@ -33,15 +33,24 @@ local initialized = false
 ---------------------------------------------------------------------------------------------------
 
 function onSave()
-    local saveState = {
-        Campaign = Campaign.Save(),
-        Expansion = Expansion.Save(),
-        Monster = Monster.Save(),
-        Player = Player.Save(),
-        Survivor = Survivor.Save(),
-        Timeline = Timeline.Save(),
-        BattleUi = BattleUi.Save(),
-    }
+    local saveState = {}
+
+    local function try(label, fn)
+        local ok, result = pcall(fn)
+        if not ok then
+            log:Errorf("Save %s failed: %s", label, result)
+        else
+            saveState[label] = result
+        end
+    end
+
+    try("Campaign", Campaign.Save)
+    try("Expansion", Expansion.Save)
+    try("Monster", Monster.Save)
+    try("Player", Player.Save)
+    try("Survivor", Survivor.Save)
+    try("Timeline", Timeline.Save)
+    try("BattleUi", BattleUi.Save)
 
     return JSON.encode(saveState)
 end
@@ -52,47 +61,54 @@ function onLoad(saveJson)
     local saveState = JSON.decode(saveJson) or {}
     initialized = false
 
+    local function initStep(label, fn)
+        local ok, err = pcall(fn)
+        if not ok then
+            log:Errorf("Init %s failed: %s", label, err)
+        end
+    end
+
     -- Init() = everything before the UI is first rendered (includes UI setup)
     --
-    Console.Init()
-    Expansion.Init(saveState.Expansion or {})
+    initStep("Console", Console.Init)
+    initStep("Expansion", function() Expansion.Init(saveState.Expansion or {}) end)
     --
-    Log.Init()
+    initStep("Log", Log.Init)
     log:Printf("Meï's Kingdom Death: Monster Mod v%s", KDM_VERSION)
     log:Printf("This mod is a fork of Misterslack's and Farbod's mods. Check'em out!")
     --
-    Gear.Init()
-    Armor.Init()
-    NamedObject.Init()
-    Terrain.Init()
-    Ui.Init()
-    Weapon.Init()
+    initStep("Gear", Gear.Init)
+    initStep("Armor", Armor.Init)
+    initStep("NamedObject", NamedObject.Init)
+    initStep("Terrain", Terrain.Init)
+    initStep("Ui", Ui.Init)
+    initStep("Weapon", Weapon.Init)
     --
-    Archive.Init()
-    Location.Init()
+    initStep("Archive", Archive.Init)
+    initStep("Location", Location.Init)
     --
-    Deck.Init()
-    Hunt.Init()
-    Monster.Init(saveState.Monster or {})
-    Rules.Init()
-    Settlement.Init()
+    initStep("Deck", Deck.Init)
+    initStep("Hunt", Hunt.Init)
+    initStep("Monster", function() Monster.Init(saveState.Monster or {}) end)
+    initStep("Rules", Rules.Init)
+    initStep("Settlement", Settlement.Init)
     --
-    Survivor.Init(saveState.Survivor or {})
+    initStep("Survivor", function() Survivor.Init(saveState.Survivor or {}) end)
     --
-    Player.Init(saveState.Player or {})
+    initStep("Player", function() Player.Init(saveState.Player or {}) end)
     --
-    Showdown.Init()
-    BattleUi.Init(saveState.BattleUi or {})
+    initStep("Showdown", Showdown.Init)
+    initStep("BattleUi", function() BattleUi.Init(saveState.BattleUi or {}) end)
     --
-    GlobalUi.Init()
-    Timeline.Init(saveState.Timeline or {})
+    initStep("GlobalUi", GlobalUi.Init)
+    initStep("Timeline", function() Timeline.Init(saveState.Timeline or {}) end)
     --
-    Campaign.Init(saveState.Campaign or {})
+    initStep("Campaign", function() Campaign.Init(saveState.Campaign or {}) end)
     --
-    MilestoneBoard.Init()
+    initStep("MilestoneBoard", MilestoneBoard.Init)
     -- mad sketchy that initialization order for MessageBox doesn't match include order, but this must be *after* all 2d UIs since we want this to display *over*
     -- all other 2d UIs, and 2d UI display order is solely based on the order of the XML elements (last is on top of everything else)
-    MessageBox.Init()
+    initStep("MessageBox", MessageBox.Init)
 
     Ui.Get2d():ApplyToObject()
 

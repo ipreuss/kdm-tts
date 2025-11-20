@@ -19,6 +19,7 @@ local Timeline = require("Kdm/Timeline")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
 local Trash = require("Kdm/Trash")
+local PanelKit = require("Kdm/Ui/PanelKit")
 
 -------------------------------------------------------------------------------------------------
 
@@ -95,19 +96,26 @@ end
 
 function Campaign.InitCampaignUi()
     log:Debugf("Initializing campaign UI")
-    local panel = Ui.Get2d():Panel({ id = "Campaign", rectAlignment = "MiddleCenter", x = 0, y = 0, width = 885, height = 723, active = false })
-    Campaign.panel = panel
-    panel:Image({ id = "Campaign", image = "Campaign", x = 0, y = 0, width = 885, height = 723 })
-    panel:Button({
-        id = "Close",
-        x = 845,
-        y = -10,
-        width = 30,
-        height = 30,
-        onClick = function(mouseButton, player)
-            Campaign.HideUi(player)
-        end
+    local dialog = PanelKit.Dialog({
+        id = "Campaign",
+        ui = Ui.Get2d(),
+        rectAlignment = "MiddleCenter",
+        width = 885,
+        height = 723,
+        image = "Campaign",
+        closeButton = {
+            x = 845,
+            y = -10,
+            width = 30,
+            height = 30,
+            onClick = function(mouseButton, player)
+                Campaign.HideUi(player)
+            end
+        },
     })
+    Campaign.dialog = dialog
+    local panel = dialog:Panel()
+    Campaign.panel = panel
     Campaign.selectedCampaign = Campaign.campaigns[1]
     local x = 20
     local y = -30
@@ -1124,10 +1132,10 @@ end
 function Campaign.ShowUi(player)
     log:Debugf("Showing Campaign UI for " .. player.steam_name)
 
-    local str = Campaign.panel:ShowForPlayer(player.color)
+    local str = Campaign.dialog:ShowForPlayer(player)
 
     if str == player.color then
-        Campaign.uiOpen = true
+        log:Debugf("Campaign UI now visible for %s", player.color)
     else
         log:Errorf(str .. " is already looking at the Campaign UI", player.steam_name, player.color)
     end
@@ -1138,10 +1146,10 @@ end
 function Campaign.HideUi(player)
     log:Debugf("Hiding Campaign UI for " .. player.steam_name)
 
-    local str = Campaign.panel:HideForPlayer(player.color)
+    local str = Campaign.dialog:HideForPlayer(player)
 
     if str == "None" or str == player.color then
-        Campaign.uiOpen = false
+        log:Debugf("Campaign UI closed for %s", player.color)
     else
         log:Errorf(str .. " is already looking at the Campaign UI", player.steam_name, player.color)
     end
@@ -1151,14 +1159,13 @@ end
 
 function Campaign.HideUiForAll()
     log:Debugf("Hiding Campaign UI for all")
-    Campaign.panel:Hide()
-    Campaign.uiOpen = false
+    Campaign.dialog:HideForAll()
 end
 
 ---------------------------------------------------------------------------------------------------
 
 function Campaign.IsUiOpen()
-    return Campaign.uiOpen
+    return Campaign.dialog:IsOpen()
 end
 
 ---------------------------------------------------------------------------------------------------

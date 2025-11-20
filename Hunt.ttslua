@@ -9,6 +9,7 @@ local Trash = require("Kdm/Trash")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
 local Survivor = require("Kdm/Survivor")
+local PanelKit = require("Kdm/Ui/PanelKit")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -50,41 +51,55 @@ function Hunt.Init()
 
     -----------------------------------------------------------------------------------------------
 
-    Hunt.uiOpen = false
+    local dialog = PanelKit.Dialog({
+        id = "Hunt",
+        ui = Ui.Get2d(),
+        rectAlignment = "MiddleCenter",
+        width = 667,
+        height = 632,
+        image = "Hunt",
+        closeButton = { x = 627, y = -10, width = 30, height = 30 },
+    })
+    Hunt.dialog = dialog
+    Hunt.panel = dialog:Panel()
 
-    local ui = Ui.Get2d()
+    Hunt.monsterList = PanelKit.OptionList({
+        parent = Hunt.panel,
+        id = "Monster",
+        x = 20 + 3,
+        y = -(109 + 3),
+        width = 306 - 6,
+        height = 216 - 6,
+        contentWidth = 280,
+        itemHeight = 30,
+        fontSize = 16,
+        textAlignment = "MiddleLeft",
+        onClick = Hunt.SelectMonsterInternal,
+    })
+    Hunt.monsterList:SetOptions(Util.Map(Hunt.monsters, function(monster)
+        return { text = monster.name, value = monster }
+    end))
 
-    local panel = ui:Panel({ id = "Hunt", rectAlignment = "MiddleCenter", x = 0, y = 0, width = 667, height = 632, active = false })
-    Hunt.panel = panel
-    panel:Image({ id = "Hunt", image = "Hunt", x = 0, y = 0, width = 667, height = 632 })
+    Hunt.levelList = PanelKit.OptionList({
+        parent = Hunt.panel,
+        id = "Level",
+        x = 341 + 3,
+        y = -(109 + 3),
+        width = 306 - 6,
+        height = 216 - 6,
+        contentWidth = 300,
+        itemHeight = 30,
+        fontSize = 16,
+        textAlignment = "MiddleLeft",
+        onClick = function(option)
+            local level = option:OptionValue()
+            log:Debugf("Selected %s, %s", Hunt.monster.name, level.name)
+            Hunt.level = level
+            option:Select()
+        end
+    })
 
-    panel:Button({ id = "Close", x = 627, y = -10, width = 30, height = 30, onClick = function(mouseButton, player) Hunt.HideUi(player) end })
-
-    local monsterScroll = panel:VerticalScroll({ id = "V", x = 20+3, y = -(109+3), width = 306-6, height = 216-6 })
-    local monsterPanel = monsterScroll:Panel({ id = "Monster", x = 0, y = 0, width = 280, height = #Hunt.monsters * 30 })
-    Hunt.monsterButtonGroup = monsterPanel:OptionButtonGroup({ id = "Monster", textAlignment = "MiddleLeft", fontSize = 16, onClick = Hunt.SelectMonsterInternal })
-    Hunt.monsterOptionButtons = {}
-    local y = 0
-    for i, monster in ipairs(Hunt.monsters) do
-        Hunt.monsterOptionButtons[monster.name] = Hunt.monsterButtonGroup:OptionButton({ x = 0, y = y, width = 280, height = 30, text = monster.name, optionValue = monster })
-        y = y - 30
-    end
-
-    local levelPanel = panel:Panel({ id = "Level", x = 341+3, y = -(109+3), width = 306-6, height = 216-6 })
-    Hunt.levelButtonGroup = levelPanel:OptionButtonGroup({ id = "Level", textAlignment = "MiddleLeft", fontSize = 16, onClick = function(option)
-        local level = option:OptionValue()
-        log:Debugf("Selected %s, %s", Hunt.monster.name, level.name)
-        Hunt.level = level
-        option:Select()
-    end })
-    Hunt.levelOptionButtons = {}
-    local y = 0
-    for i = 1, 7 do
-        Hunt.levelOptionButtons[i] = Hunt.levelButtonGroup:OptionButton({ x = 0, y = y, width = 300, height = 30, active = false })
-        y = y - 30
-    end
-
-    panel:Button({ id = "Begin", x = 183, y = -345, width = 301, height = 60, onClick = function(mouseButton, player)
+    Hunt.panel:Button({ id = "Begin", x = 183, y = -345, width = 301, height = 60, onClick = function(mouseButton, player)
         if not Hunt.monster or not Hunt.level then
             log:Broadcastf("Please select a monster and level")
             return
@@ -104,7 +119,7 @@ function Hunt.Init()
         Hunt.Setup(Hunt.monster, Hunt.level)
     end })
 
-    panel:Button({ id = "Cleanup", x = 183, y = -552, width = 301, height = 60, onClick = function(mouseButton, player)
+    Hunt.panel:Button({ id = "Cleanup", x = 183, y = -552, width = 301, height = 60, onClick = function(mouseButton, player)
         log:Debugf("Cleanup hunt clicked")
         Hunt.Clean()
         Hunt.HideUi(player)
@@ -273,10 +288,10 @@ end
 function Hunt.ShowUi(player)
     log:Debugf("Showing Hunt UI for " .. player.steam_name)
 
-    local str = Hunt.panel:ShowForPlayer(player.color)
+    local str = Hunt.dialog:ShowForPlayer(player)
 
     if str == player.color then
-        Hunt.uiOpen = true
+        log:Debugf("Hunt UI now visible for %s", player.color)
     else
         log:Errorf(str .. " is already looking at the Hunt UI", player.steam_name, player.color)
     end
@@ -285,17 +300,17 @@ end
 function Hunt.HideUi(player)
     log:Debugf("Hiding Hunt UI for " .. player.steam_name)
 
-    local str = Hunt.panel:HideForPlayer(player.color)
+    local str = Hunt.dialog:HideForPlayer(player)
 
     if str == "None" or str == player.color then
-        Hunt.uiOpen = false
+        log:Debugf("Hunt UI closed for %s", player.color)
     else
         log:Errorf(str .. " is already looking at the Hunt UI", player.steam_name, player.color)
     end
 end
 
 function Hunt.IsUiOpen()
-    return Hunt.uiOpen
+    return Hunt.dialog:IsOpen()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -305,24 +320,19 @@ function Hunt.SelectMonsterInternal(option)
     log:Debugf("Selected %s", monster.name)
     Hunt.monster = monster
 
+    local levelOptions = {}
     for i, level in ipairs(monster.levels) do
-        local levelOptionButton = Hunt.levelOptionButtons[i]
-        levelOptionButton:Show()
-        levelOptionButton:SetOptionValue(level)
-        levelOptionButton:SetText(level.name)
+        levelOptions[i] = {
+            text = level.name,
+            value = level,
+            selected = (i == 1),
+        }
     end
-
-    for i = #monster.levels + 1, 7 do
-        local levelOptionButton = Hunt.levelOptionButtons[i]
-        levelOptionButton:SetText(nil)
-        levelOptionButton:SetOptionValue(nil)
-        levelOptionButton:Hide()
-    end
+    Hunt.levelList:SetOptions(levelOptions)
 
     option:Select()
 
-    Hunt.level = Hunt.levelOptionButtons[1]:OptionValue()
-    Hunt.levelOptionButtons[1]:Select()
+    Hunt.level = monster.levels[1]
 end
 
 ---------------------------------------------------------------------------------------------------

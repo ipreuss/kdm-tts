@@ -11,6 +11,7 @@ local Showdown = require("Kdm/Showdown")
 local Trie = require("Kdm/Util/Trie")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
+local PanelKit = require("Kdm/Ui/PanelKit")
 
 
 -------------------------------------------------------------------------------------------------
@@ -341,15 +342,30 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Timeline.InitUi()
-    Timeline.uiOpen = false
-
     local ui = Ui.Get2d()
-    local panel = ui:Panel({ id = "Timeline", rectAlignment = "MiddleCenter", x = 0, y = 0, width = 1600, height = 935, active = Timeline.uiOpen })
+    local dialog = PanelKit.Dialog({
+        id = "Timeline",
+        ui = ui,
+        rectAlignment = "MiddleCenter",
+        width = 1600,
+        height = 935,
+        image = "Settlement",
+        perPlayer = false,
+        closeButton = {
+            id = "Close",
+            x = 1570,
+            y = 0,
+            width = 30,
+            height = 30,
+            onClick = function(mouseButton, player)
+                Timeline.HideUiForAll()
+            end
+        }
+    })
+    Timeline.dialog = dialog
+
+    local panel = dialog:Panel()
     Timeline.panel = panel
-    panel:Image({ id = "Timeline", image = "Settlement", x = 0, y = 0, width = 1600, height = 935 })
-    panel:Button({ id = "Close", x = 1570, y = 0,  width = 30, height = 30, onClick = function(mouseButton, player)
-        Timeline.HideUiForAll()
-    end })
     Timeline.settlementNameInput = panel:Input({ id = "SettlementName", x = 198, y = -45, width = 482, height = 40, fontSize = 24, onValueChanged = function(value)
         log:Debugf("Setting settlement name to %s", value)
         Timeline.settlementName = value
@@ -686,13 +702,8 @@ end
 function Timeline.ShowUi(player)
     log:Debugf("Showing settlement UI for ".. player.steam_name)
 
-    local str = Timeline.panel:ShowForPlayer(player.color)
-
-    if str == player.color then
-        Timeline.uiOpen = true
-    else
-        log:Errorf(str .. " is already looking at the Settlement UI", player.steam_name, player.color)
-    end
+    Timeline.dialog:ShowForAll()
+    log:Debugf("Timeline UI now visible (requested by %s)", player.color)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -700,33 +711,26 @@ end
 function Timeline.HideUi(player)
     log:Debugf("Hiding settlement UI for " .. player.steam_name)
 
-    local str = Timeline.panel:HideForPlayer(player.color)
-
-    if str == "None" or str == player.color then
-        Timeline.uiOpen = false
-    else
-        log:Errorf(str .. " is already looking at the Settlement UI", player.steam_name, player.color)
-    end
+    Timeline.dialog:HideForAll()
+    log:Debugf("Timeline UI closed (requested by %s)", player.color)
 end
 
 ---------------------------------------------------------------------------------------------------
 
 function Timeline.ShowUiForAll()
     log:Debugf("Showing Timeline UI for all")
-    Timeline.panel:Show()
-    Timeline.uiOpen = true
+    Timeline.dialog:ShowForAll()
 end
 
 function Timeline.HideUiForAll()
     log:Debugf("Hiding Timeline UI for all")
-    Timeline.panel:Hide()
-    Timeline.uiOpen = false
+    Timeline.dialog:HideForAll()
 end
 
 ---------------------------------------------------------------------------------------------------
 
 function Timeline.IsUiOpen()
-    return Timeline.uiOpen
+    return Timeline.dialog:IsOpen()
 end
 
 ---------------------------------------------------------------------------------------------------

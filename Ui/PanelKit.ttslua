@@ -1,0 +1,247 @@
+local Check = require("Kdm/Util/Check")
+local Ui = require("Kdm/Ui")
+
+---------------------------------------------------------------------------------------------------
+
+local PanelKit = {}
+
+---------------------------------------------------------------------------------------------------
+-- Dialog helpers ------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+
+function PanelKit.Dialog(params)
+    assert(Check.Str(params.id))
+    assert(Check.Num(params.width))
+    assert(Check.Num(params.height))
+
+    local ui = params.ui or Ui.Get2d()
+    local panel = ui:Panel({
+        id = params.id,
+        rectAlignment = params.rectAlignment or "MiddleCenter",
+        x = params.x or 0,
+        y = params.y or 0,
+        width = params.width,
+        height = params.height,
+        active = params.active or false,
+        color = params.color,
+    })
+
+    if params.image then
+        panel:Image({
+            id = params.id,
+            image = params.image,
+            x = 0,
+            y = 0,
+            width = params.width,
+            height = params.height,
+        })
+    end
+
+    local dialog = {
+        id = params.id,
+        panel = panel,
+        uiOpen = params.active or false,
+        perPlayer = params.perPlayer ~= false,
+        onShow = params.onShow,
+        onHide = params.onHide,
+    }
+
+    if params.closeButton ~= false then
+        local close = params.closeButton or {}
+        panel:Button({
+            id = close.id or "Close",
+            x = close.x or (params.width / 2 - 20),
+            y = close.y or (params.height / 2 - 20),
+            width = close.width or 30,
+            height = close.height or 30,
+            onClick = close.onClick or function(mouseButton, player)
+                if dialog.perPlayer then
+                    dialog:HideForPlayer(player)
+                else
+                    dialog:HideForAll()
+                end
+            end
+        })
+    end
+
+    function dialog:Panel()
+        return self.panel
+    end
+
+    function dialog:ShowForPlayer(playerOrColor)
+        if not self.perPlayer then
+            self:ShowForAll()
+            return "All"
+        end
+
+        local color = type(playerOrColor) == "string" and playerOrColor or playerOrColor.color
+        local result = self.panel:ShowForPlayer(color)
+        if result == color then
+            self.uiOpen = true
+            if self.onShow then
+                self.onShow(playerOrColor)
+            end
+        end
+        return result
+    end
+
+    function dialog:HideForPlayer(playerOrColor)
+        if not self.perPlayer then
+            self:HideForAll()
+            return "All"
+        end
+
+        local color = type(playerOrColor) == "string" and playerOrColor or playerOrColor.color
+        local result = self.panel:HideForPlayer(color)
+        if result == "None" or result == color then
+            self.uiOpen = false
+            if self.onHide then
+                self.onHide(playerOrColor)
+            end
+        end
+        return result
+    end
+
+    function dialog:ShowForAll()
+        self.panel:Show()
+        self.uiOpen = true
+        if self.onShow then
+            self.onShow()
+        end
+    end
+
+    function dialog:HideForAll()
+        self.panel:Hide()
+        self.uiOpen = false
+        if self.onHide then
+            self.onHide()
+        end
+    end
+
+    function dialog:IsOpen()
+        return self.uiOpen
+    end
+
+    return dialog
+end
+
+---------------------------------------------------------------------------------------------------
+-- Option list helpers --------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+
+local function createOptionListContainer(params)
+    if params.scroll == false then
+        return params.parent:Panel({
+            id = params.id .. "Container",
+            x = params.x or 0,
+            y = params.y or 0,
+            width = params.width,
+            height = params.height,
+            color = params.color,
+        })
+    end
+
+    return params.parent:VerticalScroll({
+        id = params.id .. "Scroll",
+        x = params.x or 0,
+        y = params.y or 0,
+        width = params.width,
+        height = params.height,
+        color = params.color,
+    })
+end
+
+function PanelKit.OptionList(params)
+    assert(Check.Table(params.parent))
+    assert(Check.Str(params.id))
+    assert(Check.Num(params.width))
+    assert(Check.Num(params.height))
+
+    local itemHeight = params.itemHeight or 30
+    local container = createOptionListContainer(params)
+    local contentWidth = params.contentWidth or params.width
+
+    local panel = container:Panel({
+        id = params.id .. "Panel",
+        x = 0,
+        y = 0,
+        width = contentWidth,
+        height = 0,
+    })
+
+    local group = panel:OptionButtonGroup({
+        id = params.id,
+        textAlignment = params.textAlignment or "MiddleCenter",
+        fontSize = params.fontSize or 14,
+        onClick = function(option)
+            if params.onClick then
+                params.onClick(option)
+            end
+        end,
+        selectedColors = params.selectedColors,
+        unselectedColors = params.unselectedColors,
+        textColor = params.textColor,
+    })
+
+    local list = {
+        itemHeight = itemHeight,
+        panel = panel,
+        group = group,
+        buttons = {},
+        width = params.itemWidth or contentWidth,
+    }
+
+    function list:SetOptions(options)
+        local y = 0
+        for i, option in ipairs(options) do
+            local button = self.buttons[i]
+            if not button then
+                button = self.group:OptionButton({
+                    x = 0,
+                    y = y,
+                    width = self.width,
+                    height = self.itemHeight,
+                    text = option.text or "",
+                    optionValue = option.value,
+                    selected = option.selected,
+                    active = option.active ~= false,
+                })
+                self.buttons[i] = button
+            else
+                button:SetText(option.text or "")
+                button:SetOptionValue(option.value)
+                if option.active == false then
+                    button:SetAttribute("active", "boolean", false)
+                else
+                    button:SetAttribute("active", "boolean", true)
+                    button:Show()
+                end
+            end
+
+            if option.selected then
+                button:Select()
+            end
+
+            y = y - self.itemHeight
+        end
+
+        for j = #options + 1, #self.buttons do
+            self.buttons[j]:Hide()
+        end
+
+        self.panel:SetHeight(#options * self.itemHeight)
+    end
+
+    function list:Clear()
+        self.panel:SetHeight(0)
+        for _, button in ipairs(self.buttons) do
+            button:Hide()
+        end
+    end
+
+    return list
+end
+
+---------------------------------------------------------------------------------------------------
+
+return PanelKit

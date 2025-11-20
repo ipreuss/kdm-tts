@@ -12,6 +12,7 @@ This document defines the default workflow for making changes to the KDM TTS mod
 - **Research first** – when a new implementation task arrives, pause coding and investigate existing behavior, architecture notes, and related files/tests so the forthcoming plan is grounded in facts rather than assumptions.
 - **Produce a plan** – write down the proposed approach (touch points, test strategy, migration steps) alongside all assumptions and open questions that could influence the solution.
 - **Share before coding** – present that plan to the reviewer/requester and wait for explicit confirmation before touching production code. Only start implementation work after all blocking questions are answered or assumptions validated.
+- **Use debug logging when stuck** – when a TTS error is unclear (e.g., only visible in the in-game console), add targeted `log:Debugf(...)` statements near the failing code path to surface argument values and flow. This is often faster than guessing and helps pinpoint nils/missing callbacks during load.
 
 ## Test-First Loop
 1. **Plan** – clarify the intent of the change (behavior, data shape, UI outcome) and note which modules are involved. Update or create ADRs/notes if the change affects architecture decisions.
@@ -25,6 +26,8 @@ This document defines the default workflow for making changes to the KDM TTS mod
 All code review findings must be documented in `LATEST_REVIEW.md` at the repository root.
 
 **Important:** Each new review **completely replaces** the previous content—`LATEST_REVIEW.md` always contains only the most recent review, never historical reviews.
+
+**Reviewer responsibility:** At the end of every review (even informal ones), update and replace `LATEST_REVIEW.md` yourself—do not defer to others or leave TODOs. Treat the file update as part of “done” for the review.
 
 **Structure:**
 - Start with a header: `# Code Review - [Brief Description]`

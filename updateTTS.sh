@@ -28,11 +28,12 @@ luabundler bundle kdm/Global.ttslua \
 -p "?.ttslua" \
 -o bundle.lua
 
-luasrcdiet bundle.lua -o compressed.lua --basic
+# luasrcdiet bundle.lua -o compressed.lua --basic
 
 # JSON-encode bundle.lua
 echo "JSON-encoding..."
-jq -Rs . compressed.lua > bundle.json
+# jq -Rs . compressed.lua > bundle.json
+jq -Rs . bundle.lua > bundle.json
 
 echo "Inserting LuaScript..."
 jq --slurpfile luascript bundle.json '.LuaScript = $luascript[0]' "kdm/$templatefile" > "$savefile"

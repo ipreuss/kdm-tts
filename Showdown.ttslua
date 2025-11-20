@@ -15,6 +15,7 @@ local Terrain = require("Kdm/Terrain")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
 local Survivor = require("Kdm/Survivor")
+local PanelKit = require("Kdm/Ui/PanelKit")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -80,39 +81,55 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Showdown.InitUi()
-    Showdown.uiOpen = false
-    local ui = Ui.Get2d()
-    local panel = ui:Panel({ id = "Showdown", rectAlignment = "MiddleCenter", x = 0, y = 0, width = 667, height = 632, active = false })
-    Showdown.panel = panel
-    panel:Image({ id = "Showdown", image = "Showdown", x = 0, y = 0, width = 667, height = 632 })
-    panel:Button({ id = "Close", x = 627, y = -10, width = 30, height = 30, onClick = function(mouseButton, player) Showdown.HideUi(player) end })
-    local monsterScroll = panel:VerticalScroll({ id = "V", x = 20+3, y = -(109+3), width = 306-6, height = 216-6 })
-    local monsterPanel = monsterScroll:Panel({ id = "Monster", x = 0, y = 0, width = 280, height = #Showdown.monsters * 30 })
-    Showdown.monsterButtonGroup = monsterPanel:OptionButtonGroup({ id = "Monster", textAlignment = "MiddleLeft", fontSize = 16, onClick = Showdown.SelectMonster })
-    Showdown.monsterOptionButtons = {}
-    local y = 0
-    for _, monster in ipairs(Showdown.monsters) do
-        Showdown.monsterOptionButtons[monster.name] = Showdown.monsterButtonGroup:OptionButton({x = 0, y = y, width = 280, height = 30, text = monster.name, optionValue = monster })
-        y = y - 30
-    end
+    local dialog = PanelKit.Dialog({
+        id = "Showdown",
+        ui = Ui.Get2d(),
+        rectAlignment = "MiddleCenter",
+        width = 667,
+        height = 632,
+        image = "Showdown",
+        closeButton = { x = 627, y = -10, width = 30, height = 30 },
+    })
+    Showdown.dialog = dialog
+    Showdown.panel = dialog:Panel()
 
-    local levelScroll = panel:VerticalScroll({ id = "LevelScroll", x = 341+3, y = -(109+3), width = 306-6, height = 216-6 })
-    local levelPanel = levelScroll:Panel({ id = "Level", x = 0, y = 0, width = 280, height = Showdown.MAX_MONSTER_LEVEL_COUNT * 30 })
+    Showdown.monsterList = PanelKit.OptionList({
+        parent = Showdown.panel,
+        id = "Monster",
+        x = 20 + 3,
+        y = -(109 + 3),
+        width = 306 - 6,
+        height = 216 - 6,
+        contentWidth = 280,
+        itemHeight = 30,
+        fontSize = 16,
+        textAlignment = "MiddleLeft",
+        onClick = Showdown.SelectMonster,
+    })
+    Showdown.monsterList:SetOptions(Util.Map(Showdown.monsters, function(monster)
+        return { text = monster.name, value = monster }
+    end))
 
-    Showdown.levelButtonGroup = levelPanel:OptionButtonGroup({ id = "Level", textAlignment = "MiddleLeft", fontSize = 16, onClick = function(option)
-        local level = option:OptionValue()
-        log:Debugf("Selected %s, %s", Showdown.monster.name, level.name)
-        Showdown.level = level
-        option:Select()
-    end  })
-    Showdown.levelOptionButtons = {}
-    local y = 0
-    for i = 1, Showdown.MAX_MONSTER_LEVEL_COUNT do
-        Showdown.levelOptionButtons[i] = Showdown.levelButtonGroup:OptionButton({ x = 0, y = y, width = 300, height = 30, active = false })
-        y = y - 30
-    end
+    Showdown.levelList = PanelKit.OptionList({
+        parent = Showdown.panel,
+        id = "Level",
+        x = 341 + 3,
+        y = -(109 + 3),
+        width = 306 - 6,
+        height = 216 - 6,
+        contentWidth = 300,
+        itemHeight = 30,
+        fontSize = 16,
+        textAlignment = "MiddleLeft",
+        onClick = function(option)
+            local level = option:OptionValue()
+            log:Debugf("Selected %s, %s", Showdown.monster.name, level.name)
+            Showdown.level = level
+            option:Select()
+        end,
+    })
 
-    panel:Button({ id = "Begin", x = 183, y = -345, width = 301, height = 60, onClick = function(mouseButton, player)
+    Showdown.panel:Button({ id = "Begin", x = 183, y = -345, width = 301, height = 60, onClick = function(mouseButton, player)
         if not Showdown.monster or not Showdown.level then
             return log:Broadcastf("Please select a monster and level")
         end
@@ -130,7 +147,7 @@ function Showdown.InitUi()
         Showdown.Setup(Showdown.monster, Showdown.level)
     end })
 
-    panel:Button({ id = "Clean", x = 183, y = -552, width = 301, height = 60, onClick = function(mouseButton, player)
+    Showdown.panel:Button({ id = "Clean", x = 183, y = -552, width = 301, height = 60, onClick = function(mouseButton, player)
         log:Debugf("Clean showdown clicked")
         Showdown.Clean()
         Showdown.HideUi(player)
@@ -179,10 +196,10 @@ end
 function Showdown.ShowUi(player)
     log:Debugf("Showing showdown UI for ".. player.steam_name)
 
-    local str = Showdown.panel:ShowForPlayer(player.color)
+    local str = Showdown.dialog:ShowForPlayer(player)
 
     if str == player.color then
-        Showdown.uiOpen = true
+        log:Debugf("Showdown UI now visible for %s", player.color)
     else
         log:Errorf(str .. "is already looking at the Showdown UI", player.steam_name, player.color)
     end
@@ -191,17 +208,17 @@ end
 function Showdown.HideUi(player)
     log:Debugf("Hiding showdown UI for ".. player.steam_name)
 
-    local str = Showdown.panel:HideForPlayer(player.color)
+    local str = Showdown.dialog:HideForPlayer(player)
 
     if str == "None" or str == player.color then
-        Showdown.uiOpen = false
+        log:Debugf("Showdown UI closed for %s", player.color)
     else
         log:Errorf(str .. "is already looking at the Showdown UI", player.steam_name, player.color)
     end
 end
 
 function Showdown.IsUiOpen()
-    return Showdown.uiOpen
+    return Showdown.dialog:IsOpen()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -210,25 +227,20 @@ function Showdown.SelectMonster(option)
     local monster = option:OptionValue()
     log:Debugf("Selected %s", monster.name)
     Showdown.monster = monster
-    assert(Check(#monster.levels <= #Showdown.levelOptionButtons, "Too many levels for monster %s: %d", monster.name, #monster.levels))
+    local levelOptions = {}
     for i, level in ipairs(monster.levels) do
-        local levelOptionButton = Showdown.levelOptionButtons[i]
-        levelOptionButton:Show()
-        levelOptionButton:SetOptionValue(level)
-        levelOptionButton:SetText(level.name)
+        levelOptions[i] = {
+            text = level.name,
+            value = level,
+            selected = (i == 1),
+        }
     end
-
-    for i = #monster.levels + 1, #Showdown.levelOptionButtons do
-        local levelOptionButton = Showdown.levelOptionButtons[i]
-        levelOptionButton:SetText(nil)
-        levelOptionButton:SetOptionValue(nil)
-        levelOptionButton:Hide()
-    end
+    assert(Check(#levelOptions <= Showdown.MAX_MONSTER_LEVEL_COUNT, "Too many levels for monster %s: %d", monster.name, #levelOptions))
+    Showdown.levelList:SetOptions(levelOptions)
 
     option:Select()
 
-    Showdown.level = Showdown.levelOptionButtons[1]:OptionValue()
-    Showdown.levelOptionButtons[1]:Select()
+    Showdown.level = monster.levels[1]
     log:Debugf("End of SelectMonster")
 end
 
