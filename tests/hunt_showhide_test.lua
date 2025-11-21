@@ -52,8 +52,11 @@ Test.test("Hunt ShowUi/HideUi delegate to dialog per-player", function(t)
         }
         package.loaded["Kdm/Ui/PanelKit"] = {
             Dialog = function() return dialogStub end,
-            OptionList = function()
-                return { SetOptions = function() end }
+            OptionList = function() return { SetOptions = function() end } end,
+            ScrollSelector = function()
+                return {
+                    SetOptionsWithDefault = function() end,
+                }
             end,
         }
 
@@ -66,4 +69,3 @@ Test.test("Hunt ShowUi/HideUi delegate to dialog per-player", function(t)
         t:assertEqual(1, dialogCalls.hide)
     end)
 end)
-

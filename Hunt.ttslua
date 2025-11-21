@@ -63,7 +63,7 @@ function Hunt.Init()
     Hunt.dialog = dialog
     Hunt.panel = dialog:Panel()
 
-    Hunt.monsterList = PanelKit.OptionList({
+    Hunt.monsterList = PanelKit.ScrollSelector({
         parent = Hunt.panel,
         id = "Monster",
         x = 20 + 3,
@@ -74,13 +74,13 @@ function Hunt.Init()
         itemHeight = 30,
         fontSize = 16,
         textAlignment = "MiddleLeft",
-        onClick = Hunt.SelectMonsterInternal,
+        onSelect = function(_, option)
+            if option then
+                Hunt.SelectMonsterInternal(option)
+            end
+        end,
     })
-    Hunt.monsterList:SetOptions(Util.Map(Hunt.monsters, function(monster)
-        return { text = monster.name, value = monster }
-    end))
-
-    Hunt.levelList = PanelKit.OptionList({
+    Hunt.levelList = PanelKit.ScrollSelector({
         parent = Hunt.panel,
         id = "Level",
         x = 341 + 3,
@@ -91,17 +91,17 @@ function Hunt.Init()
         itemHeight = 30,
         fontSize = 16,
         textAlignment = "MiddleLeft",
-        onClick = function(option)
-            local level = option:OptionValue()
-            log:Debugf("Selected %s, %s", Hunt.monster.name, level.name)
-            Hunt.level = level
-            option:Select()
+        onSelect = function(level)
+            if level then
+                log:Debugf("Selected %s, %s", Hunt.monster.name, level.name)
+                Hunt.level = level
+            end
         end
     })
 
-    if Hunt.monsterList.buttons and Hunt.monsterList.buttons[1] then
-        Hunt.SelectMonsterInternal(Hunt.monsterList.buttons[1])
-    end
+    Hunt.monsterList:SetOptionsWithDefault(Util.Map(Hunt.monsters, function(monster)
+        return { text = monster.name, value = monster }
+    end), true)
 
     Hunt.panel:Button({ id = "Begin", x = 183, y = -345, width = 301, height = 60, onClick = function(mouseButton, player)
         if not Hunt.monster or not Hunt.level then

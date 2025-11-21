@@ -231,10 +231,15 @@ end
 
 Use this checklist for every code review:
 
-### Diff Inspection
-- [ ] **Verify actual file content for suspected syntax errors** - Git diff output can contain formatting artifacts that look like syntax errors but aren't in the actual file
-- [ ] Look for stray characters like "m", "2m+", or other prefixes that may be diff line markers
-- [ ] When in doubt, view the actual file content directly rather than relying solely on diff output
+### Diff Inspection & Scope Assessment
+- [ ] **MANDATORY: Review ALL modified files systematically** - Check git status and examine every modified file's changes, not just a subset
+- [ ] **Assess change scope first** - Multiple modified files (especially core + tests) indicates major implementation work, not minor tweaks
+- [ ] **Always get complete diff before drawing conclusions** - Use `git diff` for all files or individual file diffs to see full change scope
+- [ ] **ALWAYS verify actual file content before reporting syntax errors** - Git diff output frequently contains formatting artifacts (like `[mend)`, `2m+`, color codes) that appear as syntax errors but aren't in the actual file  
+- [ ] **View actual files first for any suspected issues** - Use `view` tool to check file content directly before making syntax error claims
+- [ ] **Test execution confirms validity** - If tests pass, apparent "syntax errors" in diffs are likely artifacts
+- [ ] Look for stray characters like "m", "2m+", ANSI color codes, or diff line markers that aren't real code
+- [ ] When in doubt, always prioritize actual file content over diff appearance
 - [ ] Run syntax checks or tests to confirm the file is valid before reporting syntax errors
 
 ### Bug Prevention
@@ -285,6 +290,18 @@ These guidelines should be applied at multiple stages:
 This document should evolve based on lessons learned from future code reviews. When you discover a pattern or issue not covered here, add it to maintain a living reference of best practices.
 
 ### Recent Updates
+
+**2025-11-20: Added Change Scope Assessment Requirements**
+- Added mandatory systematic review of ALL modified files after reviewer missed major implementation
+- Enhanced diff inspection to require complete change scope assessment before conclusions
+- Emphasized that multiple modified files (core + tests) indicates major work requiring thorough review
+- Added requirement to get complete diff view before making any review determinations
+
+**2025-11-20: Strengthened Diff Inspection Requirements**
+- Enhanced diff inspection checklist with stronger language requiring actual file verification
+- Added "ALWAYS verify actual file content before reporting syntax errors" as mandatory step
+- Emphasized that passing tests indicate apparent syntax errors are likely diff artifacts
+- Added examples of common diff artifacts (`[mend)`, ANSI codes) that masquerade as syntax errors
 
 **2025-11-18: Added Diff Inspection to Review Checklist**
 - Added section on verifying actual file content vs. diff artifacts

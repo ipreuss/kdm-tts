@@ -113,3 +113,71 @@ Test.test("per-player dialog returns caller color and toggles open", function(t)
     t:assertEqual("Blue", hideResult)
     t:assertFalse(dialog:IsOpen())
 end)
+
+Test.test("scroll selector defaults, selection, and GetSelected", function(t)
+    local labelCalled = false
+    local function makePanel(params)
+        local panel = stubPanel(params)
+        function panel:Text(_)
+            labelCalled = true
+        end
+        function panel:VerticalScroll(p) return makePanel(p) end
+        function panel:Panel(p) return makePanel(p) end
+        function panel:SetHeight(_) end
+        function panel:OptionButtonGroup(opts)
+            local group = {
+                options = {},
+                parent = panel,
+                fontSize = opts.fontSize,
+                textAlignment = opts.textAlignment,
+                textColor = opts.textColor,
+                selectedColors = opts.selectedColors,
+                unselectedColors = opts.unselectedColors,
+                onClick = opts.onClick,
+            }
+            function group:OptionButton(p)
+                local button = stubPanel(p)
+                button.selectCalled = false
+                function button:Select() self.selectCalled = true end
+                function button:SetText(_) end
+                function button:SetOptionValue(v) button.optionValue = v end
+                function button:OptionValue() return button.optionValue end
+                button.optionValue = p.optionValue
+                table.insert(self.options, button)
+                return button
+            end
+            return group
+        end
+        return panel
+    end
+
+    local ui = { Panel = function(_, params) return makePanel(params) end }
+
+    local selected = {}
+    local selector = PanelKit.ScrollSelector({
+        parent = ui:Panel({ id = "Root", x = 0, y = 0, width = 100, height = 100 }),
+        id = "Sel",
+        x = 0,
+        y = 0,
+        width = 50,
+        height = 50,
+        label = { text = "Label" },
+        onSelect = function(value, _) table.insert(selected, value) end,
+    })
+
+    selector:SetOptionsWithDefault({
+        { text = "A", value = "a", selected = false },
+        { text = "B", value = "b", selected = false },
+    }, true)
+
+    t:assertTrue(labelCalled)
+    t:assertEqual(2, #selector.buttons)
+    t:assertEqual("a", selector:GetSelected())
+    t:assertEqual("a", selected[1])
+    t:assertTrue(selector.buttons[1].selectCalled)
+
+    -- simulate clicking second option
+    selector.group.onClick(selector.buttons[2])
+    t:assertEqual("b", selector:GetSelected())
+    t:assertTrue(selector.buttons[2].selectCalled)
+end)

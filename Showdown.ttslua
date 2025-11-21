@@ -93,7 +93,7 @@ function Showdown.InitUi()
     Showdown.dialog = dialog
     Showdown.panel = dialog:Panel()
 
-    Showdown.monsterList = PanelKit.OptionList({
+    Showdown.monsterList = PanelKit.ScrollSelector({
         parent = Showdown.panel,
         id = "Monster",
         x = 20 + 3,
@@ -104,13 +104,13 @@ function Showdown.InitUi()
         itemHeight = 30,
         fontSize = 16,
         textAlignment = "MiddleLeft",
-        onClick = Showdown.SelectMonster,
+        onSelect = function(_, option)
+            if option then
+                Showdown.SelectMonster(option)
+            end
+        end,
     })
-    Showdown.monsterList:SetOptions(Util.Map(Showdown.monsters, function(monster)
-        return { text = monster.name, value = monster }
-    end))
-
-    Showdown.levelList = PanelKit.OptionList({
+    Showdown.levelList = PanelKit.ScrollSelector({
         parent = Showdown.panel,
         id = "Level",
         x = 341 + 3,
@@ -121,17 +121,17 @@ function Showdown.InitUi()
         itemHeight = 30,
         fontSize = 16,
         textAlignment = "MiddleLeft",
-        onClick = function(option)
-            local level = option:OptionValue()
-            log:Debugf("Selected %s, %s", Showdown.monster.name, level.name)
-            Showdown.level = level
-            option:Select()
+        onSelect = function(level)
+            if level then
+                log:Debugf("Selected %s, %s", Showdown.monster.name, level.name)
+                Showdown.level = level
+            end
         end,
     })
 
-    if Showdown.monsterList.buttons and Showdown.monsterList.buttons[1] then
-        Showdown.SelectMonster(Showdown.monsterList.buttons[1])
-    end
+    Showdown.monsterList:SetOptionsWithDefault(Util.Map(Showdown.monsters, function(monster)
+        return { text = monster.name, value = monster }
+    end), true)
 
     Showdown.panel:Button({ id = "Begin", x = 183, y = -345, width = 301, height = 60, onClick = function(mouseButton, player)
         if not Showdown.monster or not Showdown.level then

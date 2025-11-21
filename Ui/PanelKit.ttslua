@@ -244,4 +244,78 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+-- Scroll selector (OptionList + helpers) ---------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+
+function PanelKit.ScrollSelector(params)
+    assert(Check.Table(params.parent))
+    assert(Check.Str(params.id))
+    assert(Check.Num(params.width))
+    assert(Check.Num(params.height))
+
+    local selectedValue = nil
+
+    if params.label then
+        params.parent:Text({
+            id = params.id .. "Label",
+            x = params.x,
+            y = params.y + 12, -- slight offset for label
+            width = params.width,
+            height = 20,
+            fontSize = params.label.fontSize or 14,
+            color = params.label.color or Ui.LIGHT_BROWN,
+            text = params.label.text or "",
+            alignment = params.label.alignment or "MiddleCenter",
+        })
+        params.y = params.y - 20
+    end
+
+    local selector = PanelKit.OptionList({
+        parent = params.parent,
+        id = params.id,
+        x = params.x,
+        y = params.y,
+        width = params.width,
+        height = params.height,
+        contentWidth = params.contentWidth,
+        itemHeight = params.itemHeight,
+        fontSize = params.fontSize,
+        textAlignment = params.textAlignment,
+        onClick = function(option)
+            if option then
+                if option.Select then
+                    option:Select()
+                end
+                selectedValue = option:OptionValue()
+            end
+            if params.onSelect then
+                params.onSelect(option:OptionValue(), option)
+            end
+        end,
+        selectedColors = params.selectedColors,
+        unselectedColors = params.unselectedColors,
+        textColor = params.textColor,
+    })
+
+    -- Assumes callers ensure at least one option exists when defaultToFirst is true.
+    selector.SetOptionsWithDefault = function(self, options, defaultToFirst)
+        self:SetOptions(options or {})
+        if defaultToFirst and self.buttons and self.buttons[1] then
+            self.buttons[1]:Select()
+            selectedValue = self.buttons[1]:OptionValue()
+            if params.onSelect then
+                params.onSelect(selectedValue, self.buttons[1])
+            end
+        end
+    end
+
+    function selector:GetSelected()
+        return selectedValue
+    end
+
+    return selector
+end
+
+---------------------------------------------------------------------------------------------------
+
 return PanelKit
