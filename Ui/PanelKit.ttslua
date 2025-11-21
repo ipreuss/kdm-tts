@@ -129,26 +129,66 @@ end
 -- Option list helpers --------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
-local function createOptionListContainer(params)
-    if params.scroll == false then
-        return params.parent:Panel({
-            id = params.id .. "Container",
-            x = params.x or 0,
-            y = params.y or 0,
-            width = params.width,
-            height = params.height,
-            color = params.color,
-        })
+local function createScrollContainer(params)
+    local containerId = params.containerId
+    if not containerId then
+        local suffix = (params.scroll == false) and "Container" or "Scroll"
+        containerId = params.id .. suffix
     end
 
-    return params.parent:VerticalScroll({
-        id = params.id .. "Scroll",
+    local containerParams = {
+        id = containerId,
+        rectAlignment = params.rectAlignment,
         x = params.x or 0,
         y = params.y or 0,
         width = params.width,
         height = params.height,
         color = params.color,
+        active = params.active,
+    }
+
+    if params.scroll == false then
+        return params.parent:Panel(containerParams)
+    end
+
+    return params.parent:VerticalScroll(containerParams)
+end
+
+function PanelKit.ScrollArea(params)
+    assert(Check.Table(params.parent))
+    assert(Check.Str(params.id))
+    assert(Check.Num(params.width))
+    assert(Check.Num(params.height))
+
+    local container = createScrollContainer(params)
+    local panel = container:Panel({
+        id = params.panelId or (params.id .. "Panel"),
+        x = params.contentX or 0,
+        y = params.contentY or 0,
+        width = params.contentWidth or params.width,
+        height = params.contentHeight or 0,
+        color = params.contentColor,
+        active = params.contentActive,
     })
+
+    local area = {
+        container = container,
+        panel = panel,
+    }
+
+    function area:Panel()
+        return self.panel
+    end
+
+    function area:ScrollView()
+        return self.container
+    end
+
+    function area:SetContentHeight(height)
+        self.panel:SetHeight(height)
+    end
+
+    return area
 end
 
 function PanelKit.OptionList(params)
@@ -158,16 +198,22 @@ function PanelKit.OptionList(params)
     assert(Check.Num(params.height))
 
     local itemHeight = params.itemHeight or 30
-    local container = createOptionListContainer(params)
     local contentWidth = params.contentWidth or params.width
-
-    local panel = container:Panel({
-        id = params.id .. "Panel",
-        x = 0,
-        y = 0,
-        width = contentWidth,
-        height = 0,
+    local scrollArea = PanelKit.ScrollArea({
+        parent = params.parent,
+        id = params.id,
+        x = params.x,
+        y = params.y,
+        width = params.width,
+        height = params.height,
+        color = params.color,
+        scroll = params.scroll,
+        containerId = params.containerId,
+        panelId = params.panelId,
+        contentWidth = contentWidth,
+        contentHeight = 0,
     })
+    local panel = scrollArea:Panel()
 
     local group = panel:OptionButtonGroup({
         id = params.id,
@@ -186,6 +232,7 @@ function PanelKit.OptionList(params)
     local list = {
         itemHeight = itemHeight,
         panel = panel,
+        scrollArea = scrollArea,
         group = group,
         buttons = {},
         width = params.itemWidth or contentWidth,

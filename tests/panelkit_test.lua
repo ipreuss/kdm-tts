@@ -45,6 +45,27 @@ local function stubUi()
     }
 end
 
+local function nestedPanel(params)
+    local panel = stubPanel(params)
+    panel.height = params.height or 0
+
+    function panel:SetHeight(height)
+        self.height = height
+    end
+
+    function panel:Panel(childParams)
+        return nestedPanel(childParams)
+    end
+
+    function panel:VerticalScroll(childParams)
+        local scroll = nestedPanel(childParams)
+        scroll.isScrollView = true
+        return scroll
+    end
+
+    return panel
+end
+
 Test.test("dialog per-player tracks open state based on player visibility", function(t)
     local dialog = PanelKit.Dialog({
         id = "Dialog",
@@ -112,6 +133,47 @@ Test.test("per-player dialog returns caller color and toggles open", function(t)
     local hideResult = dialog:HideForPlayer({ color = "Blue" })
     t:assertEqual("Blue", hideResult)
     t:assertFalse(dialog:IsOpen())
+end)
+
+Test.test("scroll area builds a scroll view with helper accessors", function(t)
+    local area = PanelKit.ScrollArea({
+        parent = nestedPanel({ id = "Root" }),
+        id = "Area",
+        width = 100,
+        height = 50,
+        contentHeight = 25,
+    })
+
+    local scrollView = area:ScrollView()
+    t:assertEqual("AreaScroll", scrollView.attributes.id)
+    t:assertTrue(scrollView.isScrollView)
+
+    local contentPanel = area:Panel()
+    t:assertEqual("AreaPanel", contentPanel.attributes.id)
+    t:assertEqual(25, contentPanel.height)
+
+    area:SetContentHeight(40)
+    t:assertEqual(40, contentPanel.height)
+end)
+
+Test.test("scroll area supports disabling scroll and custom ids", function(t)
+    local area = PanelKit.ScrollArea({
+        parent = nestedPanel({ id = "Root" }),
+        id = "Plain",
+        containerId = "CustomContainer",
+        panelId = "InnerPanel",
+        width = 80,
+        height = 30,
+        scroll = false,
+        contentHeight = 10,
+    })
+
+    local container = area:ScrollView()
+    t:assertEqual("CustomContainer", container.attributes.id)
+    t:assertTrue(container.isScrollView == nil)
+
+    local panel = area:Panel()
+    t:assertEqual("InnerPanel", panel.attributes.id)
 end)
 
 Test.test("scroll selector defaults, selection, and GetSelected", function(t)

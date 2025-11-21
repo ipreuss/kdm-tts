@@ -10,9 +10,14 @@ This document defines the default workflow for making changes to the KDM TTS mod
 
 ## Implementation Intake
 - **Research first** – when a new implementation task arrives, pause coding and investigate existing behavior, architecture notes, and related files/tests so the forthcoming plan is grounded in facts rather than assumptions.
+- **Prefer existing patterns** – before implementing a new feature, look for similar functionality in the repo. When overlap exists, follow this loop:
+  1. Secure the current behavior with characterization tests so the existing workflow is documented and protected.
+  2. Extract the shared logic into a well-named, reusable abstraction.
+  3. Keep legacy behavior green (tests passing) as you migrate it to the new abstraction.
+  4. Implement the new feature on top of the abstraction, extending it as needed without breaking the original flow.
 - **Produce a plan** – write down the proposed approach (touch points, test strategy, migration steps) alongside all assumptions and open questions that could influence the solution.
 - **Share before coding** – present that plan to the reviewer/requester and wait for explicit confirmation before touching production code. Only start implementation work after all blocking questions are answered or assumptions validated.
-- **Use debug logging when stuck** – when a TTS error is unclear (e.g., only visible in the in-game console), add targeted `log:Debugf(...)` statements near the failing code path to surface argument values and flow. This is often faster than guessing and helps pinpoint nils/missing callbacks during load.
+- **Use debug logging when stuck** – when a TTS error is unclear (e.g., only visible in the in-game console), add targeted `log:Debugf(...)` statements near the failing code path to surface argument values and flow. Enable the relevant module temporarily by uncommenting it under `Log.DEBUG.MODULES` in `Log.ttslua`, and remember to disable the extra logging once finished.
 - **One role per chat (read-only git state)** – every chat is either implementing or reviewing, never both. Implementation chats: you may only read `LATEST_REVIEW.md` and apply agreed guidance; do not edit the review log or write to git state (no staging/commits). Review chats: you only author `LATEST_REVIEW.md` and review process docs; do not change code/other files and do not write to git state. Keep duties separate and avoid any git writes while in either role.
 
 ## Test-First Loop

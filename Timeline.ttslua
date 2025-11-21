@@ -402,8 +402,18 @@ function Timeline.InitUi()
 
     -----------------------------------------------------------------------------------------------
 
-    local scroll = panel:VerticalScroll({ id = "V", x = 23, y = -158, width = 1242, height = 760 - 6 })
-    local timelinePanel = scroll:Panel({ id = "Timeline", x = 0, y = 0, width = 1242, height = 1563 })
+    local timelineArea = PanelKit.ScrollArea({
+        parent = panel,
+        id = "Timeline",
+        containerId = "V",
+        panelId = "Timeline",
+        x = 23,
+        y = -158,
+        width = 1242,
+        height = 760 - 6,
+        contentHeight = 1563,
+    })
+    local timelinePanel = timelineArea:Panel()
     timelinePanel:Image({ id = "Timeline", image = "Timeline30", x = 0, y = 0, width = 1242, height = 1563 })
 
     -- Extrahierte Funktion zur Erstellung der Jahre und Events
