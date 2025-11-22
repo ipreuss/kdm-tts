@@ -17,6 +17,7 @@ local testFiles = {
     "tests.hunt_showhide_test",
     "tests.showdown_showhide_test",
     "tests.timeline_showhide_test",
+    "tests.strain_test",
 }
 
 for _, file in ipairs(testFiles) do

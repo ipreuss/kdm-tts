@@ -1,5 +1,6 @@
 local Test = require("tests.framework")
 local PanelKit = require("Kdm/Ui/PanelKit")
+local Ui = require("Kdm/Ui")
 
 local function stubPanel(params)
     local panel = {
@@ -63,6 +64,29 @@ local function nestedPanel(params)
         return scroll
     end
 
+    return panel
+end
+
+local function recordingPanel(params)
+    local panel = stubPanel(params)
+    panel.children = {}
+    function panel:Panel(childParams)
+        local child = recordingPanel(childParams)
+        child.attributes = child.attributes or {}
+        for k, v in pairs(childParams) do
+            child.attributes[k] = v
+        end
+        table.insert(self.children, child)
+        return child
+    end
+    function panel:Button(buttonParams)
+        self.lastButton = buttonParams
+        return {}
+    end
+    function panel:Text(textParams)
+        self.lastText = textParams
+        return {}
+    end
     return panel
 end
 
@@ -174,6 +198,36 @@ Test.test("scroll area supports disabling scroll and custom ids", function(t)
 
     local panel = area:Panel()
     t:assertEqual("InnerPanel", panel.attributes.id)
+end)
+
+Test.test("classic dialog builds chrome and returns layout metrics", function(t)
+    local panel = recordingPanel({ id = "Root" })
+    panel.children = {}
+
+    local chrome = PanelKit.ClassicDialog({
+        panel = panel,
+        id = "Classic",
+        width = 400,
+        height = 500,
+        title = "Classic Dialog",
+    })
+
+    t:assertEqual(5, #panel.children)
+    t:assertEqual("#00000055", panel.children[1].attributes.color)
+    t:assertEqual(Ui.DARK_BROWN, panel.children[2].attributes.color)
+    t:assertEqual("#d8cab1f0", panel.children[3].attributes.color)
+    t:assertEqual("#b1916cff", panel.children[4].attributes.color)
+    t:assertEqual(Ui.DARK_BROWN, panel.children[5].attributes.color)
+
+    local expectedContentWidth = 320 -- (400 - 40) - 40
+    local expectedContentHeight = 310 -- (500 - 40) - 110 - 40
+    t:assertEqual(expectedContentWidth, chrome.contentWidth)
+    t:assertEqual(expectedContentHeight, chrome.contentHeight)
+    t:assertEqual(40, chrome.contentX)
+    t:assertEqual(-150, chrome.contentY)
+
+    t:assertTrue(panel.lastButton ~= nil)
+    t:assertEqual("X", panel.lastButton.text)
 end)
 
 Test.test("scroll selector defaults, selection, and GetSelected", function(t)

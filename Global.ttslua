@@ -23,6 +23,7 @@ local Player = require("Kdm/Player")
 local Rules = require("Kdm/Rules")
 local Settlement = require("Kdm/Settlement")
 local Showdown = require("Kdm/Showdown")
+local Strain = require("Kdm/Strain")
 local Survivor = require("Kdm/Survivor")
 local Terrain = require("Kdm/Terrain")
 local Timeline = require("Kdm/Timeline")
@@ -99,6 +100,8 @@ function onLoad(saveJson)
     --
     initStep("Showdown", Showdown.Init)
     initStep("BattleUi", function() BattleUi.Init(saveState.BattleUi or {}) end)
+    --
+    initStep("Strain", Strain.Init)
     --
     initStep("GlobalUi", GlobalUi.Init)
     initStep("Timeline", function() Timeline.Init(saveState.Timeline or {}) end)

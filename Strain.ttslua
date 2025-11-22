@@ -1,0 +1,217 @@
+local PanelKit = require("Kdm/Ui/PanelKit")
+local Ui = require("Kdm/Ui")
+local log = require("Kdm/Log").ForModule("Strain")
+
+---------------------------------------------------------------------------------------------------
+
+local Strain = {}
+
+Strain.ROW_HEIGHT = 70
+
+Strain.DUMMY_MILESTONES = {
+    {
+        title = "Lantern Research Begins",
+        condition = "Unlock any strain innovation and add its story event to the timeline.",
+    },
+    {
+        title = "Echoes of the Plague",
+        condition = "Resolve three strain settlements events in a single campaign.",
+    },
+    {
+        title = "Unbound Reflexes",
+        condition = "A survivor gains a fourth strain fighting art.",
+    },
+    {
+        title = "Shared Experiments",
+        condition = "All four survivors depart with at least one strain benefit.",
+    },
+    {
+        title = "The Lantern's Children",
+        condition = "A newborn survivor gains a strain-specific ability.",
+    },
+    {
+        title = "Collector of Secrets",
+        condition = "Archive a fifth unique strain resource.",
+    },
+}
+
+---------------------------------------------------------------------------------------------------
+
+function Strain.Init()
+    log:Debugf("Initializing strain milestones UI")
+
+    Strain.milestones = {}
+    for i, milestone in ipairs(Strain.DUMMY_MILESTONES) do
+        Strain.milestones[i] = {
+            title = milestone.title,
+            condition = milestone.condition,
+            reached = milestone.reached or false,
+        }
+    end
+
+    Strain.milestoneRows = {}
+    Strain:InitUi()
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Strain:InitUi()
+    local width = 540
+    local height = 540
+    local dialog = PanelKit.Dialog({
+        id = "StrainMilestones",
+        ui = Ui.Get2d(),
+        rectAlignment = "MiddleCenter",
+        width = width,
+        height = height,
+        color = "#00000000",
+        closeButton = false,
+    })
+    Strain.dialog = dialog
+    local panel = dialog:Panel()
+    Strain.panel = panel
+    local chrome = PanelKit.ClassicDialog({
+        panel = panel,
+        id = "StrainMilestones",
+        width = width,
+        height = height,
+        title = "Strain Milestones",
+        subtitle = "Track the strain milestones you unlocked during your campaigns (strain milestones persist across campaigns).",
+        closeButton = {
+            onClick = function(_, player)
+                Strain.HideUi(player)
+            end,
+        },
+    })
+    Strain.listWidth = chrome.contentWidth
+
+    Strain.listArea = PanelKit.ScrollArea({
+        parent = panel,
+        id = "StrainMilestonesScroll",
+        x = chrome.contentX,
+        y = chrome.contentY,
+        width = chrome.contentWidth,
+        height = chrome.contentHeight,
+        contentWidth = chrome.contentWidth,
+    })
+    Strain.listPanel = Strain.listArea:Panel()
+
+    Strain:RefreshMilestones()
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Strain:RefreshMilestones()
+    if not Strain.listPanel then
+        return
+    end
+
+    local listWidth = Strain.listWidth or 500
+    local y = 0
+    for i, milestone in ipairs(Strain.milestones) do
+        local row = Strain.milestoneRows[i]
+        if not row then
+            row = {}
+            local backgroundA = "#f1e6d4ff"
+            local backgroundB = "#e9dcc9ff"
+            row.panel = Strain.listPanel:Panel({
+                id = string.format("StrainMilestoneRow%d", i),
+                x = 0,
+                y = y,
+                width = listWidth,
+                height = Strain.ROW_HEIGHT - 6,
+                color = (i % 2 == 0) and backgroundA or backgroundB,
+            })
+            row.checkBox = row.panel:CheckBox({
+                id = string.format("StrainMilestoneCheck%d", i),
+                x = 15,
+                y = -20,
+                width = 24,
+                height = 24,
+                uncheckedImage = "CheckBoxEmpty",
+                onClick = function()
+                    Strain:ToggleMilestone(i)
+                end,
+            })
+            row.title = row.panel:Text({
+                id = string.format("StrainMilestoneTitle%d", i),
+                x = 50,
+                y = -18,
+                width = listWidth - 70,
+                height = 26,
+                fontSize = 18,
+                fontStyle = "Bold",
+                color = Ui.DARK_BROWN,
+            })
+            row.condition = row.panel:Text({
+                id = string.format("StrainMilestoneCondition%d", i),
+                x = 50,
+                y = -46,
+                width = listWidth - 70,
+                height = 20,
+                fontSize = 14,
+                color = Ui.MID_BROWN,
+            })
+            Strain.milestoneRows[i] = row
+        end
+
+        row.checkBox:Check(milestone.reached)
+        row.title:SetText(milestone.title)
+        row.condition:SetText(milestone.condition)
+
+        y = y - Strain.ROW_HEIGHT
+    end
+
+    Strain.listPanel:SetHeight(#Strain.milestones * Strain.ROW_HEIGHT)
+    Strain.listArea:SetContentHeight(#Strain.milestones * Strain.ROW_HEIGHT)
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Strain:ToggleMilestone(index)
+    local milestone = Strain.milestones[index]
+    if not milestone then
+        return
+    end
+
+    milestone.reached = not milestone.reached
+    log:Debugf("%s milestone '%s'", milestone.reached and "Checking" or "Unchecking", milestone.title)
+
+    local row = Strain.milestoneRows[index]
+    if row then
+        row.checkBox:Check(milestone.reached)
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Strain.ShowUi(player)
+    local result = Strain.dialog:ShowForPlayer(player)
+    if result == player.color then
+        log:Debugf("Opened strain milestones for %s", player.color)
+    else
+        log:Errorf("%s is already viewing strain milestones", result)
+    end
+end
+
+function Strain.HideUi(player)
+    local result = Strain.dialog:HideForPlayer(player)
+    if result == "None" or result == player.color then
+        log:Debugf("Closed strain milestones for %s", player.color)
+    else
+        log:Errorf("%s is already viewing strain milestones", result)
+    end
+end
+
+function Strain.IsUiOpen()
+    return Strain.dialog and Strain.dialog:IsOpen()
+end
+
+---------------------------------------------------------------------------------------------------
+
+return {
+    Init = Strain.Init,
+    ShowUi = Strain.ShowUi,
+    HideUi = Strain.HideUi,
+    IsUiOpen = Strain.IsUiOpen,
+}

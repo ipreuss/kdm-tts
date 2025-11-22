@@ -125,6 +125,126 @@ function PanelKit.Dialog(params)
     return dialog
 end
 
+function PanelKit.ClassicDialog(params)
+    assert(Check.Table(params.panel))
+
+    local panel = params.panel
+    local width = params.width or panel.attributes.width
+    local height = params.height or panel.attributes.height
+    local idPrefix = params.id or (panel.attributes.id .. "Classic")
+    local inset = params.inset or 20
+    local headerHeight = params.headerHeight or 110
+    local contentPadding = params.contentPadding or 20
+    local footerPadding = params.footerPadding or 20
+
+    local innerWidth = width - inset * 2
+    local innerHeight = height - inset * 2
+
+    panel:Panel({
+        id = idPrefix.."Shadow",
+        x = inset / 2,
+        y = -(inset / 2),
+        width = width,
+        height = height,
+        color = "#00000055",
+        active = true,
+    })
+    panel:Panel({
+        id = idPrefix.."Frame",
+        x = 0,
+        y = 0,
+        width = width,
+        height = height,
+        color = Ui.DARK_BROWN,
+        active = true,
+    })
+    panel:Panel({
+        id = idPrefix.."Background",
+        x = inset,
+        y = -inset,
+        width = innerWidth,
+        height = innerHeight,
+        color = "#d8cab1f0",
+        active = true,
+    })
+
+    local header = panel:Panel({
+        id = idPrefix.."Header",
+        x = inset,
+        y = -inset,
+        width = innerWidth,
+        height = headerHeight,
+        color = "#b1916cff",
+        active = true,
+    })
+    panel:Panel({
+        id = idPrefix.."HeaderDivider",
+        x = inset,
+        y = -(inset + headerHeight),
+        width = innerWidth,
+        height = 4,
+        color = Ui.DARK_BROWN,
+        active = true,
+    })
+
+    if params.title then
+        header:Text({
+            id = idPrefix.."Title",
+            x = contentPadding,
+            y = -20,
+            width = innerWidth - contentPadding * 2,
+            height = 40,
+            alignment = "MiddleLeft",
+            fontSize = params.titleFontSize or 28,
+            fontStyle = "Bold",
+            color = Ui.DARK_BROWN,
+            text = params.title,
+        })
+    end
+    if params.subtitle then
+        header:Text({
+            id = idPrefix.."Subtitle",
+            x = contentPadding,
+            y = -58,
+            width = innerWidth - contentPadding * 2,
+            height = 30,
+            alignment = "MiddleLeft",
+            fontSize = params.subtitleFontSize or 16,
+            color = Ui.MID_BROWN,
+            text = params.subtitle,
+        })
+    end
+
+    if params.closeButton ~= false then
+        local close = params.closeButton or {}
+        local onClose = close.onClick or params.onClose
+        panel:Button({
+            id = close.id or (idPrefix.."Close"),
+            x = (width - inset) - (close.width or 30),
+            y = -inset - ((close.height or 30) / 2),
+            width = close.width or 30,
+            height = close.height or 30,
+            text = close.text or "X",
+            fontSize = close.fontSize or 18,
+            colors = close.colors or Ui.DARK_BROWN_COLORS,
+            textColor = close.textColor or Ui.LIGHT_BROWN,
+            onClick = onClose,
+        })
+    end
+
+    local contentX = inset + contentPadding
+    local contentY = -(inset + headerHeight + contentPadding)
+    local contentWidth = innerWidth - contentPadding * 2
+    local contentHeight = innerHeight - headerHeight - contentPadding - footerPadding
+
+    return {
+        contentX = contentX,
+        contentY = contentY,
+        contentWidth = contentWidth,
+        contentHeight = contentHeight,
+    }
+end
+
 ---------------------------------------------------------------------------------------------------
 -- Option list helpers --------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 local Campaign = require("Kdm/Campaign")
 local Hunt = require("Kdm/Hunt")
 local Showdown = require("Kdm/Showdown")
+local Strain = require("Kdm/Strain")
 local Timeline = require("Kdm/Timeline")
 local Ui = require("Kdm/Ui")
 
@@ -46,6 +47,14 @@ function GlobalUi.Init()
             colors = Ui.DARK_BROWN_COLORS,
             textColor = Ui.LIGHT_BROWN,
             showForAll = true,
+        },
+        {
+            name = "Strain",
+            module = Strain,
+            text = "Strain",
+            fontSize = 16,
+            colors = Ui.DARK_BROWN_COLORS,
+            textColor = Ui.LIGHT_BROWN,
         },
     }
 
