@@ -12,26 +12,38 @@ Strain.DUMMY_MILESTONES = {
     {
         title = "Lantern Research Begins",
         condition = "Unlock any strain innovation and add its story event to the timeline.",
+        flavorText = "The settlement's scholars make their first breakthrough, illuminating new paths of research.",
+        rulesText = "Gain +2 Understanding when researching strain-related innovations.",
     },
     {
         title = "Echoes of the Plague",
         condition = "Resolve three strain settlements events in a single campaign.",
+        flavorText = "The whispers of ancient sickness echo through the settlement's halls.",
+        rulesText = "Settlement events grant +1 additional resource of your choice.",
     },
     {
         title = "Unbound Reflexes",
         condition = "A survivor gains a fourth strain fighting art.",
+        flavorText = "Muscles and nerves adapt beyond human limitations, moving with inhuman grace.",
+        rulesText = "Survivors with 4+ strain fighting arts gain +1 Speed permanently.",
     },
     {
         title = "Shared Experiments",
         condition = "All four survivors depart with at least one strain benefit.",
+        flavorText = "The entire hunting party carries the mark of transformation.",
+        rulesText = "When all survivors have strain benefits, the hunting party gains +1 Luck token.",
     },
     {
         title = "The Lantern's Children",
         condition = "A newborn survivor gains a strain-specific ability.",
+        flavorText = "A new generation emerges, born with the strain already coursing through their veins.",
+        rulesText = "Newborn survivors may start with a random strain fighting art.",
     },
     {
         title = "Collector of Secrets",
         condition = "Archive a fifth unique strain resource.",
+        flavorText = "The settlement's archive becomes a repository of forbidden knowledge.",
+        rulesText = "Archived strain resources provide double their normal benefits.",
     },
 }
 
@@ -45,12 +57,15 @@ function Strain.Init()
         Strain.milestones[i] = {
             title = milestone.title,
             condition = milestone.condition,
+            flavorText = milestone.flavorText,
+            rulesText = milestone.rulesText,
             reached = milestone.reached or false,
         }
     end
 
     Strain.milestoneRows = {}
     Strain:InitUi()
+    Strain:InitConfirmationDialog()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -101,6 +116,105 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+function Strain:InitConfirmationDialog()
+    local width = 600
+    local height = 400
+    local confirmDialog = PanelKit.Dialog({
+        id = "StrainMilestoneConfirmation",
+        ui = Ui.Get2d(),
+        rectAlignment = "MiddleCenter",
+        width = width,
+        height = height,
+        color = "#00000000",
+        closeButton = false,
+    })
+    Strain.confirmationDialog = confirmDialog
+    local confirmPanel = confirmDialog:Panel()
+    Strain.confirmationPanel = confirmPanel
+    
+    local chrome = PanelKit.ClassicDialog({
+        panel = confirmPanel,
+        id = "StrainMilestoneConfirmation",
+        width = width,
+        height = height,
+        title = "Milestone Reached",
+        subtitle = "",
+        closeButton = false,
+    })
+
+    -- Dynamic milestone title
+    Strain.confirmationTitle = confirmPanel:Text({
+        id = "MilestoneTitleText",
+        x = chrome.contentX + 10,
+        y = chrome.contentY + 10,
+        width = chrome.contentWidth - 20,
+        height = 30,
+        fontSize = 18,
+        fontStyle = "Bold",
+        color = Ui.DARK_BROWN,
+        alignment = "UpperCenter",
+    })
+
+    -- Flavor text
+    Strain.confirmationFlavorText = confirmPanel:Text({
+        id = "MilestoneFlavorText",
+        x = chrome.contentX + 10,
+        y = chrome.contentY - 50,
+        width = chrome.contentWidth - 20,
+        height = 80,
+        fontSize = 16,
+        fontStyle = "Italic",
+        color = Ui.MID_BROWN,
+        alignment = "UpperLeft",
+        horizontalOverflow = "Wrap",
+        verticalOverflow = "Overflow",
+    })
+
+    -- Rules text
+    Strain.confirmationRulesText = confirmPanel:Text({
+        id = "MilestoneRulesText", 
+        x = chrome.contentX + 10,
+        y = chrome.contentY - 150,
+        width = chrome.contentWidth - 20,
+        height = 120,
+        fontSize = 14,
+        color = Ui.DARK_BROWN,
+        alignment = "UpperLeft",
+        horizontalOverflow = "Wrap",
+        verticalOverflow = "Overflow",
+    })
+
+    -- OK button
+    confirmPanel:Button({
+        id = "MilestoneConfirmOK",
+        x = chrome.contentX + 50,
+        y = chrome.contentY - chrome.contentHeight + 60,
+        width = 120,
+        height = 40,
+        text = "OK",
+        fontSize = 16,
+        onClick = function(_, player)
+            Strain:ConfirmMilestone(player)
+        end,
+    })
+
+    -- Cancel button
+    confirmPanel:Button({
+        id = "MilestoneConfirmCancel", 
+        x = chrome.contentX + chrome.contentWidth - 170,
+        y = chrome.contentY - chrome.contentHeight + 60,
+        width = 120,
+        height = 40,
+        text = "Cancel",
+        fontSize = 16,
+        onClick = function(_, player)
+            Strain:CancelMilestone(player)
+        end,
+    })
+end
+
+---------------------------------------------------------------------------------------------------
+
 function Strain:RefreshMilestones()
     if not Strain.listPanel then
         return
@@ -129,8 +243,8 @@ function Strain:RefreshMilestones()
                 width = 24,
                 height = 24,
                 uncheckedImage = "CheckBoxEmpty",
-                onClick = function()
-                    Strain:ToggleMilestone(i)
+                onClick = function(_, player)
+                    Strain:ToggleMilestone(i, player)
                 end,
             })
             row.title = row.panel:Text({
@@ -168,19 +282,74 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-function Strain:ToggleMilestone(index)
+function Strain:ToggleMilestone(index, player)
     local milestone = Strain.milestones[index]
     if not milestone then
         return
     end
 
-    milestone.reached = not milestone.reached
-    log:Debugf("%s milestone '%s'", milestone.reached and "Checking" or "Unchecking", milestone.title)
-
-    local row = Strain.milestoneRows[index]
-    if row then
-        row.checkBox:Check(milestone.reached)
+    -- If milestone is already reached, uncheck immediately
+    if milestone.reached then
+        milestone.reached = false
+        log:Debugf("Unchecking milestone '%s'", milestone.title)
+        local row = Strain.milestoneRows[index]
+        if row then
+            row.checkBox:Check(false)
+        end
+        return
     end
+
+    -- If milestone is not reached, show confirmation dialog
+    Strain.pendingMilestoneIndex = index
+    Strain.pendingPlayer = player
+    Strain:ShowConfirmationDialog(milestone)
+end
+
+function Strain:ShowConfirmationDialog(milestone)
+    if not Strain.confirmationDialog then
+        return
+    end
+
+    -- Update texts
+    Strain.confirmationTitle:SetText(milestone.title)
+    Strain.confirmationFlavorText:SetText(milestone.flavorText)
+    Strain.confirmationRulesText:SetText(milestone.rulesText)
+
+    -- Show dialog
+    Strain.confirmationDialog:ShowForPlayer(Strain.pendingPlayer)
+end
+
+function Strain:ConfirmMilestone(player)
+    if Strain.pendingMilestoneIndex and Strain.pendingPlayer == player then
+        local milestone = Strain.milestones[Strain.pendingMilestoneIndex]
+        if milestone then
+            milestone.reached = true
+            log:Debugf("Checking milestone '%s'", milestone.title)
+            
+            local row = Strain.milestoneRows[Strain.pendingMilestoneIndex]
+            if row then
+                row.checkBox:Check(true)
+            end
+        end
+    end
+    
+    Strain.confirmationDialog:HideForPlayer(player)
+    Strain.pendingMilestoneIndex = nil
+    Strain.pendingPlayer = nil
+end
+
+function Strain:CancelMilestone(player)
+    -- Ensure checkbox stays unchecked
+    if Strain.pendingMilestoneIndex then
+        local row = Strain.milestoneRows[Strain.pendingMilestoneIndex]
+        if row then
+            row.checkBox:Check(false)
+        end
+    end
+    
+    Strain.confirmationDialog:HideForPlayer(player)
+    Strain.pendingMilestoneIndex = nil
+    Strain.pendingPlayer = nil
 end
 
 ---------------------------------------------------------------------------------------------------

@@ -77,8 +77,26 @@ local function buildStrainStubs()
         IsOpen = function() return dialogStats.show > dialogStats.hide end,
     }
 
+    local confirmDialog = {
+        Panel = function() return {
+            Text = function(_, params) 
+                local text = { params = params, text = nil }
+                function text:SetText(value) text.text = value end
+                return text
+            end,
+            Button = function() end,
+        } end,
+        ShowForPlayer = function() end,
+        HideForPlayer = function() end,
+    }
+
     local panelKitStub = {
-        Dialog = function() return dialog end,
+        Dialog = function(params)
+            if params.id == "StrainMilestoneConfirmation" then
+                return confirmDialog
+            end
+            return dialog
+        end,
         ClassicDialog = function(args)
             recorder.legacyArgs = args
             return {
@@ -154,13 +172,20 @@ Test.test("Strain.Init clones milestones and builds UI rows", function(t)
     end)
 end)
 
-Test.test("ToggleMilestone updates state and checkbox UI", function(t)
+Test.test("ToggleMilestone unchecks already reached milestones", function(t)
     withStrain(t, function(StrainModule, strain, env)
         StrainModule.Init()
 
-        strain:ToggleMilestone(1)
-        t:assertTrue(strain.milestones[1].reached)
-        t:assertTrue(env.recorder.rows[1].checkBox.checked)
+        -- Mark milestone as already reached
+        strain.milestones[1].reached = true
+        strain.milestoneRows[1].checkBox:Check(true)
+
+        -- Toggle should uncheck it
+        local player = { color = "White" }
+        strain:ToggleMilestone(1, player)
+        
+        t:assertFalse(strain.milestones[1].reached)
+        t:assertFalse(env.recorder.rows[1].checkBox.checked)
     end)
 end)
 
@@ -174,5 +199,75 @@ Test.test("ShowUi/HideUi delegate to dialog for players", function(t)
 
         t:assertEqual(1, env.dialogStats.show)
         t:assertEqual(1, env.dialogStats.hide)
+    end)
+end)
+
+Test.test("Milestones have flavor and rules text", function(t)
+    withStrain(t, function(StrainModule, strain)
+        StrainModule.Init()
+
+        for _, milestone in ipairs(strain.milestones) do
+            t:assertTrue(milestone.flavorText ~= nil, "Milestone should have flavor text")
+            t:assertTrue(milestone.rulesText ~= nil, "Milestone should have rules text")
+            t:assertTrue(type(milestone.flavorText) == "string", "Flavor text should be string")
+            t:assertTrue(type(milestone.rulesText) == "string", "Rules text should be string")
+        end
+    end)
+end)
+
+Test.test("ToggleMilestone shows confirmation dialog before checking", function(t)
+    withStrain(t, function(StrainModule, strain, env)
+        StrainModule.Init()
+        
+        -- Try to check an unchecked milestone - this should show confirmation dialog
+        local player = { color = "White" }
+        strain:ToggleMilestone(1, player)
+        
+        -- The milestone should NOT be checked yet (waiting for confirmation)
+        t:assertFalse(strain.milestones[1].reached, "Milestone should not be reached until confirmed")
+        
+        -- Should have stored the pending milestone info
+        t:assertEqual(1, strain.pendingMilestoneIndex)
+        t:assertEqual(player, strain.pendingPlayer)
+    end)
+end)
+
+Test.test("ConfirmMilestone checks the pending milestone", function(t)
+    withStrain(t, function(StrainModule, strain, env)
+        StrainModule.Init()
+        
+        local player = { color = "White" }
+        strain:ToggleMilestone(1, player)
+        
+        -- Confirm the milestone
+        strain:ConfirmMilestone(player)
+        
+        -- Now it should be checked
+        t:assertTrue(strain.milestones[1].reached, "Milestone should be reached after confirmation")
+        t:assertTrue(env.recorder.rows[1].checkBox.checked, "Checkbox should be checked after confirmation")
+        
+        -- Pending info should be cleared
+        t:assertEqual(nil, strain.pendingMilestoneIndex)
+        t:assertEqual(nil, strain.pendingPlayer)
+    end)
+end)
+
+Test.test("CancelMilestone keeps milestone unchecked", function(t)
+    withStrain(t, function(StrainModule, strain, env)
+        StrainModule.Init()
+        
+        local player = { color = "White" }
+        strain:ToggleMilestone(1, player)
+        
+        -- Cancel the milestone
+        strain:CancelMilestone(player)
+        
+        -- Should remain unchecked
+        t:assertFalse(strain.milestones[1].reached, "Milestone should remain unchecked after cancel")
+        t:assertFalse(env.recorder.rows[1].checkBox.checked, "Checkbox should remain unchecked after cancel")
+        
+        -- Pending info should be cleared
+        t:assertEqual(nil, strain.pendingMilestoneIndex)
+        t:assertEqual(nil, strain.pendingPlayer)
     end)
 end)
