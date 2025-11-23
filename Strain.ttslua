@@ -76,7 +76,7 @@ function Strain:InitUi()
         width = width,
         height = height,
         title = "Strain Milestones",
-        subtitle = "Track the strain milestones you unlocked during your campaigns (strain milestones persist across campaigns).",
+        subtitle = "Track the strain milestones you unlocked during your campaigns.",
         closeButton = {
             onClick = function(_, player)
                 Strain.HideUi(player)
