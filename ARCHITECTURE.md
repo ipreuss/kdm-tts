@@ -174,9 +174,14 @@ end
 ### TTS Debugging Approach
 **Essential Patterns**:
 - Add comprehensive debug logging with module-specific toggles in `Log.DEBUG_MODULES`
-- Check function existence before calling: `if Player and Player.getPlayers then`
+- **Fail fast with meaningful errors** - Don't silently ignore missing dependencies; log and fail clearly
 - Log state changes at each step to trace execution flow
 - Use `./updateTTS.sh` for rapid iteration and testing
+
+**Function Existence Checks** should be rare and only used for:
+- **Test environment compatibility** - where modules genuinely might not exist
+- **Optional features** - where the functionality is truly optional, not required
+- **Never** for hiding missing required dependencies - those should fail fast with clear error messages
 
 ### Runtime Error Diagnosis
 **When encountering "attempt to call a nil value"**:
