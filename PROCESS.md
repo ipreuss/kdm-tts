@@ -19,11 +19,45 @@ This document defines the default workflow for making changes to the KDM TTS mod
 - **Share before coding** – present that plan to the reviewer/requester and wait for explicit confirmation before touching production code. Only start implementation work after all blocking questions are answered or assumptions validated.
 - **Debug runtime errors systematically** – when an error occurs at runtime (especially unexpected nil errors), verify your assumptions about why and where the error happens before fixing it. The preferred approach is to implement at least one regression test that reproduces the error. If that doesn't help pinpoint the problem, use extensive debug logging and ask the user to run the code on TTS and provide the relevant part of the log.
 - **Use debug logging when stuck** – when a TTS error is unclear (e.g., only visible in the in-game console), add targeted `log:Debugf(...)` statements near the failing code path to surface argument values and flow. Enable the relevant module temporarily by uncommenting it under `Log.DEBUG.MODULES` in `Log.ttslua`, and remember to disable the extra logging once finished.
+- **Resist assumptions when debugging** – when encountering runtime errors, especially "attempt to call a nil value" errors, resist the urge to immediately implement complex solutions. Instead: (1) Add debug logging at the error point to verify what is actually nil, (2) Work backward from the error with targeted logging to trace the execution path, (3) Test simple hypotheses first before architectural changes. Often the root cause is simpler than initial assumptions suggest (e.g., a missing function rather than a module loading issue).
 - **One role per chat (read-only git state)** – every chat is either implementing or reviewing, never both. Implementation chats: you may only read `LATEST_REVIEW.md` and apply agreed guidance; do not edit the review log or write to git state (no staging/commits). Review chats: you only author `LATEST_REVIEW.md` and review process docs; do not change code/other files and do not write to git state. Keep duties separate and avoid any git writes while in either role.
 - **Fail fast and meaningfully** – every subsystem must validate its inputs and surface actionable errors as close to the source as possible. Guard clauses and descriptive log messages are preferred over silent fallbacks so that regressions are obvious and easy to diagnose.
-- **Use shared UI palette and components** – all dialogs and panels should rely on the palette constants defined in `Ui.ttslua` (for example, `Ui.CLASSIC_BACKGROUND`, `Ui.CLASSIC_HEADER`, `Ui.CLASSIC_SHADOW`, and `Ui.CLASSIC_BORDER`) and the reusable PanelKit helpers (such as `PanelKit.ClassicDialog` and `PanelKit.ConfirmDialog`). This keeps borders, backgrounds, and opacity consistent and makes visual regressions obvious during tests and reviews.
+- **Use shared UI palette and components** – all dialogs and panels should rely on the palette constants defined in `Ui.ttslua` (for example, `Ui.CLASSIC_BACKGROUND`, `Ui.CLASSIC_HEADER`, `Ui.CLASSIC_SHADOW`, and `Ui.CLASSIC_BORDER`) and the reusable PanelKit helpers (such as `PanelKit.ClassicDialog`). This keeps borders, backgrounds, and opacity consistent and makes visual regressions obvious during tests and reviews.
 - **Respect defaults unless intentionally deviating** – when any shared component (UI or otherwise) exposes a default behavior, consume it rather than overriding it by habit. Only diverge when there is a concrete, reviewed requirement so deviations stay obvious in code review.
 - **Keep exported interfaces lean** – don’t expose new parameters, flags, or configuration points unless client code demonstrably needs them. Lean interfaces are easier to reason about, make later deviations more visible, and reduce the chance of inconsistent behavior.
+
+## Debugging TTS Runtime Errors
+
+When encountering runtime errors in Tabletop Simulator (especially "attempt to call a nil value" errors), follow this systematic approach:
+
+### 1. **Identify the Error Context**
+- Note the exact error message and function name where it occurs
+- Determine if the error is in onClick handlers, module initialization, or other TTS-specific contexts
+
+### 2. **Add Progressive Debug Logging**
+- Enable debug logging for the relevant module in `Log.DEBUG_MODULES`
+- Add `log:Debugf()` statements at the error location to identify what is actually nil
+- Work backward through the call stack, adding logging to trace execution flow
+- Use existence checks: `log:Debugf("X exists: %s", tostring(X ~= nil))`
+
+### 3. **Test Simple Hypotheses First**
+- Before implementing complex architectural changes, test the simplest possible explanations
+- Check if required functions actually exist in their modules
+- Verify that dependencies are properly loaded and accessible
+- Confirm that variables are initialized before use
+
+### 4. **Deploy and Test Incrementally**
+- Update TTS with debug logging using `./updateTTS.sh`
+- Have the user reproduce the error and provide log output
+- Analyze the logs to pinpoint the exact line and cause
+- Implement the minimal fix based on evidence, not assumptions
+
+### 5. **Clean Up After Resolution**
+- Remove or comment out excessive debug logging once the issue is resolved
+- Disable debug modules that were temporarily enabled
+- Ensure tests cover the fixed scenario to prevent regression
+
+**Example**: An "attempt to call a nil value" error led to assumptions about module loading complexity. Debug logging revealed the actual issue was simply calling a non-existent `Player.GetReferee()` function. The fix was storing the current player reference instead of seeking a non-existent referee function.
 
 ## Test-First Loop
 1. **Plan** – clarify the intent of the change (behavior, data shape, UI outcome) and note which modules are involved. Update or create ADRs/notes if the change affects architecture decisions.
