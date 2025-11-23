@@ -88,6 +88,10 @@ local function buildStrainStubs()
         } end,
         ShowForPlayer = function() end,
         HideForPlayer = function() end,
+        Show = function() end,
+        Hide = function() end,
+        ShowForAll = function() end,
+        HideForAll = function() end,
     }
 
     local panelKitStub = {
@@ -228,7 +232,6 @@ Test.test("ToggleMilestone shows confirmation dialog before checking", function(
         
         -- Should have stored the pending milestone info
         t:assertEqual(1, strain.pendingMilestoneIndex)
-        t:assertEqual(player, strain.pendingPlayer)
     end)
 end)
 
@@ -248,7 +251,6 @@ Test.test("ConfirmMilestone checks the pending milestone", function(t)
         
         -- Pending info should be cleared
         t:assertEqual(nil, strain.pendingMilestoneIndex)
-        t:assertEqual(nil, strain.pendingPlayer)
     end)
 end)
 
@@ -268,6 +270,5 @@ Test.test("CancelMilestone keeps milestone unchecked", function(t)
         
         -- Pending info should be cleared
         t:assertEqual(nil, strain.pendingMilestoneIndex)
-        t:assertEqual(nil, strain.pendingPlayer)
     end)
 end)

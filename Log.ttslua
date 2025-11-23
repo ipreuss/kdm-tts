@@ -28,6 +28,7 @@ Log.DEBUG_MODULES = {
     --["Player"] = true,
     --["Rules"] = true,
     --["Showdown"] = true,
+    --["Strain"] = true,
     --["Survivor"] = true,
     --["Timeline"] = true,
     --["Trash"] = true,

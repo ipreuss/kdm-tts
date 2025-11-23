@@ -132,4 +132,57 @@ When extending the game flow, prefer emitting a new event constant in `EventMana
 - `Campaign.ttslua`, `Timeline.ttslua`, `Survivor.ttslua`, `Player.ttslua`, `BattleUi.ttslua` — primary gameplay subsystems most contributors touch first.
 - `updateTTS.sh` — bundling pipeline; run this before exporting to Tabletop Simulator Workshop.
 
+## TTS-Specific Implementation Patterns
+
+### Checkbox Interaction Pattern
+**Problem**: TTS automatically toggles checkbox visual state on click before calling the onClick handler.
+
+**Solution**: Revert checkbox state in handler, show confirmation dialog, then explicitly set final state.
+```lua
+onClick = function(_, player)
+    -- TTS has already auto-toggled the checkbox
+    checkbox:Check(false)  -- Revert to unchecked
+    showConfirmationDialog()
+    -- On confirm: checkbox:Check(true)
+end
+```
+
+### Dialog API Usage
+**Correct Methods**: 
+- `dialog:ShowForPlayer(player)` - show to specific player
+- `dialog:ShowForAll()` - show to all players  
+- `dialog:HideForAll()` - hide from all players
+
+**Common Error**: Using `dialog:Show()` or `dialog:Hide()` (these methods don't exist in PanelKit).
+
+### Player Object References
+**Problem**: Player objects aren't stable references between different TTS callbacks.
+
+**Solutions**:
+1. Compare `player.color` strings instead of object references
+2. Better: Eliminate player tracking for shared campaign state (milestones, settlement progress)
+
+### Shared vs Personal UI Design
+**Campaign-level UI** (visible to all players):
+- Settlement milestones, timeline events, campaign progress
+- Use `ShowForAll()` and allow any player to interact
+
+**Player-specific UI** (individual sheets):
+- Survivor sheets, player boards, personal inventory
+- Use `ShowForPlayer(player)` and track player ownership
+
+### TTS Debugging Approach
+**Essential Patterns**:
+- Add comprehensive debug logging with module-specific toggles in `Log.DEBUG_MODULES`
+- Check function existence before calling: `if Player and Player.getPlayers then`
+- Log state changes at each step to trace execution flow
+- Use `./updateTTS.sh` for rapid iteration and testing
+
+### Runtime Error Diagnosis
+**When encountering "attempt to call a nil value"**:
+1. Add debug logging at the error point to identify what is nil
+2. Work backward through execution with targeted logging
+3. Test simple hypotheses before complex architectural changes
+4. Often the root cause is simpler than initial assumptions (missing function vs. module loading issue)
+
 Keep this document close when planning future work; updating it when adding a new subsystem pays for itself the next time you (or someone else) needs to understand how the mod hangs together.

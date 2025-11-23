@@ -117,8 +117,8 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Strain:InitConfirmationDialog()
-    local width = 600
-    local height = 400
+    local width = 650
+    local height = 500
     local confirmDialog = PanelKit.Dialog({
         id = "StrainMilestoneConfirmation",
         ui = Ui.Get2d(),
@@ -145,54 +145,83 @@ function Strain:InitConfirmationDialog()
     -- Dynamic milestone title
     Strain.confirmationTitle = confirmPanel:Text({
         id = "MilestoneTitleText",
-        x = chrome.contentX + 10,
-        y = chrome.contentY + 10,
-        width = chrome.contentWidth - 20,
-        height = 30,
-        fontSize = 18,
+        x = chrome.contentX + 20,
+        y = chrome.contentY + 15,
+        width = chrome.contentWidth - 40,
+        height = 35,
+        fontSize = 20,
         fontStyle = "Bold",
         color = Ui.DARK_BROWN,
         alignment = "UpperCenter",
     })
 
+    -- Flavor section label
+    confirmPanel:Text({
+        id = "FlavorLabel",
+        x = chrome.contentX + 20,
+        y = chrome.contentY - 60,
+        width = chrome.contentWidth - 40,
+        height = 25,
+        fontSize = 16,
+        fontStyle = "Bold",
+        color = Ui.DARK_BROWN,
+        alignment = "UpperLeft",
+        text = "Story:",
+    })
+
     -- Flavor text
     Strain.confirmationFlavorText = confirmPanel:Text({
         id = "MilestoneFlavorText",
-        x = chrome.contentX + 10,
-        y = chrome.contentY - 50,
-        width = chrome.contentWidth - 20,
-        height = 80,
-        fontSize = 16,
+        x = chrome.contentX + 30,
+        y = chrome.contentY - 90,
+        width = chrome.contentWidth - 60,
+        height = 90,
+        fontSize = 15,
         fontStyle = "Italic",
         color = Ui.MID_BROWN,
         alignment = "UpperLeft",
         horizontalOverflow = "Wrap",
-        verticalOverflow = "Overflow",
+        verticalOverflow = "Truncate",
+    })
+
+    -- Rules section label
+    confirmPanel:Text({
+        id = "RulesLabel",
+        x = chrome.contentX + 20,
+        y = chrome.contentY - 195,
+        width = chrome.contentWidth - 40,
+        height = 25,
+        fontSize = 16,
+        fontStyle = "Bold",
+        color = Ui.DARK_BROWN,
+        alignment = "UpperLeft",
+        text = "Game Effect:",
     })
 
     -- Rules text
     Strain.confirmationRulesText = confirmPanel:Text({
         id = "MilestoneRulesText", 
-        x = chrome.contentX + 10,
-        y = chrome.contentY - 150,
-        width = chrome.contentWidth - 20,
-        height = 120,
-        fontSize = 14,
+        x = chrome.contentX + 30,
+        y = chrome.contentY - 225,
+        width = chrome.contentWidth - 60,
+        height = 80,
+        fontSize = 15,
         color = Ui.DARK_BROWN,
         alignment = "UpperLeft",
         horizontalOverflow = "Wrap",
-        verticalOverflow = "Overflow",
+        verticalOverflow = "Truncate",
     })
 
     -- OK button
     confirmPanel:Button({
         id = "MilestoneConfirmOK",
-        x = chrome.contentX + 50,
-        y = chrome.contentY - chrome.contentHeight + 60,
-        width = 120,
-        height = 40,
-        text = "OK",
+        x = chrome.contentX + 80,
+        y = chrome.contentY - chrome.contentHeight + 40,
+        width = 140,
+        height = 45,
+        text = "Confirm Milestone",
         fontSize = 16,
+        colors = Ui.MID_BROWN_COLORS,
         onClick = function(_, player)
             Strain:ConfirmMilestone(player)
         end,
@@ -201,12 +230,13 @@ function Strain:InitConfirmationDialog()
     -- Cancel button
     confirmPanel:Button({
         id = "MilestoneConfirmCancel", 
-        x = chrome.contentX + chrome.contentWidth - 170,
-        y = chrome.contentY - chrome.contentHeight + 60,
-        width = 120,
-        height = 40,
+        x = chrome.contentX + chrome.contentWidth - 220,
+        y = chrome.contentY - chrome.contentHeight + 40,
+        width = 140,
+        height = 45,
         text = "Cancel",
         fontSize = 16,
+        colors = Ui.MID_BROWN_COLORS,
         onClick = function(_, player)
             Strain:CancelMilestone(player)
         end,
@@ -300,8 +330,13 @@ function Strain:ToggleMilestone(index, player)
     end
 
     -- If milestone is not reached, show confirmation dialog
+    -- TTS has already auto-toggled the checkbox, so revert it back to unchecked
+    local row = Strain.milestoneRows[index]
+    if row then
+        row.checkBox:Check(false)
+    end
+    
     Strain.pendingMilestoneIndex = index
-    Strain.pendingPlayer = player
     Strain:ShowConfirmationDialog(milestone)
 end
 
@@ -315,12 +350,12 @@ function Strain:ShowConfirmationDialog(milestone)
     Strain.confirmationFlavorText:SetText(milestone.flavorText)
     Strain.confirmationRulesText:SetText(milestone.rulesText)
 
-    -- Show dialog
-    Strain.confirmationDialog:ShowForPlayer(Strain.pendingPlayer)
+    -- Show dialog for all players
+    Strain.confirmationDialog:ShowForAll()
 end
 
 function Strain:ConfirmMilestone(player)
-    if Strain.pendingMilestoneIndex and Strain.pendingPlayer == player then
+    if Strain.pendingMilestoneIndex then
         local milestone = Strain.milestones[Strain.pendingMilestoneIndex]
         if milestone then
             milestone.reached = true
@@ -333,9 +368,8 @@ function Strain:ConfirmMilestone(player)
         end
     end
     
-    Strain.confirmationDialog:HideForPlayer(player)
+    Strain.confirmationDialog:HideForAll()
     Strain.pendingMilestoneIndex = nil
-    Strain.pendingPlayer = nil
 end
 
 function Strain:CancelMilestone(player)
@@ -347,9 +381,8 @@ function Strain:CancelMilestone(player)
         end
     end
     
-    Strain.confirmationDialog:HideForPlayer(player)
+    Strain.confirmationDialog:HideForAll()
     Strain.pendingMilestoneIndex = nil
-    Strain.pendingPlayer = nil
 end
 
 ---------------------------------------------------------------------------------------------------
