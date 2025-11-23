@@ -59,6 +59,33 @@ When encountering runtime errors in Tabletop Simulator (especially "attempt to c
 
 **Example**: An "attempt to call a nil value" error led to assumptions about module loading complexity. Debug logging revealed the actual issue was simply calling a non-existent `Player.GetReferee()` function. The fix was storing the current player reference instead of seeking a non-existent referee function.
 
+## Debugging UI Problems
+
+When encountering UI issues (dialogs not showing, buttons not working) that previously worked:
+
+### 1. **Roll Back and Verify**
+- Revert to the last known working state (manually undo changes if possible, or use git if changes are extensive)
+- Test that the UI functionality works correctly in the reverted state
+- This confirms whether the issue is related to recent changes
+
+### 2. **Incremental Approach**
+- Break down recent changes into smaller, isolated steps
+- Apply changes one small piece at a time
+- Test UI functionality after each small change
+- This identifies the exact change that introduced the problem
+
+### 3. **Isolate the Cause**
+- When the problematic change is identified, analyze what specifically broke
+- Add targeted `log:Debugf(...)` statements to trace UI component initialization, event handler registration, and state changes
+- Enable debug logging for the relevant module in `Log.DEBUG_MODULES` temporarily
+- Use existence checks to verify UI components and handlers: `log:Debugf("Dialog exists: %s", tostring(dialog ~= nil))`
+- Review changes to shared UI components or global state that might affect dialogs
+
+### 4. **Fix Surgically**
+- Make the minimal change needed to restore functionality
+- Avoid the temptation to "fix" unrelated issues discovered during debugging
+- Focus on restoring the working behavior with the smallest possible modification
+
 ## Test-First Loop
 1. **Plan** – clarify the intent of the change (behavior, data shape, UI outcome) and note which modules are involved. Update or create ADRs/notes if the change affects architecture decisions.
 2. **Specify** – write or extend the relevant test so it fails for the current implementation. If touching multiple layers, prefer starting with the highest-value test and add focused unit tests if needed.
