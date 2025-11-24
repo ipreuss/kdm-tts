@@ -47,6 +47,136 @@ Strain.DUMMY_MILESTONES = {
     },
 }
 
+local function buildConfirmationLayoutSpecs(elements)
+    local specs = {}
+
+    local function addSpec(descriptorFn, renderFn)
+        table.insert(specs, {
+            descriptor = descriptorFn,
+            render = renderFn,
+        })
+    end
+
+    local function spacerSpec(height)
+        return {
+            descriptor = function()
+                return elements.Spacer({ height = height })
+            end,
+            render = function(layout)
+                layout:AddSpacer(height)
+            end,
+        }
+    end
+
+    local titleParams = {
+        id = "MilestoneTitleText",
+        fontSize = 24,
+        fontStyle = "Bold",
+        color = Ui.DARK_BROWN,
+        height = 40,
+    }
+
+    addSpec(
+        function()
+            return elements.Title(titleParams)
+        end,
+        function(layout)
+            Strain.confirmationTitle = layout:AddTitle(titleParams)
+        end
+    )
+
+    table.insert(specs, spacerSpec(8))
+
+    local flavorSectionParams = {
+        labelId = "FlavorLabel",
+        label = "Story:",
+        labelFontSize = 18,
+        labelHeight = 30,
+        labelColor = Ui.DARK_BROWN,
+        contentId = "MilestoneFlavorText",
+        contentStyle = "Italic",
+        contentHeight = 70,
+        contentFontSize = 14,
+        contentColor = Ui.MID_BROWN,
+        indent = 15,
+    }
+
+    addSpec(
+        function()
+            return elements.Section(flavorSectionParams)
+        end,
+        function(layout)
+            local section = layout:AddSection(flavorSectionParams)
+            Strain.confirmationFlavorText = section.content
+        end
+    )
+
+    table.insert(specs, spacerSpec(15))
+
+    local rulesSectionParams = {
+        labelId = "RulesLabel",
+        label = "Game Effect:",
+        labelFontSize = 18,
+        labelHeight = 30,
+        labelColor = Ui.DARK_BROWN,
+        contentId = "MilestoneRulesText",
+        contentHeight = 70,
+        contentFontSize = 15,
+        contentColor = Ui.DARK_BROWN,
+        indent = 15,
+    }
+
+    addSpec(
+        function()
+            return elements.Section(rulesSectionParams)
+        end,
+        function(layout)
+            local section = layout:AddSection(rulesSectionParams)
+            Strain.confirmationRulesText = section.content
+        end
+    )
+
+    table.insert(specs, spacerSpec(20))
+
+    local buttonRowParams = {
+        height = 50,
+        spacing = 25,
+        buttons = {
+            {
+                id = "MilestoneConfirmOK",
+                text = "Confirm Milestone",
+                width = 160,
+                fontSize = 16,
+                colors = Ui.DARK_BROWN_COLORS,
+                onClick = function(_, player)
+                    Strain:ConfirmMilestone(player)
+                end,
+            },
+            {
+                id = "MilestoneConfirmCancel",
+                text = "Cancel",
+                width = 120,
+                fontSize = 16,
+                colors = Ui.MID_BROWN_COLORS,
+                onClick = function(_, player)
+                    Strain:CancelMilestone(player)
+                end,
+            },
+        }
+    }
+
+    addSpec(
+        function()
+            return elements.ButtonRow(buttonRowParams)
+        end,
+        function(layout)
+            layout:AddButtonRow(buttonRowParams)
+        end
+    )
+
+    return specs
+end
+
 ---------------------------------------------------------------------------------------------------
 
 function Strain.Init()
@@ -122,16 +252,15 @@ function Strain:InitConfirmationDialog()
     -- Calculate required height using layout manager
     local LayoutManager = require("Kdm/Ui/LayoutManager")
     local Elements = LayoutManager.Elements
+    local layoutSpecs = buildConfirmationLayoutSpecs(Elements)
+
+    local measuredElements = {}
+    for _, spec in ipairs(layoutSpecs) do
+        table.insert(measuredElements, spec.descriptor())
+    end
+
     local contentHeight = LayoutManager.CalculateLayoutHeight({
-        elements = {
-            Elements.Title({ height = 40 }),
-            Elements.Spacer({ height = 8 }),
-            Elements.Section({ labelHeight = 30, contentHeight = 70 }), -- flavor
-            Elements.Spacer({ height = 15 }),
-            Elements.Section({ labelHeight = 30, contentHeight = 70 }), -- rules  
-            Elements.Spacer({ height = 20 }),
-            Elements.ButtonRow({ height = 50 }),
-        },
+        elements = measuredElements,
         padding = 15,
         spacing = 12,
         chromeOverhead = 0, -- We'll add TTS overhead separately
@@ -173,79 +302,10 @@ function Strain:InitConfirmationDialog()
         spacing = 12,
     })
 
-    -- Dynamic milestone title
-    Strain.confirmationTitle = layout:AddTitle({
-        id = "MilestoneTitleText",
-        fontSize = 24,
-        fontStyle = "Bold",
-        color = Ui.DARK_BROWN,
-        height = 40,
-    })
+    for _, spec in ipairs(layoutSpecs) do
+        spec.render(layout)
+    end
 
-    -- Story section with enhanced styling
-    layout:AddSpacer(8)
-    local flavorSection = layout:AddSection({
-        labelId = "FlavorLabel",
-        label = "Story:",
-        labelFontSize = 18,
-        labelHeight = 30,  -- Increased height for larger font
-        labelColor = Ui.DARK_BROWN,
-        contentId = "MilestoneFlavorText",
-        contentStyle = "Italic",
-        contentHeight = 70,
-        contentFontSize = 14,
-        contentColor = Ui.MID_BROWN,
-        indent = 15,
-    })
-    Strain.confirmationFlavorText = flavorSection.content
-
-    -- Visual separator between sections
-    layout:AddSpacer(15)
-    
-    -- Game Effect section with enhanced styling
-    local rulesSection = layout:AddSection({
-        labelId = "RulesLabel",
-        label = "Game Effect:",
-        labelFontSize = 18,
-        labelHeight = 30,  -- Increased height for larger font
-        labelColor = Ui.DARK_BROWN,
-        contentId = "MilestoneRulesText", 
-        contentHeight = 70,
-        contentFontSize = 15,
-        contentColor = Ui.DARK_BROWN,
-        indent = 15,
-    })
-    Strain.confirmationRulesText = rulesSection.content
-
-    -- Button row with enhanced styling
-    layout:AddSpacer(20)
-    layout:AddButtonRow({
-        height = 50,
-        spacing = 25,
-        buttons = {
-            {
-                id = "MilestoneConfirmOK",
-                text = "Confirm Milestone",
-                width = 160,
-                fontSize = 16,
-                colors = Ui.DARK_BROWN_COLORS,
-                onClick = function(_, player)
-                    Strain:ConfirmMilestone(player)
-                end,
-            },
-            {
-                id = "MilestoneConfirmCancel",
-                text = "Cancel",
-                width = 120,
-                fontSize = 16,
-                colors = Ui.MID_BROWN_COLORS,
-                onClick = function(_, player)
-                    Strain:CancelMilestone(player)
-                end,
-            },
-        }
-    })
-    
     local actualUsedHeight = layout:GetUsedHeight()
     log:Debugf("Dialog: height=%d, layout used=%d, difference=%d", height, actualUsedHeight, height - actualUsedHeight)
 end
