@@ -129,7 +129,7 @@ Test.test("AddSection creates label and content with spacing", function(t)
         local contentCall = env.recorder.calls[2]
         t:assertEqual("Text", contentCall.type)
         t:assertEqual("This is the flavor text content.", contentCall.params.text)
-        t:assertEqual(14, contentCall.params.fontSize)
+        t:assertEqual(16, contentCall.params.fontSize)
         t:assertEqual(40, contentCall.params.x) -- contentX + padding + indent
         t:assertEqual(250, contentCall.params.width) -- contentWidth - padding*2 - indent
     end)

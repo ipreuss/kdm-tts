@@ -135,7 +135,7 @@ function Strain:InitConfirmationDialog()
         label = "Story:",
         contentId = "MilestoneFlavorText",
         contentStyle = "Italic",
-        contentColor = Ui.MID_BROWN,
+        contentColor = Ui.DARK_BROWN,
         indent = 15,
     }, function(section)
         Strain.confirmationFlavorText = section.content
@@ -162,7 +162,7 @@ function Strain:InitConfirmationDialog()
                 id = "MilestoneConfirmOK",
                 text = "Confirm Milestone",
                 width = 160,
-                fontSize = 16,
+                textColor = Ui.LIGHT_BROWN,
                 colors = Ui.DARK_BROWN_COLORS,
                 onClick = function(_, player)
                     Strain:ConfirmMilestone(player)
@@ -172,7 +172,7 @@ function Strain:InitConfirmationDialog()
                 id = "MilestoneConfirmCancel",
                 text = "Cancel",
                 width = 120,
-                fontSize = 16,
+                textColor = Ui.DARK_BROWN,
                 colors = Ui.MID_BROWN_COLORS,
                 onClick = function(_, player)
                     Strain:CancelMilestone(player)

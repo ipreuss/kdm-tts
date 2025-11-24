@@ -12,8 +12,10 @@ local LayoutManager = {}
 LayoutManager.FONT_HEIGHT_MULTIPLIER = 1.5
 LayoutManager.TITLE_HEIGHT_MULTIPLIER = 1.35
 LayoutManager.LABEL_HEIGHT_MULTIPLIER = 1.35
-LayoutManager.CONTENT_HEIGHT_MULTIPLIER = 4.8
-LayoutManager.CONTENT_FONT_SIZE = 14
+LayoutManager.CONTENT_HEIGHT_MULTIPLIER = 5.2
+LayoutManager.CONTENT_FONT_SIZE = 16
+LayoutManager.BUTTON_FONT_SIZE = 16
+LayoutManager.BUTTON_TEXT_ALIGNMENT = "MiddleCenter"
 LayoutManager.DEFAULT_CHROME_OVERHEAD = 195
 
 LayoutManager.Elements = {}
@@ -179,7 +181,9 @@ function ButtonRowElement:Render(layout)
             width = width,
             height = buttonHeight,
             text = btn.text,
-            fontSize = btn.fontSize or 16,
+            fontSize = btn.fontSize or LayoutManager.BUTTON_FONT_SIZE,
+            textAlignment = btn.textAlignment or LayoutManager.BUTTON_TEXT_ALIGNMENT,
+            textColor = btn.textColor,
             colors = btn.colors or Ui.MID_BROWN_COLORS,
             onClick = btn.onClick,
         })
