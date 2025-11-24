@@ -127,22 +127,22 @@ function Strain:InitConfirmationDialog()
         fontSize = 24,
         fontStyle = "Bold",
         color = Ui.DARK_BROWN,
-        height = 40,
+        height = 34,
     }, function(element)
         Strain.confirmationTitle = element
     end)
 
-    spec:AddSpacer(8)
+    spec:AddSpacer(6)
 
     spec:AddSection({
         labelId = "FlavorLabel",
         label = "Story:",
         labelFontSize = 18,
-        labelHeight = 30,
+        labelHeight = 24,
         labelColor = Ui.DARK_BROWN,
         contentId = "MilestoneFlavorText",
         contentStyle = "Italic",
-        contentHeight = 70,
+        contentHeight = 60,
         contentFontSize = 14,
         contentColor = Ui.MID_BROWN,
         indent = 15,
@@ -150,16 +150,16 @@ function Strain:InitConfirmationDialog()
         Strain.confirmationFlavorText = section.content
     end)
 
-    spec:AddSpacer(15)
+    spec:AddSpacer(10)
 
     spec:AddSection({
         labelId = "RulesLabel",
         label = "Game Effect:",
         labelFontSize = 18,
-        labelHeight = 30,
+        labelHeight = 24,
         labelColor = Ui.DARK_BROWN,
         contentId = "MilestoneRulesText",
-        contentHeight = 70,
+        contentHeight = 60,
         contentFontSize = 15,
         contentColor = Ui.DARK_BROWN,
         indent = 15,
@@ -167,10 +167,10 @@ function Strain:InitConfirmationDialog()
         Strain.confirmationRulesText = section.content
     end)
 
-    spec:AddSpacer(20)
+    spec:AddSpacer(15)
 
     spec:AddButtonRow({
-        height = 50,
+        height = 45,
         spacing = 25,
         buttons = {
             {
@@ -197,8 +197,8 @@ function Strain:InitConfirmationDialog()
     })
 
     local layoutParams = {
-        padding = 15,
-        spacing = 12,
+        padding = 12,
+        spacing = 10,
     }
 
     local contentHeight = spec:CalculateHeight({
