@@ -47,136 +47,6 @@ Strain.DUMMY_MILESTONES = {
     },
 }
 
-local function buildConfirmationLayoutSpecs(elements)
-    local specs = {}
-
-    local function addSpec(descriptorFn, renderFn)
-        table.insert(specs, {
-            descriptor = descriptorFn,
-            render = renderFn,
-        })
-    end
-
-    local function spacerSpec(height)
-        return {
-            descriptor = function()
-                return elements.Spacer({ height = height })
-            end,
-            render = function(layout)
-                layout:AddSpacer(height)
-            end,
-        }
-    end
-
-    local titleParams = {
-        id = "MilestoneTitleText",
-        fontSize = 24,
-        fontStyle = "Bold",
-        color = Ui.DARK_BROWN,
-        height = 40,
-    }
-
-    addSpec(
-        function()
-            return elements.Title(titleParams)
-        end,
-        function(layout)
-            Strain.confirmationTitle = layout:AddTitle(titleParams)
-        end
-    )
-
-    table.insert(specs, spacerSpec(8))
-
-    local flavorSectionParams = {
-        labelId = "FlavorLabel",
-        label = "Story:",
-        labelFontSize = 18,
-        labelHeight = 30,
-        labelColor = Ui.DARK_BROWN,
-        contentId = "MilestoneFlavorText",
-        contentStyle = "Italic",
-        contentHeight = 70,
-        contentFontSize = 14,
-        contentColor = Ui.MID_BROWN,
-        indent = 15,
-    }
-
-    addSpec(
-        function()
-            return elements.Section(flavorSectionParams)
-        end,
-        function(layout)
-            local section = layout:AddSection(flavorSectionParams)
-            Strain.confirmationFlavorText = section.content
-        end
-    )
-
-    table.insert(specs, spacerSpec(15))
-
-    local rulesSectionParams = {
-        labelId = "RulesLabel",
-        label = "Game Effect:",
-        labelFontSize = 18,
-        labelHeight = 30,
-        labelColor = Ui.DARK_BROWN,
-        contentId = "MilestoneRulesText",
-        contentHeight = 70,
-        contentFontSize = 15,
-        contentColor = Ui.DARK_BROWN,
-        indent = 15,
-    }
-
-    addSpec(
-        function()
-            return elements.Section(rulesSectionParams)
-        end,
-        function(layout)
-            local section = layout:AddSection(rulesSectionParams)
-            Strain.confirmationRulesText = section.content
-        end
-    )
-
-    table.insert(specs, spacerSpec(20))
-
-    local buttonRowParams = {
-        height = 50,
-        spacing = 25,
-        buttons = {
-            {
-                id = "MilestoneConfirmOK",
-                text = "Confirm Milestone",
-                width = 160,
-                fontSize = 16,
-                colors = Ui.DARK_BROWN_COLORS,
-                onClick = function(_, player)
-                    Strain:ConfirmMilestone(player)
-                end,
-            },
-            {
-                id = "MilestoneConfirmCancel",
-                text = "Cancel",
-                width = 120,
-                fontSize = 16,
-                colors = Ui.MID_BROWN_COLORS,
-                onClick = function(_, player)
-                    Strain:CancelMilestone(player)
-                end,
-            },
-        }
-    }
-
-    addSpec(
-        function()
-            return elements.ButtonRow(buttonRowParams)
-        end,
-        function(layout)
-            layout:AddButtonRow(buttonRowParams)
-        end
-    )
-
-    return specs
-end
-
 ---------------------------------------------------------------------------------------------------
 
 function Strain.Init()
@@ -251,25 +121,94 @@ function Strain:InitConfirmationDialog()
     
     -- Calculate required height using layout manager
     local LayoutManager = require("Kdm/Ui/LayoutManager")
-    local Elements = LayoutManager.Elements
-    local layoutSpecs = buildConfirmationLayoutSpecs(Elements)
+    local spec = LayoutManager.Specification()
+    spec:AddTitle({
+        id = "MilestoneTitleText",
+        fontSize = 24,
+        fontStyle = "Bold",
+        color = Ui.DARK_BROWN,
+        height = 40,
+    }, function(element)
+        Strain.confirmationTitle = element
+    end)
 
-    local measuredElements = {}
-    for _, spec in ipairs(layoutSpecs) do
-        table.insert(measuredElements, spec.descriptor())
-    end
+    spec:AddSpacer(8)
 
-    local contentHeight = LayoutManager.CalculateLayoutHeight({
-        elements = measuredElements,
+    spec:AddSection({
+        labelId = "FlavorLabel",
+        label = "Story:",
+        labelFontSize = 18,
+        labelHeight = 30,
+        labelColor = Ui.DARK_BROWN,
+        contentId = "MilestoneFlavorText",
+        contentStyle = "Italic",
+        contentHeight = 70,
+        contentFontSize = 14,
+        contentColor = Ui.MID_BROWN,
+        indent = 15,
+    }, function(section)
+        Strain.confirmationFlavorText = section.content
+    end)
+
+    spec:AddSpacer(15)
+
+    spec:AddSection({
+        labelId = "RulesLabel",
+        label = "Game Effect:",
+        labelFontSize = 18,
+        labelHeight = 30,
+        labelColor = Ui.DARK_BROWN,
+        contentId = "MilestoneRulesText",
+        contentHeight = 70,
+        contentFontSize = 15,
+        contentColor = Ui.DARK_BROWN,
+        indent = 15,
+    }, function(section)
+        Strain.confirmationRulesText = section.content
+    end)
+
+    spec:AddSpacer(20)
+
+    spec:AddButtonRow({
+        height = 50,
+        spacing = 25,
+        buttons = {
+            {
+                id = "MilestoneConfirmOK",
+                text = "Confirm Milestone",
+                width = 160,
+                fontSize = 16,
+                colors = Ui.DARK_BROWN_COLORS,
+                onClick = function(_, player)
+                    Strain:ConfirmMilestone(player)
+                end,
+            },
+            {
+                id = "MilestoneConfirmCancel",
+                text = "Cancel",
+                width = 120,
+                fontSize = 16,
+                colors = Ui.MID_BROWN_COLORS,
+                onClick = function(_, player)
+                    Strain:CancelMilestone(player)
+                end,
+            },
+        }
+    })
+
+    local layoutParams = {
         padding = 15,
         spacing = 12,
-        chromeOverhead = 0, -- We'll add TTS overhead separately
+    }
+
+    local contentHeight = spec:CalculateHeight({
+        padding = layoutParams.padding,
+        spacing = layoutParams.spacing,
+        chromeOverhead = 0,
     })
+    local height = spec:CalculateDialogHeight(layoutParams)
     
-    -- Add measured TTS overhead (195px from working example)
-    local height = contentHeight + 195
-    
-    log:Debugf("Creating dialog: content=%d + overhead=195 = total=%d", contentHeight, height)
+    log:Debugf("Creating dialog: content=%d + overhead=%d = total=%d", contentHeight, height - contentHeight, height)
     
     local confirmDialog = PanelKit.Dialog({
         id = "StrainMilestoneConfirmation",
@@ -298,13 +237,11 @@ function Strain:InitConfirmationDialog()
     local layout = PanelKit.VerticalLayout({
         parent = confirmPanel,
         contentArea = chrome,
-        padding = 15,
-        spacing = 12,
+        padding = layoutParams.padding,
+        spacing = layoutParams.spacing,
     })
 
-    for _, spec in ipairs(layoutSpecs) do
-        spec.render(layout)
-    end
+    spec:Render(layout)
 
     local actualUsedHeight = layout:GetUsedHeight()
     log:Debugf("Dialog: height=%d, layout used=%d, difference=%d", height, actualUsedHeight, height - actualUsedHeight)

@@ -50,20 +50,16 @@ The UI framework uses a two-stage approach to handle TTS's constraint that dialo
 
 #### Stage 1: Pre-calculation
 ```lua
--- Calculate content requirements without creating UI
-local Elements = LayoutManager.Elements
-local contentHeight = LayoutManager.CalculateLayoutHeight({
-    elements = {
-        Elements.Title({ height = 35 }),
-        Elements.Section({ labelHeight = 30, contentHeight = 60 }),
-        Elements.ButtonRow({ height = 45 }),
-    },
+-- Build a reusable specification and calculate required space
+local spec = LayoutManager.Specification()
+spec:AddTitle({ height = 35 })
+spec:AddSection({ labelHeight = 30, contentHeight = 60 })
+spec:AddButtonRow({ height = 45 })
+
+local dialogHeight = spec:CalculateDialogHeight({
     padding = 15,
     spacing = 12,
 })
-
--- Add measured TTS overhead for chrome/margins  
-local dialogHeight = contentHeight + 195
 ```
 
 #### Stage 2: Dialog Creation
@@ -71,10 +67,9 @@ local dialogHeight = contentHeight + 195
 -- Create dialog with pre-calculated size
 local dialog = PanelKit.Dialog({ width = 650, height = dialogHeight })
 
--- Build layout with actual UI elements
+-- Build layout with the same specification (and optional callbacks)
 local layout = PanelKit.VerticalLayout({ parent = dialog })
-layout:AddTitle({ text = "Title" })
-layout:AddSection({ content = "Content" })
+spec:Render(layout)
 ```
 
 #### Critical Measurements

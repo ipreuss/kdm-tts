@@ -241,3 +241,40 @@ Test.test("CalculateLayoutHeight honors polymorphic elements", function(t)
         t:assertEqual(expected, result)
     end)
 end)
+
+Test.test("Specification calculates height and renders layout", function(t)
+    withLayout(t, function(LayoutManager, env)
+        local spec = LayoutManager.Specification()
+        local capturedTitle
+        spec:AddTitle({ text = "Spec Title", id = "SpecTitle" }, function(element)
+            capturedTitle = element
+        end)
+        spec:AddSpacer(5)
+        spec:AddButtonRow({
+            height = 40,
+            buttons = {
+                { text = "One" },
+                { text = "Two" },
+            },
+        })
+
+        local height = spec:CalculateHeight({ padding = 10, spacing = 5, chromeOverhead = 0 })
+        t:assertTrue(height > 0)
+
+        local dialogHeight = spec:CalculateDialogHeight({ padding = 10, spacing = 5 })
+        t:assertTrue(dialogHeight > height)
+
+        local layout = LayoutManager.VerticalLayout({
+            parent = env.mockPanel,
+            contentArea = { contentX = 0, contentY = -30, contentWidth = 300, contentHeight = 200 },
+            padding = 10,
+            spacing = 5,
+        })
+
+        spec:Render(layout)
+
+        t:assertTrue(#env.recorder.calls >= 3)
+        t:assertEqual("Text", env.recorder.calls[1].type)
+        t:assertTrue(capturedTitle ~= nil)
+    end)
+end)

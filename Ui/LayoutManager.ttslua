@@ -11,10 +11,35 @@ local LayoutManager = {}
 
 LayoutManager.FONT_HEIGHT_MULTIPLIER = 1.5
 LayoutManager.CONTENT_HEIGHT_MULTIPLIER = 6.25
+LayoutManager.DEFAULT_CHROME_OVERHEAD = 195
 
 LayoutManager.Elements = {}
 
 local Elements = LayoutManager.Elements
+
+local Specification = {}
+Specification.__index = Specification
+
+local function shallowCopy(source)
+    if not source then
+        return {}
+    end
+    local copy = {}
+    for k, v in pairs(source) do
+        copy[k] = v
+    end
+    return copy
+end
+
+local function ensureTable(value)
+    if type(value) == "table" then
+        return value
+    end
+    if value == nil then
+        return {}
+    end
+    return { height = value }
+end
 
 local function newElementState(state, metatable)
     state = state or {}
@@ -273,6 +298,164 @@ local function normalizeElements(elements)
     return normalized
 end
 
+local function newSpecification()
+    local spec = {
+        entries = {},
+    }
+    return setmetatable(spec, Specification)
+end
+
+function LayoutManager.Specification()
+    return newSpecification()
+end
+
+function Specification:_addEntry(descriptorFactory, renderFn, onRender)
+    assert(type(descriptorFactory) == "function", "descriptorFactory must be a function")
+    assert(type(renderFn) == "function", "renderFn must be a function")
+    table.insert(self.entries, {
+        descriptorFactory = descriptorFactory,
+        render = function(layout)
+            local result = renderFn(layout)
+            if onRender then
+                onRender(result)
+            end
+            return result
+        end,
+    })
+    return self
+end
+
+function Specification:AddElement(descriptorFactory, renderFn, onRender)
+    return self:_addEntry(descriptorFactory, renderFn, onRender)
+end
+
+function Specification:AddTitle(params, onRender)
+    local config = shallowCopy(params or {})
+    return self:_addEntry(
+        function()
+            return Elements.Title(config)
+        end,
+        function(layout)
+            return layout:AddTitle(config)
+        end,
+        onRender
+    )
+end
+
+function Specification:AddLabel(params, onRender)
+    local config = shallowCopy(params or {})
+    return self:_addEntry(
+        function()
+            return Elements.Label(config)
+        end,
+        function(layout)
+            return layout:AddLabel(config)
+        end,
+        onRender
+    )
+end
+
+function Specification:AddContent(params, onRender)
+    local config = shallowCopy(params or {})
+    return self:_addEntry(
+        function()
+            return Elements.Content(config)
+        end,
+        function(layout)
+            return layout:AddContent(config)
+        end,
+        onRender
+    )
+end
+
+function Specification:AddText(params, onRender)
+    local config = shallowCopy(params or {})
+    return self:_addEntry(
+        function()
+            return Elements.Text(config)
+        end,
+        function(layout)
+            return layout:AddText(config)
+        end,
+        onRender
+    )
+end
+
+function Specification:AddSection(params, onRender)
+    local config = shallowCopy(params or {})
+    return self:_addEntry(
+        function()
+            return Elements.Section(config)
+        end,
+        function(layout)
+            return layout:AddSection(config)
+        end,
+        onRender
+    )
+end
+
+function Specification:AddSpacer(params)
+    local config = shallowCopy(ensureTable(params))
+    return self:_addEntry(
+        function()
+            return Elements.Spacer(config)
+        end,
+        function(layout)
+            layout:AddSpacer(config.height)
+        end
+    )
+end
+
+function Specification:AddButtonRow(params, onRender)
+    local config = shallowCopy(params or {})
+    return self:_addEntry(
+        function()
+            return Elements.ButtonRow(config)
+        end,
+        function(layout)
+            return layout:AddButtonRow(config)
+        end,
+        onRender
+    )
+end
+
+function Specification:BuildElements()
+    local elements = {}
+    for _, entry in ipairs(self.entries) do
+        local descriptor = entry.descriptorFactory()
+        if descriptor then
+            table.insert(elements, descriptor)
+        end
+    end
+    return elements
+end
+
+function Specification:CalculateHeight(params)
+    params = params or {}
+    local calcParams = {}
+    for k, v in pairs(params) do
+        calcParams[k] = v
+    end
+    calcParams.elements = self:BuildElements()
+    return LayoutManager.CalculateLayoutHeight(calcParams)
+end
+
+function Specification:CalculateDialogHeight(params)
+    params = params or {}
+    if params.chromeOverhead == nil then
+        params.chromeOverhead = LayoutManager.DEFAULT_CHROME_OVERHEAD
+    end
+    return self:CalculateHeight(params)
+end
+
+function Specification:Render(layout)
+    local results = {}
+    for index, entry in ipairs(self.entries) do
+        results[index] = entry.render(layout)
+    end
+    return results
+end
+
 ---------------------------------------------------------------------------------------------------
 -- Vertical Layout Manager
 ---------------------------------------------------------------------------------------------------
@@ -427,6 +610,14 @@ function LayoutManager.CalculateLayoutHeight(params)
     end
 
     return totalHeight + chromeOverhead
+end
+
+function LayoutManager.CalculateDialogHeight(params)
+    params = params or {}
+    if params.chromeOverhead == nil then
+        params.chromeOverhead = LayoutManager.DEFAULT_CHROME_OVERHEAD
+    end
+    return LayoutManager.CalculateLayoutHeight(params)
 end
 
 ---------------------------------------------------------------------------------------------------
