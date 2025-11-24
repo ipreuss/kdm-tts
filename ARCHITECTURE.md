@@ -51,11 +51,12 @@ The UI framework uses a two-stage approach to handle TTS's constraint that dialo
 #### Stage 1: Pre-calculation
 ```lua
 -- Calculate content requirements without creating UI
+local Elements = LayoutManager.Elements
 local contentHeight = LayoutManager.CalculateLayoutHeight({
     elements = {
-        { type = "title", height = 35 },
-        { type = "section", contentHeight = 60 },
-        { type = "buttonRow", height = 45 },
+        Elements.Title({ height = 35 }),
+        Elements.Section({ labelHeight = 30, contentHeight = 60 }),
+        Elements.ButtonRow({ height = 45 }),
     },
     padding = 15,
     spacing = 12,

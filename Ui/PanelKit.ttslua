@@ -1,5 +1,6 @@
 local Check = require("Kdm/Util/Check")
 local Ui = require("Kdm/Ui")
+local LayoutManager = require("Kdm/Ui/LayoutManager")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -492,7 +493,6 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function PanelKit.VerticalLayout(params)
-    local LayoutManager = require("Kdm/Ui/LayoutManager")
     return LayoutManager.VerticalLayout(params)
 end
 
@@ -509,24 +509,30 @@ function PanelKit.AutoSizedDialog(params)
     }
     
     -- Stage 1: Collect layout requirements via callback with mock layout
-    local elements = {}
+    local layoutElements = LayoutManager.Elements
+    local measuredElements = {}
+
+    local function recordElement(element)
+        table.insert(measuredElements, element)
+    end
+
     local mockLayout = {
-        AddTitle = function(p) 
-            table.insert(elements, { type = "title", height = (p and p.height) or 35 })
+        AddTitle = function(p)
+            recordElement(layoutElements.Title(p or {}))
             return { SetText = function() end }
         end,
         AddSection = function(p)
-            table.insert(elements, { type = "section", labelHeight = 25, contentHeight = (p and p.contentHeight) or 80 })
-            return { 
+            recordElement(layoutElements.Section(p or {}))
+            return {
                 content = { SetText = function() end },
                 label = { SetText = function() end }
             }
         end,
         AddSpacer = function(height)
-            table.insert(elements, { type = "spacer", height = height or layoutConfig.spacing })
+            recordElement(layoutElements.Spacer({ height = height or layoutConfig.spacing }))
         end,
         AddButtonRow = function(p)
-            table.insert(elements, { type = "buttonRow", height = (p and p.height) or 45 })
+            recordElement(layoutElements.ButtonRow(p or {}))
             return {}
         end,
     }
@@ -536,7 +542,7 @@ function PanelKit.AutoSizedDialog(params)
     
     -- Stage 2: Calculate required height
     local requiredHeight = PanelKit.CalculateVerticalLayoutHeight({
-        elements = elements,
+        elements = measuredElements,
         padding = layoutConfig.padding,
         spacing = layoutConfig.spacing,
         chromeOverhead = layoutConfig.chromeOverhead,
@@ -584,47 +590,20 @@ function PanelKit.AutoSizedDialog(params)
 end
 
 function PanelKit.CalculateVerticalLayoutHeight(params)
-    local elements = params.elements or {}
-    local padding = params.padding or 10
-    local spacing = params.spacing or 10
-    local chromeOverhead = params.chromeOverhead or 40
-    
-    local totalHeight = padding * 2 -- Top and bottom padding
-    
-    for i, element in ipairs(elements) do
-        local elementHeight = 0
-        if element.type == "title" then
-            elementHeight = tonumber(element.height) or 35
-        elseif element.type == "section" then
-            local labelHeight = tonumber(element.labelHeight) or 25
-            local contentHeight = tonumber(element.contentHeight) or 80
-            elementHeight = labelHeight + contentHeight
-        elseif element.type == "buttonRow" then
-            elementHeight = tonumber(element.height) or 45
-        elseif element.type == "spacer" then
-            elementHeight = tonumber(element.height) or tonumber(spacing) or 10
-        end
-        
-        totalHeight = totalHeight + elementHeight
-        
-        -- Add spacing between elements (except for last element)
-        if i < #elements then
-            totalHeight = totalHeight + (tonumber(spacing) or 10)
-        end
-    end
-    
-    local calculatedHeight = totalHeight + chromeOverhead
-    
-    -- TEMPORARY: Add extra generous padding to ensure buttons fit
-    local safeHeight = calculatedHeight + 150  -- Extra 150px safety margin
-    
-    -- Debug output
+    params = params or {}
+    local calculatedHeight = LayoutManager.CalculateLayoutHeight(params)
+    local extraSafetyPadding = params.extraSafetyPadding or 150
+
     if _G.log and _G.log.Debugf then
-        _G.log:Debugf("Height calc: content=%d, chrome=%d, calculated=%d, safe=%d", 
-                     totalHeight, chromeOverhead, calculatedHeight, safeHeight)
+        _G.log:Debugf(
+            "Height calc: calculated=%d, chromeOverhead=%d, safety=%d",
+            calculatedHeight,
+            params.chromeOverhead or 40,
+            extraSafetyPadding
+        )
     end
-    
-    return safeHeight
+
+    return calculatedHeight + extraSafetyPadding
 end
 
 ---------------------------------------------------------------------------------------------------

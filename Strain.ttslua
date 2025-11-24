@@ -121,14 +121,16 @@ function Strain:InitConfirmationDialog()
     
     -- Calculate required height using layout manager
     local LayoutManager = require("Kdm/Ui/LayoutManager")
+    local Elements = LayoutManager.Elements
     local contentHeight = LayoutManager.CalculateLayoutHeight({
         elements = {
-            { type = "title", height = 35 },
-            { type = "spacer", height = 5 },
-            { type = "section", contentHeight = 60 }, -- flavor
-            { type = "section", contentHeight = 60 }, -- rules  
-            { type = "spacer", height = 10 },
-            { type = "buttonRow", height = 45 },
+            Elements.Title({ height = 40 }),
+            Elements.Spacer({ height = 8 }),
+            Elements.Section({ labelHeight = 30, contentHeight = 70 }), -- flavor
+            Elements.Spacer({ height = 15 }),
+            Elements.Section({ labelHeight = 30, contentHeight = 70 }), -- rules  
+            Elements.Spacer({ height = 20 }),
+            Elements.ButtonRow({ height = 50 }),
         },
         padding = 15,
         spacing = 12,

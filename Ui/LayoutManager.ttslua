@@ -9,8 +9,269 @@ local LayoutManager = {}
 -- Constants
 ---------------------------------------------------------------------------------------------------
 
--- Consistent ratio for font size to height (includes line height and padding)
 LayoutManager.FONT_HEIGHT_MULTIPLIER = 1.5
+LayoutManager.CONTENT_HEIGHT_MULTIPLIER = 6.25
+
+LayoutManager.Elements = {}
+
+local Elements = LayoutManager.Elements
+
+local function newElementState(state, metatable)
+    state = state or {}
+    state._isLayoutElement = true
+    return setmetatable(state, metatable)
+end
+
+local TextElement = {}
+TextElement.__index = TextElement
+
+function TextElement:new(config)
+    return newElementState({
+        params = config.params or {},
+        defaults = config.defaults or {},
+        heightMultiplier = config.heightMultiplier or LayoutManager.FONT_HEIGHT_MULTIPLIER,
+    }, TextElement)
+end
+
+function TextElement:_fontSize()
+    return self.params.fontSize or self.defaults.fontSize or 14
+end
+
+function TextElement:_resolveId(layout)
+    if self.params.id then
+        return self.params.id
+    end
+    if self.defaults.id then
+        return self.defaults.id
+    end
+    local prefix = self.defaults.idPrefix or "LayoutText"
+    return layout:_nextElementId(prefix)
+end
+
+function TextElement:_x(layout)
+    if self.params.x ~= nil then
+        return self.params.x
+    end
+    if self.params.indent then
+        return layout:_getContentX() + self.params.indent
+    end
+    return layout:_getContentX()
+end
+
+function TextElement:_width(layout)
+    if self.params.width ~= nil then
+        return self.params.width
+    end
+    if self.params.indent then
+        return layout:_getContentWidth() - self.params.indent
+    end
+    return layout:_getContentWidth()
+end
+
+function TextElement:MeasureHeight()
+    if self.params.height then
+        return self.params.height
+    end
+    return self:_fontSize() * self.heightMultiplier
+end
+
+function TextElement:Render(layout)
+    local height = self:MeasureHeight()
+    local y = layout:_getNextY(height)
+    local element = layout.parent:Text({
+        id = self:_resolveId(layout),
+        x = self:_x(layout),
+        y = y,
+        width = self:_width(layout),
+        height = height,
+        text = self.params.text or "",
+        fontSize = self:_fontSize(),
+        fontStyle = self.params.fontStyle or self.defaults.fontStyle,
+        color = self.params.color or self.defaults.color or Ui.DARK_BROWN,
+        alignment = self.params.alignment or self.defaults.alignment or "UpperLeft",
+        horizontalOverflow = self.params.horizontalOverflow or "Wrap",
+        verticalOverflow = self.params.verticalOverflow or "Truncate",
+    })
+    self.rendered = element
+    return element
+end
+
+local SpacerElement = {}
+SpacerElement.__index = SpacerElement
+
+function SpacerElement:new(params)
+    return newElementState({ params = params or {} }, SpacerElement)
+end
+
+function SpacerElement:MeasureHeight(spacing)
+    return self.params.height or spacing or 0
+end
+
+function SpacerElement:Render(layout)
+    local height = self:MeasureHeight(layout.spacing)
+    layout:_getNextY(height)
+    return nil
+end
+
+local ButtonRowElement = {}
+ButtonRowElement.__index = ButtonRowElement
+ButtonRowElement.DEFAULT_HEIGHT = 45
+ButtonRowElement.DEFAULT_SPACING = 20
+
+function ButtonRowElement:new(params)
+    return newElementState({ params = params or {} }, ButtonRowElement)
+end
+
+function ButtonRowElement:MeasureHeight()
+    return self.params.height or ButtonRowElement.DEFAULT_HEIGHT
+end
+
+function ButtonRowElement:Render(layout)
+    local buttons = self.params.buttons or {}
+    local buttonHeight = self:MeasureHeight()
+    local buttonSpacing = self.params.spacing or ButtonRowElement.DEFAULT_SPACING
+    local y = layout:_getNextY(buttonHeight)
+
+    local totalButtonWidth = 0
+    for _, btn in ipairs(buttons) do
+        totalButtonWidth = totalButtonWidth + (btn.width or 140)
+    end
+    local totalSpacing = (#buttons - 1) * buttonSpacing
+    local totalWidth = totalButtonWidth + totalSpacing
+    local startX = layout:_getContentX() + (layout:_getContentWidth() - totalWidth) / 2
+    local currentX = startX
+
+    local buttonElements = {}
+    for i, btn in ipairs(buttons) do
+        local width = btn.width or 140
+        local element = layout.parent:Button({
+            id = btn.id or ("LayoutButton" .. i),
+            x = currentX,
+            y = y,
+            width = width,
+            height = buttonHeight,
+            text = btn.text,
+            fontSize = btn.fontSize or 16,
+            colors = btn.colors or Ui.MID_BROWN_COLORS,
+            onClick = btn.onClick,
+        })
+        table.insert(buttonElements, element)
+        currentX = currentX + width + buttonSpacing
+    end
+
+    self.rendered = buttonElements
+    return buttonElements
+end
+
+local CompositeElement = {}
+CompositeElement.__index = CompositeElement
+
+function CompositeElement:new(children)
+    return setmetatable({
+        elements = children or {},
+        _isCompositeElement = true,
+    }, CompositeElement)
+end
+
+local function createTextElement(params, overrides, multiplier)
+    overrides = overrides or {}
+    local defaults = {
+        fontSize = overrides.fontSize or 14,
+        fontStyle = overrides.fontStyle,
+        color = overrides.color or Ui.DARK_BROWN,
+        alignment = overrides.alignment or "UpperLeft",
+        id = overrides.id,
+        idPrefix = overrides.idPrefix or "LayoutText",
+    }
+    return TextElement:new({
+        params = params or {},
+        defaults = defaults,
+        heightMultiplier = multiplier or LayoutManager.FONT_HEIGHT_MULTIPLIER,
+    })
+end
+
+function Elements.Text(params)
+    return createTextElement(params, {})
+end
+
+function Elements.Title(params)
+    return createTextElement(params, {
+        fontSize = 24,
+        fontStyle = "Bold",
+        alignment = "UpperCenter",
+        color = Ui.DARK_BROWN,
+        id = "LayoutTitle",
+    })
+end
+
+function Elements.Label(params)
+    return createTextElement(params, {
+        fontSize = 18,
+        fontStyle = "Bold",
+        color = Ui.DARK_BROWN,
+    })
+end
+
+function Elements.Content(params)
+    return createTextElement(params, {
+        fontSize = 16,
+        color = Ui.MID_BROWN,
+    }, LayoutManager.CONTENT_HEIGHT_MULTIPLIER)
+end
+
+function Elements.Spacer(params)
+    return SpacerElement:new(params or {})
+end
+
+function Elements.ButtonRow(params)
+    return ButtonRowElement:new(params or {})
+end
+
+function Elements.Section(params)
+    params = params or {}
+    local labelElement = Elements.Label({
+        id = params.labelId,
+        text = params.label,
+        fontSize = params.labelFontSize or 16,
+        fontStyle = params.labelFontStyle or "Bold",
+        color = params.labelColor,
+        height = params.labelHeight,
+    })
+    local contentElement = Elements.Content({
+        id = params.contentId,
+        text = params.content,
+        fontStyle = params.contentStyle,
+        height = params.contentHeight,
+        indent = params.indent or 10,
+        fontSize = params.contentFontSize,
+        color = params.contentColor,
+    })
+    return CompositeElement:new({ labelElement, contentElement })
+end
+
+local function normalizeElements(elements)
+    local normalized = {}
+
+    local function append(entry)
+        if not entry then
+            return
+        end
+        if entry._isLayoutElement then
+            table.insert(normalized, entry)
+        elseif entry._isCompositeElement then
+            for _, child in ipairs(entry.elements or {}) do
+                append(child)
+            end
+        elseif type(entry) == "table" then
+            for _, child in ipairs(entry) do
+                append(child)
+            end
+        end
+    end
+
+    append(elements or {})
+    return normalized
+end
 
 ---------------------------------------------------------------------------------------------------
 -- Vertical Layout Manager
@@ -26,6 +287,7 @@ function LayoutManager.VerticalLayout(params)
         spacing = params.spacing or 10,
         currentY = nil, -- Will be set to contentArea.contentY on first element
         elements = {},
+        elementCounter = 0,
     }
 
     function layout:_getNextY(elementHeight)
@@ -53,82 +315,47 @@ function LayoutManager.VerticalLayout(params)
         return self.contentArea.contentWidth - (self.padding * 2)
     end
 
-    function layout:AddText(params)
-        local fontSize = params.fontSize or 14
-        local height = params.height or (fontSize * LayoutManager.FONT_HEIGHT_MULTIPLIER)
-        local y = self:_getNextY(height)
-        
-        local element = self.parent:Text({
-            id = params.id or ("LayoutText" .. (#self.elements + 1)),
-            x = params.x or self:_getContentX(),
-            y = y,
-            width = params.width or self:_getContentWidth(),
-            height = height,
-            text = params.text or "",
-            fontSize = fontSize,
-            fontStyle = params.fontStyle,
-            color = params.color or Ui.DARK_BROWN,
-            alignment = params.alignment or "UpperLeft",
-            horizontalOverflow = params.horizontalOverflow or "Wrap",
-            verticalOverflow = params.verticalOverflow or "Truncate",
-        })
-        
+    function layout:_nextElementId(prefix)
+        self.elementCounter = self.elementCounter + 1
+        return string.format("%s%d", prefix or "LayoutElement", self.elementCounter)
+    end
+
+    function layout:_renderElement(element)
+        if not element then
+            return nil
+        end
+        local rendered = element:Render(self)
         table.insert(self.elements, element)
-        return element
+        return rendered
+    end
+
+    function layout:AddText(params)
+        return self:_renderElement(Elements.Text(params))
     end
 
     function layout:AddTitle(params)
-        local fontSize = params.fontSize or 24
-        return self:AddText({
-            id = params.id or "LayoutTitle",
-            text = params.text,
-            fontSize = fontSize,
-            fontStyle = params.fontStyle or "Bold",
-            color = params.color or Ui.DARK_BROWN,
-            alignment = params.alignment or "UpperCenter",
-            height = params.height or (fontSize * LayoutManager.FONT_HEIGHT_MULTIPLIER),
-        })
+        return self:_renderElement(Elements.Title(params))
     end
 
     function layout:AddLabel(params)
-        local fontSize = params.fontSize or 18
-        return self:AddText({
-            id = params.id,
-            text = params.text,
-            fontSize = fontSize,
-            fontStyle = params.fontStyle or "Bold",
-            color = params.color or Ui.DARK_BROWN,
-            alignment = params.alignment or "UpperLeft",
-            height = params.height or (fontSize * LayoutManager.FONT_HEIGHT_MULTIPLIER),
-        })
+        return self:_renderElement(Elements.Label(params))
     end
 
     function layout:AddContent(params)
-        local fontSize = params.fontSize or 16
-        return self:AddText({
-            id = params.id,
-            text = params.text,
-            fontSize = fontSize,
-            fontStyle = params.fontStyle,
-            color = params.color or Ui.MID_BROWN,
-            alignment = params.alignment or "UpperLeft",
-            height = params.height or (fontSize * 6.25),  -- Dynamic height for content (was 100 for fontSize 16)
-            x = params.indent and (self:_getContentX() + params.indent) or nil,
-            width = params.indent and (self:_getContentWidth() - params.indent) or nil,
-        })
+        return self:_renderElement(Elements.Content(params))
     end
 
     function layout:AddSection(params)
-        local label = self:AddLabel({
+        local label = self:_renderElement(Elements.Label({
             id = params.labelId,
             text = params.label,
             fontSize = params.labelFontSize or 16,
             fontStyle = params.labelFontStyle or "Bold",
             color = params.labelColor,
             height = params.labelHeight,
-        })
+        }))
         
-        local content = self:AddContent({
+        local content = self:_renderElement(Elements.Content({
             id = params.contentId,
             text = params.content,
             fontStyle = params.contentStyle,
@@ -136,57 +363,17 @@ function LayoutManager.VerticalLayout(params)
             indent = params.indent or 10,
             fontSize = params.contentFontSize,
             color = params.contentColor,
-        })
+        }))
         
         return { label = label, content = content }
     end
 
     function layout:AddSpacer(height)
-        height = height or self.spacing
-        if self.currentY ~= nil then
-            self.currentY = self.currentY - height
-        end
+        self:_renderElement(Elements.Spacer({ height = height }))
     end
 
     function layout:AddButtonRow(params)
-        local buttons = params.buttons or {}
-        local buttonHeight = params.height or 45
-        local buttonSpacing = params.spacing or 20
-        local y = self:_getNextY(buttonHeight)
-        
-        -- Calculate button positioning
-        local totalButtonWidth = 0
-        for _, btn in ipairs(buttons) do
-            totalButtonWidth = totalButtonWidth + (btn.width or 140)
-        end
-        local totalSpacing = (#buttons - 1) * buttonSpacing
-        local totalWidth = totalButtonWidth + totalSpacing
-        
-        -- Start x position for centering
-        local startX = self:_getContentX() + (self:_getContentWidth() - totalWidth) / 2
-        local currentX = startX
-        
-        local buttonElements = {}
-        for i, btn in ipairs(buttons) do
-            local width = btn.width or 140
-            local element = self.parent:Button({
-                id = btn.id or ("LayoutButton" .. i),
-                x = currentX,
-                y = y,
-                width = width,
-                height = buttonHeight,
-                text = btn.text,
-                fontSize = btn.fontSize or 16,
-                colors = btn.colors or Ui.MID_BROWN_COLORS,
-                onClick = btn.onClick,
-            })
-            
-            table.insert(buttonElements, element)
-            currentX = currentX + width + buttonSpacing
-        end
-        
-        table.insert(self.elements, buttonElements)
-        return buttonElements
+        return self:_renderElement(Elements.ButtonRow(params or {}))
     end
 
     function layout:GetUsedHeight()
@@ -224,43 +411,22 @@ end
 
 -- Dry-run calculation method - calculates height without creating UI elements
 function LayoutManager.CalculateLayoutHeight(params)
+    params = params or {}
     local padding = params.padding or 10
     local spacing = params.spacing or 10
     local chromeOverhead = params.chromeOverhead or 40
-    
+
+    local elements = normalizeElements(params.elements or {})
     local totalHeight = padding * 2 -- Top and bottom padding
-    local elementCount = 0
-    
-    -- Simulate the layout calls to measure required space
-    if params.elements then
-        for _, element in ipairs(params.elements) do
-            if element.type == "title" then
-                -- Match AddTitle default height (45)
-                totalHeight = totalHeight + (element.height or 45)
-            elseif element.type == "section" then
-                -- Match AddLabel (30) + AddContent (100) default heights
-                totalHeight = totalHeight + (element.labelHeight or 30) + (element.contentHeight or 100)
-                -- Sections create two elements, so add one extra spacing
-                elementCount = elementCount + 1
-            elseif element.type == "spacer" then
-                totalHeight = totalHeight + (element.height or spacing)
-            elseif element.type == "buttonRow" then
-                totalHeight = totalHeight + (element.height or 45)
-            end
-            elementCount = elementCount + 1
-        end
-        
-        -- Add spacing between elements
-        if elementCount > 1 then
-            totalHeight = totalHeight + (spacing * (elementCount - 1))
+
+    for index, element in ipairs(elements) do
+        totalHeight = totalHeight + (element:MeasureHeight(spacing) or 0)
+        if index < #elements then
+            totalHeight = totalHeight + spacing
         end
     end
-    
-    local finalHeight = totalHeight + chromeOverhead
-    
 
-    
-    return finalHeight
+    return totalHeight + chromeOverhead
 end
 
 ---------------------------------------------------------------------------------------------------

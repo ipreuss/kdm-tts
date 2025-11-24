@@ -215,3 +215,29 @@ Test.test("AutoSize calculates appropriate dialog height", function(t)
         t:assertTrue(autoHeight <= 600) -- Should respect maxHeight
     end)
 end)
+
+Test.test("CalculateLayoutHeight honors polymorphic elements", function(t)
+    withLayout(t, function(LayoutManager)
+        local Elements = LayoutManager.Elements
+        local elements = {
+            Elements.Title({ fontSize = 20 }),
+            Elements.Spacer({ height = 5 }),
+            Elements.Section({ labelHeight = 25, contentHeight = 80 }),
+            Elements.ButtonRow({ height = 40 }),
+        }
+
+        local result = LayoutManager.CalculateLayoutHeight({
+            elements = elements,
+            padding = 10,
+            spacing = 5,
+            chromeOverhead = 0,
+        })
+
+        -- Elements expand to title, spacer, label, content, buttonRow
+        local expectedElements = 5
+        local spacingTotal = (expectedElements - 1) * 5
+        local heights = 30 + 5 + 25 + 80 + 40
+        local expected = (10 * 2) + heights + spacingTotal
+        t:assertEqual(expected, result)
+    end)
+end)
