@@ -68,6 +68,10 @@ function PanelKit.Dialog(params)
         return self.panel
     end
 
+    function dialog:SetHeight(height)
+        self.panel:SetAttribute("height", "number", height)
+    end
+
     function dialog:ShowForPlayer(playerOrColor)
         if not self.perPlayer then
             self:ShowForAll()
@@ -481,6 +485,146 @@ function PanelKit.ScrollSelector(params)
     end
 
     return selector
+end
+
+---------------------------------------------------------------------------------------------------
+-- Layout Integration -------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+
+function PanelKit.VerticalLayout(params)
+    local LayoutManager = require("Kdm/Ui/LayoutManager")
+    return LayoutManager.VerticalLayout(params)
+end
+
+function PanelKit.AutoSizedDialog(params)
+    -- Callback-based approach to handle the two-stage creation internally
+    assert(params.width, "AutoSizedDialog requires width")
+    assert(params.buildContent, "AutoSizedDialog requires buildContent callback")
+    
+    local width = params.width
+    local layoutConfig = {
+        padding = params.padding or 15,
+        spacing = params.spacing or 12,
+        chromeOverhead = params.chromeOverhead or 100,
+    }
+    
+    -- Stage 1: Collect layout requirements via callback with mock layout
+    local elements = {}
+    local mockLayout = {
+        AddTitle = function(p) 
+            table.insert(elements, { type = "title", height = (p and p.height) or 35 })
+            return { SetText = function() end }
+        end,
+        AddSection = function(p)
+            table.insert(elements, { type = "section", labelHeight = 25, contentHeight = (p and p.contentHeight) or 80 })
+            return { 
+                content = { SetText = function() end },
+                label = { SetText = function() end }
+            }
+        end,
+        AddSpacer = function(height)
+            table.insert(elements, { type = "spacer", height = height or layoutConfig.spacing })
+        end,
+        AddButtonRow = function(p)
+            table.insert(elements, { type = "buttonRow", height = (p and p.height) or 45 })
+            return {}
+        end,
+    }
+    
+    -- Call buildContent with mock layout to collect requirements
+    local contentRefs = params.buildContent(mockLayout)
+    
+    -- Stage 2: Calculate required height
+    local requiredHeight = PanelKit.CalculateVerticalLayoutHeight({
+        elements = elements,
+        padding = layoutConfig.padding,
+        spacing = layoutConfig.spacing,
+        chromeOverhead = layoutConfig.chromeOverhead,
+    })
+    
+    -- Stage 3: Create properly sized dialog
+    local dialog = PanelKit.Dialog({
+        id = params.id,
+        ui = params.ui or Ui.Get2d(),
+        rectAlignment = params.rectAlignment or "MiddleCenter",
+        width = width,
+        height = requiredHeight,
+        color = params.color or "#00000000",
+        closeButton = params.closeButton,
+    })
+    
+    local panel = dialog:Panel()
+    local chrome = PanelKit.ClassicDialog({
+        panel = panel,
+        id = params.id,
+        width = width,
+        height = requiredHeight,
+        title = params.title or "",
+        subtitle = params.subtitle or "",
+        closeButton = params.closeButton,
+    })
+    
+    -- Stage 4: Create real layout and build content
+    local layout = PanelKit.VerticalLayout({
+        parent = panel,
+        contentArea = chrome,
+        padding = layoutConfig.padding,
+        spacing = layoutConfig.spacing,
+    })
+    
+    local actualRefs = params.buildContent(layout)
+    
+    return {
+        dialog = dialog,
+        panel = panel,
+        chrome = chrome,
+        layout = layout,
+        contentRefs = actualRefs,
+    }
+end
+
+function PanelKit.CalculateVerticalLayoutHeight(params)
+    local elements = params.elements or {}
+    local padding = params.padding or 10
+    local spacing = params.spacing or 10
+    local chromeOverhead = params.chromeOverhead or 40
+    
+    local totalHeight = padding * 2 -- Top and bottom padding
+    
+    for i, element in ipairs(elements) do
+        local elementHeight = 0
+        if element.type == "title" then
+            elementHeight = tonumber(element.height) or 35
+        elseif element.type == "section" then
+            local labelHeight = tonumber(element.labelHeight) or 25
+            local contentHeight = tonumber(element.contentHeight) or 80
+            elementHeight = labelHeight + contentHeight
+        elseif element.type == "buttonRow" then
+            elementHeight = tonumber(element.height) or 45
+        elseif element.type == "spacer" then
+            elementHeight = tonumber(element.height) or tonumber(spacing) or 10
+        end
+        
+        totalHeight = totalHeight + elementHeight
+        
+        -- Add spacing between elements (except for last element)
+        if i < #elements then
+            totalHeight = totalHeight + (tonumber(spacing) or 10)
+        end
+    end
+    
+    local calculatedHeight = totalHeight + chromeOverhead
+    
+    -- TEMPORARY: Add extra generous padding to ensure buttons fit
+    local safeHeight = calculatedHeight + 150  -- Extra 150px safety margin
+    
+    -- Debug output
+    if _G.log and _G.log.Debugf then
+        _G.log:Debugf("Height calc: content=%d, chrome=%d, calculated=%d, safe=%d", 
+                     totalHeight, chromeOverhead, calculatedHeight, safeHeight)
+    end
+    
+    return safeHeight
 end
 
 ---------------------------------------------------------------------------------------------------

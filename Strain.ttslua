@@ -118,7 +118,28 @@ end
 
 function Strain:InitConfirmationDialog()
     local width = 650
-    local height = 500
+    
+    -- Calculate required height using layout manager
+    local LayoutManager = require("Kdm/Ui/LayoutManager")
+    local contentHeight = LayoutManager.CalculateLayoutHeight({
+        elements = {
+            { type = "title", height = 35 },
+            { type = "spacer", height = 5 },
+            { type = "section", contentHeight = 60 }, -- flavor
+            { type = "section", contentHeight = 60 }, -- rules  
+            { type = "spacer", height = 10 },
+            { type = "buttonRow", height = 45 },
+        },
+        padding = 15,
+        spacing = 12,
+        chromeOverhead = 0, -- We'll add TTS overhead separately
+    })
+    
+    -- Add measured TTS overhead (195px from working example)
+    local height = contentHeight + 195
+    
+    log:Debugf("Creating dialog: content=%d + overhead=195 = total=%d", contentHeight, height)
+    
     local confirmDialog = PanelKit.Dialog({
         id = "StrainMilestoneConfirmation",
         ui = Ui.Get2d(),
@@ -142,105 +163,62 @@ function Strain:InitConfirmationDialog()
         closeButton = false,
     })
 
+    -- Create layout manager for clean positioning
+    local layout = PanelKit.VerticalLayout({
+        parent = confirmPanel,
+        contentArea = chrome,
+        padding = 15,
+        spacing = 12,
+    })
+
     -- Dynamic milestone title
-    Strain.confirmationTitle = confirmPanel:Text({
+    Strain.confirmationTitle = layout:AddTitle({
         id = "MilestoneTitleText",
-        x = chrome.contentX + 20,
-        y = chrome.contentY + 15,
-        width = chrome.contentWidth - 40,
-        height = 35,
-        fontSize = 20,
-        fontStyle = "Bold",
-        color = Ui.DARK_BROWN,
-        alignment = "UpperCenter",
     })
 
-    -- Flavor section label
-    confirmPanel:Text({
-        id = "FlavorLabel",
-        x = chrome.contentX + 20,
-        y = chrome.contentY - 60,
-        width = chrome.contentWidth - 40,
-        height = 25,
-        fontSize = 16,
-        fontStyle = "Bold",
-        color = Ui.DARK_BROWN,
-        alignment = "UpperLeft",
-        text = "Story:",
+    -- Flavor section
+    layout:AddSpacer(5)
+    local flavorSection = layout:AddSection({
+        labelId = "FlavorLabel",
+        label = "Story:",
+        contentId = "MilestoneFlavorText",
+        contentStyle = "Italic",
+        contentHeight = 60,
     })
+    Strain.confirmationFlavorText = flavorSection.content
 
-    -- Flavor text
-    Strain.confirmationFlavorText = confirmPanel:Text({
-        id = "MilestoneFlavorText",
-        x = chrome.contentX + 30,
-        y = chrome.contentY - 90,
-        width = chrome.contentWidth - 60,
-        height = 90,
-        fontSize = 15,
-        fontStyle = "Italic",
-        color = Ui.MID_BROWN,
-        alignment = "UpperLeft",
-        horizontalOverflow = "Wrap",
-        verticalOverflow = "Truncate",
+    -- Rules section  
+    local rulesSection = layout:AddSection({
+        labelId = "RulesLabel",
+        label = "Game Effect:",
+        contentId = "MilestoneRulesText", 
+        contentHeight = 60,
     })
+    Strain.confirmationRulesText = rulesSection.content
 
-    -- Rules section label
-    confirmPanel:Text({
-        id = "RulesLabel",
-        x = chrome.contentX + 20,
-        y = chrome.contentY - 195,
-        width = chrome.contentWidth - 40,
-        height = 25,
-        fontSize = 16,
-        fontStyle = "Bold",
-        color = Ui.DARK_BROWN,
-        alignment = "UpperLeft",
-        text = "Game Effect:",
+    -- Button row
+    layout:AddSpacer(10)
+    layout:AddButtonRow({
+        buttons = {
+            {
+                id = "MilestoneConfirmOK",
+                text = "Confirm Milestone",
+                onClick = function(_, player)
+                    Strain:ConfirmMilestone(player)
+                end,
+            },
+            {
+                id = "MilestoneConfirmCancel",
+                text = "Cancel",
+                onClick = function(_, player)
+                    Strain:CancelMilestone(player)
+                end,
+            },
+        }
     })
-
-    -- Rules text
-    Strain.confirmationRulesText = confirmPanel:Text({
-        id = "MilestoneRulesText", 
-        x = chrome.contentX + 30,
-        y = chrome.contentY - 225,
-        width = chrome.contentWidth - 60,
-        height = 80,
-        fontSize = 15,
-        color = Ui.DARK_BROWN,
-        alignment = "UpperLeft",
-        horizontalOverflow = "Wrap",
-        verticalOverflow = "Truncate",
-    })
-
-    -- OK button
-    confirmPanel:Button({
-        id = "MilestoneConfirmOK",
-        x = chrome.contentX + 80,
-        y = chrome.contentY - chrome.contentHeight + 40,
-        width = 140,
-        height = 45,
-        text = "Confirm Milestone",
-        fontSize = 16,
-        colors = Ui.MID_BROWN_COLORS,
-        onClick = function(_, player)
-            Strain:ConfirmMilestone(player)
-        end,
-    })
-
-    -- Cancel button
-    confirmPanel:Button({
-        id = "MilestoneConfirmCancel", 
-        x = chrome.contentX + chrome.contentWidth - 220,
-        y = chrome.contentY - chrome.contentHeight + 40,
-        width = 140,
-        height = 45,
-        text = "Cancel",
-        fontSize = 16,
-        colors = Ui.MID_BROWN_COLORS,
-        onClick = function(_, player)
-            Strain:CancelMilestone(player)
-        end,
-    })
+    
+    local actualUsedHeight = layout:GetUsedHeight()
+    log:Debugf("Dialog: height=%d, layout used=%d, difference=%d", height, actualUsedHeight, height - actualUsedHeight)
 end
 
 ---------------------------------------------------------------------------------------------------

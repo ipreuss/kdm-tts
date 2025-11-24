@@ -36,6 +36,61 @@ Key points:
 - **Two-phase initialization**. Any module that touches instantiated UI or waits for other systems registers its handlers inside `Wait.frames(..., 20)` (e.g., `BattleUi.PostInit`, `Player.PostInit`).
 - **Save/Load symmetry**. Each subsystem exposes `Init(saveState)` and `Save()`; `Global.onSave` simply collects their outputs, letting modules own their JSON schema (`Global.ttslua:35-44`).
 
+## UI Framework
+
+The mod includes a custom UI framework built on top of TTS's XML UI system:
+
+- **PanelKit**: Core dialog and panel creation utilities
+- **LayoutManager**: Handles positioning and sizing of UI elements  
+- **ClassicDialog**: Standardized dialog chrome with KDM styling
+
+### Layout System Design
+
+The UI framework uses a two-stage approach to handle TTS's constraint that dialog dimensions cannot be changed after creation:
+
+#### Stage 1: Pre-calculation
+```lua
+-- Calculate content requirements without creating UI
+local contentHeight = LayoutManager.CalculateLayoutHeight({
+    elements = {
+        { type = "title", height = 35 },
+        { type = "section", contentHeight = 60 },
+        { type = "buttonRow", height = 45 },
+    },
+    padding = 15,
+    spacing = 12,
+})
+
+-- Add measured TTS overhead for chrome/margins  
+local dialogHeight = contentHeight + 195
+```
+
+#### Stage 2: Dialog Creation
+```lua
+-- Create dialog with pre-calculated size
+local dialog = PanelKit.Dialog({ width = 650, height = dialogHeight })
+
+-- Build layout with actual UI elements
+local layout = PanelKit.VerticalLayout({ parent = dialog })
+layout:AddTitle({ text = "Title" })
+layout:AddSection({ content = "Content" })
+```
+
+#### Critical Measurements
+- **TTS Overhead**: 195px additional space needed beyond content
+  - Includes dialog chrome, internal margins, safe positioning
+  - Measured empirically: content=355px + overhead=195px = total=550px
+- **Element Heights**: Title=35px, Section=25px(label)+content, Button=45px, Spacing=configurable
+- **Validation**: Use `layout:GetUsedHeight()` to verify calculations match reality
+
+#### Implementation Lessons
+
+**Fail Fast vs Defensive Programming**: The codebase uses fail-fast error handling rather than silent fallbacks. For example, missing function calls throw errors immediately rather than being caught with existence checks like `if Player and Player.getPlayers then`. This makes debugging easier by surfacing issues at their source.
+
+**Type Safety in Calculations**: Layout calculations must use proper numeric types. If "attempt to perform arithmetic on table value" errors occur, this indicates a logic error where a table is being passed instead of a number. Such errors should be debugged and fixed at their source rather than masked with `tonumber()` conversions, which would obscure the root cause and likely produce incorrect results.
+
+**Sequential Dependencies**: Pre-calculation must happen before any UI creation since TTS dialog dimensions are immutable. The LayoutManager.CalculateLayoutHeight() simulates the actual layout process to determine space requirements.
+
 ## Module Map
 | Category | Modules | Responsibilities |
 | --- | --- | --- |

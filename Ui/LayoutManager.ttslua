@@ -1,0 +1,247 @@
+local Check = require("Kdm/Util/Check")
+local Ui = require("Kdm/Ui")
+
+---------------------------------------------------------------------------------------------------
+
+local LayoutManager = {}
+
+---------------------------------------------------------------------------------------------------
+-- Vertical Layout Manager
+---------------------------------------------------------------------------------------------------
+
+function LayoutManager.VerticalLayout(params)
+    assert(Check.Table(params.parent), "VerticalLayout requires parent panel")
+    
+    local layout = {
+        parent = params.parent,
+        contentArea = params.contentArea or { contentX = 0, contentY = 0, contentWidth = params.width or 400, contentHeight = params.height or 300 },
+        padding = params.padding or 10,
+        spacing = params.spacing or 10,
+        currentY = nil, -- Will be set to contentArea.contentY on first element
+        elements = {},
+    }
+
+    function layout:_getNextY(elementHeight)
+        if self.currentY == nil then
+            -- First element starts at top of content area
+            self.currentY = self.contentArea.contentY - self.padding
+        else
+            -- Subsequent elements are spaced below previous
+            self.currentY = self.currentY - self.spacing
+        end
+        -- Move down by element height for next element
+        local elementY = self.currentY
+        self.currentY = self.currentY - elementHeight
+        
+
+        
+        return elementY
+    end
+
+    function layout:_getContentX()
+        return self.contentArea.contentX + self.padding
+    end
+
+    function layout:_getContentWidth()
+        return self.contentArea.contentWidth - (self.padding * 2)
+    end
+
+    function layout:AddText(params)
+        local height = params.height or 25
+        local y = self:_getNextY(height)
+        
+        local element = self.parent:Text({
+            id = params.id or ("LayoutText" .. (#self.elements + 1)),
+            x = params.x or self:_getContentX(),
+            y = y,
+            width = params.width or self:_getContentWidth(),
+            height = height,
+            text = params.text or "",
+            fontSize = params.fontSize or 14,
+            fontStyle = params.fontStyle,
+            color = params.color or Ui.DARK_BROWN,
+            alignment = params.alignment or "UpperLeft",
+            horizontalOverflow = params.horizontalOverflow or "Wrap",
+            verticalOverflow = params.verticalOverflow or "Truncate",
+        })
+        
+        table.insert(self.elements, element)
+        return element
+    end
+
+    function layout:AddTitle(params)
+        return self:AddText({
+            id = params.id or "LayoutTitle",
+            text = params.text,
+            fontSize = params.fontSize or 20,
+            fontStyle = params.fontStyle or "Bold",
+            color = params.color or Ui.DARK_BROWN,
+            alignment = params.alignment or "UpperCenter",
+            height = params.height or 35,
+        })
+    end
+
+    function layout:AddLabel(params)
+        return self:AddText({
+            id = params.id,
+            text = params.text,
+            fontSize = params.fontSize or 16,
+            fontStyle = params.fontStyle or "Bold",
+            color = params.color or Ui.DARK_BROWN,
+            alignment = params.alignment or "UpperLeft",
+            height = params.height or 25,
+        })
+    end
+
+    function layout:AddContent(params)
+        return self:AddText({
+            id = params.id,
+            text = params.text,
+            fontSize = params.fontSize or 15,
+            fontStyle = params.fontStyle,
+            color = params.color or Ui.MID_BROWN,
+            alignment = params.alignment or "UpperLeft",
+            height = params.height or 80,
+            x = params.indent and (self:_getContentX() + params.indent) or nil,
+            width = params.indent and (self:_getContentWidth() - params.indent) or nil,
+        })
+    end
+
+    function layout:AddSection(params)
+        local label = self:AddLabel({
+            id = params.labelId,
+            text = params.label,
+        })
+        
+        local content = self:AddContent({
+            id = params.contentId,
+            text = params.content,
+            fontStyle = params.contentStyle,
+            height = params.contentHeight,
+            indent = params.indent or 10,
+        })
+        
+        return { label = label, content = content }
+    end
+
+    function layout:AddSpacer(height)
+        height = height or self.spacing
+        if self.currentY ~= nil then
+            self.currentY = self.currentY - height
+        end
+    end
+
+    function layout:AddButtonRow(params)
+        local buttons = params.buttons or {}
+        local buttonHeight = params.height or 45
+        local buttonSpacing = params.spacing or 20
+        local y = self:_getNextY(buttonHeight)
+        
+        -- Calculate button positioning
+        local totalButtonWidth = 0
+        for _, btn in ipairs(buttons) do
+            totalButtonWidth = totalButtonWidth + (btn.width or 140)
+        end
+        local totalSpacing = (#buttons - 1) * buttonSpacing
+        local totalWidth = totalButtonWidth + totalSpacing
+        
+        -- Start x position for centering
+        local startX = self:_getContentX() + (self:_getContentWidth() - totalWidth) / 2
+        local currentX = startX
+        
+        local buttonElements = {}
+        for i, btn in ipairs(buttons) do
+            local width = btn.width or 140
+            local element = self.parent:Button({
+                id = btn.id or ("LayoutButton" .. i),
+                x = currentX,
+                y = y,
+                width = width,
+                height = buttonHeight,
+                text = btn.text,
+                fontSize = btn.fontSize or 16,
+                colors = btn.colors or Ui.MID_BROWN_COLORS,
+                onClick = btn.onClick,
+            })
+            
+            table.insert(buttonElements, element)
+            currentX = currentX + width + buttonSpacing
+        end
+        
+        table.insert(self.elements, buttonElements)
+        return buttonElements
+    end
+
+    function layout:GetUsedHeight()
+        if self.currentY == nil then
+            return 0
+        end
+        return self.contentArea.contentY - self.currentY + self.padding
+    end
+
+    function layout:AutoSize(params)
+        params = params or {}
+        local usedHeight = self:GetUsedHeight()
+        local minHeight = params.minHeight or 200
+        local maxHeight = params.maxHeight or 800
+        local padding = params.padding or 40 -- Extra space for dialog chrome
+        
+        local requiredHeight = math.max(minHeight, math.min(maxHeight, usedHeight + padding))
+        
+        -- Update dialog size if a dialog was provided
+        if params.dialog then
+            params.dialog:SetHeight(requiredHeight)
+            
+            -- Also update the chrome if it was passed
+            if params.chrome then
+                -- Update chrome height to match dialog
+                -- Chrome content area might need adjustment too
+            end
+        end
+        
+        return requiredHeight
+    end
+
+    return layout
+end
+
+-- Dry-run calculation method - calculates height without creating UI elements
+function LayoutManager.CalculateLayoutHeight(params)
+    local padding = params.padding or 10
+    local spacing = params.spacing or 10
+    local chromeOverhead = params.chromeOverhead or 40
+    
+    local totalHeight = padding * 2 -- Top and bottom padding
+    local elementCount = 0
+    
+    -- Simulate the layout calls to measure required space
+    if params.elements then
+        for _, element in ipairs(params.elements) do
+            if element.type == "title" then
+                totalHeight = totalHeight + (element.height or 35)
+            elseif element.type == "section" then
+                totalHeight = totalHeight + 25 + (element.contentHeight or 80) -- label + content
+            elseif element.type == "spacer" then
+                totalHeight = totalHeight + (element.height or spacing)
+            elseif element.type == "buttonRow" then
+                totalHeight = totalHeight + (element.height or 45)
+            end
+            elementCount = elementCount + 1
+        end
+        
+        -- Add spacing between elements
+        if elementCount > 1 then
+            totalHeight = totalHeight + (spacing * (elementCount - 1))
+        end
+    end
+    
+    local finalHeight = totalHeight + chromeOverhead
+    
+
+    
+    return finalHeight
+end
+
+---------------------------------------------------------------------------------------------------
+
+return LayoutManager

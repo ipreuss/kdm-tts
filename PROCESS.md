@@ -136,6 +136,14 @@ All code review findings must be documented in `LATEST_REVIEW.md` at the reposit
 Overall Assessment: ✅ Approved
 ```
 
+## Git Workflow
+
+**Commits are managed exclusively by human maintainers:**
+- AI assistants must not perform git operations (add, commit, push, pull, etc.)
+- Code changes should be prepared and ready for commit but not automatically committed
+- The human maintainer will review all changes and create appropriate commit messages
+- AI assistants should focus on code implementation and testing, not git state management
+
 ## Pull Request Checklist
 - [ ] All affected docs updated (`README.md`, `CODING_STYLE.md`, ADRs, UI instructions, etc.).
 - [ ] Code reads as self-explanatory as possible (clear names/structures/constants instead of magic values); documentation added only where code cannot be made clear enough.

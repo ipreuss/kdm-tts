@@ -92,6 +92,7 @@ local function buildStrainStubs()
         Hide = function() end,
         ShowForAll = function() end,
         HideForAll = function() end,
+        SetHeight = function() end,
     }
 
     local panelKitStub = {
@@ -113,6 +114,37 @@ local function buildStrainStubs()
         ScrollArea = function(args)
             recorder.scrollArgs = args
             return scrollArea
+        end,
+        VerticalLayout = function(params)
+            return {
+                AddTitle = function() return { SetText = function() end } end,
+                AddSection = function() return {
+                    content = { SetText = function() end },
+                    label = { SetText = function() end }
+                } end,
+                AddSpacer = function() end,
+                AddButtonRow = function() return {} end,
+                GetUsedHeight = function() return 300 end,
+                AutoSize = function() return 400 end,
+            }
+        end,
+        CalculateVerticalLayoutHeight = function(params) return 450 end,
+        AutoSizedDialog = function(params)
+            local mockLayout = {
+                AddTitle = function() return { SetText = function() end } end,
+                AddSection = function() return {
+                    content = { SetText = function() end },
+                    label = { SetText = function() end }
+                } end,
+                AddSpacer = function() end,
+                AddButtonRow = function() return {} end,
+            }
+            local contentRefs = params.buildContent(mockLayout)
+            return {
+                dialog = confirmDialog,
+                panel = { Text = function() return { SetText = function() end } end, Button = function() end },
+                contentRefs = contentRefs,
+            }
         end,
     }
 
