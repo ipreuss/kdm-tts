@@ -159,7 +159,7 @@ function Strain:InitConfirmationDialog()
         width = width,
         height = height,
         title = "Milestone Reached",
-        subtitle = "",
+        subtitle = "A new milestone has been achieved",
         closeButton = false,
     })
 
@@ -174,35 +174,59 @@ function Strain:InitConfirmationDialog()
     -- Dynamic milestone title
     Strain.confirmationTitle = layout:AddTitle({
         id = "MilestoneTitleText",
+        fontSize = 24,
+        fontStyle = "Bold",
+        color = Ui.DARK_BROWN,
+        height = 40,
     })
 
-    -- Flavor section
-    layout:AddSpacer(5)
+    -- Story section with enhanced styling
+    layout:AddSpacer(8)
     local flavorSection = layout:AddSection({
         labelId = "FlavorLabel",
         label = "Story:",
+        labelFontSize = 18,
+        labelHeight = 30,  -- Increased height for larger font
+        labelColor = Ui.DARK_BROWN,
         contentId = "MilestoneFlavorText",
         contentStyle = "Italic",
-        contentHeight = 60,
+        contentHeight = 70,
+        contentFontSize = 14,
+        contentColor = Ui.MID_BROWN,
+        indent = 15,
     })
     Strain.confirmationFlavorText = flavorSection.content
 
-    -- Rules section  
+    -- Visual separator between sections
+    layout:AddSpacer(15)
+    
+    -- Game Effect section with enhanced styling
     local rulesSection = layout:AddSection({
         labelId = "RulesLabel",
         label = "Game Effect:",
+        labelFontSize = 18,
+        labelHeight = 30,  -- Increased height for larger font
+        labelColor = Ui.DARK_BROWN,
         contentId = "MilestoneRulesText", 
-        contentHeight = 60,
+        contentHeight = 70,
+        contentFontSize = 15,
+        contentColor = Ui.DARK_BROWN,
+        indent = 15,
     })
     Strain.confirmationRulesText = rulesSection.content
 
-    -- Button row
-    layout:AddSpacer(10)
+    -- Button row with enhanced styling
+    layout:AddSpacer(20)
     layout:AddButtonRow({
+        height = 50,
+        spacing = 25,
         buttons = {
             {
                 id = "MilestoneConfirmOK",
                 text = "Confirm Milestone",
+                width = 160,
+                fontSize = 16,
+                colors = Ui.DARK_BROWN_COLORS,
                 onClick = function(_, player)
                     Strain:ConfirmMilestone(player)
                 end,
@@ -210,6 +234,9 @@ function Strain:InitConfirmationDialog()
             {
                 id = "MilestoneConfirmCancel",
                 text = "Cancel",
+                width = 120,
+                fontSize = 16,
+                colors = Ui.MID_BROWN_COLORS,
                 onClick = function(_, player)
                     Strain:CancelMilestone(player)
                 end,

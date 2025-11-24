@@ -6,6 +6,13 @@ local Ui = require("Kdm/Ui")
 local LayoutManager = {}
 
 ---------------------------------------------------------------------------------------------------
+-- Constants
+---------------------------------------------------------------------------------------------------
+
+-- Consistent ratio for font size to height (includes line height and padding)
+LayoutManager.FONT_HEIGHT_MULTIPLIER = 1.5
+
+---------------------------------------------------------------------------------------------------
 -- Vertical Layout Manager
 ---------------------------------------------------------------------------------------------------
 
@@ -47,7 +54,8 @@ function LayoutManager.VerticalLayout(params)
     end
 
     function layout:AddText(params)
-        local height = params.height or 25
+        local fontSize = params.fontSize or 14
+        local height = params.height or (fontSize * LayoutManager.FONT_HEIGHT_MULTIPLIER)
         local y = self:_getNextY(height)
         
         local element = self.parent:Text({
@@ -57,7 +65,7 @@ function LayoutManager.VerticalLayout(params)
             width = params.width or self:_getContentWidth(),
             height = height,
             text = params.text or "",
-            fontSize = params.fontSize or 14,
+            fontSize = fontSize,
             fontStyle = params.fontStyle,
             color = params.color or Ui.DARK_BROWN,
             alignment = params.alignment or "UpperLeft",
@@ -70,38 +78,41 @@ function LayoutManager.VerticalLayout(params)
     end
 
     function layout:AddTitle(params)
+        local fontSize = params.fontSize or 24
         return self:AddText({
             id = params.id or "LayoutTitle",
             text = params.text,
-            fontSize = params.fontSize or 20,
+            fontSize = fontSize,
             fontStyle = params.fontStyle or "Bold",
             color = params.color or Ui.DARK_BROWN,
             alignment = params.alignment or "UpperCenter",
-            height = params.height or 35,
+            height = params.height or (fontSize * LayoutManager.FONT_HEIGHT_MULTIPLIER),
         })
     end
 
     function layout:AddLabel(params)
+        local fontSize = params.fontSize or 18
         return self:AddText({
             id = params.id,
             text = params.text,
-            fontSize = params.fontSize or 16,
+            fontSize = fontSize,
             fontStyle = params.fontStyle or "Bold",
             color = params.color or Ui.DARK_BROWN,
             alignment = params.alignment or "UpperLeft",
-            height = params.height or 25,
+            height = params.height or (fontSize * LayoutManager.FONT_HEIGHT_MULTIPLIER),
         })
     end
 
     function layout:AddContent(params)
+        local fontSize = params.fontSize or 16
         return self:AddText({
             id = params.id,
             text = params.text,
-            fontSize = params.fontSize or 15,
+            fontSize = fontSize,
             fontStyle = params.fontStyle,
             color = params.color or Ui.MID_BROWN,
             alignment = params.alignment or "UpperLeft",
-            height = params.height or 80,
+            height = params.height or (fontSize * 6.25),  -- Dynamic height for content (was 100 for fontSize 16)
             x = params.indent and (self:_getContentX() + params.indent) or nil,
             width = params.indent and (self:_getContentWidth() - params.indent) or nil,
         })
@@ -111,6 +122,10 @@ function LayoutManager.VerticalLayout(params)
         local label = self:AddLabel({
             id = params.labelId,
             text = params.label,
+            fontSize = params.labelFontSize or 16,
+            fontStyle = params.labelFontStyle or "Bold",
+            color = params.labelColor,
+            height = params.labelHeight,
         })
         
         local content = self:AddContent({
@@ -119,6 +134,8 @@ function LayoutManager.VerticalLayout(params)
             fontStyle = params.contentStyle,
             height = params.contentHeight,
             indent = params.indent or 10,
+            fontSize = params.contentFontSize,
+            color = params.contentColor,
         })
         
         return { label = label, content = content }
@@ -218,9 +235,13 @@ function LayoutManager.CalculateLayoutHeight(params)
     if params.elements then
         for _, element in ipairs(params.elements) do
             if element.type == "title" then
-                totalHeight = totalHeight + (element.height or 35)
+                -- Match AddTitle default height (45)
+                totalHeight = totalHeight + (element.height or 45)
             elseif element.type == "section" then
-                totalHeight = totalHeight + 25 + (element.contentHeight or 80) -- label + content
+                -- Match AddLabel (30) + AddContent (100) default heights
+                totalHeight = totalHeight + (element.labelHeight or 30) + (element.contentHeight or 100)
+                -- Sections create two elements, so add one extra spacing
+                elementCount = elementCount + 1
             elseif element.type == "spacer" then
                 totalHeight = totalHeight + (element.height or spacing)
             elseif element.type == "buttonRow" then
