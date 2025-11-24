@@ -346,7 +346,9 @@ end
 
 Use this checklist for every code review:
 
-### Diff Inspection & Scope Assessment
+## Review Process
+
+### Phase 1: Initial Assessment
 - [ ] **MANDATORY: Review ALL modified files systematically** - Check git status and examine every modified file's changes, not just a subset
 - [ ] **Assess change scope first** - Multiple modified files (especially core + tests) indicates major implementation work, not minor tweaks
 - [ ] **Always get complete diff before drawing conclusions** - Use `git diff` for all files or individual file diffs to see full change scope
@@ -356,6 +358,8 @@ Use this checklist for every code review:
 - [ ] Look for stray characters like "m", "2m+", ANSI color codes, or diff line markers that aren't real code
 - [ ] When in doubt, always prioritize actual file content over diff appearance
 - [ ] Run syntax checks or tests to confirm the file is valid before reporting syntax errors
+
+### Phase 2: Functional Review
 
 ### Bug Prevention
 - [ ] Are there regression tests for any bugs that were fixed?
@@ -404,6 +408,81 @@ Use this checklist for every code review:
 - [ ] Can new types be added without modifying existing functions?
 - [ ] Are `if/elseif` chains based on object types refactored to use polymorphism?
 
+### SOLID Principles Analysis
+**CRITICAL: Even when code appears clean, systematically check each SOLID principle for improvement opportunities**
+
+#### Single Responsibility Principle (SRP)
+- [ ] Does each class/module have exactly one reason to change?
+- [ ] Are any functions doing multiple distinct things that could be separated?
+- [ ] Could responsibilities be better distributed across different classes?
+- [ ] Are there hidden responsibilities that should be extracted?
+
+#### Open/Closed Principle (OCP)
+- [ ] How easy would it be to extend this code without modifying it?
+- [ ] Are there extension points where new behavior could be added?
+- [ ] Could Strategy or Template Method patterns make this more extensible?
+- [ ] Are configuration points externalized to support future requirements?
+
+#### Liskov Substitution Principle (LSP)
+- [ ] Can derived classes be used anywhere their base class is expected?
+- [ ] Are abstractions properly designed without surprising behavior?
+- [ ] Do subclasses strengthen rather than weaken base class contracts?
+- [ ] Could polymorphic interfaces be improved for better substitutability?
+
+#### Interface Segregation Principle (ISP)
+- [ ] Are interfaces focused and cohesive rather than broad?
+- [ ] Could large interfaces be broken into smaller, more specific ones?
+- [ ] Do clients depend only on methods they actually use?
+- [ ] Are there "fat" interfaces that force unnecessary dependencies?
+
+#### Dependency Inversion Principle (DIP)
+- [ ] Do high-level modules depend on abstractions rather than concrete implementations?
+- [ ] Are dependencies injected rather than created internally?
+- [ ] Could hard dependencies be inverted through interfaces?
+- [ ] Are there opportunities to reduce coupling through abstraction?
+
+### Phase 3: Proactive Design Review
+**CRITICAL: Balance improvement opportunities against YAGNI (You Aren't Gonna Need It) and DTSTTCPW (Do The Simplest Thing That Could Possibly Work)**
+
+#### SOLID Analysis for Improvement Identification
+**Purpose: Identify opportunities, not mandate implementation**
+
+**Single Responsibility:**
+- [ ] What responsibilities could be separated if future changes demanded it?
+- [ ] Are there obvious violations causing current maintenance pain?
+- [ ] Note: In dynamic languages, some responsibility mixing is acceptable
+
+**Open/Closed:**
+- [ ] Where would future extensions be particularly painful with current design?
+- [ ] Are there simple changes that would make extension easier without over-engineering?
+- [ ] Avoid: Creating abstractions for hypothetical requirements
+
+**Liskov Substitution:**
+- [ ] Are there polymorphic relationships that could be cleaner?
+- [ ] Only relevant where inheritance/polymorphism already exists
+
+**Interface Segregation:**
+- [ ] Are there obviously oversized objects causing cognitive overload?
+- [ ] Note: Less critical in dynamically typed languages like Lua
+- [ ] Focus on clarity over strict interface segregation
+
+**Dependency Inversion:**
+- [ ] Are there hard dependencies that currently cause testing or flexibility pain?
+- [ ] Could simple dependency injection solve current problems?
+- [ ] Avoid: Abstracting dependencies that work fine as concrete implementations
+
+#### Pragmatic Design Assessment
+- [ ] **Current Pain Points:** What's actually hard to maintain, test, or modify now?
+- [ ] **Obvious Extension Seams:** Where would likely future changes happen?
+- [ ] **Over-Engineering Risks:** What abstractions would be premature?
+- [ ] **YAGNI Check:** Are we solving problems we don't actually have?
+
+#### Appropriate Scope for Changes
+- [ ] **Fix Now:** Obvious SOLID violations causing current pain
+- [ ] **Note for Later:** Potential improvement areas when requirements emerge
+- [ ] **Explicitly Avoid:** Over-abstraction for hypothetical futures
+- [ ] **Sweet Spot:** Simple changes that improve current code without predicting unknown futures
+
 ## Process Integration
 
 These guidelines should be applied at multiple stages:
@@ -430,6 +509,14 @@ This document should evolve based on lessons learned from future code reviews. W
 - Added "ALWAYS verify actual file content before reporting syntax errors" as mandatory step
 - Emphasized that passing tests indicate apparent syntax errors are likely diff artifacts
 - Added examples of common diff artifacts (`[mend)`, ANSI codes) that masquerade as syntax errors
+
+**2025-11-24: Added Balanced Proactive SOLID Analysis**
+- Added SOLID principles checklist balanced against YAGNI and DTSTTCPW principles
+- Established 3-phase review process emphasizing pragmatic improvement identification over mandatory implementation
+- Distinguished between "fix now" violations vs "note for later" opportunities
+- Emphasized finding current pain points and obvious extension seams without over-engineering
+- Added guidance on avoiding premature abstraction while identifying genuine improvement opportunities
+- Noted reduced importance of Interface Segregation in dynamically typed languages like Lua
 
 **2025-11-24: Added Breaking Changes & API Stability Guidelines**
 - Added critical section on handling breaking changes and maintaining test suite integrity

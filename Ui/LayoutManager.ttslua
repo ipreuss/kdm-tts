@@ -10,7 +10,10 @@ local LayoutManager = {}
 ---------------------------------------------------------------------------------------------------
 
 LayoutManager.FONT_HEIGHT_MULTIPLIER = 1.5
-LayoutManager.CONTENT_HEIGHT_MULTIPLIER = 6.25
+LayoutManager.TITLE_HEIGHT_MULTIPLIER = 1.35
+LayoutManager.LABEL_HEIGHT_MULTIPLIER = 1.35
+LayoutManager.CONTENT_HEIGHT_MULTIPLIER = 4.8
+LayoutManager.CONTENT_FONT_SIZE = 14
 LayoutManager.DEFAULT_CHROME_OVERHEAD = 195
 
 LayoutManager.Elements = {}
@@ -226,7 +229,7 @@ function Elements.Title(params)
         alignment = "UpperCenter",
         color = Ui.DARK_BROWN,
         id = "LayoutTitle",
-    })
+    }, LayoutManager.TITLE_HEIGHT_MULTIPLIER)
 end
 
 function Elements.Label(params)
@@ -234,12 +237,12 @@ function Elements.Label(params)
         fontSize = 18,
         fontStyle = "Bold",
         color = Ui.DARK_BROWN,
-    })
+    }, LayoutManager.LABEL_HEIGHT_MULTIPLIER)
 end
 
 function Elements.Content(params)
     return createTextElement(params, {
-        fontSize = 16,
+        fontSize = LayoutManager.CONTENT_FONT_SIZE,
         color = Ui.MID_BROWN,
     }, LayoutManager.CONTENT_HEIGHT_MULTIPLIER)
 end
@@ -257,16 +260,14 @@ function Elements.Section(params)
     local labelElement = Elements.Label({
         id = params.labelId,
         text = params.label,
-        fontSize = params.labelFontSize or 16,
-        fontStyle = params.labelFontStyle or "Bold",
+        fontSize = params.labelFontSize,
+        fontStyle = params.labelFontStyle,
         color = params.labelColor,
-        height = params.labelHeight,
     })
     local contentElement = Elements.Content({
         id = params.contentId,
         text = params.content,
         fontStyle = params.contentStyle,
-        height = params.contentHeight,
         indent = params.indent or 10,
         fontSize = params.contentFontSize,
         color = params.contentColor,
@@ -532,17 +533,15 @@ function LayoutManager.VerticalLayout(params)
         local label = self:_renderElement(Elements.Label({
             id = params.labelId,
             text = params.label,
-            fontSize = params.labelFontSize or 16,
-            fontStyle = params.labelFontStyle or "Bold",
+            fontSize = params.labelFontSize,
+            fontStyle = params.labelFontStyle,
             color = params.labelColor,
-            height = params.labelHeight,
         }))
         
         local content = self:_renderElement(Elements.Content({
             id = params.contentId,
             text = params.content,
             fontStyle = params.contentStyle,
-            height = params.contentHeight,
             indent = params.indent or 10,
             fontSize = params.contentFontSize,
             color = params.contentColor,

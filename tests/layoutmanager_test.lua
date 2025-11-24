@@ -122,14 +122,14 @@ Test.test("AddSection creates label and content with spacing", function(t)
         local labelCall = env.recorder.calls[1]
         t:assertEqual("Text", labelCall.type)
         t:assertEqual("Story:", labelCall.params.text)
-        t:assertEqual(16, labelCall.params.fontSize)
+        t:assertEqual(18, labelCall.params.fontSize)
         t:assertEqual("Bold", labelCall.params.fontStyle)
         
         -- Check content (should be indented and below label)
         local contentCall = env.recorder.calls[2]
         t:assertEqual("Text", contentCall.type)
         t:assertEqual("This is the flavor text content.", contentCall.params.text)
-        t:assertEqual(16, contentCall.params.fontSize)
+        t:assertEqual(14, contentCall.params.fontSize)
         t:assertEqual(40, contentCall.params.x) -- contentX + padding + indent
         t:assertEqual(250, contentCall.params.width) -- contentWidth - padding*2 - indent
     end)
@@ -222,7 +222,7 @@ Test.test("CalculateLayoutHeight honors polymorphic elements", function(t)
         local elements = {
             Elements.Title({ fontSize = 20 }),
             Elements.Spacer({ height = 5 }),
-            Elements.Section({ labelHeight = 25, contentHeight = 80 }),
+            Elements.Section({}),
             Elements.ButtonRow({ height = 40 }),
         }
 
@@ -236,7 +236,10 @@ Test.test("CalculateLayoutHeight honors polymorphic elements", function(t)
         -- Elements expand to title, spacer, label, content, buttonRow
         local expectedElements = 5
         local spacingTotal = (expectedElements - 1) * 5
-        local heights = 30 + 5 + 25 + 80 + 40
+        local titleHeight = 20 * LayoutManager.TITLE_HEIGHT_MULTIPLIER
+        local labelHeight = 18 * LayoutManager.LABEL_HEIGHT_MULTIPLIER
+        local contentHeight = LayoutManager.CONTENT_FONT_SIZE * LayoutManager.CONTENT_HEIGHT_MULTIPLIER
+        local heights = titleHeight + 5 + labelHeight + contentHeight + 40
         local expected = (10 * 2) + heights + spacingTotal
         t:assertEqual(expected, result)
     end)
