@@ -94,7 +94,7 @@ Test.test("AddTitle creates centered title text", function(t)
         local call = env.recorder.calls[1]
         t:assertEqual("Text", call.type)
         t:assertEqual("Test Title", call.params.text)
-        t:assertEqual(20, call.params.fontSize)
+        t:assertEqual(24, call.params.fontSize)
         t:assertEqual("Bold", call.params.fontStyle)
         t:assertEqual("UpperCenter", call.params.alignment)
         t:assertEqual(30, call.params.x) -- contentX + padding
@@ -129,7 +129,7 @@ Test.test("AddSection creates label and content with spacing", function(t)
         local contentCall = env.recorder.calls[2]
         t:assertEqual("Text", contentCall.type)
         t:assertEqual("This is the flavor text content.", contentCall.params.text)
-        t:assertEqual(15, contentCall.params.fontSize)
+        t:assertEqual(16, contentCall.params.fontSize)
         t:assertEqual(40, contentCall.params.x) -- contentX + padding + indent
         t:assertEqual(250, contentCall.params.width) -- contentWidth - padding*2 - indent
     end)

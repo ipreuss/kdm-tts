@@ -16,6 +16,73 @@ When a bug is fixed, a regression test must be added to prevent it from reappear
 2. If not, add one before considering the fix complete.
 3. Document the bug scenario in the test name or comment.
 
+## Breaking Changes & API Stability
+
+### All Changes Must Maintain Test Suite Integrity
+**CRITICAL RULE: Changes that cause test failures indicate breaking changes and require careful handling.**
+
+**Example from recent review:**
+- LayoutManager changed default font sizes (AddTitle: 20→24, AddContent: 15→16)
+- This broke existing tests that expected the old defaults
+- **Problem:** No indication whether changes were intentional design decisions or accidental side effects
+- **Impact:** Existing code depending on these defaults will have different visual appearance
+
+**Required Process for Breaking Changes:**
+
+1. **Identify Breaking Changes Early**
+   - Any test failures after implementation indicate potential breaking changes
+   - Changes to default parameter values are always breaking changes
+   - API signature changes require migration planning
+
+2. **Document Intent and Impact**
+   - **Are the changes intentional?** Clearly state design rationale
+   - **What will break?** Identify all code that depends on changed behavior
+   - **Migration path:** Provide clear upgrade instructions
+
+3. **Version and Communicate Changes**
+   - Consider semantic versioning for API changes
+   - Update documentation to reflect new defaults/behavior
+   - Add migration guide for consumers of changed APIs
+
+4. **Fix or Update Tests Appropriately**
+   - **If change is intentional:** Update test expectations to match new behavior
+   - **If change is accidental:** Revert to maintain backward compatibility
+   - **Never ignore failing tests** - they indicate real problems
+
+### Detecting Unintentional Breaking Changes
+
+**Red flags in code review:**
+- Test failures with no explanation of intent
+- Default value changes without documentation
+- API modifications without version considerations
+- Changes that affect existing behavior without clear rationale
+
+**Questions to ask:**
+1. **Why did this test fail?** Is it catching a real regression or outdated expectation?
+2. **Was this change intentional?** Can the author explain the design decision?
+3. **Who will be affected?** What code depends on the changed behavior?
+4. **Is there a migration path?** How should consumers adapt to the change?
+
+### Examples of Proper Breaking Change Handling
+
+**❌ BAD: Unintentional breaking change**
+```lua
+-- Changed default without documentation
+function AddTitle(params)
+    fontSize = params.fontSize or 24  -- Was 20, now 24 - WHY?
+end
+```
+
+**✅ GOOD: Intentional, documented breaking change**
+```lua
+-- BREAKING CHANGE v2.1: Increased default title fontSize from 20 to 24
+-- for better accessibility and visual hierarchy.
+-- Migration: Explicitly pass fontSize=20 to maintain old appearance.
+function AddTitle(params)
+    fontSize = params.fontSize or 24
+end
+```
+
 ## Test Quality as Code Quality Indicator
 
 ### Complex Tests Signal Design Problems
@@ -211,6 +278,54 @@ When introducing constants or enums, ensure they're used consistently everywhere
 3. **Is coupling necessary:** Or can it be reduced through interfaces/abstractions?
 4. **Are literals replaced:** With named constants?
 
+### Polymorphism Over Conditionals
+
+**CRITICAL RULE: Avoid type-based conditionals in favor of polymorphism.**
+
+Type-based conditional logic violates the Open/Closed Principle and creates maintenance burdens.
+
+**Anti-Pattern (❌ BAD):**
+```lua
+-- String-based type checking - violates polymorphism
+if element.type == "title" then
+    totalHeight = totalHeight + element.titleHeight
+elseif element.type == "section" then
+    totalHeight = totalHeight + element.sectionHeight
+elseif element.type == "spacer" then
+    totalHeight = totalHeight + element.spacerHeight
+-- Adding new types requires modifying this function
+end
+```
+
+**Strategy Pattern (✅ GOOD):**
+```lua
+-- Strategy objects handle their own behavior
+local strategies = {
+    title = TitleStrategy,
+    section = SectionStrategy,
+    spacer = SpacerStrategy,
+}
+totalHeight = totalHeight + strategies[element.type]:calculateHeight(element)
+```
+
+**Polymorphism (✅ BETTER):**
+```lua
+-- Each element knows how to calculate its own height
+totalHeight = totalHeight + element:calculateHeight()
+```
+
+**Benefits of polymorphic approach:**
+- **Extensible:** New element types don't require core modifications
+- **Maintainable:** Each type encapsulates its own behavior
+- **Testable:** Each strategy/type can be tested independently
+- **Follows SOLID principles:** Open/Closed, Single Responsibility
+
+**Guideline:** When reviewing, flag any code that:
+1. Uses string-based type checking (`if type == "something"`)
+2. Has long chains of `if/elseif` based on object types
+3. Requires modification when adding new types
+4. Concentrates type-specific logic in a single function
+
 ### Refactoring for Robustness
 
 **Before (brittle):**
@@ -246,6 +361,13 @@ Use this checklist for every code review:
 - [ ] Are there regression tests for any bugs that were fixed?
 - [ ] Do tests cover the bug scenario explicitly?
 
+### Breaking Changes & API Stability
+- [ ] Do all tests pass? If not, are failures explained and intentional?
+- [ ] Are default parameter value changes documented with clear rationale?
+- [ ] Do API changes include migration guidance for existing consumers?
+- [ ] Are breaking changes properly versioned and communicated?
+- [ ] Is there clear documentation of what behavior changed and why?
+
 ### Test Quality
 - [ ] Are tests simple and focused?
 - [ ] Is excessive mocking/stubbing a sign of coupling issues?
@@ -276,6 +398,12 @@ Use this checklist for every code review:
 - [ ] Will code break if implementation details change?
 - [ ] Are tests coupled to implementation or behavior?
 
+### Polymorphism
+- [ ] Are type-based conditionals avoided in favor of polymorphism?
+- [ ] Does code use Strategy Pattern or object methods instead of string type checking?
+- [ ] Can new types be added without modifying existing functions?
+- [ ] Are `if/elseif` chains based on object types refactored to use polymorphism?
+
 ## Process Integration
 
 These guidelines should be applied at multiple stages:
@@ -302,6 +430,20 @@ This document should evolve based on lessons learned from future code reviews. W
 - Added "ALWAYS verify actual file content before reporting syntax errors" as mandatory step
 - Emphasized that passing tests indicate apparent syntax errors are likely diff artifacts
 - Added examples of common diff artifacts (`[mend)`, ANSI codes) that masquerade as syntax errors
+
+**2025-11-24: Added Breaking Changes & API Stability Guidelines**
+- Added critical section on handling breaking changes and maintaining test suite integrity
+- Established requirements for documenting intentional vs accidental API changes
+- Added guidelines for version management, migration paths, and impact assessment
+- Emphasized that test failures indicate breaking changes requiring careful handling
+- Updated review checklist to catch undocumented breaking changes
+
+**2025-11-24: Added Polymorphism Over Conditionals Guideline**
+- Added critical design rule: Avoid type-based conditionals in favor of polymorphism
+- Established Strategy Pattern as preferred approach for type-specific behavior
+- Added anti-pattern examples showing string-based type checking violations
+- Emphasized Open/Closed Principle compliance for extensible systems
+- Updated review checklist to detect and prevent type-based conditional anti-patterns
 
 **2025-11-18: Added Diff Inspection to Review Checklist**
 - Added section on verifying actual file content vs. diff artifacts
