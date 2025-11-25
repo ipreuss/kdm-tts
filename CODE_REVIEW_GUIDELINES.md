@@ -441,6 +441,14 @@ Use this checklist for every code review:
 - [ ] Could hard dependencies be inverted through interfaces?
 - [ ] Are there opportunities to reduce coupling through abstraction?
 
+### DRY Principle (Don't Repeat Yourself)
+- [ ] Are there duplicate code blocks that could be extracted into functions?
+- [ ] Are constants, configurations, or logic repeated across multiple files?
+- [ ] Could common patterns be abstracted into reusable components?
+- [ ] Are there copy-paste sections that should be unified?
+- [ ] Is the same business logic implemented in multiple places?
+- [ ] Could repeated parameter sets be consolidated into configuration objects?
+
 ### Phase 3: Proactive Design Review
 **CRITICAL: Balance improvement opportunities against YAGNI (You Aren't Gonna Need It) and DTSTTCPW (Do The Simplest Thing That Could Possibly Work)**
 
@@ -509,6 +517,12 @@ This document should evolve based on lessons learned from future code reviews. W
 - Added "ALWAYS verify actual file content before reporting syntax errors" as mandatory step
 - Emphasized that passing tests indicate apparent syntax errors are likely diff artifacts
 - Added examples of common diff artifacts (`[mend)`, ANSI codes) that masquerade as syntax errors
+
+**2025-11-25: Added DRY Principle to Review Checklist**
+- Added dedicated DRY (Don't Repeat Yourself) principle section to systematic review process
+- Included checks for duplicate code blocks, repeated constants, common patterns, and copy-paste sections
+- Emphasized consolidation of repeated business logic and parameter sets
+- Filled significant gap in fundamental code review principles
 
 **2025-11-24: Added Balanced Proactive SOLID Analysis**
 - Added SOLID principles checklist balanced against YAGNI and DTSTTCPW principles

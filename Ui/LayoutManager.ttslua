@@ -152,6 +152,36 @@ function ButtonRowElement:new(params)
     return newElementState({ params = params or {} }, ButtonRowElement)
 end
 
+local CustomElement = {}
+CustomElement.__index = CustomElement
+
+function CustomElement:new(params)
+    params = params or {}
+    assert(type(params.render) == "function", "Custom element requires render function")
+    assert(type(params.height) == "number" and params.height > 0, "Custom element requires positive height")
+    return newElementState({ params = params }, CustomElement)
+end
+
+function CustomElement:MeasureHeight()
+    return self.params.height
+end
+
+function CustomElement:Render(layout)
+    local height = self:MeasureHeight()
+    local y = layout:_getNextY(height)
+    local context = {
+        parent = layout.parent,
+        layout = layout,
+        x = self.params.x or layout:_getContentX(),
+        y = y,
+        width = self.params.width or layout:_getContentWidth(),
+        height = height,
+    }
+    local result = self.params.render(context)
+    self.rendered = result
+    return result
+end
+
 function ButtonRowElement:MeasureHeight()
     return self.params.height or ButtonRowElement.DEFAULT_HEIGHT
 end
@@ -257,6 +287,10 @@ end
 
 function Elements.ButtonRow(params)
     return ButtonRowElement:new(params or {})
+end
+
+function Elements.Custom(params)
+    return CustomElement:new(params)
 end
 
 function Elements.Section(params)
@@ -424,6 +458,19 @@ function Specification:AddButtonRow(params, onRender)
     )
 end
 
+function Specification:AddCustom(params, onRender)
+    local config = shallowCopy(params or {})
+    return self:_addEntry(
+        function()
+            return Elements.Custom(config)
+        end,
+        function(layout)
+            return layout:AddCustom(config)
+        end,
+        onRender
+    )
+end
+
 function Specification:BuildElements()
     local elements = {}
     for _, entry in ipairs(self.entries) do
@@ -560,6 +607,10 @@ function LayoutManager.VerticalLayout(params)
 
     function layout:AddButtonRow(params)
         return self:_renderElement(Elements.ButtonRow(params or {}))
+    end
+
+    function layout:AddCustom(params)
+        return self:_renderElement(Elements.Custom(params or {}))
     end
 
     function layout:GetUsedHeight()

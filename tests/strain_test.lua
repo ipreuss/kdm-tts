@@ -202,7 +202,8 @@ Test.test("Strain.Init clones milestones and builds UI rows", function(t)
         end
 
         t:assertEqual(#strain.milestones, #env.recorder.rows)
-        local expectedHeight = #strain.milestones * strain.ROW_HEIGHT
+        local expectedHeight = (#strain.milestones * strain.ROW_HEIGHT)
+            + math.max(#strain.milestones - 1, 0) * strain.ROW_GAP
         t:assertEqual(expectedHeight, env.listPanel.height)
         t:assertEqual(expectedHeight, env.recorder.scrollContentHeight)
     end)

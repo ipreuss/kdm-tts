@@ -7,6 +7,7 @@ local log = require("Kdm/Log").ForModule("Strain")
 local Strain = {}
 
 Strain.ROW_HEIGHT = 70
+Strain.ROW_GAP = 6
 
 Strain.DUMMY_MILESTONES = {
     {
@@ -240,63 +241,26 @@ function Strain:RefreshMilestones()
     end
 
     local listWidth = Strain.listWidth or 500
-    local y = 0
+    local LayoutManager = require("Kdm/Ui/LayoutManager")
+    local layout = LayoutManager.VerticalLayout({
+        parent = Strain.listPanel,
+        contentArea = { contentX = 0, contentY = 0, contentWidth = listWidth, contentHeight = 0 },
+        padding = 0,
+        spacing = Strain.ROW_GAP,
+    })
+
     for i, milestone in ipairs(Strain.milestones) do
-        local row = Strain.milestoneRows[i]
-        if not row then
-            row = {}
-            local backgroundA = "#f1e6d4ff"
-            local backgroundB = "#e9dcc9ff"
-            row.panel = Strain.listPanel:Panel({
-                id = string.format("StrainMilestoneRow%d", i),
-                x = 0,
-                y = y,
-                width = listWidth,
-                height = Strain.ROW_HEIGHT - 6,
-                color = (i % 2 == 0) and backgroundA or backgroundB,
-            })
-            row.checkBox = row.panel:CheckBox({
-                id = string.format("StrainMilestoneCheck%d", i),
-                x = 15,
-                y = -20,
-                width = 24,
-                height = 24,
-                uncheckedImage = "CheckBoxEmpty",
-                onClick = function(_, player)
-                    Strain:ToggleMilestone(i, player)
-                end,
-            })
-            row.title = row.panel:Text({
-                id = string.format("StrainMilestoneTitle%d", i),
-                x = 50,
-                y = -18,
-                width = listWidth - 70,
-                height = 26,
-                fontSize = 18,
-                fontStyle = "Bold",
-                color = Ui.DARK_BROWN,
-            })
-            row.condition = row.panel:Text({
-                id = string.format("StrainMilestoneCondition%d", i),
-                x = 50,
-                y = -46,
-                width = listWidth - 70,
-                height = 20,
-                fontSize = 14,
-                color = Ui.MID_BROWN,
-            })
-            Strain.milestoneRows[i] = row
-        end
-
-        row.checkBox:Check(milestone.reached)
-        row.title:SetText(milestone.title)
-        row.condition:SetText(milestone.condition)
-
-        y = y - Strain.ROW_HEIGHT
+        layout:AddCustom({
+            height = Strain.ROW_HEIGHT,
+            render = function(context)
+                return Strain:_RenderMilestoneRow(i, milestone, context)
+            end,
+        })
     end
 
-    Strain.listPanel:SetHeight(#Strain.milestones * Strain.ROW_HEIGHT)
-    Strain.listArea:SetContentHeight(#Strain.milestones * Strain.ROW_HEIGHT)
+    local usedHeight = layout:GetUsedHeight()
+    Strain.listPanel:SetHeight(usedHeight)
+    Strain.listArea:SetContentHeight(usedHeight)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -327,6 +291,70 @@ function Strain:ToggleMilestone(index, player)
     
     Strain.pendingMilestoneIndex = index
     Strain:ShowConfirmationDialog(milestone)
+end
+
+function Strain:_RenderMilestoneRow(index, milestone, context)
+    local rowSpacing = Strain.ROW_GAP or 0
+    local backgroundA = "#f1e6d4ff"
+    local backgroundB = "#e9dcc9ff"
+    local panelHeight = math.max(10, context.height - rowSpacing)
+    local panelY = context.y - (rowSpacing / 2)
+    local row = Strain.milestoneRows[index]
+    if not row then
+        row = {}
+        row.panel = context.parent:Panel({
+            id = string.format("StrainMilestoneRow%d", index),
+            x = context.x,
+            y = panelY,
+            width = context.width,
+            height = panelHeight,
+            color = (index % 2 == 0) and backgroundA or backgroundB,
+        })
+        row.checkBox = row.panel:CheckBox({
+            id = string.format("StrainMilestoneCheck%d", index),
+            x = 15,
+            y = -20,
+            width = 24,
+            height = 24,
+            uncheckedImage = "CheckBoxEmpty",
+            onClick = function(_, player)
+                Strain:ToggleMilestone(index, player)
+            end,
+        })
+        row.title = row.panel:Text({
+            id = string.format("StrainMilestoneTitle%d", index),
+            x = 50,
+            y = -18,
+            width = context.width - 70,
+            height = 26,
+            fontSize = 18,
+            fontStyle = "Bold",
+            color = Ui.DARK_BROWN,
+        })
+        row.condition = row.panel:Text({
+            id = string.format("StrainMilestoneCondition%d", index),
+            x = 50,
+            y = -46,
+            width = context.width - 70,
+            height = 20,
+            fontSize = 14,
+            color = Ui.MID_BROWN,
+        })
+        Strain.milestoneRows[index] = row
+    else
+        row.panel:SetOffsetXY(string.format("%d %d", context.x, panelY))
+        row.panel:SetWidth(context.width)
+        row.panel:SetHeight(panelHeight)
+        row.panel:SetColor((index % 2 == 0) and backgroundA or backgroundB)
+        row.title:SetWidth(context.width - 70)
+        row.condition:SetWidth(context.width - 70)
+    end
+
+    row.checkBox:Check(milestone.reached)
+    row.title:SetText(milestone.title)
+    row.condition:SetText(milestone.condition)
+
+    return row
 end
 
 function Strain:ShowConfirmationDialog(milestone)
