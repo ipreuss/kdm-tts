@@ -319,3 +319,30 @@ Test.test("CancelMilestone keeps milestone unchecked", function(t)
         t:assertEqual(nil, strain.pendingMilestoneIndex)
     end)
 end)
+
+Test.test("Strain.Init restores reached milestones from saved state", function(t)
+    withStrain(t, function(StrainModule, strain, env)
+        local saveState = {
+            reached = {
+                ["Milestone B"] = true,
+            }
+        }
+        StrainModule.Init(saveState)
+
+        t:assertFalse(strain.milestones[1].reached, "first milestone should start unchecked")
+        t:assertTrue(strain.milestones[2].reached, "saved milestone should be checked")
+        t:assertTrue(env.recorder.rows[2].checkBox.checked, "checkbox should reflect saved state")
+    end)
+end)
+
+Test.test("Strain.Save serializes reached milestones for export/import", function(t)
+    withStrain(t, function(StrainModule, strain)
+        StrainModule.Init()
+
+        strain.milestones[1].reached = true
+        local saveState = StrainModule.Save()
+
+        t:assertTrue(saveState.reached["Milestone A"], "reached milestone should be recorded")
+        t:assertTrue(saveState.reached["Milestone B"] == nil, "unreached milestones should not be persisted")
+    end)
+end)

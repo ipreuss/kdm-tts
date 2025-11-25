@@ -17,8 +17,11 @@ Strain.MILESTONE_CARDS = StrainMilestones
 
 ---------------------------------------------------------------------------------------------------
 
-function Strain.Init()
+function Strain.Init(saveState)
     log:Debugf("Initializing strain milestones UI")
+
+    saveState = saveState or {}
+    local reachedByTitle = saveState.reached or {}
 
     Strain.milestones = {}
     for i, milestone in ipairs(Strain.MILESTONE_CARDS) do
@@ -27,7 +30,7 @@ function Strain.Init()
             condition = milestone.condition,
             flavorText = milestone.flavorText,
             rulesText = milestone.rulesText,
-            reached = milestone.reached or false,
+            reached = reachedByTitle[milestone.title] or milestone.reached or false,
         }
     end
 
@@ -379,6 +382,23 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+function Strain.Save()
+    local state = { reached = {} }
+    if not Strain.milestones then
+        return state
+    end
+
+    for _, milestone in ipairs(Strain.milestones) do
+        if milestone.reached then
+            state.reached[milestone.title] = true
+        end
+    end
+
+    return state
+end
+
+---------------------------------------------------------------------------------------------------
+
 function Strain.ShowUi(player)
     local result = Strain.dialog:ShowForPlayer(player)
     if result == player.color then
@@ -405,6 +425,7 @@ end
 
 return {
     Init = Strain.Init,
+    Save = Strain.Save,
     ShowUi = Strain.ShowUi,
     HideUi = Strain.HideUi,
     IsUiOpen = Strain.IsUiOpen,

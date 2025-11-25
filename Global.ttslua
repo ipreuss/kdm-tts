@@ -52,6 +52,7 @@ function onSave()
     try("Survivor", Survivor.Save)
     try("Timeline", Timeline.Save)
     try("BattleUi", BattleUi.Save)
+    try("Strain", Strain.Save)
 
     return JSON.encode(saveState)
 end
@@ -101,7 +102,7 @@ function onLoad(saveJson)
     initStep("Showdown", Showdown.Init)
     initStep("BattleUi", function() BattleUi.Init(saveState.BattleUi or {}) end)
     --
-    initStep("Strain", Strain.Init)
+    initStep("Strain", function() Strain.Init(saveState.Strain or {}) end)
     --
     initStep("GlobalUi", GlobalUi.Init)
     initStep("Timeline", function() Timeline.Init(saveState.Timeline or {}) end)
