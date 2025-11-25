@@ -194,10 +194,10 @@ Test.test("Strain.Init clones milestones and builds UI rows", function(t)
     withStrain(t, function(StrainModule, strain, env)
         StrainModule.Init()
 
-        t:assertEqual(#strain.DUMMY_MILESTONES, #strain.milestones)
+        t:assertEqual(#strain.MILESTONE_CARDS, #strain.milestones)
         for i, milestone in ipairs(strain.milestones) do
-            t:assertTrue(milestone ~= strain.DUMMY_MILESTONES[i])
-            t:assertEqual(strain.DUMMY_MILESTONES[i].title, milestone.title)
+            t:assertTrue(milestone ~= strain.MILESTONE_CARDS[i])
+            t:assertEqual(strain.MILESTONE_CARDS[i].title, milestone.title)
             t:assertFalse(milestone.reached)
         end
 
