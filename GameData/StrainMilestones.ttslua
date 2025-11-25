@@ -1,0 +1,82 @@
+local StrainMilestones = {
+    {
+        title = "Ethereal Culture Strain",
+        condition = "When a survivor consumes a Brain Mint gear while there are 4+ Black Lichen strange resources in settlement storage.",
+        flavorText = [[Black Lichen in storage blooms, blanketing the settlement and its inhabitants with harmless spores. A bacteria carried in the Brain Mint forms a symbiotic mass of fungus and bacteria in the unwitting survivor's brain. The survivor finds themselves communicating with something beyond.]],
+        rulesText = [[Permanently add the Ethereal Pact fighting art to your fighting art deck. The survivor gains the Ethereal Pact fighting art.]],
+    },
+    {
+        title = "Giant's Strain",
+        condition = "When a survivor with the Marrow Hunger impairment has a child from Intimacy.",
+        flavorText = [[Ardent splinters of bone gnaw into the survivor's brain, halting their pituitary function. The deviation is passed into their offspring.]],
+        rulesText = [[Permanently add the Giant's Blood fighting art to your fighting art deck. The survivor's newborn child gains the Giant's Blood fighting art (choose one in case of twins).]],
+    },
+    {
+        title = "Opportunist Strain",
+        condition = "When a survivor with the Prey or Secretive disorders has 15+ insanity.",
+        flavorText = [[The survivor eats in secret and forgoes sleep. Their extreme paranoia liberates a deeply buried genetic memory that has allowed insignificant people to use their prey instincts to their advantage.]],
+        rulesText = [[Permanently add the Backstabber fighting art to your fighting art deck. The survivor gains the Backstabber fighting art. They suffer permanent -1 strength and -1 evasion from lack of sleep!]],
+    },
+    {
+        title = "Trepanning Strain",
+        condition = "When a survivor survives the Trepanning Barber Surgeon endeavor five times.",
+        flavorText = [[Slipshod surgery has damaged the survivor's memory. When systems of the body fail, others rise up to compensate. Without the burden of triumphs and traumas, the indomitable will to live thrives.]],
+        rulesText = [[Permanently add the Infinite Lives fighting art to your fighting art deck. The survivor gains the Infinite Lives fighting art.]],
+    },
+    {
+        title = "Hyper Cerebellum",
+        condition = "When two survivors with the Prey disorder have a newborn.",
+        flavorText = [[The child is born with an enlarged brain capacity for awareness. Hyper alert and raised fearful of the unknown, the child takes up the shield to protect themselves. Their aptitude for observation gives them skills with a shield no master could dream ever of.]],
+        rulesText = [[Permanently add the Shielderang fighting art to your fighting art deck. The newborn survivor gains the Shielderang fighting art, 3 levels of Shield weapon proficiency, and the Weak Spot disorder at the body hit location.]],
+    },
+    {
+        title = "Marrow Transformation",
+        condition = "When the Hand removes a broken leg severe injury from a survivor with a Bow weapon specialization.",
+        flavorText = [[Knit together according to unfamiliar anatomical principles, the mended bones grow new configurations of connective tissue. Developing an unnaturally smooth gait, the survivor's pounding steps do not impede their aim.]],
+        rulesText = [[Permanently add the Rolling Gait fighting art to your fighting art deck. The survivor gains the Rolling Gait fighting art.]],
+    },
+    {
+        title = "Memetic Symphony",
+        condition = "During Weird Dream, a storyteller tells a Well Told account that includes a dreaming survivor hearing the Devil's Symphony.",
+        flavorText = [[Still possessed by restless sleep, snatches of the malefic tune spread, humming in every mouth. Under the stone-faced ground, a massive lodestone vibrates sympathetically, perpetually attracting a rhythmic spree of frozen lightning. Its thunder echoes in all directions, the beat throbbing in every ear.]],
+        rulesText = [[Permanently add the Infernal Rhythm fighting art to your fighting art deck. The survivor gains the Infernal Rhythm fighting art.]],
+    },
+    {
+        title = "Surgical Sight",
+        condition = "When a survivor in the settlement with Ocular Parasites gains the Extra Sense fighting art.",
+        flavorText = [[Undetectable creatures in the fluid filter of the eyes transform perception. Skin cannot hide the pulleys and springs of muscle. Their workings are as plain as the stone-faced ground. The birth of ocular symbiosis is turbulent. The survivor suffers the blind severe head injury.]],
+        rulesText = [[Permanently add the Convalescer fighting art to your fighting art deck. The survivor gains the Convalescer fighting art.]],
+    },
+    {
+        title = "Ashen Claw Strain",
+        condition = "The survivors are defeated by the Gold Smoke Knight. (Check for this at the end of your campaign.)",
+        flavorText = [[Departing the smoldering scene, the Gold Smoke Knight unwittingly crushes the claw of a fleeing crab spider. Desperate to survive, the crab cauterizes its mangled claw on a nearby golden ember. It heals anew and much larger than before. The crab shares the secret with its crab family.]],
+        rulesText = [[Permanently add Armored Fist to your fighting art deck. Permanently add Fiddler Crab Spider to your vermin deck.]],
+    },
+    {
+        title = "Carnage Worms",
+        condition = "A Crazed survivor witnesses a settlement with Cannibalize endeavor 8 times at Sacrifice in a single lantern year.",
+        flavorText = [[The survivor holds a feast at the bloodied site of sacrifice. Attracted to the carnage, a parasitic worm of other origin is swept up into the survivor's slobbering maw. Now a host, the survivor spreads the parasite's young everywhere they defecate.]],
+        rulesText = [[Permanently add Dark Manifestation to your fighting art deck. The survivor gains Dark Manifestation.]],
+    },
+    {
+        title = "Material Feedback Strain",
+        condition = "A survivor archives 4 resources from their Hoarder disorder.",
+        flavorText = [[A calm wraps around the anxiously beating heart of the survivor, steadying their grasping hands. The deeply-felt sense of security keeps cortical stress levels low. Inheriting the positive chemical feedback between possession and serenity creates a powerful ally in the settlement stores.]],
+        rulesText = [[Permanently add Stockist to your fighting art deck. The survivor gains Stockist.]],
+    },
+    {
+        title = "Sweat Stained Oath",
+        condition = "A survivor gains a sword during the hunt or showdown and uses it to deliver the killing blow that lantern year.",
+        flavorText = [[Lightning splits the sky, illuminating a blade-shaped castle that was not there before. Gouts of water spray from the castle. Mingling with the survivor's sweat, the rain hisses. In the sibilant sound, the survivor hears a challenge.]],
+        rulesText = [[Permanently add Sword Oath to your fighting art deck. The survivor gains Sword Oath. Add Acid Storm to the next lantern year on the timeline.]],
+    },
+    {
+        title = "Plot Twist",
+        condition = "If the settlement has remembered all the White Secret stories.",
+        flavorText = [[A White Speaker arrives with a new story. She cuts the listener. Cloudy lymphatic fluid struggles from their wound, forming a yellow disc. Reaching into it, the White Speaker pulls free a black lump. Add 1 Iron strange resource to the settlement storage.]],
+        rulesText = [[The next time a survivor would remember a White Secret story, they recall the words recited under her breath instead. Permanently add the Story of Blood fighting art to your fighting art deck. That survivor gains the Story of Blood fighting art.]],
+    },
+}
+
+return StrainMilestones

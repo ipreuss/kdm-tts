@@ -158,6 +158,20 @@ local function buildStrainStubs()
             MID_BROWN = "#999999",
         },
         ["Kdm/Log"] = { ForModule = function() return logStub end },
+        ["Kdm/GameData/StrainMilestones"] = {
+            {
+                title = "Milestone A",
+                condition = "Condition A",
+                flavorText = "Flavor A",
+                rulesText = "Rules A",
+            },
+            {
+                title = "Milestone B",
+                condition = "Condition B",
+                flavorText = "Flavor B",
+                rulesText = "Rules B",
+            },
+        },
     }
 
     return stubs, {
