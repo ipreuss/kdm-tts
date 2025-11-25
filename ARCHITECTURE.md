@@ -171,7 +171,7 @@ When extending the game flow, prefer emitting a new event constant in `EventMana
 2. **Respect initialization order**. New systems should slot into `Global.onLoad` near their dependencies and, if they register event handlers, wait until `PostInit` so the UI hierarchy already exists.
 3. **Emit events instead of calling deep internals**. If a change affects multiple systems, add a new event constant in `EventManager` and let downstream modules decide what to do.
 4. **Keep UI creation declarative**. Use the helpers in `Ui.ttslua` for every panel/text/button. This keeps styling consistent and makes it easier to refactor colors/fonts.
-5. **Schema evolution**. When adding new persistent fields, implement backwards-compatible hydration inside the module and, if exports/imports are affected, bump `Campaign.EXPORT_VERSION` or any other file-format constants.
+5. **Schema evolution**. When adding new persistent fields, implement backwards-compatible hydration inside the module and, if exports/imports are affected, bump `Campaign.EXPORT_VERSION` (or other file-format constants) and extend `Campaign.ConvertToLatestVersion()` so older campaign exports conform to the latest schema.
 6. **Log liberally when debugging**. Create a module logger via `Log.ForModule("ModuleName")` so you can toggle debug output through the console without spamming every user.
 7. **Mind the physical table**. If you spawn or move objects, always route through `NamedObject` and `Location` so automation such as cleanup and warnings continue to work.
 

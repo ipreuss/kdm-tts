@@ -30,7 +30,7 @@ function Strain.Init(saveState)
             condition = milestone.condition,
             flavorText = milestone.flavorText,
             rulesText = milestone.rulesText,
-            reached = reachedByTitle[milestone.title] or milestone.reached or false,
+            reached = reachedByTitle[milestone.title] or false,
         }
     end
 

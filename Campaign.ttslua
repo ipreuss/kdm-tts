@@ -760,7 +760,7 @@ function Campaign.Import(data)
 end
 
 ---------------------------------------------------------------------------------------------------
-
+-- Converts imported/exported campaign data from older versions into the latest schema.
 function Campaign.ConvertToLatestVersion(data)
     if data.version > Campaign.EXPORT_VERSION then
         log:Errorf("Exported campaign has unrecognized version %s", tostring(data.version))
