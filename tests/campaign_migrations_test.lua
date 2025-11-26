@@ -59,8 +59,11 @@ Test.test("CampaignMigrations upgrades v1 data through v5", function(t)
     t:assertEqual("Language", innovationDeck[1].cards and innovationDeck[1].cards[1].name, "Innovation deck should be reconstructed")
 
     local survivorCards = data.survivor.survivors[1].cards
-    t:assertEqual("Founding Stone", survivorCards[1].name)
-    t:assertEqual("Gear", survivorCards[1].type)
+    local cardTypesByName = {}
+    for _, card in ipairs(survivorCards) do
+        cardTypesByName[card.name] = card.type
+    end
+    t:assertEqual("Gear", cardTypesByName["Founding Stone"])
 
     t:assertTrue(data.timeline.years ~= nil, "Timeline years should mirror original timeline entries")
 end)

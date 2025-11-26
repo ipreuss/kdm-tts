@@ -27,6 +27,13 @@ local CampaignMigrations = require("Kdm/GameData/CampaignMigrations")
 
 local Campaign = {}
 
+local function buildStrainMilestoneState()
+    if Campaign.clearStrainMilestones then
+        return {}
+    end
+    return Strain.Save()
+end
+
 Campaign.EXPORT_VERSION = 5
 
 ---------------------------------------------------------------------------------------------------
@@ -52,6 +59,7 @@ function Campaign.Init(saveState)
         ["People of the Lantern"]
     Campaign.unlockedMode = saveState.unlockedMode or false
     Campaign.settlementNo = saveState.settlementNo or 0
+    Campaign.clearStrainMilestones = saveState.clearStrainMilestones or false
     assert(Campaign.campaign)
     Campaign.InitCampaignUi()
     Campaign.InitExportImportBoardUi()
@@ -216,6 +224,32 @@ function Campaign.InitCampaignUi()
             end })
     end
 
+    Campaign.clearStrainMilestonesCheckbox = panel:CheckButton({
+        id = "ClearStrainMilestones",
+        x = 20,
+        y = -605,
+        width = 24,
+        height = 24,
+        fontSize = 14,
+        text = "",
+        checked = Campaign.clearStrainMilestones or false,
+        onClick = function()
+            local checked = not Campaign.clearStrainMilestones
+            Campaign.clearStrainMilestones = checked
+            Campaign.clearStrainMilestonesCheckbox:Check(checked)
+        end
+    })
+    panel:Text({
+        id = "ClearStrainLabel",
+        x = 50,
+        y = -608,
+        width = 300,
+        height = 30,
+        fontSize = 14,
+        text = "Clear strain milestones",
+        color = Ui.DARK_BROWN,
+    })
+
     panel:Button({
         id = "Begin",
         x = 117,
@@ -223,7 +257,11 @@ function Campaign.InitCampaignUi()
         width = 300,
         height = 60,
         onClick = function()
-            MessageBox.Show("Are you sure you want to start a new campaign?", Campaign.ImportFromCampaign)
+            local strainNote = ""
+            if Campaign.clearStrainMilestones then
+                strainNote = "\n\nWarning: Strain milestones will be cleared for this campaign. Uncheck \"Clear strain milestones\" if you want to keep them."
+            end
+            MessageBox.Show("Are you sure you want to start a new campaign?" .. strainNote, Campaign.ImportFromCampaign)
         end
     })
     panel:Button({ id = "Cancel", x = 468, y = -643, width = 300, height = 60, onClick = Campaign.HideUiForAll })
@@ -258,6 +296,7 @@ function Campaign.Save()
         campaign = Campaign.campaign.name,
         unlockedMode = Campaign.unlockedMode,
         settlementNo = Campaign.settlementNo,
+        clearStrainMilestones = Campaign.clearStrainMilestones or false,
     }
 end
 
@@ -449,7 +488,7 @@ function Campaign.ImportFromCampaign()
         objectsByLocation[playerPrefix .. " Gear 2"] = { tag = "Card", name = "Cloth", type = "Gear" }
     end
 
-    Campaign.Import({
+    local state = {
         version = Campaign.EXPORT_VERSION,
         campaign = campaign,
         expansions = expansions,
@@ -468,8 +507,11 @@ function Campaign.ImportFromCampaign()
             }
         },
         timeline = Campaign.BuildImportTimeline(expansions, campaign),
+        strainMilestones = buildStrainMilestoneState(),
         spawnInitialSurvivorSheets = true,
-    })
+    }
+
+    Campaign.Import(state)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1057,5 +1099,6 @@ return {
         SetupSettlementEventsDeck = Campaign.SetupSettlementEventsDeck,
         Import = Campaign.Import,
         EXPORT_VERSION = Campaign.EXPORT_VERSION,
+        BuildStrainMilestoneState = buildStrainMilestoneState,
     },
 }

@@ -115,26 +115,10 @@ All code review findings must be documented in `LATEST_REVIEW.md` at the reposit
 - Include specific examples and line references where helpful
 - Document any follow-up actions taken in response to the review
 
-**Example:**
-```markdown
-# Code Review - Feature Name
-
-## Date
-2025-11-18
-
-## Changes
-- Modified: Feature.lua
-- New: tests/feature_test.lua
-
-## Positive Aspects
-...
-
-## Issues & Recommendations
-...
-
-## Summary
-Overall Assessment: ✅ Approved
-```
+**Handling review suggestions**
+- **Assess everything** – When a review surfaces suggestions, evaluate each one. For low-risk / high-value requests (copy tweaks, text changes, small refactors), apply them immediately so we leave the code slightly better (Boy Scout Rule).
+- **Act, defer, or decline** – If a change is deferred or intentionally skipped, add the rationale in the review reply (or a comment) so we maintain context.
+- **Track follow-ups** – Document deferred items in `ARCHITECTURE.md` (Future Refactor Opportunities) or the relevant backlog so ideas aren’t lost. Update process/docs when reviews uncover gaps.
 
 ## Git Workflow
 

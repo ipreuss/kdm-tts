@@ -132,3 +132,40 @@ Test.test("Campaign.Import applies strain milestone state", function(t)
         error(err, 0)
     end
 end)
+
+Test.test("Strain milestones carry over when checkbox is unchecked", function(t)
+    local internal = InternalCampaign
+    local originalFlag = internal.clearStrainMilestones
+    internal.clearStrainMilestones = false
+
+    local sentinel = { reached = { Foo = true } }
+    local originalSave = Strain.Save
+    Strain.Save = function()
+        return sentinel
+    end
+
+    local payload = Campaign._test.BuildStrainMilestoneState()
+
+    internal.clearStrainMilestones = originalFlag
+    Strain.Save = originalSave
+
+    t:assertDeepEqual(sentinel, payload, "Expected strain milestones to carry over when checkbox unchecked")
+end)
+
+Test.test("Strain milestones reset when checkbox is checked", function(t)
+    local internal = InternalCampaign
+    local originalFlag = internal.clearStrainMilestones
+    internal.clearStrainMilestones = true
+
+    local originalSave = Strain.Save
+    Strain.Save = function()
+        error("Strain.Save should not be invoked when clearing milestones")
+    end
+
+    local payload = Campaign._test.BuildStrainMilestoneState()
+
+    internal.clearStrainMilestones = originalFlag
+    Strain.Save = originalSave
+
+    t:assertDeepEqual({}, payload, "Expected empty strain milestones payload when checkbox checked")
+end)
