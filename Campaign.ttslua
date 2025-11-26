@@ -21,6 +21,7 @@ local Util = require("Kdm/Util/Util")
 local Trash = require("Kdm/Trash")
 local PanelKit = require("Kdm/Ui/PanelKit")
 local Strain = require("Kdm/Strain")
+local CampaignMigrations = require("Kdm/GameData/CampaignMigrations")
 
 -------------------------------------------------------------------------------------------------
 
@@ -771,137 +772,8 @@ function Campaign.ConvertToLatestVersion(data)
         return false
     end
 
-    if data.version == 1 then
-        data.objectsByLocation = {
-            ["Principle: Death"] = {
-                tag = "Deck",
-                name = "Principle: Death",
-                type = "Innovations",
-                faceDown = true,
-                cards = {
-                    { name = "Cannibalize - Death Principle", type = "Innovations" },
-                    { name = "Graves - Death Principle",      type = "Innovations" },
-                }
-            },
-            ["Principle: New Life"] = {
-                tag = "Deck",
-                name = "Principle: New Life",
-                type = "Innovations",
-                faceDown = true,
-                cards = {
-                    { name = "Protect the Young - New Life Principle",       type = "Innovations" },
-                    { name = "Survival of the Fittest - New Life Principle", type = "Innovations" },
-                }
-            },
-            ["Principle: Society"] = {
-                tag = "Deck",
-                name = "Principle: Society",
-                type = "Innovations",
-                faceDown = true,
-                cards = {
-                    { name = "Accept Darkness - Society Principle", type = "Innovations" },
-                    { name = "Collective Toil - Society Principle", type = "Innovations" },
-                }
-            },
-            ["Principle: Conviction"] = {
-                tag = "Deck",
-                name = "Principle: Conviction",
-                type = "Innovations",
-                faceDown = true,
-                cards = {
-                    { name = "Barbaric - Conviction Principle", type = "Innovations" },
-                    { name = "Romantic - Conviction Principle", type = "Innovations" },
-                }
-            },
-        }
-
-        if data.innovationDeck then
-            if #data.innovationDeck > 1 then
-                local cards = {}
-                for _, card in ipairs(data.innovationDeck or {}) do
-                    table.insert(cards, { name = card, type = "Innovations" })
-                end
-                data.objectsByLocation["Innovation Deck"] = {
-                    tag = "Deck",
-                    name = "Innovation Deck",
-                    type =
-                    "Innovations",
-                    faceDown = true,
-                    cards = cards
-                }
-            elseif #data.innovationDeck == 1 then
-                data.objectsByLocation["Innovation Deck"] = {
-                    tag = "Card",
-                    name = data.innovationDeck[1],
-                    type =
-                    "Innovations"
-                }
-            end
-        end
-
-        for _, cardList in ipairs({
-            data.innovations or {},
-            data.principles or {},
-            data.settlementLocations or {},
-            data.settlementGear or {},
-            data.settlementResources or {},
-            data.weaponMasteries or {},
-        }) do
-            for _, card in ipairs(cardList) do
-                data.objectsByLocation[card.location] = { tag = "Card", name = card.name, type = card.type }
-            end
-        end
-
-        for _, playerGear in ipairs(data.playerGear or {}) do
-            if playerGear.armorSet then
-                data.objectsByLocation[playerGear.armorSet.location] = {
-                    tag = "Card",
-                    name = playerGear.armorSet.name,
-                    type =
-                        playerGear.armorSet.type
-                }
-            end
-            for _, card in ipairs(playerGear.gear or {}) do
-                data.objectsByLocation[card.location] = { tag = "Card", name = card.name, type = card.type }
-            end
-        end
-
-        data.survivor = data.population
-        for _, survivor in ipairs(data.survivor.survivors) do
-            local newCards = {}
-            for type, cards in pairs(survivor.cards or {}) do
-                for _, card in ipairs(cards or {}) do
-                    table.insert(newCards, { name = card, type = type })
-                end
-            end
-            survivor.cards = newCards
-        end
-
-        data.timeline.years = data.timeline.timeline
-    end
-    if (data.version <= 2) then
-        data.objectsByLocation["Principle: Bonding"] = {
-            tag = "Deck",
-            name = "Principle: Bonding",
-            type = "Innovations",
-            faceDown = true,
-            cards = {
-                { name = "Devoted Union - Bonding Principle", type = "Innovations" },
-                { name = "Enduring Legacy - Bonding Principle", type = "Innovations" },
-            }
-        }
-    end
-    if (data.version <= 3) then
-        data.departingSurvivors = {}
-    end
-    if (data.version <= 4) then
-        for key, object in pairs(data.objectsByLocation) do
-            data.objectsByLocation[key] = { object }
-        end
-    end
-    data.version = Campaign.EXPORT_VERSION
-
-    return true
+    CampaignMigrations.Apply(data, Campaign.EXPORT_VERSION)
+    return data.version == Campaign.EXPORT_VERSION
 end
 
 ---------------------------------------------------------------------------------------------------

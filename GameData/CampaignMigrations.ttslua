@@ -1,0 +1,156 @@
+local log = require("Kdm/Log").ForModule("CampaignMigrations")
+
+local CampaignMigrations = {}
+
+local migrations = {}
+
+-- v1 -> v2
+migrations[1] = function(data)
+    data.objectsByLocation = {
+        ["Principle: Death"] = {
+            tag = "Deck",
+            name = "Principle: Death",
+            type = "Innovations",
+            faceDown = true,
+            cards = {
+                { name = "Cannibalize - Death Principle", type = "Innovations" },
+                { name = "Graves - Death Principle",      type = "Innovations" },
+            }
+        },
+        ["Principle: New Life"] = {
+            tag = "Deck",
+            name = "Principle: New Life",
+            type = "Innovations",
+            faceDown = true,
+            cards = {
+                { name = "Protect the Young - New Life Principle",       type = "Innovations" },
+                { name = "Survival of the Fittest - New Life Principle", type = "Innovations" },
+            }
+        },
+        ["Principle: Society"] = {
+            tag = "Deck",
+            name = "Principle: Society",
+            type = "Innovations",
+            faceDown = true,
+            cards = {
+                { name = "Accept Darkness - Society Principle", type = "Innovations" },
+                { name = "Collective Toil - Society Principle", type = "Innovations" },
+            }
+        },
+        ["Principle: Conviction"] = {
+            tag = "Deck",
+            name = "Principle: Conviction",
+            type = "Innovations",
+            faceDown = true,
+            cards = {
+                { name = "Barbaric - Conviction Principle", type = "Innovations" },
+                { name = "Romantic - Conviction Principle", type = "Innovations" },
+            }
+        },
+    }
+
+    if data.innovationDeck then
+        if #data.innovationDeck > 1 then
+            local cards = {}
+            for _, card in ipairs(data.innovationDeck or {}) do
+                table.insert(cards, { name = card, type = "Innovations" })
+            end
+            data.objectsByLocation["Innovation Deck"] = {
+                tag = "Deck",
+                name = "Innovation Deck",
+                type = "Innovations",
+                faceDown = true,
+                cards = cards
+            }
+        elseif #data.innovationDeck == 1 then
+            data.objectsByLocation["Innovation Deck"] = {
+                tag = "Card",
+                name = data.innovationDeck[1],
+                type = "Innovations"
+            }
+        end
+    end
+
+    for _, cardList in ipairs({
+        data.innovations or {},
+        data.principles or {},
+        data.settlementLocations or {},
+        data.settlementGear or {},
+        data.settlementResources or {},
+        data.weaponMasteries or {},
+    }) do
+        for _, card in ipairs(cardList) do
+            data.objectsByLocation[card.location] = { tag = "Card", name = card.name, type = card.type }
+        end
+    end
+
+    for _, playerGear in ipairs(data.playerGear or {}) do
+        if playerGear.armorSet then
+            data.objectsByLocation[playerGear.armorSet.location] = {
+                tag = "Card",
+                name = playerGear.armorSet.name,
+                type = playerGear.armorSet.type
+            }
+        end
+        for _, card in ipairs(playerGear.gear or {}) do
+            data.objectsByLocation[card.location] = { tag = "Card", name = card.name, type = card.type }
+        end
+    end
+
+    data.survivor = data.population
+    for _, survivor in ipairs(data.survivor.survivors) do
+        local newCards = {}
+        for type, cards in pairs(survivor.cards or {}) do
+            for _, card in ipairs(cards or {}) do
+                table.insert(newCards, { name = card, type = type })
+            end
+        end
+        survivor.cards = newCards
+    end
+
+    data.timeline.years = data.timeline.timeline
+end
+
+-- v2 -> v3
+migrations[2] = function(data)
+    data.objectsByLocation["Principle: Bonding"] = {
+        tag = "Deck",
+        name = "Principle: Bonding",
+        type = "Innovations",
+        faceDown = true,
+        cards = {
+            { name = "Devoted Union - Bonding Principle", type = "Innovations" },
+            { name = "Enduring Legacy - Bonding Principle", type = "Innovations" },
+        }
+    }
+end
+
+-- v3 -> v4
+migrations[3] = function(data)
+    data.departingSurvivors = {}
+end
+
+-- v4 -> v5
+migrations[4] = function(data)
+    for key, object in pairs(data.objectsByLocation) do
+        data.objectsByLocation[key] = { object }
+    end
+end
+
+function CampaignMigrations.Apply(data, targetVersion)
+    local current = data.version or 1
+    while current < targetVersion do
+        local step = migrations[current]
+        if step then
+            step(data)
+        else
+            log:Errorf("No migration step registered for version %d → %d", current, current + 1)
+            break
+        end
+        current = current + 1
+        data.version = current
+    end
+    return data
+end
+
+return CampaignMigrations

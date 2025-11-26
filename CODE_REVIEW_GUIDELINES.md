@@ -491,6 +491,32 @@ Use this checklist for every code review:
 - [ ] **Explicitly Avoid:** Over-abstraction for hypothetical futures
 - [ ] **Sweet Spot:** Simple changes that improve current code without predicting unknown futures
 
+## Boy Scout Rule
+
+**Always leave the code a bit better than you found it.**
+
+When making changes, look for small, low-risk improvements that can be included alongside your primary work:
+
+### Candidate Improvements
+- Extract a pure function that's buried in a large function
+- Add dependency injection to a function you're already modifying
+- Split a file that's grown too large if you're already changing it
+- Remove dead code you encounter
+- Clarify confusing variable names in code you're touching
+
+### Scope Guidelines
+- **Do:** Small refactors in files you're already modifying
+- **Do:** Improvements that make your primary change cleaner
+- **Don't:** Large refactors unrelated to your current task
+- **Don't:** Changes that require extensive new test coverage
+- **Don't:** Refactors in files you're not otherwise touching
+
+### Selecting Improvements
+When a review identifies future refactoring opportunities, prioritize:
+1. **Lowest risk first:** Pure function extraction, dead code removal
+2. **Highest test value:** Changes that eliminate `debug.getupvalue` or reduce stub count
+3. **Already touching:** Only refactor code in files you're modifying anyway
+
 ## Process Integration
 
 These guidelines should be applied at multiple stages:

@@ -175,6 +175,20 @@ When extending the game flow, prefer emitting a new event constant in `EventMana
 6. **Log liberally when debugging**. Create a module logger via `Log.ForModule("ModuleName")` so you can toggle debug output through the console without spamming every user.
 7. **Mind the physical table**. If you spawn or move objects, always route through `NamedObject` and `Location` so automation such as cleanup and warnings continue to work.
 
+## Future Refactor Opportunities
+
+We keep a running list of refactors that surfaced during reviews so the insights are not lost even if they weren’t part of the immediate change:
+
+1. **Campaign import/export modularization**
+   - *Migrations*: extract version-to-version transformations into a dedicated module (e.g., `CampaignMigrations`) so each migration is testable, and `Campaign.ConvertToLatestVersion` becomes a dispatcher instead of a monolith.
+   - *Dependency injection*: allow `Campaign.Import` to accept a dependency table (Strain, Archive, Expansion, etc.) so integration tests can stub collaborators without `debug.getupvalue`.
+   - *Importer/Exporter split*: break the current 1,100+ line `Campaign.ttslua` into focused modules (`CampaignImporter`, `CampaignExporter`, `CampaignSetup`) to isolate responsibilities and simplify testing.
+
+2. **Test seam helpers**
+   - Introduce reusable stub builders for Campaign import/export tests to avoid duplicating the 20+ stubs required today.
+
+When touching any of these areas, try to land at least one of the above improvements (Boy Scout Rule), and update this section if new opportunities are identified.
+
 ## Appendix: Frequently Referenced Files
 - `Global.ttslua` — bootstraps everything, handles save/load, houses top-level helpers.
 - `Ui.ttslua` — XML generation DSL for both 2D and 3D UI.

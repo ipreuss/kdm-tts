@@ -12,6 +12,7 @@ local testFiles = {
     "tests.savefile_decks_test",
     "tests.timeline_search_test",
     "tests.campaign_test",
+    "tests.campaign_migrations_test",
     "tests.panelkit_test",
     "tests.timeline_dialog_test",
     "tests.hunt_showhide_test",
