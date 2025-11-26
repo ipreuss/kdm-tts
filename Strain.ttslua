@@ -17,9 +17,7 @@ Strain.MILESTONE_CARDS = StrainMilestones
 
 ---------------------------------------------------------------------------------------------------
 
-function Strain.Init(saveState)
-    log:Debugf("Initializing strain milestones UI")
-
+function Strain:_HydrateMilestones(saveState)
     saveState = saveState or {}
     local reachedByTitle = saveState.reached or {}
 
@@ -33,6 +31,12 @@ function Strain.Init(saveState)
             reached = reachedByTitle[milestone.title] or false,
         }
     end
+end
+
+function Strain.Init(saveState)
+    log:Debugf("Initializing strain milestones UI")
+
+    Strain:_HydrateMilestones(saveState)
 
     Strain.milestoneRows = {}
     Strain:InitUi()
@@ -399,6 +403,13 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+function Strain.LoadState(saveState)
+    Strain:_HydrateMilestones(saveState)
+    Strain:RefreshMilestones()
+end
+
+---------------------------------------------------------------------------------------------------
+
 function Strain.ShowUi(player)
     local result = Strain.dialog:ShowForPlayer(player)
     if result == player.color then
@@ -426,6 +437,7 @@ end
 return {
     Init = Strain.Init,
     Save = Strain.Save,
+    LoadState = Strain.LoadState,
     ShowUi = Strain.ShowUi,
     HideUi = Strain.HideUi,
     IsUiOpen = Strain.IsUiOpen,

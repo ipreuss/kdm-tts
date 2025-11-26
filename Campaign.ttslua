@@ -20,6 +20,7 @@ local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
 local Trash = require("Kdm/Trash")
 local PanelKit = require("Kdm/Ui/PanelKit")
+local Strain = require("Kdm/Strain")
 
 -------------------------------------------------------------------------------------------------
 
@@ -349,6 +350,7 @@ function Campaign.ExportToOrb()
         survivor = Survivor.Export(),
         trash = Trash.Export(),
         hunt = Hunt.Export(),
+        strainMilestones = Strain.Save(),
     }
 
     local campaignOrb = spawnObject({
@@ -754,6 +756,8 @@ function Campaign.Import(data)
         end
 
         Campaign.campaign = data.campaign
+
+        Strain.LoadState(data.strainMilestones or {})
 
         log:Broadcastf("Campaign setup complete.")
     end, 20)
@@ -1179,5 +1183,7 @@ return {
     Campaign = function() return Campaign.campaign end,
     _test = {
         SetupSettlementEventsDeck = Campaign.SetupSettlementEventsDeck,
+        Import = Campaign.Import,
+        EXPORT_VERSION = Campaign.EXPORT_VERSION,
     },
 }

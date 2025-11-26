@@ -41,6 +41,9 @@ local function buildStrainStubs()
     function listPanel:Panel(params)
         local row = { attributes = params }
         function row:SetHeight(h) self.height = h end
+        function row:SetOffsetXY(offset) self.offset = offset end
+        function row:SetWidth(w) self.width = w end
+        function row:SetColor(color) self.color = color end
         function row:CheckBox(cbParams)
             local checkbox = { params = cbParams, checked = nil }
             function checkbox:Check(value) checkbox.checked = value end
@@ -50,6 +53,8 @@ local function buildStrainStubs()
         function row:Text(textParams)
             local text = { params = textParams, text = nil }
             function text:SetText(value) text.text = value end
+            function text:SetWidth(w) text.width = w end
+            function text:SetHeight(h) text.height = h end
             return text
         end
         table.insert(self.panels, row)
@@ -332,6 +337,22 @@ Test.test("Strain.Init restores reached milestones from saved state", function(t
         t:assertFalse(strain.milestones[1].reached, "first milestone should start unchecked")
         t:assertTrue(strain.milestones[2].reached, "saved milestone should be checked")
         t:assertTrue(env.recorder.rows[2].checkBox.checked, "checkbox should reflect saved state")
+    end)
+end)
+
+Test.test("Strain.LoadState updates rows after initialization", function(t)
+    withStrain(t, function(StrainModule, strain, env)
+        StrainModule.Init()
+
+        StrainModule.LoadState({
+            reached = {
+                ["Milestone B"] = true,
+            }
+        })
+
+        t:assertFalse(strain.milestones[1].reached)
+        t:assertTrue(strain.milestones[2].reached)
+        t:assertTrue(env.recorder.rows[2].checkBox.checked, "checkbox should update when load state changes")
     end)
 end)
 

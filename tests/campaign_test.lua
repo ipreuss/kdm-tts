@@ -1,6 +1,31 @@
 local Test = require("tests.framework")
 local Campaign = require("Kdm/Campaign")
 local Timeline = require("Kdm/Timeline")
+local Strain = require("Kdm/Strain")
+local Showdown = require("Kdm/Showdown")
+local Hunt = require("Kdm/Hunt")
+local Archive = require("Kdm/Archive")
+local Expansion = require("Kdm/Expansion")
+local Rules = require("Kdm/Rules")
+local Trash = require("Kdm/Trash")
+local Survivor = require("Kdm/Survivor")
+local Location = require("Kdm/Location")
+
+local function getInternalCampaign()
+    local i = 1
+    while true do
+        local name, value = debug.getupvalue(Campaign._test.Import, i)
+        if not name then
+            break
+        end
+        if name == "Campaign" then
+            return value
+        end
+        i = i + 1
+    end
+end
+
+local InternalCampaign = getInternalCampaign()
 
 Test.test("Campaign.SetupSettlementEventsDeck refreshes search without card names", function(t)
     local originalRefresh = Timeline.RefreshSettlementEventSearchFromDeck
@@ -13,4 +38,97 @@ Test.test("Campaign.SetupSettlementEventsDeck refreshes search without card name
 
     Timeline.RefreshSettlementEventSearchFromDeck = originalRefresh
     t:assertTrue(called, "Expected refresh to run even when no card names provided")
+end)
+
+Test.test("Campaign.Import applies strain milestone state", function(t)
+    local restores = {}
+    local function stub(target, key, replacement)
+        local original = target[key]
+        target[key] = replacement
+        table.insert(restores, function()
+            target[key] = original
+        end)
+    end
+
+    local calledState
+    stub(Strain, "LoadState", function(state)
+        calledState = state
+    end)
+    stub(Showdown, "Clean", function() end)
+    stub(Hunt, "Clean", function() end)
+    stub(Hunt, "Import", function() end)
+    stub(InternalCampaign, "Clean", function() end)
+    stub(Archive, "Clean", function() end)
+    stub(Archive, "Take", function() end)
+    stub(Archive, "CreateAllGearDeck", function() end)
+    stub(Expansion, "SetEnabled", function() end)
+    stub(Expansion, "SetUnlockedMode", function() end)
+    stub(Rules, "createRulebookButtons", function() end)
+    stub(InternalCampaign, "SetupArchiveOverrides", function() end)
+    stub(Trash, "Import", function() end)
+
+    local settlementDeck = {}
+    function settlementDeck:Take() end
+    function settlementDeck:Object() return {} end
+
+    stub(InternalCampaign, "SetupDeckFromExpansionComponents", function(name)
+        if name == "Settlement Events" then
+            return settlementDeck
+        end
+        return {}
+    end)
+
+    stub(InternalCampaign, "SetupObjects", function() end)
+    stub(InternalCampaign, "SetupSurvivalTokens", function() end)
+    stub(InternalCampaign, "SetupReferences", function() end)
+    stub(InternalCampaign, "SetupSettlementEventsDeck", function() end)
+    stub(InternalCampaign, "SetupMisc", function() end)
+    stub(InternalCampaign, "SetupCharacterDeck", function() end)
+    stub(Survivor, "Import", function() end)
+    stub(Survivor, "SpawnSurvivorBox", function() end)
+    stub(Survivor, "Survivors", function()
+        return { {}, {}, {}, {} }
+    end)
+    stub(Timeline, "Import", function() end)
+    stub(Location, "Get", function()
+        return {
+            Position = function() return { x = 0, y = 0, z = 0 } end,
+            Center = function() return { x = 0, y = 0, z = 0 } end,
+            AllObjects = function() return {} end,
+        }
+    end)
+
+    local data = {
+        version = Campaign._test.EXPORT_VERSION,
+        expansions = {},
+        campaign = {
+            name = "Integration Test Campaign",
+            references = {},
+            misc = {},
+            timeline = {},
+        },
+        unlockedMode = false,
+        trash = {},
+        timeline = { survivalActions = {} },
+        survivor = {},
+        hunt = {},
+        strainMilestones = { reached = { ["Milestone B"] = true } },
+        objectsByLocation = {},
+        settlementEventsDeck = {},
+        characterDeck = {},
+        departingSurvivors = { [1] = 1 },
+    }
+
+    local ok, err = pcall(function()
+        Campaign._test.Import(data)
+        t:assertEqual(data.strainMilestones, calledState, "Campaign.Import should forward strain milestone state to Strain.LoadState")
+    end)
+
+    for i = #restores, 1, -1 do
+        restores[i]()
+    end
+
+    if not ok then
+        error(err, 0)
+    end
 end)
