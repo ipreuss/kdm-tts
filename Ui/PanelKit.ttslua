@@ -16,6 +16,21 @@ function PanelKit.Dialog(params)
     assert(Check.Num(params.height))
 
     local ui = params.ui or Ui.Get2d()
+    local modalBlocker
+    if params.modal then
+        modalBlocker = ui:Panel({
+            id = params.id.."ModalBlocker",
+            rectAlignment = "MiddleCenter",
+            x = 0,
+            y = 0,
+            z = params.modalZ or -9,
+            width = params.modalWidth or 4000,
+            height = params.modalHeight or 4000,
+            color = params.modalColor or "#00000088",
+            active = false,
+        })
+        modalBlocker.attributes.raycastTarget = true
+    end
     local panel = ui:Panel({
         id = params.id,
         rectAlignment = params.rectAlignment or "MiddleCenter",
@@ -45,6 +60,7 @@ function PanelKit.Dialog(params)
         perPlayer = params.perPlayer ~= false,
         onShow = params.onShow,
         onHide = params.onHide,
+        modalBlocker = modalBlocker,
     }
 
     if params.closeButton ~= false then
@@ -83,6 +99,9 @@ function PanelKit.Dialog(params)
         local result = self.panel:ShowForPlayer(color)
         if result == color then
             self.uiOpen = true
+            if self.modalBlocker then
+                self.modalBlocker:ShowForPlayer(color)
+            end
             if self.onShow then
                 self.onShow(playerOrColor)
             end
@@ -100,6 +119,9 @@ function PanelKit.Dialog(params)
         local result = self.panel:HideForPlayer(color)
         if result == "None" or result == color then
             self.uiOpen = false
+            if self.modalBlocker then
+                self.modalBlocker:HideForPlayer(color)
+            end
             if self.onHide then
                 self.onHide(playerOrColor)
             end
@@ -108,6 +130,9 @@ function PanelKit.Dialog(params)
     end
 
     function dialog:ShowForAll()
+        if self.modalBlocker then
+            self.modalBlocker:Show()
+        end
         self.panel:Show()
         self.uiOpen = true
         if self.onShow then
@@ -116,6 +141,9 @@ function PanelKit.Dialog(params)
     end
 
     function dialog:HideForAll()
+        if self.modalBlocker then
+            self.modalBlocker:Hide()
+        end
         self.panel:Hide()
         self.uiOpen = false
         if self.onHide then

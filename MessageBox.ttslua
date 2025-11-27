@@ -78,20 +78,6 @@ function MessageBox.Init()
     local ui = Ui.Get2d()
     MessageBox.ui = ui
 
-    local blocker = ui:Panel({
-        id = "MessageBoxBlocker",
-        rectAlignment = "MiddleCenter",
-        x = 0,
-        y = 0,
-        z = -9,
-        width = 4000,
-        height = 4000,
-        color = "#00000088",
-        active = false,
-    })
-    blocker.attributes.raycastTarget = true
-    MessageBox.blocker = blocker
-
     local dialog = PanelKit.Dialog({
         id = "MessageBox",
         ui = ui,
@@ -101,6 +87,7 @@ function MessageBox.Init()
         color = "#00000000",
         closeButton = false,
         perPlayer = false,
+        modal = true,
     })
     MessageBox.dialog = dialog
 
@@ -184,14 +171,12 @@ function MessageBox.Show(text, func)
     applyLayoutForText(text)
     MessageBox.func = func
     MessageBox.messageText:SetText(text)
-    MessageBox.blocker:Show()
     MessageBox.dialog:ShowForAll()
 end
 
 ---------------------------------------------------------------------------------------------------
 
 function MessageBox.Hide()
-    MessageBox.blocker:Hide()
     MessageBox.dialog:HideForAll()
 end
 
