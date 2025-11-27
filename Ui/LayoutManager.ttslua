@@ -152,6 +152,110 @@ function ButtonRowElement:new(params)
     return newElementState({ params = params or {} }, ButtonRowElement)
 end
 
+local CheckboxWithLabelElement = {}
+CheckboxWithLabelElement.__index = CheckboxWithLabelElement
+
+function CheckboxWithLabelElement:new(params)
+    return newElementState({ params = params or {} }, CheckboxWithLabelElement)
+end
+
+function CheckboxWithLabelElement:_fontSize()
+    return self.params.fontSize or 14
+end
+
+function CheckboxWithLabelElement:_checkboxWidth()
+    return self.params.checkboxWidth or self.params.checkboxSize or 24
+end
+
+function CheckboxWithLabelElement:_checkboxHeight()
+    return self.params.checkboxHeight or self.params.checkboxSize or self:_checkboxWidth()
+end
+
+function CheckboxWithLabelElement:MeasureHeight()
+    if self.params.height then
+        return self.params.height
+    end
+    local labelHeight = self.params.labelHeight or (self:_fontSize() * LayoutManager.FONT_HEIGHT_MULTIPLIER)
+    local checkboxHeight = self:_checkboxHeight()
+    return math.max(labelHeight, checkboxHeight)
+end
+
+function CheckboxWithLabelElement:Render(layout)
+    local height = self:MeasureHeight()
+    local y = layout:_getNextY(height)
+    local params = self.params
+    local checkboxWidth = self:_checkboxWidth()
+    local checkboxHeight = self:_checkboxHeight()
+    local spacing = params.spacing or 10
+    local checkboxFontSize = params.checkboxFontSize or 12
+    local checkboxText = params.checkboxText or ""
+    local checkboxId = params.checkboxId or params.id or layout:_nextElementId("Checkbox")
+    local labelId = params.labelId or (checkboxId .. "Label")
+    local x = layout:_getContentX()
+    local checkboxY = y - (height - checkboxHeight) / 2
+    local labelHeight = params.labelHeight or (self:_fontSize() * LayoutManager.FONT_HEIGHT_MULTIPLIER)
+    local labelY = y - (height - labelHeight) / 2
+    local labelX = x + checkboxWidth + spacing
+    local labelWidth = params.labelWidth or (layout:_getContentWidth() - checkboxWidth - spacing)
+
+    local element = self
+    element.currentChecked = params.checked or false
+    local checkbox
+
+    local function applyChecked(value, fireCallback)
+        element.currentChecked = value and true or false
+        if checkbox then
+            checkbox:Check(element.currentChecked)
+        end
+        if fireCallback and params.onToggle then
+            params.onToggle(element.currentChecked, checkbox)
+        end
+    end
+
+    checkbox = layout.parent:CheckButton({
+        id = checkboxId,
+        x = x,
+        y = checkboxY,
+        width = checkboxWidth,
+        height = checkboxHeight,
+        fontSize = checkboxFontSize,
+        text = checkboxText,
+        textAlignment = params.checkboxTextAlignment or "MiddleCenter",
+        textColor = params.checkboxTextColor or Ui.LIGHT_BROWN,
+        checked = element.currentChecked,
+        onClick = function()
+            applyChecked(not element.currentChecked, true)
+        end,
+    })
+
+    local label = layout.parent:Text({
+        id = labelId,
+        x = labelX,
+        y = labelY,
+        width = labelWidth,
+        height = labelHeight,
+        text = params.label or "",
+        fontSize = self:_fontSize(),
+        fontStyle = params.fontStyle,
+        color = params.color or Ui.DARK_BROWN,
+        alignment = params.alignment or "MiddleLeft",
+    })
+
+    local rendered = {
+        checkbox = checkbox,
+        label = label,
+    }
+    function rendered:SetChecked(value)
+        applyChecked(value, false)
+    end
+    function rendered:Checked()
+        return element.currentChecked
+    end
+
+    self.rendered = rendered
+    return rendered
+end
+
 local CustomElement = {}
 CustomElement.__index = CustomElement
 
@@ -363,6 +467,10 @@ end
 function Elements.Grid(params)
     return GridElement:new(params)
 end
+
+function Elements.CheckboxWithLabel(params)
+    return CheckboxWithLabelElement:new(params)
+end
 function Elements.Section(params)
     params = params or {}
     local labelElement = Elements.Label({
@@ -554,6 +662,19 @@ function Specification:AddGrid(params, onRender)
     )
 end
 
+function Specification:AddCheckboxWithLabel(params, onRender)
+    local config = shallowCopy(params or {})
+    return self:_addEntry(
+        function()
+            return Elements.CheckboxWithLabel(config)
+        end,
+        function(layout)
+            return layout:AddCheckboxWithLabel(config)
+        end,
+        onRender
+    )
+end
+
 function Specification:BuildElements()
     local elements = {}
     for _, entry in ipairs(self.entries) do
@@ -698,6 +819,10 @@ function LayoutManager.VerticalLayout(params)
 
     function layout:AddGrid(params)
         return self:_renderElement(Elements.Grid(params or {}))
+    end
+
+    function layout:AddCheckboxWithLabel(params)
+        return self:_renderElement(Elements.CheckboxWithLabel(params or {}))
     end
 
     function layout:GetUsedHeight()

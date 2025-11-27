@@ -21,6 +21,20 @@ local function buildLayoutStubs()
         return element
     end
 
+    function mockPanel:CheckButton(params)
+        table.insert(recorder.calls, { type = "CheckButton", params = params })
+        local element = {
+            type = "CheckButton",
+            params = params,
+            checked = params.checked,
+        }
+        function element:Check(value)
+            self.checked = value and true or false
+        end
+        table.insert(recorder.elements, element)
+        return element
+    end
+
     local stubs = {
         ["Kdm/Util/Check"] = {
             Table = function(val) return type(val) == "table" end,
@@ -31,6 +45,7 @@ local function buildLayoutStubs()
             DARK_BROWN = "#453824",
             MID_BROWN = "#7f7059",
             MID_BROWN_COLORS = "#7f7059|#655741|#655741|#ffffff",
+            LIGHT_BROWN = "#f8f3e2",
         },
     }
 
@@ -355,5 +370,36 @@ Test.test("GridElement handles more columns than items", function(t)
         local calls = env.recorder.calls
         t:assertTrue(calls[2].params.x > calls[1].params.x, "Items should render in the same row when columns exceed item count")
         t:assertEqual(25, layout:GetUsedHeight())
+    end)
+end)
+
+Test.test("AddCheckboxWithLabel renders checkbox and label", function(t)
+    withLayout(t, function(LayoutManager, env)
+        local layout = LayoutManager.VerticalLayout({
+            parent = env.mockPanel,
+            contentArea = { contentX = 0, contentY = -30, contentWidth = 200, contentHeight = 200 },
+            padding = 0,
+        })
+
+        local toggled = {}
+        local rendered = layout:AddCheckboxWithLabel({
+            checkboxId = "Clear",
+            label = "Clear strain milestones",
+            checked = false,
+            onToggle = function(checked)
+                table.insert(toggled, checked)
+            end,
+        })
+
+        t:assertEqual("CheckButton", env.recorder.calls[1].type)
+        t:assertEqual("Text", env.recorder.calls[2].type)
+
+        -- Simulate click and ensure callback fires
+        env.recorder.calls[1].params.onClick()
+        t:assertEqual(1, #toggled)
+        t:assertTrue(toggled[1])
+
+        rendered:SetChecked(false)
+        t:assertFalse(env.recorder.elements[1].checked)
     end)
 end)

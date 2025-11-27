@@ -111,14 +111,58 @@ function Campaign.InitCampaignUi()
     local layoutPadding = 0
     local layoutSpacing = 20
     local buttonRowHeight = 60
-    local checkboxRowHeight = 40
     local settlementHeight = 60
-    local chromeOverhead = 190
+    local chromeOverhead = LayoutManager.DEFAULT_CHROME_OVERHEAD
 
     local availableExpansions = {}
     for _, expansion in ipairs(Expansion.All()) do
         if expansion.name ~= "Core" then
             table.insert(availableExpansions, expansion)
+        end
+    end
+
+    local panel
+
+    local function buildGridConfig(items, renderItem)
+        return {
+            columns = 4,
+            itemWidth = 200,
+            itemHeight = 30,
+            gap = 15,
+            items = items,
+            renderItem = renderItem,
+        }
+    end
+
+    local function renderSettlementButtons(ctx)
+        local buttonWidth = 20
+        local buttonHeight = 20
+        local gap = 5
+        local startX = ctx.x + buttonWidth
+        local rowY = ctx.y - (buttonHeight / 2) - 5
+        for i = 1, 20 do
+            local offset = (buttonWidth + gap) * i
+            local x = startX + offset
+            local y = rowY
+            if i % 5 == 0 then
+                y = y + 2
+            end
+            Campaign.settlementButtons[i] = panel:CheckButton({
+                id = "settlementNo" .. i,
+                x = x,
+                y = y,
+                width = buttonWidth,
+                height = buttonHeight,
+                fontSize = 7,
+                text = tostring(i),
+                checked = i <= Campaign.settlementNo,
+                onClick = function()
+                    Campaign.settlementNo = i + (i == Campaign.settlementNo and -1 or 0)
+                    for j = 1, 20 do
+                        Campaign.settlementButtons[j]:Check(j <= Campaign.settlementNo)
+                    end
+                end
+            })
         end
     end
 
@@ -130,14 +174,18 @@ function Campaign.InitCampaignUi()
         fontStyle = "Bold",
         color = Ui.DARK_BROWN,
     })
-    layoutSpec:AddGrid({
-        columns = 4,
-        itemWidth = 200,
-        itemHeight = 30,
-        gap = 15,
-        items = Campaign.campaigns,
-        renderItem = function() end,
-    })
+    layoutSpec:AddGrid(buildGridConfig(Campaign.campaigns, function(cell, campaign)
+        local selected = (campaign == Campaign.selectedCampaign)
+        return Campaign.campaignOptionGroup:OptionButton({
+            x = cell.x,
+            y = cell.y,
+            width = cell.width,
+            height = cell.height,
+            text = campaign.name,
+            selected = selected,
+            optionValue = campaign,
+        })
+    end))
     layoutSpec:AddText({
         id = "ExpansionsLabel",
         text = "Expansions",
@@ -145,234 +193,54 @@ function Campaign.InitCampaignUi()
         fontStyle = "Bold",
         color = Ui.DARK_BROWN,
     })
-    layoutSpec:AddGrid({
-        columns = 4,
-        itemWidth = 200,
-        itemHeight = 30,
-        gap = 15,
-        items = availableExpansions,
-        renderItem = function() end,
-    })
-    layoutSpec:AddText({
-        id = "SettlementNoLabel",
-        text = "Settlement Number",
-        fontSize = 16,
-        fontStyle = "Bold",
-        color = Ui.DARK_BROWN,
-    })
-    layoutSpec:AddCustom({
-        height = settlementHeight,
-        render = function() end,
-    })
-    layoutSpec:AddCustom({
-        height = checkboxRowHeight,
-        render = function() end,
-    })
-    layoutSpec:AddButtonRow({
-        height = buttonRowHeight,
-    })
-
-    local measuredHeight = layoutSpec:CalculateDialogHeight({
-        padding = layoutPadding,
-        spacing = layoutSpacing,
-        chromeOverhead = chromeOverhead,
-    })
-    local dialogHeight = math.max(660, math.ceil(measuredHeight))
-    local dialog = PanelKit.Dialog({
-        id = "Campaign",
-        ui = Ui.Get2d(),
-        rectAlignment = "MiddleCenter",
-        width = dialogWidth,
-        height = dialogHeight,
-        color = "#00000000",
-        closeButton = false,
-    })
-    Campaign.dialog = dialog
-    local panel = dialog:Panel()
-    Campaign.panel = panel
-    local chrome = PanelKit.ClassicDialog({
-        panel = panel,
-        id = "CampaignChrome",
-        width = dialogWidth,
-        height = dialogHeight,
-        title = "Campaign Setup",
-        subtitle = "Choose your story, expansions, and settlement options.",
-        closeButton = {
-            onClick = function(_, player)
-                Campaign.HideUi(player)
-            end,
-        },
-    })
-    Campaign.selectedCampaign = Campaign.campaigns[1]
-    Campaign.selectedExpansionsNyName = {}
-    Campaign.expansionButtons = {}
-    Campaign.settlementButtons = {}
-
-    Campaign.campaignOptionGroup = panel:OptionButtonGroup({
-        id = "Campaign",
-        unselectedColors = Ui.MID_BROWN_COLORS,
-        fontSize = 14,
-        onClick = function(option)
-            local campaign = option:OptionValue()
-            Campaign.selectedCampaign = campaign
-            option:Select()
-        end
-    })
-
-    local contentArea = {
-        contentX = chrome.contentX,
-        contentY = chrome.contentY,
-        contentWidth = chrome.contentWidth,
-        contentHeight = chrome.contentHeight,
-    }
-
-    local layout = LayoutManager.VerticalLayout({
-        parent = panel,
-        contentArea = contentArea,
-        padding = layoutPadding,
-        spacing = layoutSpacing,
-    })
-
-    layout:AddText({
-        id = "CampaignLabel",
-        text = "Campaign",
-        fontSize = 16,
-        fontStyle = "Bold",
-        color = Ui.DARK_BROWN,
-    })
-
-    layout:AddGrid({
-        columns = 4,
-        itemWidth = 200,
-        itemHeight = 30,
-        gap = 15,
-        items = Campaign.campaigns,
-        renderItem = function(cell, campaign)
-            local selected = (campaign == Campaign.selectedCampaign)
-            return Campaign.campaignOptionGroup:OptionButton({
-                x = cell.x,
-                y = cell.y,
-                width = cell.width,
-                height = cell.height,
-                text = campaign.name,
-                selected = selected,
-                optionValue = campaign,
-            })
-        end,
-    })
-
-    layout:AddText({
-        id = "ExpansionsLabel",
-        text = "Expansions",
-        fontSize = 16,
-        fontStyle = "Bold",
-        color = Ui.DARK_BROWN,
-    })
-
-    layout:AddGrid({
-        columns = 4,
-        itemWidth = 200,
-        itemHeight = 30,
-        gap = 15,
-        items = availableExpansions,
-        renderItem = function(cell, expansion)
-            local button = panel:CheckButton({
-                id = expansion.name,
-                x = cell.x,
-                y = cell.y,
-                width = cell.width,
-                height = cell.height,
-                fontSize = 14,
-                text = expansion.name,
-                checked = Campaign.selectedExpansionsNyName[expansion.name] or false,
-                onClick = function()
-                    local checked = not Campaign.selectedExpansionsNyName[expansion.name]
-                    log:Debugf("%s expansion %s", checked and "Selecting" or "Deselecting", expansion.name)
-                    Campaign.selectedExpansionsNyName[expansion.name] = checked
-                    Campaign.expansionButtons[expansion.name]:Check(checked)
-                end
-            })
-            Campaign.expansionButtons[expansion.name] = button
-            return button
-        end,
-    })
-
-    layout:AddText({
-        id = "SettlementNoLabel",
-        text = "Settlement Number",
-        fontSize = 16,
-        fontStyle = "Bold",
-        color = Ui.DARK_BROWN,
-    })
-
-    layout:AddCustom({
-        height = settlementHeight,
-        render = function(ctx)
-            local buttonWidth = 20
-            local buttonHeight = 20
-            local gap = 5
-            local startX = ctx.x + buttonWidth
-            local rowY = ctx.y - (buttonHeight / 2) - 5
-            for i = 1, 20 do
-                local offset = (buttonWidth + gap) * i
-                local x = startX + offset
-                local y = rowY
-                if i % 5 == 0 then
-                    y = y + 2
-                end
-                Campaign.settlementButtons[i] = panel:CheckButton({
-                    id = "settlementNo" .. i,
-                    x = x,
-                    y = y,
-                    width = buttonWidth,
-                    height = buttonHeight,
-                    fontSize = 7,
-                    text = tostring(i),
-                    checked = i <= Campaign.settlementNo,
-                    onClick = function()
-                        Campaign.settlementNo = i + (i == Campaign.settlementNo and -1 or 0)
-                        for j = 1, 20 do
-                            Campaign.settlementButtons[j]:Check(j <= Campaign.settlementNo)
-                        end
-                    end
-                })
+    layoutSpec:AddGrid(buildGridConfig(availableExpansions, function(cell, expansion)
+        local button = panel:CheckButton({
+            id = expansion.name,
+            x = cell.x,
+            y = cell.y,
+            width = cell.width,
+            height = cell.height,
+            fontSize = 14,
+            text = expansion.name,
+            checked = Campaign.selectedExpansionsNyName[expansion.name] or false,
+            onClick = function()
+                local checked = not Campaign.selectedExpansionsNyName[expansion.name]
+                log:Debugf("%s expansion %s", checked and "Selecting" or "Deselecting", expansion.name)
+                Campaign.selectedExpansionsNyName[expansion.name] = checked
+                Campaign.expansionButtons[expansion.name]:Check(checked)
             end
-        end,
+        })
+        Campaign.expansionButtons[expansion.name] = button
+        return button
+    end))
+    layoutSpec:AddText({
+        id = "SettlementNoLabel",
+        text = "Settlement Number",
+        fontSize = 16,
+        fontStyle = "Bold",
+        color = Ui.DARK_BROWN,
     })
-
-    layout:AddCustom({
-        height = checkboxRowHeight,
-        render = function(ctx)
-            Campaign.clearStrainMilestonesCheckbox = panel:CheckButton({
-                id = "ClearStrainMilestones",
-                x = ctx.x + 5,
-                y = ctx.y - 5,
-                width = 24,
-                height = 24,
-                fontSize = 14,
-                text = "",
-                checked = Campaign.clearStrainMilestones or false,
-                onClick = function()
-                    local checked = not Campaign.clearStrainMilestones
-                    Campaign.clearStrainMilestones = checked
-                    Campaign.clearStrainMilestonesCheckbox:Check(checked)
-                end
-            })
-            panel:Text({
-                id = "ClearStrainLabel",
-                x = ctx.x + 40,
-                y = ctx.y - 7,
-                width = ctx.width - 40,
-                height = 30,
-                fontSize = 14,
-                text = "Clear strain milestones",
-                color = Ui.DARK_BROWN,
-            })
-        end,
+    layoutSpec:AddCustom({
+        height = settlementHeight,
+        render = renderSettlementButtons,
     })
+    layoutSpec:AddCheckboxWithLabel({
+        checkboxId = "ClearStrainMilestones",
+        label = "Clear strain milestones",
+        checkboxWidth = 24,
+        checkboxHeight = 24,
+        fontSize = 14,
+        spacing = 16,
+        checked = Campaign.clearStrainMilestones or false,
+        onToggle = function(checked)
+            Campaign.clearStrainMilestones = checked
+        end,
+    }, function(rendered)
+        Campaign.clearStrainMilestonesCheckbox = rendered.checkbox
+    end)
     local buttonWidth = 300
     local buttonSpacing = 40
-    layout:AddButtonRow({
+    layoutSpec:AddButtonRow({
         height = buttonRowHeight,
         spacing = buttonSpacing,
         buttons = {
@@ -407,8 +275,64 @@ function Campaign.InitCampaignUi()
         },
     })
 
+    local measuredHeight = layoutSpec:CalculateDialogHeight({
+        padding = layoutPadding,
+        spacing = layoutSpacing,
+        chromeOverhead = chromeOverhead,
+    })
+    local dialogHeight = math.max(660, math.ceil(measuredHeight))
+    local dialog = PanelKit.Dialog({
+        id = "Campaign",
+        ui = Ui.Get2d(),
+        rectAlignment = "MiddleCenter",
+        width = dialogWidth,
+        height = dialogHeight,
+        color = "#00000000",
+        closeButton = false,
+    })
+    Campaign.dialog = dialog
+    panel = dialog:Panel()
+    Campaign.panel = panel
+    local chrome = PanelKit.ClassicDialog({
+        panel = panel,
+        id = "CampaignChrome",
+        width = dialogWidth,
+        height = dialogHeight,
+        title = "Campaign Setup",
+        subtitle = "Choose your story, expansions, and settlement options.",
+        closeButton = {
+            onClick = function(_, player)
+                Campaign.HideUi(player)
+            end,
+        },
+    })
+    Campaign.selectedCampaign = Campaign.campaigns[1]
+    Campaign.selectedExpansionsNyName = {}
+    Campaign.expansionButtons = {}
+    Campaign.settlementButtons = {}
+
+    Campaign.campaignOptionGroup = panel:OptionButtonGroup({
+        id = "Campaign",
+        unselectedColors = Ui.MID_BROWN_COLORS,
+        fontSize = 14,
+        onClick = function(option)
+            local campaign = option:OptionValue()
+            Campaign.selectedCampaign = campaign
+            option:Select()
+        end
+    })
+
+    local layout = LayoutManager.VerticalLayout({
+        parent = panel,
+        contentArea = chrome,
+        padding = layoutPadding,
+        spacing = layoutSpacing,
+    })
+
+    layoutSpec:Render(layout)
+
     local usedHeight = layout:GetUsedHeight()
-    log:Debugf("Campaign layout height=%d (available=%d)", usedHeight, contentArea.contentHeight)
+    log:Debugf("Campaign layout height=%d (available=%d)", usedHeight, chrome.contentHeight)
 end
 
 ---------------------------------------------------------------------------------------------------
