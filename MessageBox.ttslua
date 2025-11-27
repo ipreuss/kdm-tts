@@ -1,5 +1,6 @@
 local Check = require("Kdm/Util/Check")
 local Ui = require("Kdm/Ui")
+local PanelKit = require("Kdm/Ui/PanelKit")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -15,6 +16,8 @@ MessageBox.AVERAGE_CHARS_PER_LINE = 38
 MessageBox.TEXT_TOP_PADDING = 20
 MessageBox.TEXT_BOTTOM_PADDING = 80
 MessageBox.CHROME_PADDING = 16
+MessageBox.CONTENT_PADDING = 16
+MessageBox.FOOTER_PADDING = 32
 MessageBox.BUTTON_WIDTH = 140
 MessageBox.BUTTON_HEIGHT = 40
 MessageBox.BUTTON_SPACING = 20
@@ -51,15 +54,24 @@ end
 local function applyLayoutForText(text)
     local lineCount = countWrappedLines(text)
     local textHeight = math.max(MessageBox.MIN_TEXT_HEIGHT, lineCount * MessageBox.LINE_HEIGHT)
-    local desiredPanelHeight = textHeight + MessageBox.TEXT_TOP_PADDING + MessageBox.TEXT_BOTTOM_PADDING
-    local panelHeight = math.max(MessageBox.MIN_PANEL_HEIGHT, desiredPanelHeight)
-    MessageBox.panel:SetHeight(panelHeight)
-    MessageBox.shadow:SetHeight(panelHeight)
-    MessageBox.frame:SetHeight(panelHeight)
-    MessageBox.background:SetHeight(math.max(MessageBox.MIN_PANEL_HEIGHT - MessageBox.CHROME_PADDING * 2, panelHeight - MessageBox.CHROME_PADDING * 2))
+    local chrome = MessageBox.chrome
+    local inset = chrome.inset or MessageBox.CHROME_PADDING
+    local headerHeight = chrome.headerHeight or 0
+    local contentPadding = chrome.contentPadding or MessageBox.CONTENT_PADDING
+    local footerPadding = chrome.footerPadding or MessageBox.FOOTER_PADDING
+
+    local desiredContentHeight = math.max(MessageBox.minContentHeight or 0, textHeight + MessageBox.TEXT_TOP_PADDING + MessageBox.TEXT_BOTTOM_PADDING)
+    local innerHeight = desiredContentHeight + headerHeight + contentPadding + footerPadding
+    local panelHeight = math.max(MessageBox.MIN_PANEL_HEIGHT, innerHeight + inset * 2)
+
+    MessageBox.dialog:SetHeight(panelHeight)
+    if chrome.SetHeight then
+        chrome:SetHeight(panelHeight)
+    end
+    MessageBox.contentPanel:SetHeight(desiredContentHeight)
     MessageBox.messageText:SetHeight(textHeight)
 
-    local textBottomOffset = math.max(MessageBox.TEXT_BOTTOM_PADDING, panelHeight - textHeight - MessageBox.TEXT_TOP_PADDING)
+    local textBottomOffset = math.max(MessageBox.TEXT_BOTTOM_PADDING, desiredContentHeight - textHeight - MessageBox.TEXT_TOP_PADDING)
     MessageBox.messageText:SetOffsetXY(string.format("0 %d", math.floor(textBottomOffset + 0.5)))
 end
 
@@ -83,45 +95,53 @@ function MessageBox.Init()
     blocker.attributes.raycastTarget = true
     MessageBox.blocker = blocker
 
-    local panel = ui:Panel({ id = "Main", rectAlignment = "MiddleCenter", x = 0, y = 0, z = -10, width = MessageBox.PANEL_WIDTH, height = MessageBox.MIN_PANEL_HEIGHT, active = false })
+    local dialog = PanelKit.Dialog({
+        id = "MessageBox",
+        ui = ui,
+        rectAlignment = "MiddleCenter",
+        width = MessageBox.PANEL_WIDTH,
+        height = MessageBox.MIN_PANEL_HEIGHT,
+        color = "#00000000",
+        closeButton = false,
+        perPlayer = false,
+    })
+    MessageBox.dialog = dialog
+
+    local panel = dialog:Panel()
     MessageBox.panel = panel
 
-    MessageBox.shadow = panel:Panel({
-        id = "Shadow",
-        rectAlignment = "MiddleCenter",
-        x = 4,
-        y = -4,
+    local chrome = PanelKit.ClassicDialog({
+        panel = panel,
+        id = "MessageBoxChrome",
         width = MessageBox.PANEL_WIDTH,
         height = MessageBox.MIN_PANEL_HEIGHT,
-        color = "#00000055",
+        inset = MessageBox.CHROME_PADDING,
+        headerHeight = 0,
+        contentPadding = MessageBox.CONTENT_PADDING,
+        footerPadding = MessageBox.FOOTER_PADDING,
+        closeButton = false,
     })
+    MessageBox.chrome = chrome
+    MessageBox.minContentHeight = chrome.contentHeight
+    MessageBox.MESSAGE_TEXT_WIDTH = chrome.contentWidth
 
-    MessageBox.frame = panel:Panel({
-        id = "Frame",
-        rectAlignment = "MiddleCenter",
-        x = 0,
-        y = 0,
-        width = MessageBox.PANEL_WIDTH,
-        height = MessageBox.MIN_PANEL_HEIGHT,
-        color = Ui.DARK_BROWN,
+    local contentPanel = panel:Panel({
+        id = "MessageBoxContent",
+        rectAlignment = "UpperLeft",
+        x = chrome.contentX,
+        y = chrome.contentY,
+        width = chrome.contentWidth,
+        height = chrome.contentHeight,
+        color = "#00000000",
     })
+    MessageBox.contentPanel = contentPanel
 
-    MessageBox.background = panel:Panel({
-        id = "Background",
-        rectAlignment = "MiddleCenter",
-        x = 0,
-        y = 0,
-        width = MessageBox.PANEL_WIDTH - MessageBox.CHROME_PADDING * 2,
-        height = MessageBox.MIN_PANEL_HEIGHT - MessageBox.CHROME_PADDING * 2,
-        color = Ui.LIGHT_BROWN,
-    })
-
-    MessageBox.messageText = panel:Text({ id = "Message", rectAlignment = "LowerCenter", x = 0, y = MessageBox.TEXT_BOTTOM_PADDING, width = MessageBox.MESSAGE_TEXT_WIDTH, height = 120, alignment = "MiddleCenter", fontSize = 18, horizontalOverflow = "Wrap", verticalOverflow = "Overflow" })
+    MessageBox.messageText = contentPanel:Text({ id = "Message", rectAlignment = "LowerCenter", x = 0, y = MessageBox.TEXT_BOTTOM_PADDING, width = MessageBox.MESSAGE_TEXT_WIDTH, height = 120, alignment = "MiddleCenter", fontSize = 18, horizontalOverflow = "Wrap", verticalOverflow = "Overflow" })
 
     local totalButtonWidth = MessageBox.BUTTON_WIDTH * 2 + MessageBox.BUTTON_SPACING
-    local firstButtonX = (MessageBox.PANEL_WIDTH - totalButtonWidth) / 2
+    local firstButtonX = (chrome.contentWidth - totalButtonWidth) / 2
 
-    panel:Button({
+    contentPanel:Button({
         id = "OK",
         rectAlignment = "LowerLeft",
         x = firstButtonX,
@@ -141,7 +161,7 @@ function MessageBox.Init()
         end,
     })
 
-    panel:Button({
+    contentPanel:Button({
         id = "Cancel",
         rectAlignment = "LowerLeft",
         x = firstButtonX + MessageBox.BUTTON_WIDTH + MessageBox.BUTTON_SPACING,
@@ -169,14 +189,14 @@ function MessageBox.Show(text, func)
     MessageBox.func = func
     MessageBox.messageText:SetText(text)
     MessageBox.blocker:Show()
-    MessageBox.panel:Show()
+    MessageBox.dialog:ShowForAll()
 end
 
 ---------------------------------------------------------------------------------------------------
 
 function MessageBox.Hide()
     MessageBox.blocker:Hide()
-    MessageBox.panel:Hide()
+    MessageBox.dialog:HideForAll()
 end
 
 ---------------------------------------------------------------------------------------------------

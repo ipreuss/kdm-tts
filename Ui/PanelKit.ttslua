@@ -145,7 +145,7 @@ function PanelKit.ClassicDialog(params)
     local innerWidth = width - inset * 2
     local innerHeight = height - inset * 2
 
-    panel:Panel({
+    local shadow = panel:Panel({
         id = idPrefix.."Shadow",
         x = inset / 2,
         y = -(inset / 2),
@@ -154,7 +154,7 @@ function PanelKit.ClassicDialog(params)
         color = "#00000055",
         active = true,
     })
-    panel:Panel({
+    local frame = panel:Panel({
         id = idPrefix.."Frame",
         x = 0,
         y = 0,
@@ -163,7 +163,7 @@ function PanelKit.ClassicDialog(params)
         color = Ui.DARK_BROWN,
         active = true,
     })
-    panel:Panel({
+    local background = panel:Panel({
         id = idPrefix.."Background",
         x = inset,
         y = -inset,
@@ -182,7 +182,7 @@ function PanelKit.ClassicDialog(params)
         color = "#b1916cff",
         active = true,
     })
-    panel:Panel({
+    local headerDivider = panel:Panel({
         id = idPrefix.."HeaderDivider",
         x = inset,
         y = -(inset + headerHeight),
@@ -242,12 +242,37 @@ function PanelKit.ClassicDialog(params)
     local contentWidth = innerWidth - contentPadding * 2
     local contentHeight = innerHeight - headerHeight - contentPadding - footerPadding
 
-    return {
+    local chrome = {
         contentX = contentX,
         contentY = contentY,
         contentWidth = contentWidth,
         contentHeight = contentHeight,
+        inset = inset,
+        headerHeight = headerHeight,
+        contentPadding = contentPadding,
+        footerPadding = footerPadding,
+        width = width,
+        height = height,
+        elements = {
+            shadow = shadow,
+            frame = frame,
+            background = background,
+            header = header,
+            headerDivider = headerDivider,
+        },
     }
+
+    function chrome:SetHeight(newHeight)
+        self.height = newHeight
+        local innerHeight = newHeight - self.inset * 2
+        local newContentHeight = innerHeight - self.headerHeight - self.contentPadding - self.footerPadding
+        self.contentHeight = newContentHeight
+        self.elements.shadow:SetHeight(newHeight)
+        self.elements.frame:SetHeight(newHeight)
+        self.elements.background:SetHeight(innerHeight)
+    end
+
+    return chrome
 end
 
 ---------------------------------------------------------------------------------------------------
