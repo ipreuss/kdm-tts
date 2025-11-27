@@ -9,7 +9,6 @@ local MessageBox = {}
 MessageBox.func = nil
 MessageBox.PANEL_WIDTH = 400
 MessageBox.MIN_PANEL_HEIGHT = 200
-MessageBox.MESSAGE_TEXT_WIDTH = 340
 MessageBox.MIN_TEXT_HEIGHT = 80
 MessageBox.LINE_HEIGHT = 24
 MessageBox.AVERAGE_CHARS_PER_LINE = 38
@@ -65,9 +64,7 @@ local function applyLayoutForText(text)
     local panelHeight = math.max(MessageBox.MIN_PANEL_HEIGHT, innerHeight + inset * 2)
 
     MessageBox.dialog:SetHeight(panelHeight)
-    if chrome.SetHeight then
-        chrome:SetHeight(panelHeight)
-    end
+    chrome:SetHeight(panelHeight)
     MessageBox.contentPanel:SetHeight(desiredContentHeight)
     MessageBox.messageText:SetHeight(textHeight)
 
@@ -123,7 +120,6 @@ function MessageBox.Init()
     })
     MessageBox.chrome = chrome
     MessageBox.minContentHeight = chrome.contentHeight
-    MessageBox.MESSAGE_TEXT_WIDTH = chrome.contentWidth
 
     local contentPanel = panel:Panel({
         id = "MessageBoxContent",
@@ -136,7 +132,7 @@ function MessageBox.Init()
     })
     MessageBox.contentPanel = contentPanel
 
-    MessageBox.messageText = contentPanel:Text({ id = "Message", rectAlignment = "LowerCenter", x = 0, y = MessageBox.TEXT_BOTTOM_PADDING, width = MessageBox.MESSAGE_TEXT_WIDTH, height = 120, alignment = "MiddleCenter", fontSize = 18, horizontalOverflow = "Wrap", verticalOverflow = "Overflow" })
+    MessageBox.messageText = contentPanel:Text({ id = "Message", rectAlignment = "LowerCenter", x = 0, y = MessageBox.TEXT_BOTTOM_PADDING, width = chrome.contentWidth, height = 120, alignment = "MiddleCenter", fontSize = 18, horizontalOverflow = "Wrap", verticalOverflow = "Overflow" })
 
     local totalButtonWidth = MessageBox.BUTTON_WIDTH * 2 + MessageBox.BUTTON_SPACING
     local firstButtonX = (chrome.contentWidth - totalButtonWidth) / 2
