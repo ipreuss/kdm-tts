@@ -6,6 +6,62 @@ local Ui = require("Kdm/Ui")
 local MessageBox = {}
 
 MessageBox.func = nil
+MessageBox.PANEL_WIDTH = 400
+MessageBox.MIN_PANEL_HEIGHT = 200
+MessageBox.MESSAGE_TEXT_WIDTH = 340
+MessageBox.MIN_TEXT_HEIGHT = 80
+MessageBox.LINE_HEIGHT = 24
+MessageBox.AVERAGE_CHARS_PER_LINE = 38
+MessageBox.TEXT_TOP_PADDING = 20
+MessageBox.TEXT_BOTTOM_PADDING = 80
+MessageBox.CHROME_PADDING = 16
+MessageBox.BUTTON_WIDTH = 140
+MessageBox.BUTTON_HEIGHT = 40
+MessageBox.BUTTON_SPACING = 20
+MessageBox.BUTTON_BOTTOM_PADDING = 20
+
+local function countWrappedLines(text)
+    local totalLines = 0
+    local textLength = #text
+    if textLength == 0 then
+        return 1
+    end
+
+    local startIndex = 1
+    while true do
+        local newlineIndex = string.find(text, "\n", startIndex, true)
+        local lineEnd = newlineIndex and (newlineIndex - 1) or textLength
+        local lineLength = math.max(0, lineEnd - startIndex + 1)
+        local wrappedLines = math.max(1, math.ceil(lineLength / MessageBox.AVERAGE_CHARS_PER_LINE))
+        totalLines = totalLines + wrappedLines
+
+        if not newlineIndex then
+            break
+        end
+
+        startIndex = newlineIndex + 1
+        if startIndex > textLength then
+            totalLines = totalLines + 1
+            break
+        end
+    end
+    return totalLines
+end
+
+local function applyLayoutForText(text)
+    local lineCount = countWrappedLines(text)
+    local textHeight = math.max(MessageBox.MIN_TEXT_HEIGHT, lineCount * MessageBox.LINE_HEIGHT)
+    local desiredPanelHeight = textHeight + MessageBox.TEXT_TOP_PADDING + MessageBox.TEXT_BOTTOM_PADDING
+    local panelHeight = math.max(MessageBox.MIN_PANEL_HEIGHT, desiredPanelHeight)
+    MessageBox.panel:SetHeight(panelHeight)
+    MessageBox.shadow:SetHeight(panelHeight)
+    MessageBox.frame:SetHeight(panelHeight)
+    MessageBox.background:SetHeight(math.max(MessageBox.MIN_PANEL_HEIGHT - MessageBox.CHROME_PADDING * 2, panelHeight - MessageBox.CHROME_PADDING * 2))
+    MessageBox.messageText:SetHeight(textHeight)
+
+    local textBottomOffset = math.max(MessageBox.TEXT_BOTTOM_PADDING, panelHeight - textHeight - MessageBox.TEXT_TOP_PADDING)
+    MessageBox.messageText:SetOffsetXY(string.format("0 %d", math.floor(textBottomOffset + 0.5)))
+end
 
 ---------------------------------------------------------------------------------------------------
 
@@ -13,23 +69,94 @@ function MessageBox.Init()
     local ui = Ui.Get2d()
     MessageBox.ui = ui
 
-    local panel = ui:Panel({ id = "Main", rectAlignment = "MiddleCenter", x = 0, y = 0, z = -10, width = 300, height = 150, active = false })
+    local blocker = ui:Panel({
+        id = "MessageBoxBlocker",
+        rectAlignment = "MiddleCenter",
+        x = 0,
+        y = 0,
+        z = -9,
+        width = 4000,
+        height = 4000,
+        color = "#00000088",
+        active = false,
+    })
+    blocker.attributes.raycastTarget = true
+    MessageBox.blocker = blocker
+
+    local panel = ui:Panel({ id = "Main", rectAlignment = "MiddleCenter", x = 0, y = 0, z = -10, width = MessageBox.PANEL_WIDTH, height = MessageBox.MIN_PANEL_HEIGHT, active = false })
     MessageBox.panel = panel
 
-    panel:Image({ id = "Main", x = 0, y = 0, width = 300, height = 150, image = "MessageBox" })
+    MessageBox.shadow = panel:Panel({
+        id = "Shadow",
+        rectAlignment = "MiddleCenter",
+        x = 4,
+        y = -4,
+        width = MessageBox.PANEL_WIDTH,
+        height = MessageBox.MIN_PANEL_HEIGHT,
+        color = "#00000055",
+    })
 
-    MessageBox.messageText = panel:Text({ id = "Message", rectAlignment = "LowerCenter", x = 0, y = 60, width = 220, height = 85, alignment = "MiddleCenter", fontSize = 18, horizontalOverflow = "Truncate", verticalOverflow = "Truncate" })
+    MessageBox.frame = panel:Panel({
+        id = "Frame",
+        rectAlignment = "MiddleCenter",
+        x = 0,
+        y = 0,
+        width = MessageBox.PANEL_WIDTH,
+        height = MessageBox.MIN_PANEL_HEIGHT,
+        color = Ui.DARK_BROWN,
+    })
 
-    panel:Button({ id = "OK", rectAlignment = "LowerLeft", x = 33, y = 20, width = 100, height = 30, onClick = function()
-        MessageBox.Hide()
-        if MessageBox.func then
-            MessageBox.func()
-        end
-    end })
+    MessageBox.background = panel:Panel({
+        id = "Background",
+        rectAlignment = "MiddleCenter",
+        x = 0,
+        y = 0,
+        width = MessageBox.PANEL_WIDTH - MessageBox.CHROME_PADDING * 2,
+        height = MessageBox.MIN_PANEL_HEIGHT - MessageBox.CHROME_PADDING * 2,
+        color = Ui.LIGHT_BROWN,
+    })
 
-    panel:Button({ id = "Cancel", rectAlignment = "LowerLeft", x = 167, y = 20, width = 100, height = 30, onClick = function()
-        MessageBox.Hide()
-    end })
+    MessageBox.messageText = panel:Text({ id = "Message", rectAlignment = "LowerCenter", x = 0, y = MessageBox.TEXT_BOTTOM_PADDING, width = MessageBox.MESSAGE_TEXT_WIDTH, height = 120, alignment = "MiddleCenter", fontSize = 18, horizontalOverflow = "Wrap", verticalOverflow = "Overflow" })
+
+    local totalButtonWidth = MessageBox.BUTTON_WIDTH * 2 + MessageBox.BUTTON_SPACING
+    local firstButtonX = (MessageBox.PANEL_WIDTH - totalButtonWidth) / 2
+
+    panel:Button({
+        id = "OK",
+        rectAlignment = "LowerLeft",
+        x = firstButtonX,
+        y = MessageBox.BUTTON_BOTTOM_PADDING,
+        width = MessageBox.BUTTON_WIDTH,
+        height = MessageBox.BUTTON_HEIGHT,
+        text = "OK",
+        fontSize = 16,
+        textAlignment = "MiddleCenter",
+        textColor = Ui.LIGHT_BROWN,
+        colors = Ui.DARK_BROWN_COLORS,
+        onClick = function()
+            MessageBox.Hide()
+            if MessageBox.func then
+                MessageBox.func()
+            end
+        end,
+    })
+
+    panel:Button({
+        id = "Cancel",
+        rectAlignment = "LowerLeft",
+        x = firstButtonX + MessageBox.BUTTON_WIDTH + MessageBox.BUTTON_SPACING,
+        y = MessageBox.BUTTON_BOTTOM_PADDING,
+        width = MessageBox.BUTTON_WIDTH,
+        height = MessageBox.BUTTON_HEIGHT,
+        text = "Cancel",
+        fontSize = 16,
+        textAlignment = "MiddleCenter",
+        textColor = Ui.DARK_BROWN,
+        colors = Ui.MID_BROWN_COLORS,
+        onClick = function()
+            MessageBox.Hide()
+        end,
+    })
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -38,14 +165,17 @@ function MessageBox.Show(text, func)
     assert(Check.Str(text))
     assert(Check.Func(func))
 
+    applyLayoutForText(text)
     MessageBox.func = func
     MessageBox.messageText:SetText(text)
+    MessageBox.blocker:Show()
     MessageBox.panel:Show()
 end
 
 ---------------------------------------------------------------------------------------------------
 
 function MessageBox.Hide()
+    MessageBox.blocker:Hide()
     MessageBox.panel:Hide()
 end
 
