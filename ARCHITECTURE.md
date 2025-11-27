@@ -175,6 +175,65 @@ When extending the game flow, prefer emitting a new event constant in `EventMana
 6. **Log liberally when debugging**. Create a module logger via `Log.ForModule("ModuleName")` so you can toggle debug output through the console without spamming every user.
 7. **Mind the physical table**. If you spawn or move objects, always route through `NamedObject` and `Location` so automation such as cleanup and warnings continue to work.
 
+## Strain Milestones — Requirements
+
+Strain milestones unlock permanent benefits when specific in-game conditions are met. The UI already supports viewing and checking milestones; this section documents the requirements for implementing milestone consequences.
+
+### Card Source
+All reward cards (fighting arts, vermin, etc.) are spawned from the **"Strain Rewards"** archive entry in Core.
+
+### Key Concept: "The Survivor"
+When a milestone says "the survivor gains X," this refers to **the survivor who triggered the milestone condition**. The confirmation dialog should prompt the user to select which survivor triggered it if not already known.
+
+### Persistence Across Campaigns
+- When a milestone is reached, cards are added to decks **immediately** in the current campaign
+- On **new campaign start**, all previously unlocked milestone rewards are automatically added to the appropriate decks
+- **Exception:** If more than 5 fighting arts are unlocked, only 5 are randomly chosen and added to the new campaign's fighting art deck
+- Strain milestone state persists across campaigns unless explicitly reset
+
+### Consequence Types and Automation
+
+| Consequence Type | Automation | Priority | Notes |
+|------------------|------------|----------|-------|
+| Add fighting art to deck | **Automated** | P1 | Spawn card from "Strain Rewards" archive to fighting art deck |
+| Survivor gains fighting art | **Automated** | P1 | Spawn card to triggering survivor's grid |
+| Add to timeline | **Automated** | P2 | Insert event at specified year |
+| Add to vermin deck | **Automated** | P2 | Spawn card from "Strain Rewards" archive to vermin deck |
+| Survivor gains disorder | Manual | P3 | Show reminder; user handles |
+| Survivor gains weapon proficiency | Manual | P3 | Show reminder; user handles |
+| Survivor suffers injury | Manual | P3 | Show reminder; user handles |
+| Survivor suffers stat penalty | Manual | P3 | Show reminder; user handles |
+| Add strange resource | Manual | P3 | Show reminder; user handles |
+
+### Acceptance Criteria (P1 — Fighting Arts)
+
+**On milestone confirm:**
+1. Spawn the fighting art card from "Strain Rewards" and add it to the settlement's fighting art deck.
+2. Spawn a second copy south of the battle grid.
+3. Display message telling player to add the card to the triggering survivor.
+
+**On milestone uncheck:**
+1. Remove the fighting art from the settlement's fighting art deck (search and destroy).
+2. Display message telling player to remove the card from the survivor who has it.
+
+### Acceptance Criteria (New Campaign Setup)
+
+1. On new campaign creation, check which strain milestones are marked as reached.
+2. Collect all fighting arts from reached milestones.
+3. If more than 5 fighting arts are unlocked, randomly select 5.
+4. Spawn the selected fighting arts from "Strain Rewards" to the fighting art deck.
+5. Spawn any other permanent rewards (vermin cards, etc.) to their respective decks.
+
+### Acceptance Criteria (P2 — Timeline/Vermin)
+
+1. "Add Acid Storm to next lantern year" → insert the event on timeline automatically.
+2. "Add Fiddler Crab Spider to vermin deck" → spawn card from "Strain Rewards" to vermin deck.
+
+### Deferred (P3 — Manual)
+
+For these, show a clear reminder in the confirmation dialog listing what the user must do manually:
+- Disorders, weapon proficiency, injuries, stat penalties, strange resources.
+
 ## Future Refactor Opportunities
 
 We keep a running list of refactors that surfaced during reviews so the insights are not lost even if they weren’t part of the immediate change:
@@ -254,5 +313,30 @@ end
 2. Work backward through execution with targeted logging
 3. Test simple hypotheses before complex architectural changes
 4. Often the root cause is simpler than initial assumptions (missing function vs. module loading issue)
+
+### Archive System Debugging
+
+The Archive system has a two-level structure that's important to understand when debugging "card not found" errors:
+
+**Level 1: Archive → Deck/Container**
+- `Archive.Take({ name = "Misc AI", type = "AI" })` looks up the archive using `Archive.Key(name, type)`
+- The key maps to an archive name (e.g., `"Core Archive"`) via `Archive.index`
+- The archive container is spawned and cached in `Archive.containers`
+
+**Level 2: Container → Individual Card**
+- `Container:Take({ name = "Card Name", type = "Card Type" })` searches inside the spawned deck
+- **Critical**: Search requires BOTH `name` AND `gm_notes` (type) to match exactly (`Container.ttslua:137-142`)
+
+**Common failure modes**:
+1. **Archive name mismatch**: Passing an explicit `archive` parameter that doesn't exist as a TTS object (e.g., `"Strain Rewards"` is a deck inside Core Archive, not an archive itself)
+2. **Card name typo**: Card names in the TTS save file must match exactly what the code expects
+3. **Type mismatch**: A deck's `gm_notes` differs from its cards' `gm_notes` (e.g., deck is `"Rewards"` but cards inside are `"Fighting Arts"`)
+
+**Debugging steps**:
+1. Check `savefile_backup.json` for exact `Nickname` and `GMNotes` values
+2. Trace whether the code passes an explicit `archive` parameter (usually wrong) or lets auto-resolution work (usually right)
+3. Compare to working patterns like `Showdown.ttslua:376` which takes "Misc AI" without explicit archive
+
+**Pattern for mixed-type decks**: When a deck contains cards of different types (like Strain Rewards containing Fighting Arts, Vermin, and Resources), search by name only within that specific deck rather than relying on type matching.
 
 Keep this document close when planning future work; updating it when adding a new subsystem pays for itself the next time you (or someone else) needs to understand how the mod hangs together.

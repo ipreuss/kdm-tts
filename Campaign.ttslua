@@ -770,6 +770,45 @@ function Campaign.SetupSettlementEventsDeck(cardNames)
     Timeline.RefreshSettlementEventSearchFromDeck()
 end
 
+function Campaign.RandomSelect(items, count)
+    local pool = {}
+    for _, value in ipairs(items or {}) do
+        table.insert(pool, value)
+    end
+
+    local selected = {}
+    local targetCount = math.min(count or 0, #pool)
+    while #selected < targetCount do
+        local idx = math.random(1, #pool)
+        table.insert(selected, pool[idx])
+        table.remove(pool, idx)
+    end
+    return selected
+end
+
+function Campaign.AddStrainRewards()
+    local strainState = Strain.Save() or {}
+    local reached = strainState.reached or {}
+    local unlockedFightingArts = {}
+
+    for _, milestone in ipairs(Strain.MILESTONE_CARDS) do
+        if reached[milestone.title] and milestone.consequences and milestone.consequences.fightingArt then
+            table.insert(unlockedFightingArts, milestone.consequences.fightingArt)
+        end
+    end
+
+    if #unlockedFightingArts == 0 then
+        return
+    end
+
+    local additions = Campaign.RandomSelect(unlockedFightingArts, 5)
+    for _, cardName in ipairs(additions) do
+        Strain:AddFightingArtToDeck(cardName)
+    end
+
+    log:Printf("Added %d strain reward fighting arts to the Fighting Arts deck.", #additions)
+end
+
 function Campaign.Import(data)
     log:Debugf("Importing campaign from data")
     if not Campaign.ConvertToLatestVersion(data) then
@@ -807,6 +846,7 @@ function Campaign.Import(data)
         Campaign.SetupDeckFromExpansionComponents("Strange Resources", data)
         Campaign.SetupDeckFromExpansionComponents("Basic Resources", data, { shuffle = true })
         Campaign.SetupDeckFromExpansionComponents("Terrain", data, { shuffle = true })
+        Campaign.AddStrainRewards()
         local settlementEventsDeck = Campaign.SetupDeckFromExpansionComponents("Settlement Events", data,
             { shuffle = true })
         assert(settlementEventsDeck, "settlementEventsDeck is nil")
@@ -1168,5 +1208,6 @@ return {
         Import = Campaign.Import,
         EXPORT_VERSION = Campaign.EXPORT_VERSION,
         BuildStrainMilestoneState = buildStrainMilestoneState,
+        RandomSelect = Campaign.RandomSelect,
     },
 }

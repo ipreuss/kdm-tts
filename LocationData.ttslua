@@ -89,6 +89,11 @@ local locationData = {
         size = ElementSizes.CARD,
         board = "Showdown Board",
     },
+    ["Showdown Board South"] = {
+        center = { x = 0, y = 10.741001, z = -15 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
 
     -----------------------------------------------------------------------------------------------
 

@@ -1,11 +1,22 @@
 local PanelKit = require("Kdm/Ui/PanelKit")
 local Ui = require("Kdm/Ui")
+local Archive = require("Kdm/Archive")
+local Location = require("Kdm/Location")
+local Container = require("Kdm/Util/Container")
 local log = require("Kdm/Log").ForModule("Strain")
 local StrainMilestones = require("Kdm/GameData/StrainMilestones")
 
 ---------------------------------------------------------------------------------------------------
 
 local Strain = {}
+
+Strain.REWARD_DECK_NAME = "Strain Rewards"
+Strain.REWARD_DECK_TYPE = "Rewards"
+-- Strain rewards live exclusively in the Strain Rewards deck; missing entries are fatal.
+Strain.REWARD_SPAWN_LOCATION = "Showdown Board South"
+Strain.FIGHTING_ART_TYPE = "Fighting Arts"
+Strain.FIGHTING_ART_LOCATION = "Fighting Arts"
+Strain.REWARD_DECK_STAGING_POSITION = { x = -150, y = 60, z = 120 }
 
 Strain.TITLE_HEIGHT = 26
 Strain.CONDITION_HEIGHT = 70
@@ -28,6 +39,7 @@ function Strain:_HydrateMilestones(saveState)
             condition = milestone.condition,
             flavorText = milestone.flavorText,
             rulesText = milestone.rulesText,
+            consequences = milestone.consequences,
             reached = reachedByTitle[milestone.title] or false,
         }
     end
@@ -209,6 +221,205 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+function Strain:_FightingArtsDeck()
+    local ok, location = pcall(Location.Get, Strain.FIGHTING_ART_LOCATION)
+    if not ok or not location then
+        log:Errorf("Fighting Arts location '%s' not found: %s", Strain.FIGHTING_ART_LOCATION, location)
+        return nil
+    end
+    local deck = location:FirstObject({ types = { Strain.FIGHTING_ART_TYPE } })
+    if not deck then
+        log:Errorf("Fighting Arts deck not found at %s", Strain.FIGHTING_ART_LOCATION)
+        return nil
+    end
+    return deck
+end
+
+function Strain:AddFightingArtToDeck(cardName)
+    local deck = Strain:_FightingArtsDeck()
+    if not deck then
+        return false
+    end
+    local takeParams = {
+        name = cardName,
+        type = Strain.FIGHTING_ART_TYPE,
+        position = deck.getPosition(),
+        rotation = { x = 0, y = 180, z = 180 },
+        spawnFunc = function(card)
+            deck.putObject(card)
+            log:Printf("Added %s to the Fighting Arts deck.", cardName)
+        end,
+    }
+    local ok = Strain:_TakeRewardCard(takeParams)
+    if not ok then
+        return false
+    end
+    Archive.Clean()
+    return true
+end
+
+function Strain:RemoveFightingArtFromDeck(cardName)
+    local deck = Strain:_FightingArtsDeck()
+    if not deck then
+        return false
+    end
+
+    local container = Container(deck)
+    if not container then
+        log:Errorf("Unable to create container for Fighting Arts deck while removing %s", cardName)
+        return false
+    end
+
+    local exists = false
+    for _, entry in ipairs(container:Objects()) do
+        if entry.name == cardName and entry.gm_notes == Strain.FIGHTING_ART_TYPE then
+            exists = true
+            break
+        end
+    end
+
+    if not exists then
+        log:Debugf("%s not found in Fighting Arts deck (may have been removed already)", cardName)
+        return false
+    end
+
+    container:Delete({ cardName })
+    log:Printf("Removed %s from the Fighting Arts deck.", cardName)
+    return true
+end
+
+function Strain:SpawnFightingArtForSurvivor(cardName)
+    local takeParams = {
+        name = cardName,
+        type = Strain.FIGHTING_ART_TYPE,
+        rotation = { x = 0, y = 180, z = 0 },
+        spawnFunc = function()
+            log:Printf("Spawned %s near the showdown board. Give this card to the triggering survivor.", cardName)
+        end,
+    }
+
+    local okLocation = pcall(Location.Get, Strain.REWARD_SPAWN_LOCATION)
+    if okLocation then
+        takeParams.location = Strain.REWARD_SPAWN_LOCATION
+    else
+        takeParams.position = { x = 0, y = 15, z = -15 }
+    end
+
+    local ok = Strain:_TakeRewardCard(takeParams)
+    if not ok then
+        return
+    end
+    Archive.Clean()
+end
+
+function Strain:_ResolveSpawnPosition(params)
+    if params.position then
+        return params.position
+    end
+
+    local locationName = params.location
+    if not locationName then
+        return nil
+    end
+
+    local ok, locationOrErr = pcall(Location.Get, locationName)
+    if not ok or not locationOrErr then
+        log:Errorf("Reward location '%s' not found: %s", locationName, locationOrErr)
+        return nil
+    end
+
+    local position = locationOrErr:Center()
+    position.y = position.y + (params.height or 2)
+    return position
+end
+
+function Strain:_TakeFromRewardsDeck(params)
+    local position = Strain:_ResolveSpawnPosition(params)
+    local rewardName = params.name or "<unknown>"
+    if not position then
+        log:Errorf("Unable to resolve spawn position for reward '%s'", rewardName)
+        return false
+    end
+
+    local deckParams = {
+        name = Strain.REWARD_DECK_NAME,
+        type = Strain.REWARD_DECK_TYPE,
+        position = Strain.REWARD_DECK_STAGING_POSITION,
+        rotation = { x = 0, y = 180, z = 180 },
+        lenient = true,
+    }
+
+    local ok, deckOrErr = pcall(Archive.Take, deckParams)
+    if not ok or not deckOrErr then
+        local err = not ok and deckOrErr or "Archive returned nil"
+        log:Errorf("Failed to take Strain rewards deck '%s': %s", Strain.REWARD_DECK_NAME, err)
+        return false
+    end
+
+    local deckContainer = Container(deckOrErr)
+    if not deckContainer then
+        log:Errorf("Unable to create container for Strain rewards deck '%s'", Strain.REWARD_DECK_NAME)
+        if deckOrErr.destruct then
+            deckOrErr.destruct()
+        end
+        return false
+    end
+
+    local card = deckContainer:Take({
+        name = params.name,
+        type = params.type,
+        position = position,
+        rotation = params.rotation,
+        spawnFunc = params.spawnFunc,
+    })
+
+    deckContainer:Destruct()
+
+    if card then
+        return true
+    end
+
+    log:Errorf("Card '%s' not found inside Strain rewards deck.", rewardName)
+    return false
+end
+
+function Strain:_TakeRewardCard(params)
+    return Strain:_TakeFromRewardsDeck(params)
+end
+
+function Strain:ExecuteConsequences(milestone)
+    local consequences = milestone and milestone.consequences
+    if not consequences then
+        return
+    end
+
+    local fightingArt = consequences.fightingArt
+    if fightingArt then
+        local added = Strain:AddFightingArtToDeck(fightingArt)
+        Strain:SpawnFightingArtForSurvivor(fightingArt)
+        if not added then
+            log:Errorf("Failed to add %s to the Fighting Arts deck.", fightingArt)
+        end
+    end
+end
+
+function Strain:ReverseConsequences(milestone)
+    local consequences = milestone and milestone.consequences
+    if not consequences then
+        return
+    end
+
+    local fightingArt = consequences.fightingArt
+    if fightingArt then
+        local removed = Strain:RemoveFightingArtFromDeck(fightingArt)
+        if removed then
+            log:Printf("Remove %s from any survivor that gained it.", fightingArt)
+        end
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+
 function Strain:RefreshMilestones()
     if not Strain.listPanel then
         return
@@ -253,6 +464,7 @@ function Strain:ToggleMilestone(index, player)
         if row then
             row.checkBox:Check(false)
         end
+        Strain:ReverseConsequences(milestone)
         return
     end
 
@@ -364,6 +576,7 @@ function Strain:ConfirmMilestone(player)
             if row then
                 row.checkBox:Check(true)
             end
+            Strain:ExecuteConsequences(milestone)
         end
     end
     
@@ -441,4 +654,5 @@ return {
     ShowUi = Strain.ShowUi,
     HideUi = Strain.HideUi,
     IsUiOpen = Strain.IsUiOpen,
+    MILESTONE_CARDS = Strain.MILESTONE_CARDS,
 }

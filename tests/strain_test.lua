@@ -79,6 +79,12 @@ local function buildStrainStubs()
             dialogStats.hide = dialogStats.hide + 1
             return player.color
         end,
+        ShowForAll = function()
+            dialogStats.show = dialogStats.show + 1
+        end,
+        HideForAll = function()
+            dialogStats.hide = dialogStats.hide + 1
+        end,
         IsOpen = function() return dialogStats.show > dialogStats.hide end,
     }
 
@@ -153,7 +159,67 @@ local function buildStrainStubs()
         end,
     }
 
-    local logStub = { Debugf = function() end, Errorf = function() end }
+    local logStub = { Debugf = function() end, Errorf = function() end, Printf = function() end }
+    local archiveStub = {
+        calls = {},
+        cleanCount = 0,
+    }
+    function archiveStub.Take(params)
+        table.insert(archiveStub.calls, params)
+        if archiveStub.takeHandler then
+            return archiveStub.takeHandler(params)
+        end
+        return nil
+    end
+    function archiveStub.Clean()
+        archiveStub.cleanCount = archiveStub.cleanCount + 1
+    end
+    local locationStub = {
+        Get = function()
+            return {
+                FirstObject = function() return nil end,
+                Center = function() return { x = 0, y = 0, z = 0 } end,
+            }
+        end,
+    }
+    local containers = {}
+    local function containerStub(object)
+        local stub = {
+            object = object,
+            takes = {},
+            destroyed = false,
+        }
+        function stub:Objects()
+            if self.object and self.object.__objects then
+                return self.object.__objects
+            end
+            return {}
+        end
+        function stub:Delete() end
+        function stub:Take(params)
+            table.insert(self.takes, params)
+            if self.object then
+                if self.object.__card then
+                    if params.spawnFunc then
+                        params.spawnFunc(self.object.__card)
+                    end
+                    return self.object.__card
+                end
+                if self.object.__takeHandler then
+                    return self.object.__takeHandler(params)
+                end
+            end
+            return nil
+        end
+        function stub:Destruct()
+            self.destroyed = true
+            if self.object then
+                self.object.__destroyed = true
+            end
+        end
+        table.insert(containers, stub)
+        return stub
+    end
 
     local stubs = {
         ["Kdm/Ui/PanelKit"] = panelKitStub,
@@ -169,6 +235,7 @@ local function buildStrainStubs()
                 condition = "Condition A",
                 flavorText = "Flavor A",
                 rulesText = "Rules A",
+                consequences = { fightingArt = "Test Art" },
             },
             {
                 title = "Milestone B",
@@ -177,12 +244,17 @@ local function buildStrainStubs()
                 rulesText = "Rules B",
             },
         },
+        ["Kdm/Archive"] = archiveStub,
+        ["Kdm/Location"] = locationStub,
+        ["Kdm/Util/Container"] = containerStub,
     }
 
     return stubs, {
         recorder = recorder,
         dialogStats = dialogStats,
         listPanel = listPanel,
+        archiveStub = archiveStub,
+        containers = containers,
     }
 end
 
@@ -271,6 +343,88 @@ Test.test("Milestones have flavor and rules text", function(t)
     end)
 end)
 
+Test.test("Strain milestone data includes fighting art consequences", function(t)
+    local milestones = require("Kdm/GameData/StrainMilestones")
+    local expected = {
+        ["Ethereal Culture Strain"] = "Ethereal Pact",
+        ["Giant's Strain"] = "Giant's Blood",
+        ["Opportunist Strain"] = "Backstabber",
+        ["Trepanning Strain"] = "Infinite Lives",
+        ["Hyper Cerebellum"] = "Shielderang",
+        ["Marrow Transformation"] = "Rolling Gait",
+        ["Memetic Symphony"] = "Infernal Rhythm",
+        ["Surgical Sight"] = "Convalescer",
+        ["Ashen Claw Strain"] = "Armored Fist",
+        ["Carnage Worms"] = "Dark Manifestation",
+        ["Material Feedback Strain"] = "Stockist",
+        ["Sweat Stained Oath"] = "Sword Oath",
+        ["Plot Twist"] = "Story of Blood",
+    }
+
+    local byTitle = {}
+    for _, milestone in ipairs(milestones) do
+        byTitle[milestone.title] = milestone
+    end
+
+    for title, fightingArt in pairs(expected) do
+        local entry = byTitle[title]
+        t:assertTrue(entry ~= nil, string.format("Missing milestone data for %s", title))
+        local actual = entry.consequences and entry.consequences.fightingArt
+        t:assertEqual(fightingArt, actual, string.format("Expected %s to unlock %s", title, fightingArt))
+    end
+end)
+
+Test.test("_TakeRewardCard prefers the Strain Rewards deck when available", function(t)
+    withStrain(t, function(StrainModule, strain, env)
+        StrainModule.Init()
+        local deckObject = { __card = { name = "Test Reward" } }
+        env.archiveStub.takeHandler = function(params)
+            if params.name == strain.REWARD_DECK_NAME then
+                return deckObject
+            end
+            t:fail("Fallback archive should not be used when Strain deck succeeds")
+        end
+
+        local success = strain:_TakeRewardCard({
+            name = "Test Reward",
+            type = strain.FIGHTING_ART_TYPE,
+            position = { x = 1, y = 2, z = 3 },
+        })
+
+        t:assertTrue(success, "_TakeRewardCard should succeed via Strain deck")
+        t:assertEqual(1, #env.archiveStub.calls, "Archive should be queried once for the deck")
+        t:assertEqual(strain.REWARD_DECK_NAME, env.archiveStub.calls[1].name)
+        t:assertEqual(1, #env.containers, "Deck container should be created")
+        t:assertEqual(1, #env.containers[1].takes, "Card should be taken from the deck container")
+        local takeParams = env.containers[1].takes[1]
+        t:assertEqual(1, takeParams.position.x)
+        t:assertEqual(2, takeParams.position.y)
+        t:assertEqual(3, takeParams.position.z)
+    end)
+end)
+
+Test.test("_TakeRewardCard returns false when the Strain Rewards deck is unavailable", function(t)
+    withStrain(t, function(StrainModule, strain, env)
+        StrainModule.Init()
+        local callCount = 0
+        env.archiveStub.takeHandler = function(params)
+            callCount = callCount + 1
+            t:assertEqual(1, callCount, "Archive.Take should be invoked exactly once (for the rewards deck)")
+            t:assertEqual(strain.REWARD_DECK_NAME, params.name)
+            return nil
+        end
+
+        local success = strain:_TakeRewardCard({
+            name = "Fallback Reward",
+            type = strain.FIGHTING_ART_TYPE,
+            position = { x = 0, y = 0, z = 0 },
+        })
+
+        t:assertFalse(success, "Missing Strain rewards deck should be treated as a failure")
+        t:assertEqual(1, #env.archiveStub.calls, "Archive.Take should only be invoked for the Strain rewards deck")
+    end)
+end)
+
 Test.test("ToggleMilestone shows confirmation dialog before checking", function(t)
     withStrain(t, function(StrainModule, strain, env)
         StrainModule.Init()
@@ -284,6 +438,48 @@ Test.test("ToggleMilestone shows confirmation dialog before checking", function(
         
         -- Should have stored the pending milestone info
         t:assertEqual(1, strain.pendingMilestoneIndex)
+    end)
+end)
+
+Test.test("ExecuteConsequences applies fighting art rewards", function(t)
+    withStrain(t, function(StrainModule, strain)
+        StrainModule.Init()
+        local added, spawned
+        local originalAdd = strain.AddFightingArtToDeck
+        local originalSpawn = strain.SpawnFightingArtForSurvivor
+        strain.AddFightingArtToDeck = function(_, name)
+            added = name
+            return true
+        end
+        strain.SpawnFightingArtForSurvivor = function(_, name)
+            spawned = name
+        end
+
+        strain:ExecuteConsequences({ consequences = { fightingArt = "Test Art" } })
+
+        strain.AddFightingArtToDeck = originalAdd
+        strain.SpawnFightingArtForSurvivor = originalSpawn
+
+        t:assertEqual("Test Art", added, "ExecuteConsequences should add fighting art to deck")
+        t:assertEqual("Test Art", spawned, "ExecuteConsequences should spawn card for survivor")
+    end)
+end)
+
+Test.test("ReverseConsequences removes fighting art rewards", function(t)
+    withStrain(t, function(StrainModule, strain)
+        StrainModule.Init()
+        local removed
+        local originalRemove = strain.RemoveFightingArtFromDeck
+        strain.RemoveFightingArtFromDeck = function(_, name)
+            removed = name
+            return true
+        end
+
+        strain:ReverseConsequences({ consequences = { fightingArt = "Test Art" } })
+
+        strain.RemoveFightingArtFromDeck = originalRemove
+
+        t:assertEqual("Test Art", removed, "ReverseConsequences should remove fighting art from deck")
     end)
 end)
 

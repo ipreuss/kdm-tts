@@ -169,3 +169,27 @@ Test.test("Strain milestones reset when checkbox is checked", function(t)
 
     t:assertDeepEqual({}, payload, "Expected empty strain milestones payload when checkbox checked")
 end)
+
+Test.test("Campaign.RandomSelect returns unique subset", function(t)
+    local originalRandom = math.random
+    local picks = { 5, 2, 1 }
+    local index = 0
+    math.random = function(_, upper)
+        index = index + 1
+        local value = picks[index] or 1
+        if value > upper then
+            value = upper
+        elseif value < 1 then
+            value = 1
+        end
+        return value
+    end
+
+    local pool = { "A", "B", "C", "D", "E" }
+    local selected = InternalCampaign.RandomSelect(pool, 2)
+
+    math.random = originalRandom
+
+    t:assertEqual(2, #selected, "Should return requested number of items")
+    t:assertTrue(selected[1] ~= selected[2], "RandomSelect should not return duplicates")
+end)

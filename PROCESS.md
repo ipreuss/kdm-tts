@@ -46,10 +46,10 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 - Follow patterns established by Architect
 - Research existing code before implementing new features
 - Produce implementation plans and get confirmation before coding
-- Apply guidance from `LATEST_REVIEW.md`
+- Apply guidance from `handover/LATEST_REVIEW.md`
 
 **Constraints:**
-- Do not edit `LATEST_REVIEW.md` or review process docs
+- Do not edit `handover/LATEST_REVIEW.md` or review process docs
 - Do not perform git operations
 - Do not override Architect on design decisions
 - Do not change requirements (escalate to Product Owner)
@@ -59,7 +59,7 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 
 **Responsibilities:**
 - Review code changes for correctness, style, and maintainability
-- Author and maintain `LATEST_REVIEW.md`
+- Author and maintain `handover/LATEST_REVIEW.md`
 - Update review process documentation
 - Follow checklist in `CODE_REVIEW_GUIDELINES.md`
 
@@ -67,6 +67,27 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 - Do not edit implementation code or tests
 - Do not perform git operations
 - Do not change requirements or architecture
+
+### Debugger
+**Focus:** Systematic problem diagnosis and root cause analysis.
+
+**Responsibilities:**
+- Investigate runtime errors and unexpected behavior
+- Trace execution paths to identify root causes
+- Document findings with confidence levels and evidence
+- Suggest solutions ranked by effort and risk
+- Author and maintain debug reports in `handover/LATEST_REVIEW.md`
+
+**Permitted code changes (debugging only):**
+- Add `log:Debugf(...)` statements to trace execution
+- Write regression tests that reproduce the bug
+- No other code modifications allowed
+
+**Constraints:**
+- Do not fix the bug (only diagnose and suggest fixes)
+- Do not perform git operations
+- Do not change requirements or architecture
+- Must provide evidence for conclusions (log output, code references)
 
 ### Role Workflow
 
@@ -90,6 +111,21 @@ Product Owner          Architect              Implementer           Reviewer
 3. Implementer completes changes → Reviewer checks
 4. Reviewer findings may loop back to any prior role
 
+### Handover Documents
+
+All role-to-role handovers are stored in the `handover/` folder:
+
+| Document | Purpose | Owner |
+|----------|---------|-------|
+| `LATEST_REVIEW.md` | Most recent code review findings | Reviewer |
+| `HANDOVER_ARCHITECT.md` | Requirements handoff to Architect | Product Owner |
+| `HANDOVER_IMPLEMENTER.md` | Design handoff to Implementer | Architect |
+
+**Guidelines:**
+- Each handover document is **replaced** (not appended) when a new handover occurs
+- Include context, requirements/design, open questions, and relevant files
+- The receiving role should read the handover before starting work
+
 ## Safety Net First
 - **Baseline tests before edits** – confirm existing behavior has automated coverage (unit/integration). If coverage is missing for the code you are about to edit, add characterization tests that express the current behavior before changing logic.
 - **Protect regressions** – when a bug is reported, reproduce it in a failing test before touching implementation code. The test should prove the fix and guard against future regressions.
@@ -103,6 +139,7 @@ Product Owner          Architect              Implementer           Reviewer
   2. Extract the shared logic into a well-named, reusable abstraction.
   3. Keep legacy behavior green (tests passing) as you migrate it to the new abstraction.
   4. Implement the new feature on top of the abstraction, extending it as needed without breaking the original flow.
+- **Fail loudly over speculative fallbacks** – when a required resource (data deck, object, config, etc.) is missing, surface an explicit error and stop rather than silently falling back to unrelated sources. Only add defensive fallback paths when the Product Owner, Architect, or a requirement explicitly demands it, and document the rationale in the code/comments.
 - **Produce a plan** – write down the proposed approach (touch points, test strategy, migration steps) alongside all assumptions and open questions that could influence the solution.
 - **Share before coding** – present that plan to the reviewer/requester and wait for explicit confirmation before touching production code. Only start implementation work after all blocking questions are answered or assumptions validated.
 - **Debug runtime errors systematically** – when an error occurs at runtime (especially unexpected nil errors), verify your assumptions about why and where the error happens before fixing it. The preferred approach is to implement at least one regression test that reproduces the error. If that doesn't help pinpoint the problem, use extensive debug logging and ask the user to run the code on TTS and provide the relevant part of the log.
@@ -183,11 +220,11 @@ When encountering UI issues (dialogs not showing, buttons not working) that prev
 
 ## Code Review Documentation
 
-All code review findings must be documented in `LATEST_REVIEW.md` at the repository root.
+All code review findings must be documented in `handover/LATEST_REVIEW.md`.
 
-**Important:** Each new review **completely replaces** the previous content—`LATEST_REVIEW.md` always contains only the most recent review, never historical reviews.
+**Important:** Each new review **completely replaces** the previous content—the file always contains only the most recent review, never historical reviews.
 
-**Reviewer responsibility:** At the end of every review (even informal ones), update and replace `LATEST_REVIEW.md` yourself—do not defer to others or leave TODOs. Treat the file update as part of “done” for the review.
+**Reviewer responsibility:** At the end of every review (even informal ones), update and replace the review file yourself—do not defer to others or leave TODOs. Treat the file update as part of “done” for the review.
 
 **Structure:**
 - Start with a header: `# Code Review - [Brief Description]`
@@ -196,7 +233,7 @@ All code review findings must be documented in `LATEST_REVIEW.md` at the reposit
 - Conclude with overall assessment and test results
 
 **Guidelines:**
-- **Do not create temporary files** for review summaries—always write to `LATEST_REVIEW.md`
+- **Do not create temporary files** for review summaries—always write to `handover/LATEST_REVIEW.md`
 - **Replace the entire file** with each new review; do not append
 - Keep review documentation in the repository, not external files
 - Use clear severity labels (Low/Medium/High) for issues
@@ -225,6 +262,6 @@ All code review findings must be documented in `LATEST_REVIEW.md` at the reposit
 - [ ] Manual verification performed when the change affects TTS interactions or UI.
 - [ ] Commits tell a reviewable story (separate refactors from behavior changes when practical).
 - [ ] After each new code review, assess suggested improvements; implement beneficial recommendations promptly rather than deferring them indefinitely, and document rationale when choosing not to act. When a review identifies process/documentation gaps (e.g., missing guidance or ADRs), update the relevant documentation as part of addressing the review.
-- [ ] Code review findings documented in `LATEST_REVIEW.md`.
+- [ ] Code review findings documented in `handover/LATEST_REVIEW.md`.
 
 Following this process keeps the mod safe to iterate on, makes regressions obvious, and ensures contributors can trust each other’s changes without rediscovering tribal knowledge.
