@@ -114,6 +114,7 @@ All code review findings must be documented in `LATEST_REVIEW.md` at the reposit
 - Use clear severity labels (Low/Medium/High) for issues
 - Include specific examples and line references where helpful
 - Document any follow-up actions taken in response to the review
+- Follow the detailed review checklist in `CODE_REVIEW_GUIDELINES.md`
 
 **Handling review suggestions**
 - **Assess everything** – When a review surfaces suggestions, evaluate each one. For low-risk / high-value requests (copy tweaks, text changes, small refactors), apply them immediately so we leave the code slightly better (Boy Scout Rule).

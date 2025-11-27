@@ -20,6 +20,7 @@ local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
 local Trash = require("Kdm/Trash")
 local PanelKit = require("Kdm/Ui/PanelKit")
+local LayoutManager = require("Kdm/Ui/LayoutManager")
 local Strain = require("Kdm/Strain")
 local CampaignMigrations = require("Kdm/GameData/CampaignMigrations")
 
@@ -106,46 +107,107 @@ end
 
 function Campaign.InitCampaignUi()
     log:Debugf("Initializing campaign UI")
+    local dialogWidth = 940
+    local layoutPadding = 0
+    local layoutSpacing = 20
+    local buttonRowHeight = 60
+    local checkboxRowHeight = 40
+    local settlementHeight = 60
+    local chromeOverhead = 190
+
+    local availableExpansions = {}
+    for _, expansion in ipairs(Expansion.All()) do
+        if expansion.name ~= "Core" then
+            table.insert(availableExpansions, expansion)
+        end
+    end
+
+    local layoutSpec = LayoutManager.Specification()
+    layoutSpec:AddText({
+        id = "CampaignLabel",
+        text = "Campaign",
+        fontSize = 16,
+        fontStyle = "Bold",
+        color = Ui.DARK_BROWN,
+    })
+    layoutSpec:AddGrid({
+        columns = 4,
+        itemWidth = 200,
+        itemHeight = 30,
+        gap = 15,
+        items = Campaign.campaigns,
+        renderItem = function() end,
+    })
+    layoutSpec:AddText({
+        id = "ExpansionsLabel",
+        text = "Expansions",
+        fontSize = 16,
+        fontStyle = "Bold",
+        color = Ui.DARK_BROWN,
+    })
+    layoutSpec:AddGrid({
+        columns = 4,
+        itemWidth = 200,
+        itemHeight = 30,
+        gap = 15,
+        items = availableExpansions,
+        renderItem = function() end,
+    })
+    layoutSpec:AddText({
+        id = "SettlementNoLabel",
+        text = "Settlement Number",
+        fontSize = 16,
+        fontStyle = "Bold",
+        color = Ui.DARK_BROWN,
+    })
+    layoutSpec:AddCustom({
+        height = settlementHeight,
+        render = function() end,
+    })
+    layoutSpec:AddCustom({
+        height = checkboxRowHeight,
+        render = function() end,
+    })
+    layoutSpec:AddButtonRow({
+        height = buttonRowHeight,
+    })
+
+    local measuredHeight = layoutSpec:CalculateDialogHeight({
+        padding = layoutPadding,
+        spacing = layoutSpacing,
+        chromeOverhead = chromeOverhead,
+    })
+    local dialogHeight = math.max(660, math.ceil(measuredHeight))
     local dialog = PanelKit.Dialog({
         id = "Campaign",
         ui = Ui.Get2d(),
         rectAlignment = "MiddleCenter",
-        width = 885,
-        height = 723,
-        image = "Campaign",
-        closeButton = {
-            x = 845,
-            y = -10,
-            width = 30,
-            height = 30,
-            onClick = function(mouseButton, player)
-                Campaign.HideUi(player)
-            end
-        },
+        width = dialogWidth,
+        height = dialogHeight,
+        color = "#00000000",
+        closeButton = false,
     })
     Campaign.dialog = dialog
     local panel = dialog:Panel()
     Campaign.panel = panel
-    Campaign.selectedCampaign = Campaign.campaigns[1]
-    local x = 20
-    local y = -30
-    Campaign.unlockedButton = panel:CheckButton({
-        id = "Unlocked",
-        x = x,
-        y = y,
-        width = 130,
-        height = 30,
-        text = "Unlocked Mode",
-        fontSize = 14,
-        onClick = function()
-            local checked = not Campaign.unlockedMode
-            log:Debugf("Unlocked Mode %s", checked and "Activated" or "Disabled")
-            Campaign.unlockedMode = checked
-            Campaign.unlockedButton:Check(checked)
-        end
+    local chrome = PanelKit.ClassicDialog({
+        panel = panel,
+        id = "CampaignChrome",
+        width = dialogWidth,
+        height = dialogHeight,
+        title = "Campaign Setup",
+        subtitle = "Choose your story, expansions, and settlement options.",
+        closeButton = {
+            onClick = function(_, player)
+                Campaign.HideUi(player)
+            end,
+        },
     })
-    local x = 20 --128
-    local y = -125
+    Campaign.selectedCampaign = Campaign.campaigns[1]
+    Campaign.selectedExpansionsNyName = {}
+    Campaign.expansionButtons = {}
+    Campaign.settlementButtons = {}
+
     Campaign.campaignOptionGroup = panel:OptionButtonGroup({
         id = "Campaign",
         unselectedColors = Ui.MID_BROWN_COLORS,
@@ -156,39 +218,73 @@ function Campaign.InitCampaignUi()
             option:Select()
         end
     })
-    for _, campaign in ipairs(Campaign.campaigns) do
-        local selected = (campaign == Campaign.selectedCampaign)
-        Campaign.campaignOptionGroup:OptionButton({
-            x = x,
-            y = y,
-            width = 200,
-            height = 30,
-            text = campaign.name,
-            selected =
-                selected,
-            optionValue = campaign
-        })
-        x = x + 200 + 15
-        if x > 665 then
-            x = 20
-            y = y - 30 - 15
-        end
-    end
-    Campaign.selectedExpansionsNyName = {}
-    local x = 20
-    local y = -268
-    Campaign.expansionButtons = {}
-    for _, expansion in ipairs(Expansion.All()) do
-        log:Debugf("Adding expansion %s", expansion.name)
-        if expansion.name ~= "Core" then
-            Campaign.expansionButtons[expansion.name] = panel:CheckButton({
+
+    local contentArea = {
+        contentX = chrome.contentX,
+        contentY = chrome.contentY,
+        contentWidth = chrome.contentWidth,
+        contentHeight = chrome.contentHeight,
+    }
+
+    local layout = LayoutManager.VerticalLayout({
+        parent = panel,
+        contentArea = contentArea,
+        padding = layoutPadding,
+        spacing = layoutSpacing,
+    })
+
+    layout:AddText({
+        id = "CampaignLabel",
+        text = "Campaign",
+        fontSize = 16,
+        fontStyle = "Bold",
+        color = Ui.DARK_BROWN,
+    })
+
+    layout:AddGrid({
+        columns = 4,
+        itemWidth = 200,
+        itemHeight = 30,
+        gap = 15,
+        items = Campaign.campaigns,
+        renderItem = function(cell, campaign)
+            local selected = (campaign == Campaign.selectedCampaign)
+            return Campaign.campaignOptionGroup:OptionButton({
+                x = cell.x,
+                y = cell.y,
+                width = cell.width,
+                height = cell.height,
+                text = campaign.name,
+                selected = selected,
+                optionValue = campaign,
+            })
+        end,
+    })
+
+    layout:AddText({
+        id = "ExpansionsLabel",
+        text = "Expansions",
+        fontSize = 16,
+        fontStyle = "Bold",
+        color = Ui.DARK_BROWN,
+    })
+
+    layout:AddGrid({
+        columns = 4,
+        itemWidth = 200,
+        itemHeight = 30,
+        gap = 15,
+        items = availableExpansions,
+        renderItem = function(cell, expansion)
+            local button = panel:CheckButton({
                 id = expansion.name,
-                x = x,
-                y = y,
-                width = 200,
-                height = 30,
+                x = cell.x,
+                y = cell.y,
+                width = cell.width,
+                height = cell.height,
                 fontSize = 14,
                 text = expansion.name,
+                checked = Campaign.selectedExpansionsNyName[expansion.name] or false,
                 onClick = function()
                     local checked = not Campaign.selectedExpansionsNyName[expansion.name]
                     log:Debugf("%s expansion %s", checked and "Selecting" or "Deselecting", expansion.name)
@@ -196,75 +292,123 @@ function Campaign.InitCampaignUi()
                     Campaign.expansionButtons[expansion.name]:Check(checked)
                 end
             })
-            x = x + 200 + 15
-            if x > 665 then
-                x = 20
-                y = y - 30 - 15
-            end
-        end
-    end
-
-    panel:Text({ id= "SettlementNoLabel", x = 20, y = -520, width = 200, height = 30, fontSize = 14, text = "Settlement Number" })
-    local settlementButtons = {}
-    for i = 1, 20 do
-        local x = 20 + i * 25
-        local y = -550
-        local width = 20
-        local height = 20
-        local fontSize = 7
-        if i % 5 == 0 then
-            x, y, width, height = x - 2, y + 2, width + 4, height + 4
-        end
-        settlementButtons[i] = panel:CheckButton({ id = "settlementNo" .. i, x = x, y = y, width = width, height = height, fontSize =
-            fontSize, text = tostring(i), checked = i <= Campaign.settlementNo, onClick = function() 
-                Campaign.settlementNo = i + (i == Campaign.settlementNo and -1 or 0)
-                for j = 1, 20 do
-                    settlementButtons[j]:Check(j <= Campaign.settlementNo)
-                end
-            end })
-    end
-
-    Campaign.clearStrainMilestonesCheckbox = panel:CheckButton({
-        id = "ClearStrainMilestones",
-        x = 20,
-        y = -605,
-        width = 24,
-        height = 24,
-        fontSize = 14,
-        text = "",
-        checked = Campaign.clearStrainMilestones or false,
-        onClick = function()
-            local checked = not Campaign.clearStrainMilestones
-            Campaign.clearStrainMilestones = checked
-            Campaign.clearStrainMilestonesCheckbox:Check(checked)
-        end
+            Campaign.expansionButtons[expansion.name] = button
+            return button
+        end,
     })
-    panel:Text({
-        id = "ClearStrainLabel",
-        x = 50,
-        y = -608,
-        width = 300,
-        height = 30,
-        fontSize = 14,
-        text = "Clear strain milestones",
+
+    layout:AddText({
+        id = "SettlementNoLabel",
+        text = "Settlement Number",
+        fontSize = 16,
+        fontStyle = "Bold",
         color = Ui.DARK_BROWN,
     })
 
-    panel:Button({
-        id = "Begin",
-        x = 117,
-        y = -643,
-        width = 300,
-        height = 60,
-        onClick = function()
-            local strainNote = ""
-            if Campaign.clearStrainMilestones then
-                strainNote = "\n\nWarning: Strain milestones will be cleared for this campaign. Uncheck \"Clear strain milestones\" if you want to keep them."
+    layout:AddCustom({
+        height = settlementHeight,
+        render = function(ctx)
+            local buttonWidth = 20
+            local buttonHeight = 20
+            local gap = 5
+            local startX = ctx.x + buttonWidth
+            local rowY = ctx.y - (buttonHeight / 2) - 5
+            for i = 1, 20 do
+                local offset = (buttonWidth + gap) * i
+                local x = startX + offset
+                local y = rowY
+                if i % 5 == 0 then
+                    y = y + 2
+                end
+                Campaign.settlementButtons[i] = panel:CheckButton({
+                    id = "settlementNo" .. i,
+                    x = x,
+                    y = y,
+                    width = buttonWidth,
+                    height = buttonHeight,
+                    fontSize = 7,
+                    text = tostring(i),
+                    checked = i <= Campaign.settlementNo,
+                    onClick = function()
+                        Campaign.settlementNo = i + (i == Campaign.settlementNo and -1 or 0)
+                        for j = 1, 20 do
+                            Campaign.settlementButtons[j]:Check(j <= Campaign.settlementNo)
+                        end
+                    end
+                })
             end
-            MessageBox.Show("Are you sure you want to start a new campaign?" .. strainNote, Campaign.ImportFromCampaign)
-        end
+        end,
     })
-    panel:Button({ id = "Cancel", x = 468, y = -643, width = 300, height = 60, onClick = Campaign.HideUiForAll })
+
+    layout:AddCustom({
+        height = checkboxRowHeight,
+        render = function(ctx)
+            Campaign.clearStrainMilestonesCheckbox = panel:CheckButton({
+                id = "ClearStrainMilestones",
+                x = ctx.x + 5,
+                y = ctx.y - 5,
+                width = 24,
+                height = 24,
+                fontSize = 14,
+                text = "",
+                checked = Campaign.clearStrainMilestones or false,
+                onClick = function()
+                    local checked = not Campaign.clearStrainMilestones
+                    Campaign.clearStrainMilestones = checked
+                    Campaign.clearStrainMilestonesCheckbox:Check(checked)
+                end
+            })
+            panel:Text({
+                id = "ClearStrainLabel",
+                x = ctx.x + 40,
+                y = ctx.y - 7,
+                width = ctx.width - 40,
+                height = 30,
+                fontSize = 14,
+                text = "Clear strain milestones",
+                color = Ui.DARK_BROWN,
+            })
+        end,
+    })
+    local buttonWidth = 300
+    local buttonSpacing = 40
+    layout:AddButtonRow({
+        height = buttonRowHeight,
+        spacing = buttonSpacing,
+        buttons = {
+            {
+                id = "Begin",
+                width = buttonWidth,
+                height = buttonRowHeight,
+                text = "Start Campaign",
+                fontSize = 18,
+                textAlignment = "MiddleCenter",
+                textColor = Ui.LIGHT_BROWN,
+                colors = Ui.MID_BROWN_COLORS,
+                onClick = function()
+                    local strainNote = ""
+                    if Campaign.clearStrainMilestones then
+                        strainNote = "\n\nWarning: Strain milestones will be cleared for this campaign. Uncheck \"Clear strain milestones\" if you want to keep them."
+                    end
+                    MessageBox.Show("Are you sure you want to start a new campaign?" .. strainNote, Campaign.ImportFromCampaign)
+                end,
+            },
+            {
+                id = "Cancel",
+                width = buttonWidth,
+                height = buttonRowHeight,
+                text = "Cancel",
+                fontSize = 18,
+                textAlignment = "MiddleCenter",
+                textColor = Ui.LIGHT_BROWN,
+                colors = Ui.MID_BROWN_COLORS,
+                onClick = Campaign.HideUiForAll,
+            },
+        },
+    })
+
+    local usedHeight = layout:GetUsedHeight()
+    log:Debugf("Campaign layout height=%d (available=%d)", usedHeight, contentArea.contentHeight)
 end
 
 ---------------------------------------------------------------------------------------------------

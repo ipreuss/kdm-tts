@@ -24,6 +24,8 @@ local function buildLayoutStubs()
     local stubs = {
         ["Kdm/Util/Check"] = {
             Table = function(val) return type(val) == "table" end,
+            Num = function(val) return type(val) == "number" end,
+            Str = function(val) return type(val) == "string" end,
         },
         ["Kdm/Ui"] = {
             DARK_BROWN = "#453824",
@@ -279,5 +281,79 @@ Test.test("Specification calculates height and renders layout", function(t)
         t:assertTrue(#env.recorder.calls >= 3)
         t:assertEqual("Text", env.recorder.calls[1].type)
         t:assertTrue(capturedTitle ~= nil)
+    end)
+end)
+
+Test.test("AddGrid renders items in rows and columns", function(t)
+    withLayout(t, function(LayoutManager, env)
+        local layout = LayoutManager.VerticalLayout({
+            parent = env.mockPanel,
+            contentArea = { contentX = 0, contentY = -30, contentWidth = 400, contentHeight = 200 },
+            padding = 0,
+            spacing = 10,
+        })
+
+        local items = { "A", "B", "C", "D", "E" }
+        layout:AddGrid({
+            columns = 2,
+            itemWidth = 120,
+            itemHeight = 20,
+            gap = 5,
+            items = items,
+            renderItem = function(ctx, item)
+                return env.mockPanel:Text({
+                    id = "Cell" .. item,
+                    x = ctx.x,
+                    y = ctx.y,
+                    width = ctx.width,
+                    height = ctx.height,
+                    text = item,
+                    fontSize = 12,
+                })
+            end
+        })
+
+        t:assertEqual(#items, #env.recorder.calls)
+        local first = env.recorder.calls[1].params
+        t:assertEqual("A", first.text)
+        local third = env.recorder.calls[3].params -- first item in second row
+        t:assertTrue(third.y < first.y, "rows should stack vertically")
+        local expectedHeight = (math.ceil(#items / 2) * 20) + (math.ceil(#items / 2) - 1) * 5
+        t:assertEqual(expectedHeight, layout:GetUsedHeight())
+    end)
+end)
+
+Test.test("GridElement handles more columns than items", function(t)
+    withLayout(t, function(LayoutManager, env)
+        local layout = LayoutManager.VerticalLayout({
+            parent = env.mockPanel,
+            contentArea = { contentX = 0, contentY = -30, contentWidth = 400, contentHeight = 200 },
+            padding = 0,
+        })
+
+        local items = { "One", "Two" }
+        layout:AddGrid({
+            columns = 4,
+            itemWidth = 80,
+            itemHeight = 25,
+            gap = 10,
+            items = items,
+            renderItem = function(ctx, item)
+                return env.mockPanel:Text({
+                    id = item,
+                    x = ctx.x,
+                    y = ctx.y,
+                    width = ctx.width,
+                    height = ctx.height,
+                    text = item,
+                    fontSize = 12,
+                })
+            end
+        })
+
+        t:assertEqual(2, #env.recorder.calls)
+        local calls = env.recorder.calls
+        t:assertTrue(calls[2].params.x > calls[1].params.x, "Items should render in the same row when columns exceed item count")
+        t:assertEqual(25, layout:GetUsedHeight())
     end)
 end)

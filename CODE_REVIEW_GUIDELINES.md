@@ -408,6 +408,31 @@ Use this checklist for every code review:
 - [ ] Can new types be added without modifying existing functions?
 - [ ] Are `if/elseif` chains based on object types refactored to use polymorphism?
 
+### Abstraction and Duplication Audit
+**Every code review must include this analysis:**
+
+#### Manual Calculations
+- [ ] Are there pixel offsets, magic numbers, or coordinate calculations that should be in framework code (LayoutManager, PanelKit, UI helpers)?
+- [ ] Are positioning calculations duplicated that could be handled by layout elements?
+- [ ] Are there hardcoded dimensions that should come from shared constants?
+
+#### Cross-Module Duplication
+- [ ] Does similar code exist in other panels/dialogs in the codebase?
+- [ ] Are there repeated patterns indicating a missing abstraction?
+- [ ] Could shared logic be extracted into reusable components?
+
+#### Unused Framework Features
+- [ ] Are existing abstractions (e.g., `PanelKit.AutoSizedDialog`, `Specification:Render()`) being bypassed with manual implementations?
+- [ ] Could existing helpers replace boilerplate code?
+- [ ] Is the code reinventing functionality that already exists?
+
+#### Hardcoded Values
+- [ ] Are constants hardcoded that should come from shared sources (chrome dimensions, default heights, spacing)?
+- [ ] Are configuration values duplicated between specification and render phases?
+- [ ] Could magic numbers be replaced with named constants from the framework?
+
+**Document findings** in a dedicated review section with priority labels (High/Medium/Low) and specific refactoring recommendations.
+
 ### SOLID Principles Analysis
 **CRITICAL: Even when code appears clean, systematically check each SOLID principle for improvement opportunities**
 
@@ -531,6 +556,14 @@ These guidelines should be applied at multiple stages:
 This document should evolve based on lessons learned from future code reviews. When you discover a pattern or issue not covered here, add it to maintain a living reference of best practices.
 
 ### Recent Updates
+
+**2025-11-27: Added Abstraction and Duplication Audit**
+- Added mandatory analysis section for every code review
+- Requires checking for manual calculations that belong in framework code
+- Requires cross-module comparison to identify repeated patterns
+- Requires verification that existing framework features are being used
+- Requires flagging hardcoded values that should come from shared sources
+- Documents findings with priority labels and refactoring recommendations
 
 **2025-11-20: Added Change Scope Assessment Requirements**
 - Added mandatory systematic review of ALL modified files after reviewer missed major implementation
