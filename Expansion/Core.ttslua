@@ -626,6 +626,7 @@ return {
             { "Custom Content Rules", "Rulebook" },
             { "Bone Lodge Gear", "Gear" },
             { "Explorer's Shelter Gear", "Gear" },
+            { "Strain Rewards", "Rewards"},
         },
     },
 

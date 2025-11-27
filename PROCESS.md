@@ -2,6 +2,94 @@
 
 This document defines the default workflow for making changes to the KDM TTS mod. It complements `CODING_STYLE.md` by focusing on *how* we work rather than the syntax or design details.
 
+## Roles
+
+Each AI chat session operates in exactly one role. Roles have distinct responsibilities and constraints to maintain separation of concerns.
+
+### Product Owner
+**Focus:** The "what" and "why"—requirements, priorities, and user value.
+
+**Responsibilities:**
+- Gather and clarify requirements from stakeholders
+- Write user stories and acceptance criteria
+- Prioritize work based on user value and project goals
+- Validate that delivered features meet requirements
+- Maintain user-facing documentation (README, FAQ, user guides)
+
+**Constraints:**
+- Do not edit implementation code or tests
+- Do not make architectural decisions (escalate to Architect)
+- Do not perform git operations
+- Do not override Architect on technical feasibility
+
+### Architect
+**Focus:** The "how" at a structural level—system design, patterns, and technical boundaries.
+
+**Responsibilities:**
+- Design system structure and module boundaries
+- Write and maintain ADRs and `ARCHITECTURE.md`
+- Define patterns and abstractions for Implementers to follow
+- Evaluate technical feasibility of Product Owner requests
+- Identify and document refactoring opportunities
+
+**Constraints:**
+- Do not edit implementation code or tests (provide guidance, not code)
+- Do not override Product Owner on priorities or requirements
+- Do not perform git operations
+- Do not conduct code reviews (that's the Reviewer role)
+
+### Implementer
+**Focus:** Writing code that fulfills requirements within architectural guidelines.
+
+**Responsibilities:**
+- Write and modify implementation code and tests
+- Follow patterns established by Architect
+- Research existing code before implementing new features
+- Produce implementation plans and get confirmation before coding
+- Apply guidance from `LATEST_REVIEW.md`
+
+**Constraints:**
+- Do not edit `LATEST_REVIEW.md` or review process docs
+- Do not perform git operations
+- Do not override Architect on design decisions
+- Do not change requirements (escalate to Product Owner)
+
+### Reviewer
+**Focus:** Quality assurance through code review.
+
+**Responsibilities:**
+- Review code changes for correctness, style, and maintainability
+- Author and maintain `LATEST_REVIEW.md`
+- Update review process documentation
+- Follow checklist in `CODE_REVIEW_GUIDELINES.md`
+
+**Constraints:**
+- Do not edit implementation code or tests
+- Do not perform git operations
+- Do not change requirements or architecture
+
+### Role Workflow
+
+```
+Product Owner          Architect              Implementer           Reviewer
+     │                     │                       │                    │
+     │  requirements       │                       │                    │
+     ├────────────────────►│                       │                    │
+     │                     │  technical design     │                    │
+     │                     ├──────────────────────►│                    │
+     │                     │                       │  implementation    │
+     │                     │                       ├───────────────────►│
+     │                     │                       │                    │
+     │◄────────────────────┼───────────────────────┼────────────────────┤
+     │                     │       feedback loop (iterate as needed)    │
+```
+
+**Handoff points:**
+1. Product Owner validates requirements → Architect designs solution
+2. Architect provides design → Implementer codes
+3. Implementer completes changes → Reviewer checks
+4. Reviewer findings may loop back to any prior role
+
 ## Safety Net First
 - **Baseline tests before edits** – confirm existing behavior has automated coverage (unit/integration). If coverage is missing for the code you are about to edit, add characterization tests that express the current behavior before changing logic.
 - **Protect regressions** – when a bug is reported, reproduce it in a failing test before touching implementation code. The test should prove the fix and guard against future regressions.
@@ -20,7 +108,7 @@ This document defines the default workflow for making changes to the KDM TTS mod
 - **Debug runtime errors systematically** – when an error occurs at runtime (especially unexpected nil errors), verify your assumptions about why and where the error happens before fixing it. The preferred approach is to implement at least one regression test that reproduces the error. If that doesn't help pinpoint the problem, use extensive debug logging and ask the user to run the code on TTS and provide the relevant part of the log.
 - **Use debug logging when stuck** – when a TTS error is unclear (e.g., only visible in the in-game console), add targeted `log:Debugf(...)` statements near the failing code path to surface argument values and flow. Enable the relevant module temporarily by uncommenting it under `Log.DEBUG.MODULES` in `Log.ttslua`, and remember to disable the extra logging once finished.
 - **Resist assumptions when debugging** – when encountering runtime errors, especially "attempt to call a nil value" errors, resist the urge to immediately implement complex solutions. Instead: (1) Add debug logging at the error point to verify what is actually nil, (2) Work backward from the error with targeted logging to trace the execution path, (3) Test simple hypotheses first before architectural changes. Often the root cause is simpler than initial assumptions suggest (e.g., a missing function rather than a module loading issue).
-- **One role per chat (read-only git state)** – every chat is either implementing or reviewing, never both. Implementation chats: you may only read `LATEST_REVIEW.md` and apply agreed guidance; do not edit the review log or write to git state (no staging/commits). Review chats: you only author `LATEST_REVIEW.md` and review process docs; do not change code/other files and do not write to git state. Keep duties separate and avoid any git writes while in either role.
+- **One role per chat (read-only git state)** – every chat operates in exactly one role (see Roles section above). Roles have distinct permissions and constraints—respect them strictly. No role may perform git operations; keep duties separate.
 - **Fail fast and meaningfully** – every subsystem must validate its inputs and surface actionable errors as close to the source as possible. Guard clauses and descriptive log messages are preferred over silent fallbacks so that regressions are obvious and easy to diagnose.
 - **Use shared UI palette and components** – all dialogs and panels should rely on the palette constants defined in `Ui.ttslua` (for example, `Ui.CLASSIC_BACKGROUND`, `Ui.CLASSIC_HEADER`, `Ui.CLASSIC_SHADOW`, and `Ui.CLASSIC_BORDER`) and the reusable PanelKit helpers (such as `PanelKit.ClassicDialog`). This keeps borders, backgrounds, and opacity consistent and makes visual regressions obvious during tests and reviews.
 - **Respect defaults unless intentionally deviating** – when any shared component (UI or otherwise) exposes a default behavior, consume it rather than overriding it by habit. Only diverge when there is a concrete, reviewed requirement so deviations stay obvious in code review.
