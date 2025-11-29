@@ -1,4 +1,3 @@
-local Console = require("Kdm/Console")
 local PanelKit = require("Kdm/Ui/PanelKit")
 local Ui = require("Kdm/Ui")
 local Archive = require("Kdm/Archive")
@@ -6,13 +5,13 @@ local Location = require("Kdm/Location")
 local Container = require("Kdm/Util/Container")
 local NamedObject = require("Kdm/NamedObject")
 local Deck = require("Kdm/Deck")
+local LayoutManager = require("Kdm/Ui/LayoutManager")
 local log = require("Kdm/Log").ForModule("Strain")
 local StrainMilestones = require("Kdm/GameData/StrainMilestones")
 
 ---------------------------------------------------------------------------------------------------
 
 local Strain = {}
-Strain.Test = {}
 
 Strain.REWARD_DECK_NAME = "Strain Rewards"
 Strain.REWARD_DECK_TYPE = "Rewards"
@@ -58,7 +57,7 @@ function Strain.Init(saveState)
     Strain.milestoneRows = {}
     Strain:InitUi()
     Strain:InitConfirmationDialog()
-    Strain.Test.RegisterConsoleCommands()
+    Strain:InitUncheckDialog()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -225,6 +224,181 @@ function Strain:InitConfirmationDialog()
     log:Debugf("Dialog: height=%d, layout used=%d, difference=%d", height, actualUsedHeight, height - actualUsedHeight)
 end
 
+function Strain:InitUncheckDialog()
+    local width = 540
+    local layoutParams = {
+        padding = 12,
+        spacing = 15,
+    }
+    local messageHeight = 120
+
+    local spec = LayoutManager.Specification()
+    spec:AddCustom({
+        height = messageHeight,
+        render = function(context)
+            local text = context.parent:Text({
+                id = "UncheckMessage",
+                x = context.x,
+                y = context.y,
+                width = context.width,
+                height = context.height,
+                text = "",
+                fontSize = 16,
+                color = Ui.DARK_BROWN,
+                alignment = "MiddleCenter",
+                horizontalOverflow = "Wrap",
+                verticalOverflow = "Truncate",
+            })
+            return text
+        end,
+    }, function(element)
+        Strain.uncheckMessage = element
+    end)
+
+    spec:AddSpacer(15)
+
+    spec:AddButtonRow({
+        spacing = 25,
+        buttons = {
+            {
+                id = "UncheckConfirm",
+                text = "Remove Rewards",
+                width = 210,
+                textColor = Ui.LIGHT_BROWN,
+                colors = Ui.DARK_BROWN_COLORS,
+                onClick = function(_, player)
+                    Strain:ConfirmUncheckMilestone(player)
+                end,
+            },
+            {
+                id = "UncheckCancel",
+                text = "Keep Rewards",
+                width = 210,
+                textColor = Ui.DARK_BROWN,
+                colors = Ui.MID_BROWN_COLORS,
+                onClick = function(_, player)
+                    Strain:CancelUncheckMilestone(player)
+                end,
+            },
+        },
+    })
+
+    local contentHeight = spec:CalculateHeight({
+        padding = layoutParams.padding,
+        spacing = layoutParams.spacing,
+        chromeOverhead = 0,
+    })
+    local height = spec:CalculateDialogHeight(layoutParams)
+    log:Debugf("Strain undo dialog: content=%d total=%d", contentHeight, height)
+
+    local dialog = PanelKit.Dialog({
+        id = "StrainMilestoneUncheck",
+        ui = Ui.Get2d(),
+        rectAlignment = "MiddleCenter",
+        width = width,
+        height = height,
+        color = "#00000000",
+        closeButton = false,
+        modal = true,
+    })
+    Strain.uncheckDialog = dialog
+    local panel = dialog:Panel()
+    local chrome = PanelKit.ClassicDialog({
+        panel = panel,
+        id = "StrainMilestoneUncheck",
+        width = width,
+        height = height,
+        closeButton = false,
+    })
+
+    if chrome.elements and chrome.elements.header and chrome.elements.header.Text then
+        local header = chrome.elements.header
+        local headerWidth = chrome.contentWidth or (width - 40)
+        local headerPadding = chrome.contentPadding or 20
+        Strain.uncheckTitleText = header:Text({
+            id = "UncheckTitle",
+            x = headerPadding,
+            y = -20,
+            width = headerWidth,
+            height = 40,
+            alignment = "MiddleLeft",
+            fontSize = 28,
+            fontStyle = "Bold",
+            color = Ui.DARK_BROWN,
+            text = "Undo Milestone",
+        })
+        header:Text({
+            id = "UncheckSubtitle",
+            x = headerPadding,
+            y = -58,
+            width = headerWidth,
+            height = 30,
+            alignment = "MiddleLeft",
+            fontSize = 16,
+            color = Ui.MID_BROWN,
+            text = "This removes the milestone's rewards from the settlement deck.",
+        })
+    end
+
+    local layout = LayoutManager.VerticalLayout({
+        parent = panel,
+        contentArea = chrome,
+        padding = layoutParams.padding,
+        spacing = layoutParams.spacing,
+    })
+    spec:Render(layout)
+end
+
+function Strain:ShowUncheckDialog(milestone)
+    if not Strain.uncheckDialog then
+        return
+    end
+    local title = milestone and milestone.title or "this milestone"
+    if Strain.uncheckTitleText then
+        Strain.uncheckTitleText:SetText(string.format("Undo: %s", title))
+    end
+    local artName = milestone and milestone.consequences and milestone.consequences.fightingArt
+    if artName then
+        Strain.uncheckMessage:SetText(string.format(
+            "This removes %s from the Fighting Arts deck. Remove it from any survivor who gained it.",
+            artName
+        ))
+    else
+        Strain.uncheckMessage:SetText(string.format(
+            "This removes the fighting art unlocked by \"%s\" from the settlement deck. Remove it from any survivor who gained it.",
+            title
+        ))
+    end
+    Strain.uncheckDialog:ShowForAll()
+end
+
+function Strain:ConfirmUncheckMilestone(player)
+    local index = Strain.pendingMilestoneIndex
+    if not index then
+        return
+    end
+    local milestone = Strain.milestones[index]
+    if milestone then
+        milestone.reached = false
+        local row = Strain.milestoneRows[index]
+        if row then
+            row.checkBox:Check(false)
+        end
+        Strain:ReverseConsequences(milestone)
+    end
+    if Strain.uncheckDialog then
+        Strain.uncheckDialog:HideForAll()
+    end
+    Strain.pendingMilestoneIndex = nil
+end
+
+function Strain:CancelUncheckMilestone(player)
+    if Strain.uncheckDialog then
+        Strain.uncheckDialog:HideForAll()
+    end
+    Strain.pendingMilestoneIndex = nil
+end
+
 ---------------------------------------------------------------------------------------------------
 
 function Strain:_FightingArtsDeck()
@@ -306,6 +480,54 @@ function Strain.AddFightingArtToArchive(cardName)
     Deck.ResetDeck(Strain.FIGHTING_ART_LOCATION)
 
     log:Printf("Added %s to the Fighting Arts deck.", cardName)
+    return true
+end
+
+function Strain.RemoveFightingArtFromArchive(cardName)
+    local archive = NamedObject.Get(Strain.FIGHTING_ART_ARCHIVE)
+    if not archive then
+        log:Errorf("Fighting Arts archive '%s' not found.", Strain.FIGHTING_ART_ARCHIVE)
+        return false
+    end
+
+    local faDeck = archive.takeObject({
+        position = Strain.REWARD_DECK_STAGING_POSITION,
+        rotation = { x = 0, y = 180, z = 180 },
+        smooth = false,
+    })
+    if not faDeck then
+        log:Errorf("Unable to take Fighting Arts deck from archive for removal.")
+        return false
+    end
+
+    local objects = faDeck.getObjects()
+    local removeIndex
+    for _, obj in ipairs(objects) do
+        if obj.name == cardName and obj.gm_notes == Strain.FIGHTING_ART_TYPE then
+            removeIndex = obj.index
+            break
+        end
+    end
+
+    if not removeIndex then
+        archive.putObject(faDeck)
+        log:Debugf("%s not present in Fighting Arts deck.", cardName)
+        return false
+    end
+
+    local removed = faDeck.takeObject({
+        index = removeIndex,
+        smooth = false,
+    })
+    if removed then
+        removed.destruct()
+    end
+
+    archive.reset()
+    archive.putObject(faDeck)
+    Archive.Clean()
+    Deck.ResetDeck(Strain.FIGHTING_ART_LOCATION)
+    log:Printf("Removed %s from the Fighting Arts deck.", cardName)
     return true
 end
 
@@ -474,9 +696,11 @@ function Strain:ReverseConsequences(milestone)
 
     local fightingArt = consequences.fightingArt
     if fightingArt then
-        local removed = Strain:RemoveFightingArtFromDeck(fightingArt)
+        local removed = Strain.RemoveFightingArtFromArchive(fightingArt)
         if removed then
             log:Printf("Remove %s from any survivor that gained it.", fightingArt)
+        else
+            log:Errorf("Failed to remove %s from the Fighting Arts deck.", fightingArt)
         end
     end
 end
@@ -521,13 +745,12 @@ function Strain:ToggleMilestone(index, player)
 
     -- If milestone is already reached, uncheck immediately
     if milestone.reached then
-        milestone.reached = false
-        log:Debugf("Unchecking milestone '%s'", milestone.title)
         local row = Strain.milestoneRows[index]
         if row then
-            row.checkBox:Check(false)
+            row.checkBox:Check(true)
         end
-        Strain:ReverseConsequences(milestone)
+        Strain.pendingMilestoneIndex = index
+        Strain:ShowUncheckDialog(milestone)
         return
     end
 
@@ -707,69 +930,6 @@ end
 function Strain.IsUiOpen()
     return Strain.dialog and Strain.dialog:IsOpen()
 end
-
----------------------------------------------------------------------------------------------------
-
--- Test harness for in-TTS regression checks
-
-function Strain.Test._DeckState(cardName)
-    local location = Location.Get(Strain.FIGHTING_ART_LOCATION)
-    if not location then
-        return 0, false
-    end
-    local deck = location:FirstObject({ types = { Strain.FIGHTING_ART_TYPE } })
-    if not deck then
-        return 0, false
-    end
-    local count = 0
-    local hasCard = false
-    for _, obj in ipairs(deck.getObjects()) do
-        count = count + 1
-        if obj.name == cardName then
-            hasCard = true
-        end
-    end
-    return count, hasCard
-end
-
-function Strain.Test._AddFightingArtHarness(cardName)
-    cardName = cardName or "Shielderang"
-    log:Printf("TEST: AddFightingArtToArchive with card: %s", cardName)
-
-    local countBefore, hadCardBefore = Strain.Test._DeckState(cardName)
-    log:Printf("TEST BEFORE: Deck has %d cards, contains '%s': %s", countBefore, cardName, tostring(hadCardBefore))
-
-    local result = Strain.AddFightingArtToArchive(cardName)
-    log:Printf("TEST: AddFightingArtToArchive returned: %s", tostring(result))
-
-    Wait.frames(function()
-        local countAfter, hasCardAfter = Strain.Test._DeckState(cardName)
-        log:Printf("TEST AFTER: Deck has %d cards, contains '%s': %s", countAfter, cardName, tostring(hasCardAfter))
-        if hasCardAfter and not hadCardBefore then
-            log:Printf("TEST PASSED: Card was added to deck")
-        elseif hasCardAfter and hadCardBefore then
-            log:Printf("TEST INCONCLUSIVE: Card was already in deck")
-        else
-            log:Printf("TEST FAILED: Card was NOT added to deck")
-        end
-    end, 30)
-end
-
--- Register in-TTS regression commands (e.g. `teststrain`)
-function Strain.Test.RegisterConsoleCommands()
-    if Strain._consoleTestsRegistered then
-        return
-    end
-    if not Console or not Console.AddCommand then
-        return
-    end
-    Console.AddCommand("teststrain", function(args)
-        Strain.Test._AddFightingArtHarness(args[2])
-    end, "<cardname> - Test adding a strain fighting art to the deck")
-    Strain._consoleTestsRegistered = true
-end
-
----------------------------------------------------------------------------------------------------
 
 return {
     Init = Strain.Init,

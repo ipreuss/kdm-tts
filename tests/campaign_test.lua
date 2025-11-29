@@ -193,3 +193,76 @@ Test.test("Campaign.RandomSelect returns unique subset", function(t)
     t:assertEqual(2, #selected, "Should return requested number of items")
     t:assertTrue(selected[1] ~= selected[2], "RandomSelect should not return duplicates")
 end)
+
+Test.test("Campaign.AddStrainRewards skips when no milestones unlocked", function(t)
+    local originalSave = Strain.Save
+    local originalMilestones = Strain.MILESTONE_CARDS
+    local originalAdd = Strain.AddFightingArtToArchive
+
+    Strain.Save = function()
+        return { reached = {} }
+    end
+    Strain.MILESTONE_CARDS = {
+        { title = "Milestone A", consequences = { fightingArt = "Art A" } },
+    }
+
+    local called = false
+    Strain.AddFightingArtToArchive = function()
+        called = true
+    end
+
+    InternalCampaign.AddStrainRewards()
+
+    Strain.Save = originalSave
+    Strain.MILESTONE_CARDS = originalMilestones
+    Strain.AddFightingArtToArchive = originalAdd
+
+    t:assertFalse(called, "No cards should be added when no milestones are reached")
+end)
+
+Test.test("Campaign.AddStrainRewards adds selected fighting arts via archive", function(t)
+    local originalSave = Strain.Save
+    local originalMilestones = Strain.MILESTONE_CARDS
+    local originalAdd = Strain.AddFightingArtToArchive
+    local originalSelect = InternalCampaign.RandomSelect
+
+    Strain.Save = function()
+        return {
+            reached = {
+                ["Milestone A"] = true,
+                ["Milestone B"] = true,
+                ["Milestone C"] = true,
+            }
+        }
+    end
+    Strain.MILESTONE_CARDS = {
+        { title = "Milestone A", consequences = { fightingArt = "Art A" } },
+        { title = "Milestone B", consequences = { fightingArt = "Art B" } },
+        { title = "Milestone C", consequences = { fightingArt = "Art C" } },
+    }
+
+    local requestedItems
+    InternalCampaign.RandomSelect = function(items, count)
+        requestedItems = {}
+        for i = 1, #items do
+            requestedItems[i] = items[i]
+        end
+        return { items[2], items[3] }
+    end
+
+    local added = {}
+    Strain.AddFightingArtToArchive = function(card)
+        table.insert(added, card)
+        return true
+    end
+
+    InternalCampaign.AddStrainRewards()
+
+    Strain.Save = originalSave
+    Strain.MILESTONE_CARDS = originalMilestones
+    Strain.AddFightingArtToArchive = originalAdd
+    InternalCampaign.RandomSelect = originalSelect
+
+    t:assertEqual(3, #requestedItems, "RandomSelect should receive all unlocked rewards")
+    t:assertDeepEqual({ "Art B", "Art C" }, added, "Only selected fighting arts should be added")
+end)

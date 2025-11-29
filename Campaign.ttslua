@@ -791,9 +791,11 @@ function Campaign.AddStrainRewards()
     local reached = strainState.reached or {}
     local unlockedFightingArts = {}
 
-    for _, milestone in ipairs(Strain.MILESTONE_CARDS) do
-        if reached[milestone.title] and milestone.consequences and milestone.consequences.fightingArt then
-            table.insert(unlockedFightingArts, milestone.consequences.fightingArt)
+    for _, milestone in ipairs(Strain.MILESTONE_CARDS or {}) do
+        local consequences = milestone.consequences
+        local fightingArt = consequences and consequences.fightingArt
+        if fightingArt and reached[milestone.title] then
+            table.insert(unlockedFightingArts, fightingArt)
         end
     end
 
@@ -802,11 +804,19 @@ function Campaign.AddStrainRewards()
     end
 
     local additions = Campaign.RandomSelect(unlockedFightingArts, 5)
+    local addedCount = 0
     for _, cardName in ipairs(additions) do
-        Strain.AddFightingArtToDeck(cardName)
+        local ok = Strain.AddFightingArtToArchive(cardName)
+        if ok then
+            addedCount = addedCount + 1
+        end
     end
 
-    log:Printf("Added %d strain reward fighting arts to the Fighting Arts deck.", #additions)
+    if addedCount > 0 then
+        log:Printf("Added %d strain reward fighting arts to the Fighting Arts deck.", addedCount)
+    else
+        log:Errorf("Failed to add strain reward fighting arts to the Fighting Arts deck.")
+    end
 end
 
 function Campaign.Import(data)

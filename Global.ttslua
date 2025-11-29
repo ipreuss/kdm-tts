@@ -27,6 +27,7 @@ local Strain = require("Kdm/Strain")
 local Survivor = require("Kdm/Survivor")
 local Terrain = require("Kdm/Terrain")
 local Timeline = require("Kdm/Timeline")
+local TTSTests = require("Kdm/TTSTests")
 local Ui = require("Kdm/Ui")
 local Weapon = require("Kdm/Weapon")
 local initialized = false
@@ -110,6 +111,8 @@ function onLoad(saveJson)
     initStep("Campaign", function() Campaign.Init(saveState.Campaign or {}) end)
     --
     initStep("MilestoneBoard", MilestoneBoard.Init)
+    --
+    initStep("TTSTests", TTSTests.Init)
     -- mad sketchy that initialization order for MessageBox doesn't match include order, but this must be *after* all 2d UIs since we want this to display *over*
     -- all other 2d UIs, and 2d UI display order is solely based on the order of the XML elements (last is on top of everything else)
     initStep("MessageBox", MessageBox.Init)

@@ -1,0 +1,93 @@
+-- TTS Console Test Harness
+-- These tests run inside TTS via console commands to verify actual behavior
+-- Usage: Type ">testhelp" in TTS chat to see available tests
+
+local Console = require("Kdm/Console")
+local Location = require("Kdm/Location")
+local log = require("Kdm/Log").ForModule("TTSTests")
+
+---------------------------------------------------------------------------------------------------
+
+local TTSTests = {}
+
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.Init()
+    Console.AddCommand("testhelp", function(args)
+        log:Printf("Available TTS tests:")
+        log:Printf("  >teststrain [cardname] - Test adding a strain fighting art to the deck")
+    end, "Show available TTS test commands")
+    
+    TTSTests.RegisterStrainTests()
+end
+
+---------------------------------------------------------------------------------------------------
+-- Strain Tests
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.RegisterStrainTests()
+    local Strain = require("Kdm/Strain")
+    
+    Console.AddCommand("teststrain", function(args)
+        local cardName = args[2] or "Shielderang"
+        TTSTests.TestAddFightingArtToArchive(cardName)
+    end, "<cardname> - Test adding a strain fighting art to the deck")
+end
+
+function TTSTests.TestAddFightingArtToArchive(cardName)
+    local Strain = require("Kdm/Strain")
+    
+    log:Printf("TEST: AddFightingArtToArchive with card: %s", cardName)
+    
+    -- Check deck state BEFORE
+    local countBefore, hadCardBefore = TTSTests.GetFightingArtsDeckState(cardName)
+    log:Printf("TEST BEFORE: Deck has %d cards, contains '%s': %s", countBefore, cardName, tostring(hadCardBefore))
+    
+    -- Run the function
+    local result = Strain.AddFightingArtToArchive(cardName)
+    log:Printf("TEST: AddFightingArtToArchive returned: %s", tostring(result))
+    
+    -- Check deck state AFTER (with delay for any async operations)
+    Wait.frames(function()
+        local countAfter, hasCardAfter = TTSTests.GetFightingArtsDeckState(cardName)
+        log:Printf("TEST AFTER: Deck has %d cards, contains '%s': %s", countAfter, cardName, tostring(hasCardAfter))
+        
+        -- Verdict
+        if hasCardAfter and not hadCardBefore then
+            log:Printf("TEST PASSED: Card was added to deck")
+        elseif hasCardAfter and hadCardBefore then
+            log:Printf("TEST INCONCLUSIVE: Card was already in deck")
+        else
+            log:Printf("TEST FAILED: Card was NOT added to deck")
+        end
+    end, 30)
+end
+
+function TTSTests.GetFightingArtsDeckState(cardName)
+    local location = Location.Get("Fighting Arts")
+    if not location then
+        return 0, false
+    end
+    local deck = location:FirstObject({ types = { "Fighting Arts" } })
+    local count = 0
+    local hasCard = false
+    
+    if deck then
+        local objects = deck.getObjects()
+        count = #objects
+        for _, obj in ipairs(objects) do
+            if obj.name == cardName then
+                hasCard = true
+                break
+            end
+        end
+    end
+    
+    return count, hasCard
+end
+
+---------------------------------------------------------------------------------------------------
+
+return {
+    Init = TTSTests.Init,
+}

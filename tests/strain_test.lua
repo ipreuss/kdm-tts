@@ -106,10 +106,35 @@ local function buildStrainStubs()
         SetHeight = function() end,
     }
 
+    local function simplePanel()
+        local panel = {}
+        function panel:Panel()
+            return simplePanel()
+        end
+        function panel:Text(params)
+            local text = { params = params, text = nil }
+            function text:SetText(value) text.text = value end
+            return text
+        end
+        function panel:Button()
+            return {}
+        end
+        return panel
+    end
+
+    local uncheckDialog = {
+        Panel = simplePanel,
+        ShowForAll = function() end,
+        HideForAll = function() end,
+    }
+
     local panelKitStub = {
         Dialog = function(params)
             if params.id == "StrainMilestoneConfirmation" then
                 return confirmDialog
+            end
+            if params.id == "StrainMilestoneUncheck" then
+                return uncheckDialog
             end
             return dialog
         end,
@@ -225,14 +250,27 @@ local function buildStrainStubs()
         Get = function()
             return {
                 takeObject = function()
-                    return {
-                        getName = function() return "Stub Deck" end,
-                        getGUID = function() return "stub-guid" end,
-                        getPosition = function() return { x = 0, y = 0, z = 0 } end,
-                        putObject = function() end,
+                    local deck = {}
+                    function deck:getName() return "Stub Deck" end
+                    function deck:getGUID() return "stub-guid" end
+                    function deck:getPosition() return { x = 0, y = 0, z = 0 } end
+                    function deck:putObject() end
+                    function deck:getObjects() return deck.__objects or {} end
+                    function deck:takeObject(params)
+                        if deck.__objects and params and params.index then
+                            deck.__objects[params.index] = nil
+                        end
+                        return {
+                            destruct = function() end,
+                        }
+                    end
+                    deck.__objects = {
+                        { name = "Test Art", gm_notes = "Fighting Arts", index = 1 },
                     }
+                    return deck
                 end,
                 putObject = function() end,
+                reset = function() end,
                 getName = function() return "Stub Archive" end,
                 getGUID = function() return "archive-guid" end,
             }
@@ -243,10 +281,11 @@ local function buildStrainStubs()
         ResetDeck = function() end,
     }
 
-    local consoleStub = {
-        commands = {},
-        AddCommand = function(_, _) end,
-    }
+    local consoleStub = {}
+    consoleStub.commands = {}
+    function consoleStub.AddCommand(name, func, desc)
+        consoleStub.commands[name] = { func = func, desc = desc }
+    end
 
     local stubs = {
         ["Kdm/Ui/PanelKit"] = panelKitStub,
@@ -338,10 +377,15 @@ Test.test("ToggleMilestone unchecks already reached milestones", function(t)
         strain.milestones[1].reached = true
         strain.milestoneRows[1].checkBox:Check(true)
 
-        -- Toggle should uncheck it
+        -- Toggle should prompt first
         local player = { color = "White" }
         strain:ToggleMilestone(1, player)
-        
+        t:assertEqual(1, strain.pendingMilestoneIndex)
+        t:assertTrue(strain.milestones[1].reached, "Milestone should stay reached until confirmed")
+
+        -- Confirm removal
+        strain:ConfirmUncheckMilestone(player)
+
         t:assertFalse(strain.milestones[1].reached)
         t:assertFalse(env.recorder.rows[1].checkBox.checked)
     end)
@@ -519,15 +563,15 @@ Test.test("ReverseConsequences removes fighting art rewards", function(t)
     withStrain(t, function(StrainModule, strain)
         StrainModule.Init()
         local removed
-        local originalRemove = strain.RemoveFightingArtFromDeck
-        strain.RemoveFightingArtFromDeck = function(_, name)
+        local originalRemove = strain.RemoveFightingArtFromArchive
+        strain.RemoveFightingArtFromArchive = function(name)
             removed = name
             return true
         end
 
         strain:ReverseConsequences({ consequences = { fightingArt = "Test Art" } })
 
-        strain.RemoveFightingArtFromDeck = originalRemove
+        strain.RemoveFightingArtFromArchive = originalRemove
 
         t:assertEqual("Test Art", removed, "ReverseConsequences should remove fighting art from deck")
     end)
