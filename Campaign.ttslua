@@ -803,7 +803,7 @@ function Campaign.AddStrainRewards()
 
     local additions = Campaign.RandomSelect(unlockedFightingArts, 5)
     for _, cardName in ipairs(additions) do
-        Strain:AddFightingArtToDeck(cardName)
+        Strain.AddFightingArtToDeck(cardName)
     end
 
     log:Printf("Added %d strain reward fighting arts to the Fighting Arts deck.", #additions)

@@ -221,6 +221,33 @@ local function buildStrainStubs()
         return stub
     end
 
+    local namedObjectStub = {
+        Get = function()
+            return {
+                takeObject = function()
+                    return {
+                        getName = function() return "Stub Deck" end,
+                        getGUID = function() return "stub-guid" end,
+                        getPosition = function() return { x = 0, y = 0, z = 0 } end,
+                        putObject = function() end,
+                    }
+                end,
+                putObject = function() end,
+                getName = function() return "Stub Archive" end,
+                getGUID = function() return "archive-guid" end,
+            }
+        end,
+    }
+
+    local deckStub = {
+        ResetDeck = function() end,
+    }
+
+    local consoleStub = {
+        commands = {},
+        AddCommand = function(_, _) end,
+    }
+
     local stubs = {
         ["Kdm/Ui/PanelKit"] = panelKitStub,
         ["Kdm/Ui"] = {
@@ -247,6 +274,9 @@ local function buildStrainStubs()
         ["Kdm/Archive"] = archiveStub,
         ["Kdm/Location"] = locationStub,
         ["Kdm/Util/Container"] = containerStub,
+        ["Kdm/NamedObject"] = namedObjectStub,
+        ["Kdm/Deck"] = deckStub,
+        ["Kdm/Console"] = consoleStub,
     }
 
     return stubs, {
@@ -377,7 +407,27 @@ end)
 Test.test("_TakeRewardCard prefers the Strain Rewards deck when available", function(t)
     withStrain(t, function(StrainModule, strain, env)
         StrainModule.Init()
-        local deckObject = { __card = { name = "Test Reward" } }
+        local deckObject = {
+            __card = { name = "Test Reward", gm_notes = StrainModule.Strain and StrainModule.Strain.FIGHTING_ART_TYPE or "Fighting Arts" },
+            getName = function() return "Strain Rewards" end,
+            getGUID = function() return "strain-deck" end,
+            getObjects = function()
+                return {
+                    { name = "Test Reward", gm_notes = "Fighting Arts", index = 1 },
+                }
+            end,
+            takeObject = function(_, params)
+                local card = {
+                    name = "Test Reward",
+                    gm_notes = "Fighting Arts",
+                }
+                if params and params.spawnFunc then
+                    params.spawnFunc(card)
+                end
+                return card
+            end,
+            destruct = function() end,
+        }
         env.archiveStub.takeHandler = function(params)
             if params.name == strain.REWARD_DECK_NAME then
                 return deckObject
@@ -445,9 +495,9 @@ Test.test("ExecuteConsequences applies fighting art rewards", function(t)
     withStrain(t, function(StrainModule, strain)
         StrainModule.Init()
         local added, spawned
-        local originalAdd = strain.AddFightingArtToDeck
+        local originalAdd = strain.AddFightingArtToArchive
         local originalSpawn = strain.SpawnFightingArtForSurvivor
-        strain.AddFightingArtToDeck = function(_, name)
+        strain.AddFightingArtToArchive = function(name)
             added = name
             return true
         end
@@ -457,7 +507,7 @@ Test.test("ExecuteConsequences applies fighting art rewards", function(t)
 
         strain:ExecuteConsequences({ consequences = { fightingArt = "Test Art" } })
 
-        strain.AddFightingArtToDeck = originalAdd
+        strain.AddFightingArtToArchive = originalAdd
         strain.SpawnFightingArtForSurvivor = originalSpawn
 
         t:assertEqual("Test Art", added, "ExecuteConsequences should add fighting art to deck")

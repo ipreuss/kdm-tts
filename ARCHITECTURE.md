@@ -117,6 +117,27 @@ spec:Render(layout)
 - **Archive** indexes infinite bags/decks so scripts can spawn resources by logical key instead of GUIDs. It merges base data with any expansion overrides and exposes helpers to pull cards into temporary containers and combine them back into decks (`Archive.ttslua:13-90`).
 - **Expansion** loads every data-only module under `Expansion/`, keeps track of which ones are enabled, and exposes convenience filters for "enabled only" lists (`Expansion.ttslua:1-87`). Campaign configuration later consumes that data.
 
+### Deck Lifecycle Pattern
+
+Many card decks (Fighting Arts, Disorders, etc.) follow a three-stage lifecycle:
+
+1. **Construction** - Cards collected from enabled expansion archives and combined into a single deck (`Campaign.SetupDeckFromExpansionComponents`)
+2. **Archive Storage** - Constructed deck stored in a dedicated archive container (e.g., "Fighting Arts Archive") which acts as the canonical source
+3. **Board Spawn** - Deck spawned from archive to its board location for player use
+
+**Reset Flow**: Players can reset a deck at any time via `Deck.ResetDeck()` (line 61-76), which:
+- Clears the current board deck
+- Spawns a fresh copy from the archive
+- Shuffles if needed
+
+**Implication for runtime modifications**: Any permanent changes to deck contents (e.g., adding Strain reward fighting arts) must modify the deck **inside the archive**, not just the board copy. Otherwise changes are lost on reset. The pattern is:
+1. Take the deck from the archive
+2. Add/remove cards
+3. Put the modified deck back in the archive
+4. Optionally spawn a fresh copy to the board
+
+This ensures all future resets include the modifications.
+
 ## Domain Systems
 ### Campaign & Timeline
 - `Campaign.Init` merges expansion metadata, builds the campaign-selection UI, wires export/import helpers, and registers providers survivors rely on (character deck, innovation checker, survival limit) (`Campaign.ttslua:46-65`).
@@ -331,12 +352,43 @@ The Archive system has a two-level structure that's important to understand when
 1. **Archive name mismatch**: Passing an explicit `archive` parameter that doesn't exist as a TTS object (e.g., `"Strain Rewards"` is a deck inside Core Archive, not an archive itself)
 2. **Card name typo**: Card names in the TTS save file must match exactly what the code expects
 3. **Type mismatch**: A deck's `gm_notes` differs from its cards' `gm_notes` (e.g., deck is `"Rewards"` but cards inside are `"Fighting Arts"`)
+4. **Cached container depletion**: `Archive.Take` removes objects from cached containers. Multiple calls for the same object fail unless `Archive.Clean()` is called between them to spawn a fresh container.
 
 **Debugging steps**:
 1. Check `savefile_backup.json` for exact `Nickname` and `GMNotes` values
 2. Trace whether the code passes an explicit `archive` parameter (usually wrong) or lets auto-resolution work (usually right)
 3. Compare to working patterns like `Showdown.ttslua:376` which takes "Misc AI" without explicit archive
+4. If taking the same object twice, ensure `Archive.Clean()` is called between takes
 
 **Pattern for mixed-type decks**: When a deck contains cards of different types (like Strain Rewards containing Fighting Arts, Vermin, and Resources), search by name only within that specific deck rather than relying on type matching.
+
+### TTS Spawn Callbacks Are Async
+
+**Critical:** TTS object spawning uses asynchronous callbacks. Code after a spawn call runs BEFORE the spawned object exists.
+
+```lua
+-- WRONG - deck goes into archive before card is added
+local card = container:Take({
+    spawnFunc = function(card)
+        deck.putObject(card)  -- Called LATER
+    end,
+})
+archive.putObject(deck)  -- Called IMMEDIATELY - deck has no card yet!
+
+-- CORRECT - wait for spawn to complete
+container:Take({
+    spawnFunc = function(card)
+        deck.putObject(card)
+        archive.putObject(deck)  -- Now card is in deck
+    end,
+})
+```
+
+This applies to:
+- `object.takeObject({ callback_function = ... })`
+- `Container:Take({ spawnFunc = ... })`
+- `Archive.Take({ spawnFunc = ... })`
+
+Any logic depending on the spawned object must be inside the callback or use `Wait.frames`.
 
 Keep this document close when planning future work; updating it when adding a new subsystem pays for itself the next time you (or someone else) needs to understand how the mod hangs together.

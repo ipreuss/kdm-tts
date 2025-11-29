@@ -35,6 +35,7 @@ This document captures the shared conventions for working on the KDM Tabletop Si
 
 ## Paradigm Preference
 - Default to **object-oriented Lua**, similar to the pattern in `Weapon.ttslua`, where behaviors live alongside data via colon-methods and constructors (`Gear:new()`).
+  - Only use the colon (`:`) call/definition form when the function truly depends on `self`. If the logic doesn’t access instance state, define it with a dot (`.`) and call it likewise so it’s obvious that no implicit receiver is used.
 - If OO is not a fit, use **pure functions** with clear inputs/outputs.
 - Use **imperative scripts** only when the above are impractical (e.g., glue code, bootstrap routines).
 - Hide mutation inside objects and expose intention-revealing methods. Use metatables sparingly and encapsulate TTS API interactions within objects.

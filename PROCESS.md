@@ -126,6 +126,14 @@ All role-to-role handovers are stored in the `handover/` folder:
 - Include context, requirements/design, open questions, and relevant files
 - The receiving role should read the handover before starting work
 
+### Role Boundaries
+
+When the user requests an action outside the current role's responsibilities, **ask for confirmation before proceeding**. For example:
+- If acting as Reviewer and asked to debug: "That sounds like Debugger work. Should I switch to the Debugger role?"
+- If acting as Debugger and asked to fix code: "Fixing code is Implementer work. Should I switch roles, or would you like me to document the fix in the handover for the Implementer?"
+
+This prevents accidental role violations and keeps the separation of concerns explicit.
+
 ## Safety Net First
 - **Baseline tests before edits** – confirm existing behavior has automated coverage (unit/integration). If coverage is missing for the code you are about to edit, add characterization tests that express the current behavior before changing logic.
 - **Protect regressions** – when a bug is reported, reproduce it in a failing test before touching implementation code. The test should prove the fix and guard against future regressions.

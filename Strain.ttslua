@@ -1,14 +1,18 @@
+local Console = require("Kdm/Console")
 local PanelKit = require("Kdm/Ui/PanelKit")
 local Ui = require("Kdm/Ui")
 local Archive = require("Kdm/Archive")
 local Location = require("Kdm/Location")
 local Container = require("Kdm/Util/Container")
+local NamedObject = require("Kdm/NamedObject")
+local Deck = require("Kdm/Deck")
 local log = require("Kdm/Log").ForModule("Strain")
 local StrainMilestones = require("Kdm/GameData/StrainMilestones")
 
 ---------------------------------------------------------------------------------------------------
 
 local Strain = {}
+Strain.Test = {}
 
 Strain.REWARD_DECK_NAME = "Strain Rewards"
 Strain.REWARD_DECK_TYPE = "Rewards"
@@ -16,6 +20,7 @@ Strain.REWARD_DECK_TYPE = "Rewards"
 Strain.REWARD_SPAWN_LOCATION = "Showdown Board South"
 Strain.FIGHTING_ART_TYPE = "Fighting Arts"
 Strain.FIGHTING_ART_LOCATION = "Fighting Arts"
+Strain.FIGHTING_ART_ARCHIVE = "Fighting Arts Archive"
 Strain.REWARD_DECK_STAGING_POSITION = { x = -150, y = 60, z = 120 }
 
 Strain.TITLE_HEIGHT = 26
@@ -53,6 +58,7 @@ function Strain.Init(saveState)
     Strain.milestoneRows = {}
     Strain:InitUi()
     Strain:InitConfirmationDialog()
+    Strain.Test.RegisterConsoleCommands()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -235,26 +241,71 @@ function Strain:_FightingArtsDeck()
     return deck
 end
 
-function Strain:AddFightingArtToDeck(cardName)
-    local deck = Strain:_FightingArtsDeck()
-    if not deck then
+function Strain.AddFightingArtToArchive(cardName)
+    local archive = NamedObject.Get(Strain.FIGHTING_ART_ARCHIVE)
+    if not archive then
+        log:Errorf("Fighting Arts archive '%s' not found.", Strain.FIGHTING_ART_ARCHIVE)
         return false
     end
-    local takeParams = {
-        name = cardName,
-        type = Strain.FIGHTING_ART_TYPE,
-        position = deck.getPosition(),
+
+    local faDeck = archive.takeObject({
+        position = Strain.REWARD_DECK_STAGING_POSITION,
         rotation = { x = 0, y = 180, z = 180 },
-        spawnFunc = function(card)
-            deck.putObject(card)
-            log:Printf("Added %s to the Fighting Arts deck.", cardName)
-        end,
-    }
-    local ok = Strain:_TakeRewardCard(takeParams)
-    if not ok then
+        smooth = false,
+    })
+    if not faDeck then
+        log:Errorf("Unable to take Fighting Arts deck from archive.")
         return false
     end
+
+    local strainDeck = Archive.Take({
+        name = Strain.REWARD_DECK_NAME,
+        type = Strain.REWARD_DECK_TYPE,
+        position = {
+            x = Strain.REWARD_DECK_STAGING_POSITION.x + 5,
+            y = Strain.REWARD_DECK_STAGING_POSITION.y,
+            z = Strain.REWARD_DECK_STAGING_POSITION.z,
+        },
+        rotation = { x = 0, y = 180, z = 180 },
+    })
+    if not strainDeck then
+        log:Errorf("Unable to take Strain Rewards deck from archive.")
+        archive.putObject(faDeck)
+        return false
+    end
+
+    local objects = strainDeck.getObjects()
+    local cardIndex = nil
+    for _, obj in ipairs(objects) do
+        if obj.name == cardName and obj.gm_notes == Strain.FIGHTING_ART_TYPE then
+            cardIndex = obj.index
+            break
+        end
+    end
+
+    if not cardIndex then
+        log:Errorf("Card '%s' not found in Strain Rewards deck.", cardName)
+        archive.putObject(faDeck)
+        strainDeck.destruct()
+        return false
+    end
+
+    faDeck.putObject(strainDeck.takeObject({
+        index = cardIndex,
+        position = faDeck.getPosition(),
+        smooth = false,
+    }))
+    strainDeck.destruct()
+
+    if archive.reset then
+        archive.reset()
+    end
+    archive.putObject(faDeck)
+
     Archive.Clean()
+    Deck.ResetDeck(Strain.FIGHTING_ART_LOCATION)
+
+    log:Printf("Added %s to the Fighting Arts deck.", cardName)
     return true
 end
 
@@ -334,12 +385,15 @@ function Strain:_ResolveSpawnPosition(params)
 end
 
 function Strain:_TakeFromRewardsDeck(params)
+    log:Debugf("[DEBUG] _TakeFromRewardsDeck START for '%s'", params.name or "<unknown>")
+    
     local position = Strain:_ResolveSpawnPosition(params)
     local rewardName = params.name or "<unknown>"
     if not position then
         log:Errorf("Unable to resolve spawn position for reward '%s'", rewardName)
         return false
     end
+    log:Debugf("[DEBUG] Resolved position: (%f, %f, %f)", position.x, position.y, position.z)
 
     local deckParams = {
         name = Strain.REWARD_DECK_NAME,
@@ -348,13 +402,17 @@ function Strain:_TakeFromRewardsDeck(params)
         rotation = { x = 0, y = 180, z = 180 },
         lenient = true,
     }
+    log:Debugf("[DEBUG] Calling Archive.Take for '%s' (type='%s')", Strain.REWARD_DECK_NAME, Strain.REWARD_DECK_TYPE)
 
     local ok, deckOrErr = pcall(Archive.Take, deckParams)
+    log:Debugf("[DEBUG] Archive.Take returned ok=%s, deckOrErr=%s", tostring(ok), tostring(deckOrErr))
+    
     if not ok or not deckOrErr then
         local err = not ok and deckOrErr or "Archive returned nil"
         log:Errorf("Failed to take Strain rewards deck '%s': %s", Strain.REWARD_DECK_NAME, err)
         return false
     end
+    log:Debugf("[DEBUG] Got Strain Rewards deck: %s (guid=%s)", deckOrErr.getName(), deckOrErr.getGUID())
 
     local deckContainer = Container(deckOrErr)
     if not deckContainer then
@@ -364,6 +422,14 @@ function Strain:_TakeFromRewardsDeck(params)
         end
         return false
     end
+    log:Debugf("[DEBUG] Created container for Strain Rewards deck")
+    
+    -- Log contents of the deck
+    log:Debugf("[DEBUG] Contents of Strain Rewards deck:")
+    for _, entry in ipairs(deckContainer:Objects()) do
+        log:Debugf("[DEBUG]   - name='%s', gm_notes='%s', guid='%s'", entry.name, entry.gm_notes or "<nil>", entry.guid)
+    end
+    log:Debugf("[DEBUG] Looking for name='%s', type='%s'", params.name, params.type)
 
     local card = deckContainer:Take({
         name = params.name,
@@ -372,10 +438,10 @@ function Strain:_TakeFromRewardsDeck(params)
         rotation = params.rotation,
         spawnFunc = params.spawnFunc,
     })
-
-    deckContainer:Destruct()
+    log:Debugf("[DEBUG] deckContainer:Take returned: %s", tostring(card))
 
     if card then
+        log:Debugf("[DEBUG] _TakeFromRewardsDeck SUCCESS")
         return true
     end
 
@@ -395,11 +461,8 @@ function Strain:ExecuteConsequences(milestone)
 
     local fightingArt = consequences.fightingArt
     if fightingArt then
-        local added = Strain:AddFightingArtToDeck(fightingArt)
+        Strain.AddFightingArtToArchive(fightingArt)
         Strain:SpawnFightingArtForSurvivor(fightingArt)
-        if not added then
-            log:Errorf("Failed to add %s to the Fighting Arts deck.", fightingArt)
-        end
     end
 end
 
@@ -647,6 +710,67 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+-- Test harness for in-TTS regression checks
+
+function Strain.Test._DeckState(cardName)
+    local location = Location.Get(Strain.FIGHTING_ART_LOCATION)
+    if not location then
+        return 0, false
+    end
+    local deck = location:FirstObject({ types = { Strain.FIGHTING_ART_TYPE } })
+    if not deck then
+        return 0, false
+    end
+    local count = 0
+    local hasCard = false
+    for _, obj in ipairs(deck.getObjects()) do
+        count = count + 1
+        if obj.name == cardName then
+            hasCard = true
+        end
+    end
+    return count, hasCard
+end
+
+function Strain.Test._AddFightingArtHarness(cardName)
+    cardName = cardName or "Shielderang"
+    log:Printf("TEST: AddFightingArtToArchive with card: %s", cardName)
+
+    local countBefore, hadCardBefore = Strain.Test._DeckState(cardName)
+    log:Printf("TEST BEFORE: Deck has %d cards, contains '%s': %s", countBefore, cardName, tostring(hadCardBefore))
+
+    local result = Strain.AddFightingArtToArchive(cardName)
+    log:Printf("TEST: AddFightingArtToArchive returned: %s", tostring(result))
+
+    Wait.frames(function()
+        local countAfter, hasCardAfter = Strain.Test._DeckState(cardName)
+        log:Printf("TEST AFTER: Deck has %d cards, contains '%s': %s", countAfter, cardName, tostring(hasCardAfter))
+        if hasCardAfter and not hadCardBefore then
+            log:Printf("TEST PASSED: Card was added to deck")
+        elseif hasCardAfter and hadCardBefore then
+            log:Printf("TEST INCONCLUSIVE: Card was already in deck")
+        else
+            log:Printf("TEST FAILED: Card was NOT added to deck")
+        end
+    end, 30)
+end
+
+-- Register in-TTS regression commands (e.g. `teststrain`)
+function Strain.Test.RegisterConsoleCommands()
+    if Strain._consoleTestsRegistered then
+        return
+    end
+    if not Console or not Console.AddCommand then
+        return
+    end
+    Console.AddCommand("teststrain", function(args)
+        Strain.Test._AddFightingArtHarness(args[2])
+    end, "<cardname> - Test adding a strain fighting art to the deck")
+    Strain._consoleTestsRegistered = true
+end
+
+---------------------------------------------------------------------------------------------------
+
 return {
     Init = Strain.Init,
     Save = Strain.Save,
@@ -655,4 +779,5 @@ return {
     HideUi = Strain.HideUi,
     IsUiOpen = Strain.IsUiOpen,
     MILESTONE_CARDS = Strain.MILESTONE_CARDS,
+    AddFightingArtToArchive = Strain.AddFightingArtToArchive,
 }
