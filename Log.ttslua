@@ -25,6 +25,7 @@ Log.DEBUG_MODULES = {
     --["LocationData"] = true,
     --["LocationGrid"] = true,
     --["Overlay"] = true,
+    ["PanelKit"] = true,
     --["Player"] = true,
     --["Rules"] = true,
     --["Showdown"] = true,

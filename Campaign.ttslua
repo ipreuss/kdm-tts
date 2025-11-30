@@ -122,6 +122,10 @@ function Campaign.InitCampaignUi()
     end
 
     local panel
+    Campaign.selectedCampaign = Campaign.campaigns[1]
+    Campaign.selectedExpansionsNyName = {}
+    Campaign.expansionButtons = {}
+    Campaign.settlementButtons = {}
 
     local function buildGridConfig(items, renderItem)
         return {
@@ -147,7 +151,7 @@ function Campaign.InitCampaignUi()
             if i % 5 == 0 then
                 y = y + 2
             end
-            Campaign.settlementButtons[i] = panel:CheckButton({
+            Campaign.settlementButtons[i] = ctx.parent:CheckButton({
                 id = "settlementNo" .. i,
                 x = x,
                 y = y,
@@ -166,6 +170,22 @@ function Campaign.InitCampaignUi()
         end
     end
 
+    local function ensureCampaignOptionGroup(parent)
+        if not Campaign.campaignOptionGroup then
+            Campaign.campaignOptionGroup = parent:OptionButtonGroup({
+                id = "Campaign",
+                unselectedColors = Ui.MID_BROWN_COLORS,
+                fontSize = 14,
+                onClick = function(option)
+                    local campaign = option:OptionValue()
+                    Campaign.selectedCampaign = campaign
+                    option:Select()
+                end
+            })
+        end
+        return Campaign.campaignOptionGroup
+    end
+
     local layoutSpec = LayoutManager.Specification()
     layoutSpec:AddText({
         id = "CampaignLabel",
@@ -174,13 +194,14 @@ function Campaign.InitCampaignUi()
         fontStyle = "Bold",
         color = Ui.DARK_BROWN,
     })
-    layoutSpec:AddGrid(buildGridConfig(Campaign.campaigns, function(cell, campaign)
+    layoutSpec:AddGrid(buildGridConfig(Campaign.campaigns, function(ctx, campaign)
         local selected = (campaign == Campaign.selectedCampaign)
-        return Campaign.campaignOptionGroup:OptionButton({
-            x = cell.x,
-            y = cell.y,
-            width = cell.width,
-            height = cell.height,
+        local optionGroup = ensureCampaignOptionGroup(ctx.parent)
+        return optionGroup:OptionButton({
+            x = ctx.x,
+            y = ctx.y,
+            width = ctx.width,
+            height = ctx.height,
             text = campaign.name,
             selected = selected,
             optionValue = campaign,
@@ -193,13 +214,14 @@ function Campaign.InitCampaignUi()
         fontStyle = "Bold",
         color = Ui.DARK_BROWN,
     })
-    layoutSpec:AddGrid(buildGridConfig(availableExpansions, function(cell, expansion)
-        local button = panel:CheckButton({
+    layoutSpec:AddGrid(buildGridConfig(availableExpansions, function(ctx, expansion)
+        local parentPanel = ctx.parent
+        local button = parentPanel:CheckButton({
             id = expansion.name,
-            x = cell.x,
-            y = cell.y,
-            width = cell.width,
-            height = cell.height,
+            x = ctx.x,
+            y = ctx.y,
+            width = ctx.width,
+            height = ctx.height,
             fontSize = 14,
             text = expansion.name,
             checked = Campaign.selectedExpansionsNyName[expansion.name] or false,
@@ -275,64 +297,36 @@ function Campaign.InitCampaignUi()
         },
     })
 
-    local measuredHeight = layoutSpec:CalculateDialogHeight({
-        padding = layoutPadding,
-        spacing = layoutSpacing,
-        chromeOverhead = chromeOverhead,
-    })
-    local dialogHeight = math.max(660, math.ceil(measuredHeight))
-    local dialog = PanelKit.Dialog({
+    local dialogResult = PanelKit.DialogFromSpec({
         id = "Campaign",
-        ui = Ui.Get2d(),
-        rectAlignment = "MiddleCenter",
         width = dialogWidth,
-        height = dialogHeight,
-        color = "#00000000",
-        closeButton = false,
-    })
-    Campaign.dialog = dialog
-    panel = dialog:Panel()
-    Campaign.panel = panel
-    local chrome = PanelKit.ClassicDialog({
-        panel = panel,
-        id = "CampaignChrome",
-        width = dialogWidth,
-        height = dialogHeight,
+        spec = layoutSpec,
         title = "Campaign Setup",
         subtitle = "Choose your story, expansions, and settlement options.",
-        closeButton = {
-            onClick = function(_, player)
-                Campaign.HideUi(player)
-            end,
+        dialog = {
+            color = "#00000000",
+            closeButton = false,
+        },
+        chrome = {
+            id = "CampaignChrome",
+            closeButton = {
+                onClick = function(_, player)
+                    Campaign.HideUi(player)
+                end,
+            },
+        },
+        layout = {
+            padding = layoutPadding,
+            spacing = layoutSpacing,
+            chromeOverhead = chromeOverhead,
+            minHeight = 660,
         },
     })
-    Campaign.selectedCampaign = Campaign.campaigns[1]
-    Campaign.selectedExpansionsNyName = {}
-    Campaign.expansionButtons = {}
-    Campaign.settlementButtons = {}
+    Campaign.dialog = dialogResult.dialog
+    panel = dialogResult.panel
+    Campaign.panel = panel
 
-    Campaign.campaignOptionGroup = panel:OptionButtonGroup({
-        id = "Campaign",
-        unselectedColors = Ui.MID_BROWN_COLORS,
-        fontSize = 14,
-        onClick = function(option)
-            local campaign = option:OptionValue()
-            Campaign.selectedCampaign = campaign
-            option:Select()
-        end
-    })
-
-    local layout = LayoutManager.VerticalLayout({
-        parent = panel,
-        contentArea = chrome,
-        padding = layoutPadding,
-        spacing = layoutSpacing,
-    })
-
-    layoutSpec:Render(layout)
-
-    local usedHeight = layout:GetUsedHeight()
-    log:Debugf("Campaign layout height=%d (available=%d)", usedHeight, chrome.contentHeight)
+    log:Debugf("Campaign layout height=%d (available=%d)", dialogResult.contentHeight, dialogResult.chrome.contentHeight)
 end
 
 ---------------------------------------------------------------------------------------------------

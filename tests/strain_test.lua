@@ -128,61 +128,109 @@ local function buildStrainStubs()
         HideForAll = function() end,
     }
 
-    local panelKitStub = {
-        Dialog = function(params)
-            if params.id == "StrainMilestoneConfirmation" then
-                return confirmDialog
-            end
-            if params.id == "StrainMilestoneUncheck" then
-                return uncheckDialog
-            end
-            return dialog
-        end,
-        ClassicDialog = function(args)
-            recorder.legacyArgs = args
-            return {
-                contentX = 10,
-                contentY = -30,
-                contentWidth = 300,
-                contentHeight = 210,
-            }
-        end,
-        ScrollArea = function(args)
-            recorder.scrollArgs = args
-            return scrollArea
-        end,
-        VerticalLayout = function(params)
-            return {
-                AddTitle = function() return { SetText = function() end } end,
-                AddSection = function() return {
-                    content = { SetText = function() end },
-                    label = { SetText = function() end }
-                } end,
-                AddSpacer = function() end,
-                AddButtonRow = function() return {} end,
-                GetUsedHeight = function() return 300 end,
-                AutoSize = function() return 400 end,
-            }
-        end,
-        CalculateVerticalLayoutHeight = function(params) return 450 end,
-        AutoSizedDialog = function(params)
-            local mockLayout = {
-                AddTitle = function() return { SetText = function() end } end,
-                AddSection = function() return {
-                    content = { SetText = function() end },
-                    label = { SetText = function() end }
-                } end,
-                AddSpacer = function() end,
-                AddButtonRow = function() return {} end,
-            }
-            local contentRefs = params.buildContent(mockLayout)
-            return {
-                dialog = confirmDialog,
-                panel = { Text = function() return { SetText = function() end } end, Button = function() end },
-                contentRefs = contentRefs,
-            }
-        end,
-    }
+    local panelKitStub = {}
+
+    function panelKitStub.Dialog(params)
+        if params.id == "StrainMilestoneConfirmation" then
+            return confirmDialog
+        end
+        if params.id == "StrainMilestoneUncheck" then
+            return uncheckDialog
+        end
+        return dialog
+    end
+
+    function panelKitStub.ClassicDialog(args)
+        recorder.legacyArgs = args
+        return {
+            contentX = 10,
+            contentY = -30,
+            contentWidth = 300,
+            contentHeight = 210,
+            elements = {
+                titleText = { SetText = function() end },
+                subtitleText = { SetText = function() end },
+            },
+        }
+    end
+
+    function panelKitStub.ScrollArea(args)
+        recorder.scrollArgs = args
+        return scrollArea
+    end
+
+    function panelKitStub.VerticalLayout(params)
+        return {
+            AddTitle = function() return { SetText = function() end } end,
+            AddSection = function() return {
+                content = { SetText = function() end },
+                label = { SetText = function() end }
+            } end,
+            AddSpacer = function() end,
+            AddButtonRow = function() return {} end,
+            AddCustom = function()
+                return { SetText = function() end }
+            end,
+            GetUsedHeight = function() return 300 end,
+            AutoSize = function() return 400 end,
+        }
+    end
+
+    function panelKitStub.CalculateVerticalLayoutHeight()
+        return 450
+    end
+
+    function panelKitStub.AutoSizedDialog(params)
+        local mockLayout = {
+            AddTitle = function() return { SetText = function() end } end,
+            AddSection = function() return {
+                content = { SetText = function() end },
+                label = { SetText = function() end }
+            } end,
+            AddSpacer = function() end,
+            AddButtonRow = function() return {} end,
+        }
+        local contentRefs = params.buildContent(mockLayout)
+        return {
+            dialog = confirmDialog,
+            panel = { Text = function() return { SetText = function() end } end, Button = function() end },
+            contentRefs = contentRefs,
+        }
+    end
+
+    function panelKitStub.DialogFromSpec(params)
+        local dialog = panelKitStub.Dialog({
+            id = params.id,
+            width = params.width,
+            height = (params.layout and params.layout.minHeight) or 300,
+            closeButton = params.dialog and params.dialog.closeButton,
+            modal = params.dialog and params.dialog.modal,
+        })
+        local panel = dialog:Panel()
+        local chrome = panelKitStub.ClassicDialog({
+            panel = panel,
+            id = params.chrome and params.chrome.id or params.id,
+            width = params.width,
+            height = (params.layout and params.layout.minHeight) or 300,
+        })
+        local layout = panelKitStub.VerticalLayout({
+            parent = panel,
+            contentArea = chrome,
+            padding = (params.layout and params.layout.padding) or 12,
+            spacing = (params.layout and params.layout.spacing) or 10,
+        })
+        if params.spec and params.spec.Render then
+            params.spec:Render(layout)
+        end
+        return {
+            dialog = dialog,
+            panel = panel,
+            chrome = chrome,
+            layout = layout,
+            height = (params.layout and params.layout.minHeight) or 300,
+            contentHeight = 200,
+        }
+    end
 
     local logStub = { Debugf = function() end, Errorf = function() end, Printf = function() end }
     local archiveStub = {

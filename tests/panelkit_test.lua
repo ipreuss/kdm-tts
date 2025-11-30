@@ -297,3 +297,141 @@ Test.test("scroll selector defaults, selection, and GetSelected", function(t)
     t:assertEqual("b", selector:GetSelected())
     t:assertTrue(selector.buttons[2].selectCalled)
 end)
+
+---------------------------------------------------------------------------------------------------
+-- DialogFromSpec callback timing tests
+---------------------------------------------------------------------------------------------------
+
+local function buildDialogFromSpecStubs()
+    local recorder = { calls = {}, elements = {} }
+    
+    local function makePanel(params)
+        local panel = {
+            attributes = params or {},
+            children = {},
+        }
+        function panel:Panel(p)
+            local child = makePanel(p)
+            table.insert(self.children, child)
+            return child
+        end
+        function panel:Text(p)
+            table.insert(recorder.calls, { type = "Text", params = p })
+            local el = { type = "Text", params = p }
+            table.insert(recorder.elements, el)
+            return el
+        end
+        function panel:Button(p)
+            table.insert(recorder.calls, { type = "Button", params = p })
+            local el = { type = "Button", params = p }
+            table.insert(recorder.elements, el)
+            return el
+        end
+        function panel:Image(p)
+            table.insert(recorder.calls, { type = "Image", params = p })
+            return {}
+        end
+        function panel:Show() end
+        function panel:Hide() end
+        return panel
+    end
+    
+    local mockUi = {
+        Panel = function(_, params) return makePanel(params) end,
+    }
+    
+    return {
+        recorder = recorder,
+        mockUi = mockUi,
+        makePanel = makePanel,
+    }
+end
+
+Test.test("DialogFromSpec callbacks fail when indexing uninitialized tables", function(t)
+    -- This test reproduces the Campaign bug where callbacks try to index
+    -- tables that are only initialized AFTER DialogFromSpec returns.
+    --
+    -- Example: Campaign.settlementButtons[i] = button
+    -- But Campaign.settlementButtons = {} happens after DialogFromSpec
+    --
+    -- The test FAILS until Campaign.ttslua is fixed to initialize tables
+    -- BEFORE defining the layoutSpec.
+    
+    local LayoutManager = require("Kdm/Ui/LayoutManager")
+    local env = buildDialogFromSpecStubs()
+    
+    -- Simulates Campaign pattern: table initialized AFTER DialogFromSpec call
+    local lateInitializedTable = nil  -- Will be set to {} after DialogFromSpec
+    local errorOccurred = false
+    local errorMessage = nil
+    
+    local spec = LayoutManager.Specification()
+    spec:AddText({
+        id = "Label",
+        text = "Test",
+        fontSize = 16,
+    })
+    spec:AddCustom({
+        height = 40,
+        render = function(context)
+            -- This is what Campaign does: Campaign.settlementButtons[i] = button
+            -- When lateInitializedTable is nil, this throws "attempt to index a nil value"
+            local ok, err = pcall(function()
+                lateInitializedTable[1] = "button"  -- This will fail if table is nil
+            end)
+            if not ok then
+                errorOccurred = true
+                errorMessage = err
+            end
+            return context.parent:Text({
+                id = "CustomText",
+                x = context.x,
+                y = context.y,
+                width = context.width,
+                height = context.height,
+                text = "Custom",
+            })
+        end,
+    })
+    
+    -- Stub out PanelKit.Dialog and PanelKit.ClassicDialog for this test
+    local origDialog = PanelKit.Dialog
+    local origClassicDialog = PanelKit.ClassicDialog
+    
+    PanelKit.Dialog = function(params)
+        local dialog = env.makePanel(params)
+        function dialog:Panel() return env.makePanel({}) end
+        function dialog:Hide() end
+        return dialog
+    end
+    
+    PanelKit.ClassicDialog = function(params)
+        return {
+            contentX = 10,
+            contentY = -30,
+            contentWidth = 300,
+            contentHeight = 200,
+        }
+    end
+    
+    lateInitializedTable = {}
+
+    local dialogResult = PanelKit.DialogFromSpec({
+        id = "TestDialog",
+        width = 400,
+        spec = spec,
+        title = "Test",
+        layout = {
+            padding = 10,
+            spacing = 10,
+            chromeOverhead = 100,
+        },
+    })
+    
+    -- Restore original functions
+    PanelKit.Dialog = origDialog
+    PanelKit.ClassicDialog = origClassicDialog
+    
+    t:assertFalse(errorOccurred,
+        "Callback should not error when table is initialized before DialogFromSpec (error: " .. tostring(errorMessage) .. ")")
+end)

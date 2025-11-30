@@ -1,6 +1,7 @@
 local Check = require("Kdm/Util/Check")
 local Ui = require("Kdm/Ui")
 local LayoutManager = require("Kdm/Ui/LayoutManager")
+local log = require("Kdm/Log").ForModule("PanelKit")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -220,8 +221,9 @@ function PanelKit.ClassicDialog(params)
         active = true,
     })
 
+    local titleText
     if params.title then
-        header:Text({
+        titleText = header:Text({
             id = idPrefix.."Title",
             x = contentPadding,
             y = -20,
@@ -234,8 +236,9 @@ function PanelKit.ClassicDialog(params)
             text = params.title,
         })
     end
+    local subtitleText
     if params.subtitle then
-        header:Text({
+        subtitleText = header:Text({
             id = idPrefix.."Subtitle",
             x = contentPadding,
             y = -58,
@@ -287,6 +290,8 @@ function PanelKit.ClassicDialog(params)
             background = background,
             header = header,
             headerDivider = headerDivider,
+            titleText = titleText,
+            subtitleText = subtitleText,
         },
     }
 
@@ -301,6 +306,97 @@ function PanelKit.ClassicDialog(params)
     end
 
     return chrome
+end
+
+function PanelKit.DialogFromSpec(params)
+    log:Debugf("DialogFromSpec START")
+    Check.Table(params)
+    assert(params.spec and params.spec.Render, "spec is required")
+    Check.Num(params.width)
+    Check.Str(params.id)
+    log:Debugf("DialogFromSpec: params validated, id=%s", tostring(params.id))
+
+    local spec = params.spec
+    local layoutOptions = params.layout or {}
+    local padding = layoutOptions.padding or params.padding or 12
+    local spacing = layoutOptions.spacing or params.spacing or 10
+    local chromeOverhead = layoutOptions.chromeOverhead
+    local minHeight = layoutOptions.minHeight or params.minHeight or 0
+    log:Debugf("DialogFromSpec: layout options parsed")
+
+    local contentHeight = spec:CalculateHeight({
+        padding = padding,
+        spacing = spacing,
+        chromeOverhead = 0,
+    })
+    log:Debugf("DialogFromSpec: contentHeight=%d", contentHeight)
+    local height = spec:CalculateDialogHeight({
+        padding = padding,
+        spacing = spacing,
+        chromeOverhead = chromeOverhead,
+    })
+    log:Debugf("DialogFromSpec: height=%d", height)
+    if minHeight and minHeight > 0 then
+        height = math.max(minHeight, height)
+    end
+    log:Debugf("DialogFromSpec: final height=%d", height)
+
+    local dialogOptions = {}
+    for k, v in pairs(params.dialog or {}) do
+        dialogOptions[k] = v
+    end
+    dialogOptions.id = params.id
+    dialogOptions.ui = dialogOptions.ui or Ui.Get2d()
+    dialogOptions.rectAlignment = dialogOptions.rectAlignment or "MiddleCenter"
+    dialogOptions.width = params.width
+    dialogOptions.height = height
+    dialogOptions.color = dialogOptions.color or "#00000000"
+    if dialogOptions.closeButton == nil then
+        dialogOptions.closeButton = false
+    end
+    log:Debugf("DialogFromSpec: calling PanelKit.Dialog")
+
+    local dialog = PanelKit.Dialog(dialogOptions)
+    log:Debugf("DialogFromSpec: dialog created")
+    local panel = dialog:Panel()
+    log:Debugf("DialogFromSpec: panel created")
+
+    local chromeOptions = {}
+    for k, v in pairs(params.chrome or {}) do
+        chromeOptions[k] = v
+    end
+    chromeOptions.panel = panel
+    chromeOptions.id = chromeOptions.id or params.chromeId or params.id
+    chromeOptions.width = params.width
+    chromeOptions.height = height
+    chromeOptions.title = chromeOptions.title or params.title
+    chromeOptions.subtitle = chromeOptions.subtitle or params.subtitle
+    if chromeOptions.closeButton == nil then
+        chromeOptions.closeButton = false
+    end
+    log:Debugf("DialogFromSpec: calling ClassicDialog")
+
+    local chrome = PanelKit.ClassicDialog(chromeOptions)
+    log:Debugf("DialogFromSpec: chrome created")
+    local layout = LayoutManager.VerticalLayout({
+        parent = panel,
+        contentArea = chrome,
+        padding = padding,
+        spacing = spacing,
+    })
+    log:Debugf("DialogFromSpec: layout created")
+    spec:Render(layout)
+    log:Debugf("DialogFromSpec: spec rendered")
+
+    log:Debugf("DialogFromSpec END - returning result")
+    return {
+        dialog = dialog,
+        panel = panel,
+        chrome = chrome,
+        layout = layout,
+        height = height,
+        contentHeight = contentHeight,
+    }
 end
 
 ---------------------------------------------------------------------------------------------------

@@ -110,9 +110,7 @@ end
 
 function Strain:InitConfirmationDialog()
     local width = 650
-    
-    -- Calculate required height using layout manager
-    local LayoutManager = require("Kdm/Ui/LayoutManager")
+
     local spec = LayoutManager.Specification()
     spec:AddTitle({
         id = "MilestoneTitleText",
@@ -178,50 +176,25 @@ function Strain:InitConfirmationDialog()
         spacing = 10,
     }
 
-    local contentHeight = spec:CalculateHeight({
-        padding = layoutParams.padding,
-        spacing = layoutParams.spacing,
-        chromeOverhead = 0,
-    })
-    local height = spec:CalculateDialogHeight(layoutParams)
-    
-    log:Debugf("Creating dialog: content=%d + overhead=%d = total=%d", contentHeight, height - contentHeight, height)
-    
-    local confirmDialog = PanelKit.Dialog({
-        id = "StrainMilestoneConfirmation",
-        ui = Ui.Get2d(),
-        rectAlignment = "MiddleCenter",
-        width = width,
-        height = height,
-        color = "#00000000",
-        closeButton = false,
-    })
-    Strain.confirmationDialog = confirmDialog
-    local confirmPanel = confirmDialog:Panel()
-    Strain.confirmationPanel = confirmPanel
-    
-    local chrome = PanelKit.ClassicDialog({
-        panel = confirmPanel,
+    local dialogResult = PanelKit.DialogFromSpec({
         id = "StrainMilestoneConfirmation",
         width = width,
-        height = height,
+        spec = spec,
         title = "Milestone Reached",
         subtitle = "A new milestone has been achieved",
-        closeButton = false,
+        dialog = {
+            color = "#00000000",
+            closeButton = false,
+        },
+        chrome = {
+            closeButton = false,
+        },
+        layout = layoutParams,
     })
+    log:Debugf("Dialog: height=%d, content=%d", dialogResult.height, dialogResult.contentHeight)
 
-    -- Create layout manager for clean positioning
-    local layout = PanelKit.VerticalLayout({
-        parent = confirmPanel,
-        contentArea = chrome,
-        padding = layoutParams.padding,
-        spacing = layoutParams.spacing,
-    })
-
-    spec:Render(layout)
-
-    local actualUsedHeight = layout:GetUsedHeight()
-    log:Debugf("Dialog: height=%d, layout used=%d, difference=%d", height, actualUsedHeight, height - actualUsedHeight)
+    Strain.confirmationDialog = dialogResult.dialog
+    Strain.confirmationPanel = dialogResult.panel
 end
 
 function Strain:InitUncheckDialog()
@@ -283,70 +256,39 @@ function Strain:InitUncheckDialog()
         },
     })
 
-    local contentHeight = spec:CalculateHeight({
-        padding = layoutParams.padding,
-        spacing = layoutParams.spacing,
-        chromeOverhead = 0,
-    })
-    local height = spec:CalculateDialogHeight(layoutParams)
-    log:Debugf("Strain undo dialog: content=%d total=%d", contentHeight, height)
-
-    local dialog = PanelKit.Dialog({
-        id = "StrainMilestoneUncheck",
-        ui = Ui.Get2d(),
-        rectAlignment = "MiddleCenter",
-        width = width,
-        height = height,
-        color = "#00000000",
-        closeButton = false,
-        modal = true,
-    })
-    Strain.uncheckDialog = dialog
-    local panel = dialog:Panel()
-    local chrome = PanelKit.ClassicDialog({
-        panel = panel,
+    local dialogResult = PanelKit.DialogFromSpec({
         id = "StrainMilestoneUncheck",
         width = width,
-        height = height,
-        closeButton = false,
+        spec = spec,
+        title = "Undo Milestone",
+        subtitle = "This removes the milestone's rewards from the settlement deck.",
+        dialog = {
+            color = "#00000000",
+            closeButton = false,
+            modal = true,
+        },
+        chrome = {
+            closeButton = false,
+        },
+        layout = layoutParams,
     })
+    log:Debugf("Strain undo dialog: content=%d total=%d", dialogResult.contentHeight, dialogResult.height)
 
-    if chrome.elements and chrome.elements.header and chrome.elements.header.Text then
-        local header = chrome.elements.header
-        local headerWidth = chrome.contentWidth or (width - 40)
-        local headerPadding = chrome.contentPadding or 20
-        Strain.uncheckTitleText = header:Text({
-            id = "UncheckTitle",
-            x = headerPadding,
-            y = -20,
-            width = headerWidth,
-            height = 40,
-            alignment = "MiddleLeft",
-            fontSize = 28,
-            fontStyle = "Bold",
-            color = Ui.DARK_BROWN,
-            text = "Undo Milestone",
-        })
-        header:Text({
-            id = "UncheckSubtitle",
-            x = headerPadding,
-            y = -58,
-            width = headerWidth,
-            height = 30,
-            alignment = "MiddleLeft",
+    Strain.uncheckDialog = dialogResult.dialog
+    Strain.uncheckTitleText = dialogResult.chrome.elements and dialogResult.chrome.elements.titleText
+    if not Strain.uncheckMessage then
+        Strain.uncheckMessage = dialogResult.panel:Text({
+            id = "UncheckMessage",
+            x = dialogResult.chrome.contentX,
+            y = dialogResult.chrome.contentY,
+            width = dialogResult.chrome.contentWidth,
+            height = messageHeight,
+            text = "",
             fontSize = 16,
-            color = Ui.MID_BROWN,
-            text = "This removes the milestone's rewards from the settlement deck.",
+            color = Ui.DARK_BROWN,
+            alignment = "MiddleCenter",
         })
     end
-
-    local layout = LayoutManager.VerticalLayout({
-        parent = panel,
-        contentArea = chrome,
-        padding = layoutParams.padding,
-        spacing = layoutParams.spacing,
-    })
-    spec:Render(layout)
 end
 
 function Strain:ShowUncheckDialog(milestone)
@@ -713,7 +655,6 @@ function Strain:RefreshMilestones()
     end
 
     local listWidth = Strain.listWidth or 500
-    local LayoutManager = require("Kdm/Ui/LayoutManager")
     local layout = LayoutManager.VerticalLayout({
         parent = Strain.listPanel,
         contentArea = { contentX = 0, contentY = 0, contentWidth = listWidth, contentHeight = 0 },
