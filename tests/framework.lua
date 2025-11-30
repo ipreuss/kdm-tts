@@ -75,6 +75,103 @@ local function newContext(name)
         end
     end
 
+    function context:assertNil(value, message)
+        if value ~= nil then
+            self:fail(message or ("Expected nil but got %s"):format(tostring(value)))
+        end
+    end
+
+    function context:assertNotNil(value, message)
+        if value == nil then
+            self:fail(message or "Expected non-nil value")
+        end
+    end
+
+    function context:assertMatch(str, pattern, message)
+        if type(str) ~= "string" then
+            self:fail(message or ("Expected string to match pattern, but got %s"):format(type(str)))
+        end
+        if not str:find(pattern) then
+            self:fail(message or ("Expected '%s' to match pattern '%s'"):format(str, pattern))
+        end
+    end
+
+    function context:assertNotMatch(str, pattern, message)
+        if type(str) ~= "string" then
+            return
+        end
+        if str:find(pattern) then
+            self:fail(message or ("Expected '%s' not to match pattern '%s'"):format(str, pattern))
+        end
+    end
+
+    function context:assertType(value, expectedType, message)
+        local actualType = type(value)
+        if actualType ~= expectedType then
+            self:fail(message or ("Expected type %s but got %s"):format(expectedType, actualType))
+        end
+    end
+
+    function context:assertError(fn, message)
+        local ok, err = pcall(fn)
+        if ok then
+            self:fail(message or "Expected function to throw an error")
+        end
+        return err
+    end
+
+    function context:assertNoError(fn, message)
+        local ok, err = pcall(fn)
+        if not ok then
+            self:fail(message or ("Expected no error but got: %s"):format(tostring(err)))
+        end
+    end
+
+    function context:assertGreaterThan(actual, expected, message)
+        if not (actual > expected) then
+            self:fail(message or ("%s is not greater than %s"):format(tostring(actual), tostring(expected)))
+        end
+    end
+
+    function context:assertLessThan(actual, expected, message)
+        if not (actual < expected) then
+            self:fail(message or ("%s is not less than %s"):format(tostring(actual), tostring(expected)))
+        end
+    end
+
+    function context:assertContains(haystack, needle, message)
+        if type(haystack) == "table" then
+            for _, value in ipairs(haystack) do
+                if value == needle then
+                    return
+                end
+            end
+            self:fail(message or ("Table does not contain %s"):format(tostring(needle)))
+        elseif type(haystack) == "string" then
+            if not haystack:find(needle, 1, true) then
+                self:fail(message or ("String '%s' does not contain '%s'"):format(haystack, needle))
+            end
+        else
+            self:fail(message or ("Cannot check if %s contains %s"):format(type(haystack), tostring(needle)))
+        end
+    end
+
+    function context:assertNotContains(haystack, needle, message)
+        if type(haystack) == "table" then
+            for _, value in ipairs(haystack) do
+                if value == needle then
+                    self:fail(message or ("Table should not contain %s"):format(tostring(needle)))
+                end
+            end
+        elseif type(haystack) == "string" then
+            if haystack:find(needle, 1, true) then
+                self:fail(message or ("String '%s' should not contain '%s'"):format(haystack, needle))
+            end
+        else
+            self:fail(message or ("Cannot check if %s contains %s"):format(type(haystack), tostring(needle)))
+        end
+    end
+
     return context
 end
 

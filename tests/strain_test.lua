@@ -237,10 +237,24 @@ local function buildStrainStubs()
         calls = {},
         cleanCount = 0,
     }
+    
+    -- Default Strain Rewards deck stub (essential resource, must exist)
+    local defaultStrainDeck = {
+        getName = function() return "Strain Rewards" end,
+        getGUID = function() return "default-strain-deck" end,
+        getObjects = function() return {} end,
+        takeObject = function() return nil end,
+        destruct = function() end,
+    }
+    
     function archiveStub.Take(params)
         table.insert(archiveStub.calls, params)
         if archiveStub.takeHandler then
             return archiveStub.takeHandler(params)
+        end
+        -- Return default Strain Rewards deck for essential resources
+        if params.name == "Strain Rewards" then
+            return defaultStrainDeck
         end
         return nil
     end
@@ -708,10 +722,10 @@ Test.test("Milestones have flavor and rules text", function(t)
         StrainModule.Init()
 
         for _, milestone in ipairs(strain.milestones) do
-            t:assertTrue(milestone.flavorText ~= nil, "Milestone should have flavor text")
-            t:assertTrue(milestone.rulesText ~= nil, "Milestone should have rules text")
-            t:assertTrue(type(milestone.flavorText) == "string", "Flavor text should be string")
-            t:assertTrue(type(milestone.rulesText) == "string", "Rules text should be string")
+            t:assertNotNil(milestone.flavorText, "Milestone should have flavor text")
+            t:assertNotNil(milestone.rulesText, "Milestone should have rules text")
+            t:assertType(milestone.flavorText, "string", "Flavor text should be string")
+            t:assertType(milestone.rulesText, "string", "Rules text should be string")
         end
     end)
 end)
@@ -741,7 +755,7 @@ Test.test("Strain milestone data includes fighting art consequences", function(t
 
     for title, fightingArt in pairs(expected) do
         local entry = byTitle[title]
-        t:assertTrue(entry ~= nil, string.format("Missing milestone data for %s", title))
+        t:assertNotNil(entry, string.format("Missing milestone data for %s", title))
         local actual = entry.consequences and entry.consequences.fightingArt
         t:assertEqual(fightingArt, actual, string.format("Expected %s to unlock %s", title, fightingArt))
     end
@@ -796,7 +810,7 @@ Test.test("_TakeRewardCard prefers the Strain Rewards deck when available", func
     end)
 end)
 
-Test.test("_TakeRewardCard returns false when the Strain Rewards deck is unavailable", function(t)
+Test.test("_TakeRewardCard fails fast when the Strain Rewards deck is unavailable", function(t)
     withStrain(t, function(StrainModule, strain, env)
         StrainModule.Init()
         local callCount = 0
@@ -807,13 +821,16 @@ Test.test("_TakeRewardCard returns false when the Strain Rewards deck is unavail
             return nil
         end
 
-        local success = strain:_TakeRewardCard({
-            name = "Fallback Reward",
-            type = strain.FIGHTING_ART_TYPE,
-            position = { x = 0, y = 0, z = 0 },
-        })
+        local ok, err = pcall(function()
+            strain:_TakeRewardCard({
+                name = "Fallback Reward",
+                type = strain.FIGHTING_ART_TYPE,
+                position = { x = 0, y = 0, z = 0 },
+            })
+        end)
 
-        t:assertFalse(success, "Missing Strain rewards deck should be treated as a failure")
+        t:assertFalse(ok, "Missing Strain rewards deck should trigger assertion")
+        t:assertMatch(err, "mod setup error", "Error should indicate mod setup problem")
         t:assertEqual(1, #env.archiveStub.calls, "Archive.Take should only be invoked for the Strain rewards deck")
     end)
 end)
@@ -862,7 +879,7 @@ Test.test("RemoveFightingArtFromArchive deletes the card from the fighting arts 
         local ok = archiveModule.RemoveCard(env.acceptance.cardName)
 
         t:assertTrue(ok, "Expected removal to succeed when card exists")
-        t:assertTrue(env.acceptance.faDeck.lastTakeParams ~= nil, "Deck should be asked to remove the matching card index")
+        t:assertNotNil(env.acceptance.faDeck.lastTakeParams, "Deck should be asked to remove the matching card index")
         t:assertTrue(env.acceptance.removedCard.destroyed, "Removed card should be destroyed after extraction")
         t:assertEqual(1, env.acceptance.archive.resetCount, "Archive reset should run after successful removal")
         t:assertEqual(1, #env.acceptance.deckResets, "Deck.ResetDeck should run once")
@@ -904,7 +921,7 @@ Test.test("RemoveFightingArtFromArchive returns false when the card is absent", 
         local ok = archiveModule.RemoveCard("Missing Reward")
 
         t:assertFalse(ok, "Expected removal to fail when card is not present")
-        t:assertTrue(env.acceptance.faDeck.lastTakeParams == nil, "Deck should not be asked to remove anything when card missing")
+        t:assertNil(env.acceptance.faDeck.lastTakeParams, "Deck should not be asked to remove anything when card missing")
         t:assertFalse(env.acceptance.removedCard.destroyed, "No card should be destroyed when nothing was removed")
         t:assertEqual(0, env.acceptance.archive.resetCount, "Archive reset should not run on failure")
         t:assertEqual(0, #env.acceptance.deckResets, "Deck.ResetDeck should not run on failure")
@@ -1102,6 +1119,6 @@ Test.test("Strain.Save serializes reached milestones for export/import", functio
         local saveState = StrainModule.Save()
 
         t:assertTrue(saveState.reached["Milestone A"], "reached milestone should be recorded")
-        t:assertTrue(saveState.reached["Milestone B"] == nil, "unreached milestones should not be persisted")
+        t:assertNil(saveState.reached["Milestone B"], "unreached milestones should not be persisted")
     end)
 end)

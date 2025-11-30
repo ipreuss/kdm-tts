@@ -1,6 +1,7 @@
 local PanelKit = require("Kdm/Ui/PanelKit")
 local Ui = require("Kdm/Ui")
 local Archive = require("Kdm/Archive")
+local Check = require("Kdm/Util/Check")
 local Location = require("Kdm/Location")
 local Container = require("Kdm/Util/Container")
 local NamedObject = require("Kdm/NamedObject")
@@ -10,6 +11,7 @@ local LayoutManager = require("Kdm/Ui/LayoutManager")
 local FightingArtsArchive = require("Kdm/FightingArtsArchive")
 local VerminArchive = require("Kdm/VerminArchive")
 local Timeline = require("Kdm/Timeline")
+local Util = require("Kdm/Util/Util")
 local log = require("Kdm/Log").ForModule("Strain")
 local StrainMilestones = require("Kdm/GameData/StrainMilestones")
 
@@ -419,16 +421,11 @@ function Strain:_ResolveSpawnPosition(params)
         return params.position
     end
 
+    assert(Check.Str(params.location, "Either position or location is required for spawn"))
     local locationName = params.location
-    if not locationName then
-        return nil
-    end
 
     local ok, locationOrErr = pcall(Location.Get, locationName)
-    if not ok or not locationOrErr then
-        log:Errorf("Reward location '%s' not found: %s", locationName, locationOrErr)
-        return nil
-    end
+    assert(ok and locationOrErr, Util.SafeFormat("Reward location '%s' not found: %s", locationName, locationOrErr or "nil"))
 
     local position = locationOrErr:Center()
     position.y = position.y + (params.height or 2)
@@ -439,11 +436,6 @@ function Strain:_TakeFromRewardsDeck(params)
     log:Debugf("[DEBUG] _TakeFromRewardsDeck START for '%s'", params.name or "<unknown>")
     
     local position = Strain:_ResolveSpawnPosition(params)
-    local rewardName = params.name or "<unknown>"
-    if not position then
-        log:Errorf("Unable to resolve spawn position for reward '%s'", rewardName)
-        return false
-    end
     log:Debugf("[DEBUG] Resolved position: (%f, %f, %f)", position.x, position.y, position.z)
 
     local deckParams = {
@@ -458,21 +450,12 @@ function Strain:_TakeFromRewardsDeck(params)
     local ok, deckOrErr = pcall(Archive.Take, deckParams)
     log:Debugf("[DEBUG] Archive.Take returned ok=%s, deckOrErr=%s", tostring(ok), tostring(deckOrErr))
     
-    if not ok or not deckOrErr then
-        local err = not ok and deckOrErr or "Archive returned nil"
-        log:Errorf("Failed to take Strain rewards deck '%s': %s", Strain.REWARD_DECK_NAME, err)
-        return false
-    end
+    assert(ok, Util.SafeFormat("Failed to take Strain rewards deck '%s': %s - mod setup error", Strain.REWARD_DECK_NAME, deckOrErr or "error"))
+    assert(deckOrErr, Util.SafeFormat("Strain rewards deck '%s' not found in archive - mod setup error", Strain.REWARD_DECK_NAME))
     log:Debugf("[DEBUG] Got Strain Rewards deck: %s (guid=%s)", deckOrErr.getName(), deckOrErr.getGUID())
 
     local deckContainer = Container(deckOrErr)
-    if not deckContainer then
-        log:Errorf("Unable to create container for Strain rewards deck '%s'", Strain.REWARD_DECK_NAME)
-        if deckOrErr.destruct then
-            deckOrErr.destruct()
-        end
-        return false
-    end
+    assert(deckContainer, Util.SafeFormat("Unable to create container for Strain rewards deck '%s' - invalid TTS object", Strain.REWARD_DECK_NAME))
     log:Debugf("[DEBUG] Created container for Strain Rewards deck")
     
     -- Log contents of the deck

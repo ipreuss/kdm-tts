@@ -14,6 +14,9 @@
 
 ## Review Process
 
+### 0. Check for Implementer Comments
+**FIRST:** Check `handover/LATEST_REVIEW.md` for implementer responses to previous review items. The implementer may have added comments explaining decisions or asking for clarification.
+
 ### 1. Gather Context
 1. Check for new screenshots: `ls -t ~/Desktop/*.png | head -3`
 2. List changed files: `git --no-pager diff --name-only`

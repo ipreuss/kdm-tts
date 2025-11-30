@@ -10,6 +10,33 @@ lua tests/run.lua
 
 Add new test files as `tests/<area>_test.lua` and list them inside `tests/run.lua`.
 
+### Test Framework Assertions
+The framework (`tests/framework.lua`) provides comprehensive assertion methods:
+
+**Basic Assertions:**
+- `t:assertTrue(value, message)` / `t:assertFalse(value, message)`
+- `t:assertEqual(expected, actual, message)` / `t:assertNotEqual(expected, actual, message)`
+- `t:assertNil(value, message)` / `t:assertNotNil(value, message)`
+- `t:assertType(value, expectedType, message)` - checks `type(value) == expectedType`
+- `t:assertDeepEqual(expected, actual, message)` - deep table comparison
+
+**Comparison Assertions:**
+- `t:assertGreaterThan(actual, expected, message)`
+- `t:assertLessThan(actual, expected, message)`
+
+**String/Pattern Assertions:**
+- `t:assertMatch(str, pattern, message)` - checks `str:find(pattern)`
+- `t:assertNotMatch(str, pattern, message)`
+- `t:assertContains(haystack, needle, message)` - works with strings (substring) or tables (value)
+- `t:assertNotContains(haystack, needle, message)`
+
+**Error Assertions:**
+- `t:assertError(fn, message)` - expects function to throw, returns error
+- `t:assertNoError(fn, message)` - expects function to succeed
+
+**Failure:**
+- `t:fail(message)` - immediately fail the test
+
 ## TTS Acceptance Tests
 The in-game console harness (`TTSTests.ttslua`) lets us sanity-check live TTS behavior without polluting the campaign. Open TTS chat and type `>testhelp` to see the available commands (for example, `>teststrain Shielderang` runs the Strain fighting art workflow end-to-end, `>teststrainvermin Fiddler Crab Spider` validates the vermin reward path, and `>testcardstate 2` exercises the multi-state fighting art fallback used when returning survivors to the settlement). Every TTS acceptance test must follow the same pattern:
 

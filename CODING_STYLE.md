@@ -7,7 +7,46 @@ This document captures the shared conventions for working on the KDM Tabletop Si
 - Remove magic values; give them names where they are defined.
 - Comments are a last resort when structure and names cannot convey intent.
 - Expose test-only helpers with a leading underscore (e.g., `_TestStubUi`) and keep them clearly segregated from production APIs.
-  - Preferred pattern: place test-only helpers under a `Module.Test` table (e.g., `Module.Test.stubUi`) so intent is explicit and separated from runtime APIs.
+  - Preferred pattern: place test-only helpers under a `Module._test` table (e.g., `Module._test.stubUi`) so intent is explicit and separated from runtime APIs.
+
+## Error Handling
+- **Prefer assertions over guard clauses** to fail fast and make errors visible.
+- Use `assert(Check.Something(value, "message"))` pattern for required parameters and preconditions.
+- **Use assertions for fatal errors** that indicate broken mod setup or game state:
+  - Required archives/decks missing from save file (mod designer error)
+  - Essential TTS objects that should always exist (broken save file)
+  - Required locations/components missing (mod installation problem)
+  - Invalid game state that prevents core functionality
+- **Use guard clauses only for recoverable conditions**:
+  - Optional behavior where nil/false is a valid return (e.g., `lenient` parameter)
+  - User-driven operations that might legitimately fail
+  - Feature-specific resources that don't break core gameplay
+- **Guideline:** If the game cannot reasonably continue without this resource/condition, use assertion. The "programmer" includes both code developers and mod designers setting up the game content.
+- Example to **avoid** (guard clause for required parameter):
+  ```lua
+  local locationName = params.location
+  if not locationName then
+      return nil
+  end
+  ```
+- Example to **prefer** (assertion for required parameter):
+  ```lua
+  assert(Check.Str(params.location, "location is required"))
+  local locationName = params.location
+  ```
+- Example to **prefer** (assertion for essential resource):
+  ```lua
+  local deck = Archive.Take({name = "Fighting Arts"})
+  assert(deck, "Fighting Arts deck not found in archive - mod setup error")
+  ```
+- Example of **correct guard clause** (optional/recoverable):
+  ```lua
+  local expansion = Archive.Take({name = "Dragon King", lenient = true})
+  if not expansion then
+      log:Debugf("Dragon King expansion not installed, skipping")
+      return
+  end
+  ```
 
 ## Documentation Strategy
 1. **Self-speaking code** – choose expressive names, extract helper methods/objects, and keep logic small enough to read without comments. Prefer removing ambiguity over adding prose.

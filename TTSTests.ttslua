@@ -2,6 +2,7 @@
 -- These tests run inside TTS via console commands to verify actual behavior
 -- Usage: Type ">testhelp" in TTS chat to see available tests
 
+local Check = require("Kdm/Util/Check")
 local Console = require("Kdm/Console")
 local Location = require("Kdm/Location")
 local Archive = require("Kdm/Archive")
@@ -87,10 +88,7 @@ function TTSTests.TestCardStateFallback(baseName, stateId)
     
     local locationName = "South of Showdown Board"
     local location = Location.Get(locationName)
-    if not location then
-        log:Errorf("TEST: Location '%s' not found.", locationName)
-        return
-    end
+    assert(location, string.format("TEST: Location '%s' not found", locationName))
 
     -- Test: Spawn card with alternate state name suffix like "Story of Blood [1, 1 x]"
     -- The fallback mechanism should strip the suffix and find the base card
