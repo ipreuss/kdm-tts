@@ -6,6 +6,7 @@ local Container = require("Kdm/Util/Container")
 local NamedObject = require("Kdm/NamedObject")
 local Deck = require("Kdm/Deck")
 local LayoutManager = require("Kdm/Ui/LayoutManager")
+local FightingArtsArchive = require("Kdm/FightingArtsArchive")
 local log = require("Kdm/Log").ForModule("Strain")
 local StrainMilestones = require("Kdm/GameData/StrainMilestones")
 
@@ -13,14 +14,13 @@ local StrainMilestones = require("Kdm/GameData/StrainMilestones")
 
 local Strain = {}
 
-Strain.REWARD_DECK_NAME = "Strain Rewards"
-Strain.REWARD_DECK_TYPE = "Rewards"
--- Strain rewards live exclusively in the Strain Rewards deck; missing entries are fatal.
+Strain.REWARD_DECK_NAME = FightingArtsArchive.REWARD_DECK_NAME
+Strain.REWARD_DECK_TYPE = FightingArtsArchive.REWARD_DECK_TYPE
+Strain.REWARD_DECK_STAGING_POSITION = FightingArtsArchive.REWARD_DECK_STAGING_POSITION
 Strain.REWARD_SPAWN_LOCATION = "South of Showdown Board"
-Strain.FIGHTING_ART_TYPE = "Fighting Arts"
-Strain.FIGHTING_ART_LOCATION = "Fighting Arts"
-Strain.FIGHTING_ART_ARCHIVE = "Fighting Arts Archive"
-Strain.REWARD_DECK_STAGING_POSITION = { x = -150, y = 60, z = 120 }
+Strain.FIGHTING_ART_TYPE = FightingArtsArchive.FIGHTING_ART_TYPE
+Strain.FIGHTING_ART_LOCATION = FightingArtsArchive.FIGHTING_ART_LOCATION
+Strain.FIGHTING_ART_ARCHIVE = FightingArtsArchive.FIGHTING_ART_ARCHIVE
 
 Strain.TITLE_HEIGHT = 26
 Strain.CONDITION_HEIGHT = 70
@@ -357,139 +357,6 @@ function Strain:_FightingArtsDeck()
     return deck
 end
 
-function Strain.AddFightingArtToArchive(cardName)
-    local archive = NamedObject.Get(Strain.FIGHTING_ART_ARCHIVE)
-    if not archive then
-        log:Errorf("Fighting Arts archive '%s' not found.", Strain.FIGHTING_ART_ARCHIVE)
-        return false
-    end
-
-    local faDeck = archive.takeObject({
-        position = Strain.REWARD_DECK_STAGING_POSITION,
-        rotation = { x = 0, y = 180, z = 180 },
-        smooth = false,
-    })
-    if not faDeck then
-        log:Errorf("Unable to take Fighting Arts deck from archive.")
-        return false
-    end
-
-    local strainDeck = Archive.Take({
-        name = Strain.REWARD_DECK_NAME,
-        type = Strain.REWARD_DECK_TYPE,
-        position = {
-            x = Strain.REWARD_DECK_STAGING_POSITION.x + 5,
-            y = Strain.REWARD_DECK_STAGING_POSITION.y,
-            z = Strain.REWARD_DECK_STAGING_POSITION.z,
-        },
-        rotation = { x = 0, y = 180, z = 180 },
-    })
-    if not strainDeck then
-        log:Errorf("Unable to take Strain Rewards deck from archive.")
-        archive.putObject(faDeck)
-        return false
-    end
-
-    local objects = strainDeck.getObjects()
-    local cardIndex = nil
-    for _, obj in ipairs(objects) do
-        if obj.name == cardName and obj.gm_notes == Strain.FIGHTING_ART_TYPE then
-            cardIndex = obj.index
-            break
-        end
-    end
-
-    if not cardIndex then
-        log:Errorf("Card '%s' not found in Strain Rewards deck.", cardName)
-        archive.putObject(faDeck)
-        strainDeck.destruct()
-        return false
-    end
-
-    faDeck.putObject(strainDeck.takeObject({
-        index = cardIndex,
-        position = faDeck.getPosition(),
-        smooth = false,
-    }))
-    strainDeck.destruct()
-
-    if archive.reset then
-        archive.reset()
-    end
-    archive.putObject(faDeck)
-
-    Archive.Clean()
-    Deck.ResetDeck(Strain.FIGHTING_ART_LOCATION)
-
-    log:Printf("Added %s to the Fighting Arts deck.", cardName)
-    return true
-end
-
-function Strain.RemoveFightingArtFromArchive(cardName)
-    log:Debugf("[DEBUG] RemoveFightingArtFromArchive START for '%s'", cardName)
-    
-    log:Debugf("[DEBUG] Calling NamedObject.Get")
-    local archive = NamedObject.Get(Strain.FIGHTING_ART_ARCHIVE)
-    if not archive then
-        log:Errorf("Fighting Arts archive '%s' not found.", Strain.FIGHTING_ART_ARCHIVE)
-        return false
-    end
-    log:Debugf("[DEBUG] Got archive: %s", archive.getName())
-
-    log:Debugf("[DEBUG] Calling archive.takeObject")
-    local faDeck = archive.takeObject({
-        position = Strain.REWARD_DECK_STAGING_POSITION,
-        rotation = { x = 0, y = 180, z = 180 },
-        smooth = false,
-    })
-    if not faDeck then
-        log:Errorf("Unable to take Fighting Arts deck from archive for removal.")
-        return false
-    end
-    log:Debugf("[DEBUG] Got faDeck: %s", faDeck.getName())
-
-    log:Debugf("[DEBUG] Calling faDeck.getObjects")
-    local objects = faDeck.getObjects()
-    local removeIndex
-    for _, obj in ipairs(objects) do
-        if obj.name == cardName and obj.gm_notes == Strain.FIGHTING_ART_TYPE then
-            removeIndex = obj.index
-            break
-        end
-    end
-    log:Debugf("[DEBUG] removeIndex: %s", tostring(removeIndex))
-
-    if not removeIndex then
-        log:Debugf("[DEBUG] Card not found, putting deck back")
-        archive.putObject(faDeck)
-        log:Debugf("%s not present in Fighting Arts deck.", cardName)
-        return false
-    end
-
-    log:Debugf("[DEBUG] Calling faDeck.takeObject at index %d", removeIndex)
-    local removed = faDeck.takeObject({
-        index = removeIndex,
-        smooth = false,
-    })
-    log:Debugf("[DEBUG] removed: %s", tostring(removed))
-    if removed then
-        log:Debugf("[DEBUG] Calling removed.destruct")
-        removed.destruct()
-    end
-
-    log:Debugf("[DEBUG] Calling archive.reset")
-    archive.reset()
-    log:Debugf("[DEBUG] Calling archive.putObject")
-    archive.putObject(faDeck)
-    log:Debugf("[DEBUG] Calling Archive.Clean")
-    Archive.Clean()
-    log:Debugf("[DEBUG] Calling Deck.ResetDeck")
-    Deck.ResetDeck(Strain.FIGHTING_ART_LOCATION)
-    log:Printf("Removed %s from the Fighting Arts deck.", cardName)
-    log:Debugf("[DEBUG] RemoveFightingArtFromArchive END - SUCCESS")
-    return true
-end
-
 function Strain:RemoveFightingArtFromDeck(cardName)
     local deck = Strain:_FightingArtsDeck()
     if not deck then
@@ -642,7 +509,7 @@ function Strain:ExecuteConsequences(milestone)
 
     local fightingArt = consequences.fightingArt
     if fightingArt then
-        Strain.AddFightingArtToArchive(fightingArt)
+        FightingArtsArchive.AddCard(fightingArt)
         Strain:SpawnFightingArtForSurvivor(fightingArt)
     end
 end
@@ -655,7 +522,7 @@ function Strain:ReverseConsequences(milestone)
 
     local fightingArt = consequences.fightingArt
     if fightingArt then
-        local removed = Strain.RemoveFightingArtFromArchive(fightingArt)
+        local removed = FightingArtsArchive.RemoveCard(fightingArt)
         if removed then
             log:Printf("Remove %s from any survivor that gained it.", fightingArt)
         else
@@ -897,6 +764,4 @@ return {
     HideUi = Strain.HideUi,
     IsUiOpen = Strain.IsUiOpen,
     MILESTONE_CARDS = Strain.MILESTONE_CARDS,
-    AddFightingArtToArchive = Strain.AddFightingArtToArchive,
-    RemoveFightingArtFromArchive = Strain.RemoveFightingArtFromArchive,
 }

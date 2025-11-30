@@ -22,6 +22,7 @@ local Trash = require("Kdm/Trash")
 local PanelKit = require("Kdm/Ui/PanelKit")
 local LayoutManager = require("Kdm/Ui/LayoutManager")
 local Strain = require("Kdm/Strain")
+local FightingArtsArchive = require("Kdm/FightingArtsArchive")
 local CampaignMigrations = require("Kdm/GameData/CampaignMigrations")
 
 -------------------------------------------------------------------------------------------------
@@ -800,7 +801,7 @@ function Campaign.AddStrainRewards()
     local additions = Campaign.RandomSelect(unlockedFightingArts, 5)
     local addedCount = 0
     for _, cardName in ipairs(additions) do
-        local ok = Strain.AddFightingArtToArchive(cardName)
+        local ok = FightingArtsArchive.AddCard(cardName)
         if ok then
             addedCount = addedCount + 1
         end

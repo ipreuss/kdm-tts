@@ -395,10 +395,13 @@ local function withStrain(t, callback, options)
         options.customizeStubs(stubs, env)
     end
     withStubs(stubs, function()
+        package.loaded["Kdm/FightingArtsArchive"] = nil
+        local FightingArtsArchiveModule = require("Kdm/FightingArtsArchive")
         package.loaded["Kdm/Strain"] = nil
         local StrainModule = require("Kdm/Strain")
         local strainTable = getInternalStrain(StrainModule)
         t:assertTrue(strainTable ~= nil, "found internal Strain table")
+        env.fightingArtsArchive = FightingArtsArchiveModule
         callback(StrainModule, strainTable, env)
     end)
 end
@@ -727,8 +730,9 @@ Test.test("_TakeRewardCard returns false when the Strain Rewards deck is unavail
 end)
 
 Test.test("AddFightingArtToArchive transfers reward card into the fighting arts deck", function(t)
-    withStrain(t, function(StrainModule, strain, env)
-        local ok = StrainModule.AddFightingArtToArchive(env.acceptance.cardName)
+    withStrain(t, function(_, strain, env)
+        local archiveModule = env.fightingArtsArchive
+        local ok = archiveModule.AddCard(env.acceptance.cardName)
 
         t:assertTrue(ok, "Expected AddFightingArtToArchive to succeed when card exists")
         t:assertEqual(1, #env.acceptance.faDeck.insertedCards, "Reward card should be inserted into the fighting arts deck")
@@ -746,8 +750,9 @@ Test.test("AddFightingArtToArchive transfers reward card into the fighting arts 
 end)
 
 Test.test("AddFightingArtToArchive returns false when the reward card is missing", function(t)
-    withStrain(t, function(StrainModule, _, env)
-        local ok = StrainModule.AddFightingArtToArchive("Missing Reward")
+    withStrain(t, function(_, _, env)
+        local archiveModule = env.fightingArtsArchive
+        local ok = archiveModule.AddCard("Missing Reward")
 
         t:assertFalse(ok, "Expected AddFightingArtToArchive to fail when card is absent")
         t:assertEqual(0, #env.acceptance.faDeck.insertedCards, "No cards should be inserted when transfer fails")
@@ -764,7 +769,8 @@ end)
 
 Test.test("RemoveFightingArtFromArchive deletes the card from the fighting arts deck", function(t)
     withStrain(t, function(_, strain, env)
-        local ok = strain.RemoveFightingArtFromArchive(env.acceptance.cardName)
+        local archiveModule = env.fightingArtsArchive
+        local ok = archiveModule.RemoveCard(env.acceptance.cardName)
 
         t:assertTrue(ok, "Expected removal to succeed when card exists")
         t:assertTrue(env.acceptance.faDeck.lastTakeParams ~= nil, "Deck should be asked to remove the matching card index")
@@ -782,7 +788,8 @@ end)
 
 Test.test("RemoveFightingArtFromArchive returns false when the card is absent", function(t)
     withStrain(t, function(_, strain, env)
-        local ok = strain.RemoveFightingArtFromArchive("Missing Reward")
+        local archiveModule = env.fightingArtsArchive
+        local ok = archiveModule.RemoveCard("Missing Reward")
 
         t:assertFalse(ok, "Expected removal to fail when card is not present")
         t:assertTrue(env.acceptance.faDeck.lastTakeParams == nil, "Deck should not be asked to remove anything when card missing")
@@ -814,12 +821,13 @@ Test.test("ToggleMilestone shows confirmation dialog before checking", function(
 end)
 
 Test.test("ExecuteConsequences applies fighting art rewards", function(t)
-    withStrain(t, function(StrainModule, strain)
+    withStrain(t, function(StrainModule, strain, env)
         StrainModule.Init()
         local added, spawned
-        local originalAdd = strain.AddFightingArtToArchive
+        local archiveModule = env.fightingArtsArchive
+        local originalAdd = archiveModule.AddCard
         local originalSpawn = strain.SpawnFightingArtForSurvivor
-        strain.AddFightingArtToArchive = function(name)
+        archiveModule.AddCard = function(name)
             added = name
             return true
         end
@@ -829,7 +837,7 @@ Test.test("ExecuteConsequences applies fighting art rewards", function(t)
 
         strain:ExecuteConsequences({ consequences = { fightingArt = "Test Art" } })
 
-        strain.AddFightingArtToArchive = originalAdd
+        archiveModule.AddCard = originalAdd
         strain.SpawnFightingArtForSurvivor = originalSpawn
 
         t:assertEqual("Test Art", added, "ExecuteConsequences should add fighting art to deck")
@@ -838,18 +846,19 @@ Test.test("ExecuteConsequences applies fighting art rewards", function(t)
 end)
 
 Test.test("ReverseConsequences removes fighting art rewards", function(t)
-    withStrain(t, function(StrainModule, strain)
+    withStrain(t, function(StrainModule, strain, env)
         StrainModule.Init()
         local removed
-        local originalRemove = strain.RemoveFightingArtFromArchive
-        strain.RemoveFightingArtFromArchive = function(name)
+        local archiveModule = env.fightingArtsArchive
+        local originalRemove = archiveModule.RemoveCard
+        archiveModule.RemoveCard = function(name)
             removed = name
             return true
         end
 
         strain:ReverseConsequences({ consequences = { fightingArt = "Test Art" } })
 
-        strain.RemoveFightingArtFromArchive = originalRemove
+        archiveModule.RemoveCard = originalRemove
 
         t:assertEqual("Test Art", removed, "ReverseConsequences should remove fighting art from deck")
     end)

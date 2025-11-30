@@ -2,6 +2,7 @@ local Test = require("tests.framework")
 local Campaign = require("Kdm/Campaign")
 local Timeline = require("Kdm/Timeline")
 local Strain = require("Kdm/Strain")
+local FightingArtsArchive = require("Kdm/FightingArtsArchive")
 local Showdown = require("Kdm/Showdown")
 local Hunt = require("Kdm/Hunt")
 local Archive = require("Kdm/Archive")
@@ -197,7 +198,7 @@ end)
 Test.test("Campaign.AddStrainRewards skips when no milestones unlocked", function(t)
     local originalSave = Strain.Save
     local originalMilestones = Strain.MILESTONE_CARDS
-    local originalAdd = Strain.AddFightingArtToArchive
+    local originalAdd = FightingArtsArchive.AddCard
 
     Strain.Save = function()
         return { reached = {} }
@@ -207,7 +208,7 @@ Test.test("Campaign.AddStrainRewards skips when no milestones unlocked", functio
     }
 
     local called = false
-    Strain.AddFightingArtToArchive = function()
+    FightingArtsArchive.AddCard = function()
         called = true
     end
 
@@ -215,7 +216,7 @@ Test.test("Campaign.AddStrainRewards skips when no milestones unlocked", functio
 
     Strain.Save = originalSave
     Strain.MILESTONE_CARDS = originalMilestones
-    Strain.AddFightingArtToArchive = originalAdd
+    FightingArtsArchive.AddCard = originalAdd
 
     t:assertFalse(called, "No cards should be added when no milestones are reached")
 end)
@@ -223,7 +224,7 @@ end)
 Test.test("Campaign.AddStrainRewards adds selected fighting arts via archive", function(t)
     local originalSave = Strain.Save
     local originalMilestones = Strain.MILESTONE_CARDS
-    local originalAdd = Strain.AddFightingArtToArchive
+    local originalAdd = FightingArtsArchive.AddCard
     local originalSelect = InternalCampaign.RandomSelect
 
     Strain.Save = function()
@@ -251,7 +252,7 @@ Test.test("Campaign.AddStrainRewards adds selected fighting arts via archive", f
     end
 
     local added = {}
-    Strain.AddFightingArtToArchive = function(card)
+    FightingArtsArchive.AddCard = function(card)
         table.insert(added, card)
         return true
     end
@@ -260,7 +261,7 @@ Test.test("Campaign.AddStrainRewards adds selected fighting arts via archive", f
 
     Strain.Save = originalSave
     Strain.MILESTONE_CARDS = originalMilestones
-    Strain.AddFightingArtToArchive = originalAdd
+    FightingArtsArchive.AddCard = originalAdd
     InternalCampaign.RandomSelect = originalSelect
 
     t:assertEqual(3, #requestedItems, "RandomSelect should receive all unlocked rewards")
