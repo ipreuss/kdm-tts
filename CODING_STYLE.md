@@ -17,6 +17,36 @@ This document captures the shared conventions for working on the KDM Tabletop Si
 - **Let errors bubble up naturally**: don't wrap errors in multiple layers - the stack trace should point directly to the source.
 - **Trust your module contracts**: if all Save() functions return tables, don't add nil checks - let violations crash immediately.
 
+## Prefer Tight Function Contracts Over Lenient Behavior
+- **Make requirements explicit with assertions**: don't silently accept invalid inputs and return "safe" defaults.
+- **Don't duplicate caller validation**: if callers already check conditions, don't re-check inside the function.
+- **Example to avoid** (lenient - accepts anything):
+  ```lua
+  function ApplyState(object, stateName)
+      if not object or not stateName then
+          return object  -- Silently does nothing
+      end
+      if type(object.getStates) ~= "function" then
+          return object  -- Silently does nothing
+      end
+      -- ... apply state ...
+  end
+  ```
+- **Example to prefer** (tight contract - requires valid inputs):
+  ```lua
+  function ApplyState(object, stateName)
+      assert(object, "object is required")
+      assert(stateName, "stateName is required")
+      assert(type(object.getStates) == "function", "object must support states")
+      -- ... apply state ...
+  end
+  ```
+- **Benefits:**
+  - Function signature documents exact requirements
+  - Misuse fails immediately at call site with clear message
+  - No confusion about whether nil/invalid inputs are valid
+  - Eliminates redundant validation when callers already check
+
 ## Error Handling Philosophy
 **Core principle: Better to crash visibly than corrupt data silently.**
 

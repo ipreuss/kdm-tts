@@ -203,14 +203,11 @@ end
 
 local function applyStateByName(object, stateName)
     log:Debugf("[DEBUG] applyStateByName START object=%s, stateName=%s", tostring(object), tostring(stateName))
-    if not stateName or not object then
-        log:Debugf("[DEBUG] applyStateByName: no stateName or no object, returning")
-        return object
-    end
-    if type(object.getStates) ~= "function" or type(object.setState) ~= "function" then
-        log:Debugf("[DEBUG] applyStateByName: object doesn't have state methods, returning")
-        return object
-    end
+    assert(stateName, "stateName is required - caller should check before calling")
+    assert(object, "object is required")
+    assert(type(object.getStates) == "function", "object must support getStates() - check archive setup")
+    assert(type(object.setState) == "function", "object must support setState() - check archive setup")
+    
     local states = object.getStates()
     log:Debugf("[DEBUG] applyStateByName: got states, type=%s", type(states))
     return ObjectState.ApplyStateByName(object, stateName)
@@ -313,8 +310,11 @@ function Archive.Take(params)
             smooth = params.smooth,
             callback_function = spawnWrapper,
         })
-        local applyOnReturn = (stateName and not appliedInSpawn) and stateName or nil
-        return applyStateByName(object, applyOnReturn)
+        -- Only apply state if needed (not already applied in spawn callback)
+        if stateName and not appliedInSpawn then
+            return applyStateByName(object, stateName)
+        end
+        return object
     end
 
     local function ensureContainer()
@@ -423,7 +423,10 @@ function Archive.Take(params)
     end
 
     log:Debugf("[DEBUG] about to call applyStateByName, object=%s, usedStateName=%s", tostring(object), tostring(usedStateName))
-    return applyStateByName(object, usedStateName)
+    if usedStateName then
+        return applyStateByName(object, usedStateName)
+    end
+    return object
 end
 
 ---------------------------------------------------------------------------------------------------

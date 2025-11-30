@@ -20,16 +20,13 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ObjectState.ApplyStateByName(object, stateName)
-    if not stateName or not object then
-        return object
-    end
-    if type(object.getStates) ~= "function" or type(object.setState) ~= "function" then
-        return object
-    end
+    assert(object, "object is required")
+    assert(stateName, "stateName is required")
+    assert(type(object.getStates) == "function", "object must support getStates()")
+    assert(type(object.setState) == "function", "object must support setState()")
+    
     local states = object.getStates()
-    if type(states) ~= "table" then
-        return object
-    end
+    assert(type(states) == "table", "getStates() must return a table")
 
     for _, state in ipairs(states) do
         if state.name == stateName then
@@ -39,8 +36,7 @@ function ObjectState.ApplyStateByName(object, stateName)
 
     local objectName = (type(object.getName) == "function") and object.getName() or "<unknown>"
     local guid = (type(object.getGUID) == "function") and object.getGUID() or "<no guid>"
-    log:Errorf("State '%s' not found on %s (%s)", stateName, objectName, guid)
-    return object
+    assert(false, string.format("State '%s' not found on %s (%s) - check mod configuration", stateName, objectName, guid))
 end
 
 ---------------------------------------------------------------------------------------------------
