@@ -160,65 +160,10 @@ This prevents accidental role violations and keeps the separation of concerns ex
 - **Respect defaults unless intentionally deviating** – when any shared component (UI or otherwise) exposes a default behavior, consume it rather than overriding it by habit. Only diverge when there is a concrete, reviewed requirement so deviations stay obvious in code review.
 - **Keep exported interfaces lean** – don’t expose new parameters, flags, or configuration points unless client code demonstrably needs them. Lean interfaces are easier to reason about, make later deviations more visible, and reduce the chance of inconsistent behavior.
 
-## Debugging TTS Runtime Errors
+## Role-Specific Documentation
 
-When encountering runtime errors in Tabletop Simulator (especially "attempt to call a nil value" errors), follow this systematic approach:
-
-### 1. **Identify the Error Context**
-- Note the exact error message and function name where it occurs
-- Determine if the error is in onClick handlers, module initialization, or other TTS-specific contexts
-
-### 2. **Add Progressive Debug Logging**
-- Enable debug logging for the relevant module in `Log.DEBUG_MODULES`
-- Add `log:Debugf()` statements at the error location to identify what is actually nil
-- Work backward through the call stack, adding logging to trace execution flow
-- Use existence checks: `log:Debugf("X exists: %s", tostring(X ~= nil))`
-
-### 3. **Test Simple Hypotheses First**
-- Before implementing complex architectural changes, test the simplest possible explanations
-- Check if required functions actually exist in their modules
-- Verify that dependencies are properly loaded and accessible
-- Confirm that variables are initialized before use
-
-### 4. **Deploy and Test Incrementally**
-- Update TTS with debug logging using `./updateTTS.sh`
-- Have the user reproduce the error and provide log output
-- Analyze the logs to pinpoint the exact line and cause
-- Implement the minimal fix based on evidence, not assumptions
-
-### 5. **Clean Up After Resolution**
-- Remove or comment out excessive debug logging once the issue is resolved
-- Disable debug modules that were temporarily enabled
-- Ensure tests cover the fixed scenario to prevent regression
-
-**Example**: An "attempt to call a nil value" error led to assumptions about module loading complexity. Debug logging revealed the actual issue was simply calling a non-existent `Player.GetReferee()` function. The fix was storing the current player reference instead of seeking a non-existent referee function.
-
-## Debugging UI Problems
-
-When encountering UI issues (dialogs not showing, buttons not working) that previously worked:
-
-### 1. **Roll Back and Verify**
-- Revert to the last known working state (manually undo changes if possible, or use git if changes are extensive)
-- Test that the UI functionality works correctly in the reverted state
-- This confirms whether the issue is related to recent changes
-
-### 2. **Incremental Approach**
-- Break down recent changes into smaller, isolated steps
-- Apply changes one small piece at a time
-- Test UI functionality after each small change
-- This identifies the exact change that introduced the problem
-
-### 3. **Isolate the Cause**
-- When the problematic change is identified, analyze what specifically broke
-- Add targeted `log:Debugf(...)` statements to trace UI component initialization, event handler registration, and state changes
-- Enable debug logging for the relevant module in `Log.DEBUG_MODULES` temporarily
-- Use existence checks to verify UI components and handlers: `log:Debugf("Dialog exists: %s", tostring(dialog ~= nil))`
-- Review changes to shared UI components or global state that might affect dialogs
-
-### 4. **Fix Surgically**
-- Make the minimal change needed to restore functionality
-- Avoid the temptation to "fix" unrelated issues discovered during debugging
-- Focus on restoring the working behavior with the smallest possible modification
+Detailed process documentation for each role is in the `ROLES/` directory:
+- `ROLES/DEBUGGER.md` - Debugging patterns, logging, handover format, role boundaries
 
 ## Test-First Loop
 1. **Plan** – clarify the intent of the change (behavior, data shape, UI outcome) and note which modules are involved. Update or create ADRs/notes if the change affects architecture decisions.

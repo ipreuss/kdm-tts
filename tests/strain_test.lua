@@ -419,6 +419,12 @@ local function createArchiveForDeck(stubs, faDeck)
     archiveObject.reset = function()
         archiveObject.resetCount = archiveObject.resetCount + 1
     end
+    archiveObject.getName = function()
+        return "Stub Fighting Arts Archive"
+    end
+    archiveObject.getGUID = function()
+        return "stub-archive-guid"
+    end
     stubs["Kdm/NamedObject"] = {
         Get = function()
             return archiveObject
@@ -507,6 +513,9 @@ local function setupRemovalScenario(stubs, env, options)
     local faDeck = {
         takeCalls = {},
     }
+    faDeck.getName = function()
+        return "Stub Fighting Arts Deck"
+    end
     local deckObjects = {}
     -- Mirror TTS deck metadata by assigning sequential indices so lookups remain deterministic.
     local nextIndex = 1

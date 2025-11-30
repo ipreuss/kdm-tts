@@ -342,6 +342,84 @@ if gender == Names.Gender.male then  -- Named constant
 end
 ```
 
+### Test-Only Exports Code Smell
+
+**CRITICAL: Functions exported by a module but only used in tests indicate a Single Responsibility Principle (SRP) violation.**
+
+When a function is exported solely for testing purposes, this suggests the module is mixing abstraction levels:
+1. The function operates at a different abstraction level than the module's primary responsibility
+2. There's a missing module where this function would be naturally public
+3. The current module has multiple responsibilities that should be separated
+
+**The SRP Connection:**
+A test-only export reveals that the module contains functionality at two levels:
+- **High-level:** The module's primary purpose (e.g., UI management, state coordination)
+- **Low-level:** Internal operations that tests need access to (e.g., deck manipulation, data transformation)
+
+When tests need direct access to low-level operations, it indicates these operations deserve their own module where they would be naturally public.
+
+**Detection Process:**
+1. For each exported function in module's `return { ... }` statement
+2. Search for usages outside the module itself
+3. If the function is only used:
+   - Internally within the module, AND
+   - Externally only in test files or test harnesses
+4. Flag as SRP violation / abstraction level mismatch
+
+**Resolution Options:**
+
+**Option A (Preferred): Extract to appropriate abstraction level**
+- Identify the responsibility the function represents
+- Create a new module at that abstraction level
+- The function becomes naturally public in the new module
+- Both production code and tests consume the new module
+
+```lua
+-- BEFORE: Strain.ttslua exports RemoveFightingArtFromArchive for tests
+-- but only uses it internally via ReverseConsequences
+
+-- AFTER: Extract to FightingArtsArchive.ttslua
+-- FightingArtsArchive.ttslua
+return {
+    AddCard = FightingArtsArchive.AddCard,      -- Naturally public
+    RemoveCard = FightingArtsArchive.RemoveCard, -- Naturally public
+}
+
+-- Strain.ttslua consumes it
+local FightingArtsArchive = require("Kdm/FightingArtsArchive")
+function Strain:ExecuteConsequences(milestone)
+    FightingArtsArchive.AddCard(fightingArt)
+end
+
+-- TTSTests.ttslua also consumes it - no smell!
+local FightingArtsArchive = require("Kdm/FightingArtsArchive")
+FightingArtsArchive.RemoveCard(cardName)  -- Natural cleanup
+```
+
+**Option B (Last resort): Explicit test interface**
+- Use only when extraction is impractical
+- Use the `_test = { ... }` pattern (see Campaign.ttslua, Timeline.ttslua)
+- Document why extraction was not feasible
+
+```lua
+return {
+    -- Public API
+    Init = Module.Init,
+    DoThing = Module.DoThing,
+    
+    -- Test-only exports (explicit - document why extraction not feasible)
+    _test = {
+        InternalHelper = Module.InternalHelper,
+    },
+}
+```
+
+**Guideline:** When reviewing exports:
+1. Check if each exported function is used in production code by external modules
+2. If only used internally + tests, identify the SRP violation
+3. Recommend extraction to appropriate abstraction level
+4. Only accept `_test = { ... }` pattern when extraction is impractical
+
 ## Review Checklist
 
 Use this checklist for every code review:
@@ -379,6 +457,7 @@ Use this checklist for every code review:
 - [ ] Are test setups reasonable in size?
 - [ ] Are tests categorized appropriately (unit/integration/validation)?
 - [ ] Are intentional external dependencies documented with rationale?
+- [ ] **Are any exported functions only used internally + tests?** (SRP violation - see Test-Only Exports section)
 
 ### Code Clarity
 - [ ] Is the code self-explanatory without documentation?

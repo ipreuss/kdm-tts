@@ -426,12 +426,17 @@ function Strain.AddFightingArtToArchive(cardName)
 end
 
 function Strain.RemoveFightingArtFromArchive(cardName)
+    log:Debugf("[DEBUG] RemoveFightingArtFromArchive START for '%s'", cardName)
+    
+    log:Debugf("[DEBUG] Calling NamedObject.Get")
     local archive = NamedObject.Get(Strain.FIGHTING_ART_ARCHIVE)
     if not archive then
         log:Errorf("Fighting Arts archive '%s' not found.", Strain.FIGHTING_ART_ARCHIVE)
         return false
     end
+    log:Debugf("[DEBUG] Got archive: %s", archive.getName())
 
+    log:Debugf("[DEBUG] Calling archive.takeObject")
     local faDeck = archive.takeObject({
         position = Strain.REWARD_DECK_STAGING_POSITION,
         rotation = { x = 0, y = 180, z = 180 },
@@ -441,7 +446,9 @@ function Strain.RemoveFightingArtFromArchive(cardName)
         log:Errorf("Unable to take Fighting Arts deck from archive for removal.")
         return false
     end
+    log:Debugf("[DEBUG] Got faDeck: %s", faDeck.getName())
 
+    log:Debugf("[DEBUG] Calling faDeck.getObjects")
     local objects = faDeck.getObjects()
     local removeIndex
     for _, obj in ipairs(objects) do
@@ -450,26 +457,36 @@ function Strain.RemoveFightingArtFromArchive(cardName)
             break
         end
     end
+    log:Debugf("[DEBUG] removeIndex: %s", tostring(removeIndex))
 
     if not removeIndex then
+        log:Debugf("[DEBUG] Card not found, putting deck back")
         archive.putObject(faDeck)
         log:Debugf("%s not present in Fighting Arts deck.", cardName)
         return false
     end
 
+    log:Debugf("[DEBUG] Calling faDeck.takeObject at index %d", removeIndex)
     local removed = faDeck.takeObject({
         index = removeIndex,
         smooth = false,
     })
+    log:Debugf("[DEBUG] removed: %s", tostring(removed))
     if removed then
+        log:Debugf("[DEBUG] Calling removed.destruct")
         removed.destruct()
     end
 
+    log:Debugf("[DEBUG] Calling archive.reset")
     archive.reset()
+    log:Debugf("[DEBUG] Calling archive.putObject")
     archive.putObject(faDeck)
+    log:Debugf("[DEBUG] Calling Archive.Clean")
     Archive.Clean()
+    log:Debugf("[DEBUG] Calling Deck.ResetDeck")
     Deck.ResetDeck(Strain.FIGHTING_ART_LOCATION)
     log:Printf("Removed %s from the Fighting Arts deck.", cardName)
+    log:Debugf("[DEBUG] RemoveFightingArtFromArchive END - SUCCESS")
     return true
 end
 
@@ -881,4 +898,5 @@ return {
     IsUiOpen = Strain.IsUiOpen,
     MILESTONE_CARDS = Strain.MILESTONE_CARDS,
     AddFightingArtToArchive = Strain.AddFightingArtToArchive,
+    RemoveFightingArtFromArchive = Strain.RemoveFightingArtFromArchive,
 }

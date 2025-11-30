@@ -10,6 +10,15 @@ lua tests/run.lua
 
 Add new test files as `tests/<area>_test.lua` and list them inside `tests/run.lua`.
 
+## TTS Acceptance Tests
+The in-game console harness (`TTSTests.ttslua`) lets us sanity-check live TTS behavior without polluting the campaign. Open TTS chat and type `>testhelp` to see the available commands (for example, `>teststrain Shielderang` runs the Strain fighting art workflow end-to-end). Every TTS acceptance test must follow the same pattern:
+
+1. Snapshot the relevant state (deck contents, timelines, etc.) before running any actions.
+2. Perform the action under test and log the observable effects so players get immediate feedback.
+3. Restore state back to the snapshot—remove any cards we spawned, revert timeline entries, etc.—so the active campaign stays untouched.
+
+The Strain harness already implements this snapshot/restore cycle for the Fighting Arts deck; use it as the template for future console tests.
+
 ## Names
 `Util/Names.ttslua` holds the name pools. Use `Names.getName(gender, character)` with `Names.Gender.male`/`Names.Gender.female`; it falls back to the gendered `none` list when no character-specific list exists. The generic lists live at the top of the file, with one name per line to simplify edits and diff reviews.
 

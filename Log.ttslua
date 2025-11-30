@@ -33,6 +33,7 @@ Log.DEBUG_MODULES = {
     --["Survivor"] = true,
     --["Timeline"] = true,
     --["Trash"] = true,
+    ["TTSTests"] = true,
     --["Ui"] = true,
     --["Weapon"] = true,
 }
