@@ -18,7 +18,9 @@ local testFiles = {
     "tests.hunt_showhide_test",
     "tests.showdown_showhide_test",
     "tests.timeline_showhide_test",
+    "tests.timeline_schedule_test",
     "tests.strain_test",
+    "tests.vermin_archive_test",
     "tests.layoutmanager_test",
 }
 

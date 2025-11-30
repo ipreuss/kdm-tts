@@ -892,6 +892,108 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+local function FindEventByName(name, eventType)
+    if not Timeline.years then
+        return nil, nil
+    end
+    for yearIndex, year in ipairs(Timeline.years) do
+        for eventIndex, slot in ipairs(year.events or {}) do
+            local event = slot.event
+            if event and event.name == name and (not eventType or event.type == eventType) then
+                return yearIndex, eventIndex
+            end
+        end
+    end
+    return nil, nil
+end
+
+local function NextUncheckedYearIndex(offset)
+    if not Timeline.years then
+        return nil
+    end
+
+    offset = offset or 1
+    for i, year in ipairs(Timeline.years) do
+        if not year.checked then
+            offset = offset - 1
+            if offset <= 0 then
+                return i
+            end
+        end
+    end
+    return nil
+end
+
+local function NextEmptySlotIndex(year)
+    for index, event in ipairs(year.events or {}) do
+        if not event.event then
+            return index
+        end
+    end
+    return nil
+end
+
+function Timeline.ScheduleEvent(eventSpec)
+    if not eventSpec or not eventSpec.name then
+        log:Errorf("Cannot schedule unnamed timeline event.")
+        return false
+    end
+    if not Timeline.years then
+        log:Errorf("Timeline not initialized; cannot schedule '%s'.", eventSpec.name)
+        return false
+    end
+
+    if FindEventByName(eventSpec.name, eventSpec.type) then
+        log:Debugf("Timeline already contains %s; skipping duplicate.", eventSpec.name)
+        return false
+    end
+
+    local targetYear = NextUncheckedYearIndex(eventSpec.offset or 1)
+    if not targetYear then
+        log:Errorf("No unchecked timeline year available for %s.", eventSpec.name)
+        return false
+    end
+
+    local slotIndex = NextEmptySlotIndex(Timeline.years[targetYear])
+    if not slotIndex then
+        log:Errorf("Timeline year %d is full. Could not schedule %s.", targetYear, eventSpec.name)
+        return false
+    end
+
+    local payload = {
+        name = eventSpec.name,
+        type = eventSpec.type or "SettlementEvent",
+        custom = eventSpec.custom,
+        monster = eventSpec.monster,
+        nemesis = eventSpec.nemesis,
+        level = eventSpec.level,
+    }
+    Timeline.AddTimelineEvent(targetYear, slotIndex, payload)
+    log:Printf("Inserted %s into year %d on the timeline.", payload.name, targetYear)
+    return true
+end
+
+function Timeline.RemoveEventByName(name, eventType)
+    if not name then
+        return false
+    end
+    if not Timeline.years then
+        log:Errorf("Timeline not initialized; cannot remove '%s'.", name)
+        return false
+    end
+
+    local yearIndex, eventIndex = FindEventByName(name, eventType)
+    if not yearIndex then
+        return false
+    end
+
+    Timeline.RemoveTimelineEvent(yearIndex, eventIndex)
+    log:Printf("Removed %s from year %d.", name, yearIndex)
+    return true
+end
+
+---------------------------------------------------------------------------------------------------
+
 Timeline.levelAbbr ={
     ["Level 1"] = "Lvl 1",
     ["Level 2"] = "Lvl 2",
@@ -1060,6 +1162,8 @@ return {
     MAX_YEAR_EVENTS = Timeline.MAX_YEAR_EVENTS,
     GetSurvivalLimit = Timeline.GetSurvivalLimit,
     RefreshSettlementEventSearchFromDeck = Timeline.RefreshSettlementEventSearchFromDeck,
+    ScheduleEvent = Timeline.ScheduleEvent,
+    RemoveEventByName = Timeline.RemoveEventByName,
     _testResetSearchState = function()
         Timeline.trie = Trie()
         Timeline.baseSearchEntries = {}
@@ -1077,5 +1181,7 @@ return {
         ResetLocationGet = TestResetLocationGet,
         SetContainerFunction = TestSetContainerFunction,
         ResetContainerFunction = TestResetContainerFunction,
+        FindEventByName = FindEventByName,
+        NextUncheckedYearIndex = NextUncheckedYearIndex,
     },
 }

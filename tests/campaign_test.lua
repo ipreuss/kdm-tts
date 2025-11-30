@@ -3,6 +3,7 @@ local Campaign = require("Kdm/Campaign")
 local Timeline = require("Kdm/Timeline")
 local Strain = require("Kdm/Strain")
 local FightingArtsArchive = require("Kdm/FightingArtsArchive")
+local VerminArchive = require("Kdm/VerminArchive")
 local Showdown = require("Kdm/Showdown")
 local Hunt = require("Kdm/Hunt")
 local Archive = require("Kdm/Archive")
@@ -266,4 +267,35 @@ Test.test("Campaign.AddStrainRewards adds selected fighting arts via archive", f
 
     t:assertEqual(3, #requestedItems, "RandomSelect should receive all unlocked rewards")
     t:assertDeepEqual({ "Art B", "Art C" }, added, "Only selected fighting arts should be added")
+end)
+
+Test.test("Campaign.AddStrainRewards applies vermin rewards", function(t)
+    local originalSave = Strain.Save
+    local originalMilestones = Strain.MILESTONE_CARDS
+    local originalVermin = VerminArchive.AddCard
+
+    Strain.Save = function()
+        return {
+            reached = {
+                ["Milestone V"] = true,
+            }
+        }
+    end
+    Strain.MILESTONE_CARDS = {
+        { title = "Milestone V", consequences = { vermin = "Fiddler Crab Spider", timelineEvent = { name = "Acid Storm", type = "SettlementEvent", offset = 1 } } },
+    }
+
+    local verminCalls = {}
+    VerminArchive.AddCard = function(card)
+        table.insert(verminCalls, card)
+        return true
+    end
+
+    InternalCampaign.AddStrainRewards()
+
+    Strain.Save = originalSave
+    Strain.MILESTONE_CARDS = originalMilestones
+    VerminArchive.AddCard = originalVermin
+
+    t:assertDeepEqual({ "Fiddler Crab Spider" }, verminCalls, "Vermin reward should be added")
 end)

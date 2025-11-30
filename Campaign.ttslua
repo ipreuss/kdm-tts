@@ -23,6 +23,7 @@ local PanelKit = require("Kdm/Ui/PanelKit")
 local LayoutManager = require("Kdm/Ui/LayoutManager")
 local Strain = require("Kdm/Strain")
 local FightingArtsArchive = require("Kdm/FightingArtsArchive")
+local VerminArchive = require("Kdm/VerminArchive")
 local CampaignMigrations = require("Kdm/GameData/CampaignMigrations")
 
 -------------------------------------------------------------------------------------------------
@@ -785,6 +786,7 @@ function Campaign.AddStrainRewards()
     local strainState = Strain.Save() or {}
     local reached = strainState.reached or {}
     local unlockedFightingArts = {}
+    local unlockedVermin = {}
 
     for _, milestone in ipairs(Strain.MILESTONE_CARDS or {}) do
         local consequences = milestone.consequences
@@ -792,26 +794,49 @@ function Campaign.AddStrainRewards()
         if fightingArt and reached[milestone.title] then
             table.insert(unlockedFightingArts, fightingArt)
         end
-    end
-
-    if #unlockedFightingArts == 0 then
-        return
-    end
-
-    local additions = Campaign.RandomSelect(unlockedFightingArts, 5)
-    local addedCount = 0
-    for _, cardName in ipairs(additions) do
-        local ok = FightingArtsArchive.AddCard(cardName)
-        if ok then
-            addedCount = addedCount + 1
+        local vermin = consequences and consequences.vermin
+        if vermin and reached[milestone.title] then
+            table.insert(unlockedVermin, vermin)
         end
     end
 
-    if addedCount > 0 then
-        log:Printf("Added %d strain reward fighting arts to the Fighting Arts deck.", addedCount)
-    else
-        log:Errorf("Failed to add strain reward fighting arts to the Fighting Arts deck.")
+    if #unlockedFightingArts == 0 then
+        -- still allow vermin/timeline rewards
+        if #unlockedVermin == 0 then
+            return
+        end
     end
+
+    local additions = {}
+    if #unlockedFightingArts > 0 then
+        additions = Campaign.RandomSelect(unlockedFightingArts, 5)
+        local addedCount = 0
+        for _, cardName in ipairs(additions) do
+            local ok = FightingArtsArchive.AddCard(cardName)
+            if ok then
+                addedCount = addedCount + 1
+            end
+        end
+
+        if addedCount > 0 then
+            log:Printf("Added %d strain reward fighting arts to the Fighting Arts deck.", addedCount)
+        else
+            log:Errorf("Failed to add strain reward fighting arts to the Fighting Arts deck.")
+        end
+    end
+
+    if #unlockedVermin > 0 then
+        local addedVermin = 0
+        for _, cardName in ipairs(unlockedVermin) do
+            if VerminArchive.AddCard(cardName) then
+                addedVermin = addedVermin + 1
+            end
+        end
+        if addedVermin > 0 then
+            log:Printf("Added %d strain reward vermin cards to the Vermin deck.", addedVermin)
+        end
+    end
+
 end
 
 function Campaign.Import(data)

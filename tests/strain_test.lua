@@ -364,7 +364,37 @@ local function buildStrainStubs()
         ["Kdm/NamedObject"] = namedObjectStub,
         ["Kdm/Deck"] = deckStub,
         ["Kdm/Console"] = consoleStub,
+        ["Kdm/VerminArchive"] = {},
+        ["Kdm/Timeline"] = {},
     }
+
+    local verminStub = {
+        added = {},
+        removed = {},
+    }
+    function verminStub.AddCard(name)
+        table.insert(verminStub.added, name)
+        return true
+    end
+    function verminStub.RemoveCard(name)
+        table.insert(verminStub.removed, name)
+        return true
+    end
+    stubs["Kdm/VerminArchive"] = verminStub
+
+    local timelineStub = {
+        scheduled = {},
+        removed = {},
+    }
+    function timelineStub.ScheduleEvent(spec)
+        table.insert(timelineStub.scheduled, spec)
+        return true
+    end
+    function timelineStub.RemoveEventByName(name, eventType)
+        table.insert(timelineStub.removed, { name = name, type = eventType })
+        return true
+    end
+    stubs["Kdm/Timeline"] = timelineStub
 
     return stubs, {
         recorder = recorder,
@@ -374,6 +404,8 @@ local function buildStrainStubs()
         containers = containers,
         namedObjectStub = namedObjectStub,
         deckStub = deckStub,
+        verminStub = verminStub,
+        timelineStub = timelineStub,
     }
 end
 
@@ -861,6 +893,55 @@ Test.test("ReverseConsequences removes fighting art rewards", function(t)
         archiveModule.RemoveCard = originalRemove
 
         t:assertEqual("Test Art", removed, "ReverseConsequences should remove fighting art from deck")
+    end)
+end)
+
+Test.test("ExecuteConsequences applies vermin rewards", function(t)
+    withStrain(t, function(StrainModule, strain, env)
+        StrainModule.Init()
+
+        strain:ExecuteConsequences({ consequences = { vermin = "Fiddler Crab Spider" } })
+
+        t:assertEqual(1, #env.verminStub.added)
+        t:assertEqual("Fiddler Crab Spider", env.verminStub.added[1])
+    end)
+end)
+
+Test.test("ReverseConsequences removes vermin rewards", function(t)
+    withStrain(t, function(StrainModule, strain, env)
+        StrainModule.Init()
+
+        strain:ReverseConsequences({ consequences = { vermin = "Fiddler Crab Spider" } })
+
+        t:assertEqual(1, #env.verminStub.removed)
+        t:assertEqual("Fiddler Crab Spider", env.verminStub.removed[1])
+    end)
+end)
+
+Test.test("ExecuteConsequences schedules timeline events", function(t)
+    withStrain(t, function(StrainModule, strain, env)
+        StrainModule.Init()
+
+        local spec = { name = "Acid Storm", type = "SettlementEvent", offset = 1 }
+        strain:ExecuteConsequences({ consequences = { timelineEvent = spec } })
+
+        t:assertEqual(1, #env.timelineStub.scheduled)
+        t:assertEqual("Acid Storm", env.timelineStub.scheduled[1].name)
+        t:assertEqual("SettlementEvent", env.timelineStub.scheduled[1].type)
+        t:assertEqual(1, env.timelineStub.scheduled[1].offset)
+    end)
+end)
+
+Test.test("ReverseConsequences removes scheduled timeline events", function(t)
+    withStrain(t, function(StrainModule, strain, env)
+        StrainModule.Init()
+
+        local spec = { name = "Acid Storm", type = "SettlementEvent" }
+        strain:ReverseConsequences({ consequences = { timelineEvent = spec } })
+
+        t:assertEqual(1, #env.timelineStub.removed)
+        t:assertEqual("Acid Storm", env.timelineStub.removed[1].name)
+        t:assertEqual("SettlementEvent", env.timelineStub.removed[1].type)
     end)
 end)
 

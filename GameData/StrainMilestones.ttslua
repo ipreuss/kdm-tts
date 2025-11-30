@@ -78,6 +78,7 @@ local StrainMilestones = {
         rulesText = [[Permanently add <b>Armored Fist</b> to your fighting art deck. Permanently add <b>Fiddler Crab Spider</b> to your vermin deck.]],
         consequences = {
             fightingArt = "Armored Fist",
+            vermin = "Fiddler Crab Spider",
         },
     },
     {
@@ -105,6 +106,11 @@ local StrainMilestones = {
         rulesText = [[Permanently add <b>Sword Oath</b> to your fighting art deck. The survivor gains <b>Sword Oath</b>. Add <b>Acid Storm</b> to the next lantern year on the timeline.]],
         consequences = {
             fightingArt = "Sword Oath",
+            timelineEvent = {
+                name = "Acid Storm",
+                type = "SettlementEvent",
+                offset = 1,
+            },
         },
     },
     {

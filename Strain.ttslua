@@ -7,6 +7,8 @@ local NamedObject = require("Kdm/NamedObject")
 local Deck = require("Kdm/Deck")
 local LayoutManager = require("Kdm/Ui/LayoutManager")
 local FightingArtsArchive = require("Kdm/FightingArtsArchive")
+local VerminArchive = require("Kdm/VerminArchive")
+local Timeline = require("Kdm/Timeline")
 local log = require("Kdm/Log").ForModule("Strain")
 local StrainMilestones = require("Kdm/GameData/StrainMilestones")
 
@@ -512,6 +514,24 @@ function Strain:ExecuteConsequences(milestone)
         FightingArtsArchive.AddCard(fightingArt)
         Strain:SpawnFightingArtForSurvivor(fightingArt)
     end
+
+    local vermin = consequences.vermin
+    if vermin then
+        local added = VerminArchive.AddCard(vermin)
+        if not added then
+            log:Errorf("Failed to add %s to the Vermin deck.", vermin)
+        end
+    end
+
+    local timelineEvent = consequences.timelineEvent
+    if timelineEvent then
+        local scheduled = Timeline.ScheduleEvent(timelineEvent)
+        if not scheduled then
+            log:Errorf("Unable to schedule '%s' on the timeline automatically. Please add it manually.", timelineEvent.name)
+        else
+            log:Printf("Scheduled %s on the timeline.", timelineEvent.name)
+        end
+    end
 end
 
 function Strain:ReverseConsequences(milestone)
@@ -527,6 +547,24 @@ function Strain:ReverseConsequences(milestone)
             log:Printf("Remove %s from any survivor that gained it.", fightingArt)
         else
             log:Errorf("Failed to remove %s from the Fighting Arts deck.", fightingArt)
+        end
+    end
+
+    local vermin = consequences.vermin
+    if vermin then
+        local removed = VerminArchive.RemoveCard(vermin)
+        if not removed then
+            log:Errorf("Failed to remove %s from the Vermin deck.", vermin)
+        end
+    end
+
+    local timelineEvent = consequences.timelineEvent
+    if timelineEvent then
+        local removed = Timeline.RemoveEventByName(timelineEvent.name, timelineEvent.type)
+        if removed then
+            log:Printf("Removed %s from the timeline.", timelineEvent.name)
+        else
+            log:Debugf("Timeline event '%s' not found while undoing milestone.", timelineEvent.name)
         end
     end
 end
