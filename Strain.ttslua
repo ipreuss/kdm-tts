@@ -16,7 +16,7 @@ local Strain = {}
 Strain.REWARD_DECK_NAME = "Strain Rewards"
 Strain.REWARD_DECK_TYPE = "Rewards"
 -- Strain rewards live exclusively in the Strain Rewards deck; missing entries are fatal.
-Strain.REWARD_SPAWN_LOCATION = "Showdown Board South"
+Strain.REWARD_SPAWN_LOCATION = "South of Showdown Board"
 Strain.FIGHTING_ART_TYPE = "Fighting Arts"
 Strain.FIGHTING_ART_LOCATION = "Fighting Arts"
 Strain.FIGHTING_ART_ARCHIVE = "Fighting Arts Archive"

@@ -120,11 +120,12 @@ All role-to-role handovers are stored in the `handover/` folder:
 | `LATEST_REVIEW.md` | Most recent code review findings | Reviewer |
 | `HANDOVER_ARCHITECT.md` | Requirements handoff to Architect | Product Owner |
 | `HANDOVER_IMPLEMENTER.md` | Design handoff to Implementer | Architect |
+| `IMPLEMENTATION_STATUS.md` | Snapshot of what portions of the design/requirements have already been implemented | Implementer |
 
 **Guidelines:**
-- Each handover document is **replaced** (not appended) when a new handover occurs
+- Each handover/status document is **replaced** (not appended) when a new handover occurs
 - Include context, requirements/design, open questions, and relevant files
-- The receiving role should read the handover before starting work
+- The receiving role should read the handover/status documents before starting work. When implementation spans multiple PRs/sprints, update `handover/IMPLEMENTATION_STATUS.md` so future implementers can see exactly what has already landed and what remains.
 
 ### Role Boundaries
 
