@@ -372,36 +372,6 @@ function Strain:_FightingArtsDeck()
     return deck
 end
 
-function Strain:RemoveFightingArtFromDeck(cardName)
-    local deck = Strain:_FightingArtsDeck()
-    if not deck then
-        return false
-    end
-
-    local container = Container(deck)
-    if not container then
-        log:Errorf("Unable to create container for Fighting Arts deck while removing %s", cardName)
-        return false
-    end
-
-    local exists = false
-    for _, entry in ipairs(container:Objects()) do
-        if entry.name == cardName and entry.gm_notes == Strain.FIGHTING_ART_TYPE then
-            exists = true
-            break
-        end
-    end
-
-    if not exists then
-        log:Debugf("%s not found in Fighting Arts deck (may have been removed already)", cardName)
-        return false
-    end
-
-    container:Delete({ cardName })
-    log:Printf("Removed %s from the Fighting Arts deck.", cardName)
-    return true
-end
-
 function Strain:SpawnFightingArtForSurvivor(cardName)
     local takeParams = {
         name = cardName,

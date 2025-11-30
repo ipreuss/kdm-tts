@@ -1,15 +1,19 @@
 local Archive = require("Kdm/Archive")
 local NamedObject = require("Kdm/NamedObject")
 local Deck = require("Kdm/Deck")
+local StrainRewardsConstants = require("Kdm/StrainRewardsConstants")
 local log = require("Kdm/Log").ForModule("VerminArchive")
 
 ---------------------------------------------------------------------------------------------------
 
 local VerminArchive = {}
 
-VerminArchive.REWARD_DECK_NAME = "Strain Rewards"
-VerminArchive.REWARD_DECK_TYPE = "Rewards"
-VerminArchive.REWARD_DECK_STAGING_POSITION = { x = -150, y = 60, z = 120 }
+-- Import shared Strain Rewards constants
+VerminArchive.REWARD_DECK_NAME = StrainRewardsConstants.REWARD_DECK_NAME
+VerminArchive.REWARD_DECK_TYPE = StrainRewardsConstants.REWARD_DECK_TYPE
+VerminArchive.REWARD_DECK_STAGING_POSITION = StrainRewardsConstants.REWARD_DECK_STAGING_POSITION
+
+-- Vermin specific constants
 VerminArchive.VERMIN_TYPE = "Vermin"
 VerminArchive.VERMIN_LOCATION = "Vermin"
 VerminArchive.VERMIN_ARCHIVE = "Vermin Archive"

@@ -1,15 +1,19 @@
 local Archive = require("Kdm/Archive")
 local NamedObject = require("Kdm/NamedObject")
 local Deck = require("Kdm/Deck")
+local StrainRewardsConstants = require("Kdm/StrainRewardsConstants")
 local log = require("Kdm/Log").ForModule("FightingArtsArchive")
 
 ---------------------------------------------------------------------------------------------------
 
 local FightingArtsArchive = {}
 
-FightingArtsArchive.REWARD_DECK_NAME = "Strain Rewards"
-FightingArtsArchive.REWARD_DECK_TYPE = "Rewards"
-FightingArtsArchive.REWARD_DECK_STAGING_POSITION = { x = -150, y = 60, z = 120 }
+-- Import shared Strain Rewards constants
+FightingArtsArchive.REWARD_DECK_NAME = StrainRewardsConstants.REWARD_DECK_NAME
+FightingArtsArchive.REWARD_DECK_TYPE = StrainRewardsConstants.REWARD_DECK_TYPE
+FightingArtsArchive.REWARD_DECK_STAGING_POSITION = StrainRewardsConstants.REWARD_DECK_STAGING_POSITION
+
+-- Fighting Arts specific constants
 FightingArtsArchive.FIGHTING_ART_TYPE = "Fighting Arts"
 FightingArtsArchive.FIGHTING_ART_LOCATION = "Fighting Arts"
 FightingArtsArchive.FIGHTING_ART_ARCHIVE = "Fighting Arts Archive"

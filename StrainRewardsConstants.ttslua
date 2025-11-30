@@ -1,0 +1,11 @@
+-- Shared constants for Strain Rewards deck access
+-- Used by FightingArtsArchive, VerminArchive, and Strain modules
+
+local StrainRewardsConstants = {}
+
+-- Strain Rewards deck is the archive containing all strain milestone reward cards
+StrainRewardsConstants.REWARD_DECK_NAME = "Strain Rewards"
+StrainRewardsConstants.REWARD_DECK_TYPE = "Rewards"
+StrainRewardsConstants.REWARD_DECK_STAGING_POSITION = { x = -150, y = 60, z = 120 }
+
+return StrainRewardsConstants

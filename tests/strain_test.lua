@@ -1,4 +1,6 @@
 local Test = require("tests.framework")
+local ui_stubs = require("tests.stubs.ui_stubs")
+local tts_objects = require("tests.stubs.tts_objects")
 
 local function withStubs(stubs, fn)
     local originals = {}
@@ -31,36 +33,7 @@ local function buildStrainStubs()
     function rootPanel:Text(_) end
     function rootPanel:SetHeight(height) self.height = height end
 
-    local listPanel = {
-        panels = recorder.rows,
-        height = 0,
-    }
-    function listPanel:SetHeight(height)
-        self.height = height
-    end
-    function listPanel:Panel(params)
-        local row = { attributes = params }
-        function row:SetHeight(h) self.height = h end
-        function row:SetOffsetXY(offset) self.offset = offset end
-        function row:SetWidth(w) self.width = w end
-        function row:SetColor(color) self.color = color end
-        function row:CheckBox(cbParams)
-            local checkbox = { params = cbParams, checked = nil }
-            function checkbox:Check(value) checkbox.checked = value end
-            row.checkBox = checkbox
-            return checkbox
-        end
-        function row:Text(textParams)
-            local text = { params = textParams, text = nil }
-            function text:SetText(value) text.text = value end
-            function text:SetWidth(w) text.width = w end
-            function text:SetHeight(h) text.height = h end
-            return text
-        end
-        table.insert(self.panels, row)
-        return row
-    end
-
+    local listPanel = ui_stubs.listPanel(recorder)
     local scrollArea = {
         Panel = function() return listPanel end,
         SetContentHeight = function(_, height)
@@ -68,65 +41,12 @@ local function buildStrainStubs()
         end,
     }
 
-    local dialogStats = { show = 0, hide = 0 }
-    local dialog = {
-        Panel = function() return rootPanel end,
-        ShowForPlayer = function(_, player)
-            dialogStats.show = dialogStats.show + 1
-            return player.color
-        end,
-        HideForPlayer = function(_, player)
-            dialogStats.hide = dialogStats.hide + 1
-            return player.color
-        end,
-        ShowForAll = function()
-            dialogStats.show = dialogStats.show + 1
-        end,
-        HideForAll = function()
-            dialogStats.hide = dialogStats.hide + 1
-        end,
-        IsOpen = function() return dialogStats.show > dialogStats.hide end,
-    }
+    local dialog = ui_stubs.dialog()
+    dialog.Panel = function() return rootPanel end  -- Override to use custom rootPanel
+    local dialogStats = dialog.stats
 
-    local confirmDialog = {
-        Panel = function() return {
-            Text = function(_, params) 
-                local text = { params = params, text = nil }
-                function text:SetText(value) text.text = value end
-                return text
-            end,
-            Button = function() end,
-        } end,
-        ShowForPlayer = function() end,
-        HideForPlayer = function() end,
-        Show = function() end,
-        Hide = function() end,
-        ShowForAll = function() end,
-        HideForAll = function() end,
-        SetHeight = function() end,
-    }
-
-    local function simplePanel()
-        local panel = {}
-        function panel:Panel()
-            return simplePanel()
-        end
-        function panel:Text(params)
-            local text = { params = params, text = nil }
-            function text:SetText(value) text.text = value end
-            return text
-        end
-        function panel:Button()
-            return {}
-        end
-        return panel
-    end
-
-    local uncheckDialog = {
-        Panel = simplePanel,
-        ShowForAll = function() end,
-        HideForAll = function() end,
-    }
+    local confirmDialog = ui_stubs.dialog()
+    local uncheckDialog = ui_stubs.dialog()
 
     local panelKitStub = {}
 
@@ -582,50 +502,17 @@ local function setupAddToArchiveScenario(stubs, env, options)
     local includeRewardCard = options.includeRewardCard ~= false
     local cardName = options.cardName or "Test Art"
 
-    local insertedCards = {}
-    local faDeck = {
-        insertedCards = insertedCards,
-    }
-    faDeck.getPosition = function()
-        return { x = 0, y = 0, z = 0 }
-    end
-    faDeck.putObject = function(card)
-        table.insert(insertedCards, card)
-    end
-    faDeck.getName = function()
-        return "Fighting Arts Deck"
-    end
-    faDeck.destruct = function()
-        faDeck.destroyed = true
-    end
-
+    local faDeck = tts_objects.deck({ name = "Fighting Arts Deck" })
     local archiveObject = createArchiveForDeck(stubs, faDeck)
 
-    local strainDeck = {
-        destroyed = false,
-    }
-    local deckObjects = {}
-    -- Mirror TTS deck metadata by assigning sequential indices so lookups remain deterministic.
-    local nextIndex = 1
-    if includeRewardCard then
-        table.insert(deckObjects, { name = cardName, gm_notes = "Fighting Arts", index = nextIndex })
-        nextIndex = nextIndex + 1
-    end
-    table.insert(deckObjects, { name = "Other Card", gm_notes = "Fighting Arts", index = nextIndex })
-
-    strainDeck.getObjects = function()
-        return deckObjects
-    end
-    strainDeck.takeObject = function(params)
-        strainDeck.lastTakeParams = params
-        if not includeRewardCard then
-            return nil
-        end
-        return { name = cardName, gm_notes = "Fighting Arts" }
-    end
-    strainDeck.destruct = function()
-        strainDeck.destroyed = true
-    end
+    local cardNames = includeRewardCard and { cardName, "Other Card" } or { "Other Card" }
+    local strainDeck = tts_objects.deckWithCards(cardNames, {
+        deckName = "Strain Rewards",
+        gm_notes = "Fighting Arts",
+        takeHandler = includeRewardCard and function(params)
+            return { name = cardName, gm_notes = "Fighting Arts" }
+        end or function() return nil end,
+    })
 
     env.archiveStub.takeHandler = function(params)
         if params.name == "Strain Rewards" then
@@ -654,36 +541,20 @@ local function setupRemovalScenario(stubs, env, options)
     local includeRewardCard = options.includeRewardCard ~= false
     local cardName = options.cardName or "Test Art"
 
-    local faDeck = {
-        takeCalls = {},
-    }
-    faDeck.getName = function()
-        return "Stub Fighting Arts Deck"
-    end
-    local deckObjects = {}
-    -- Mirror TTS deck metadata by assigning sequential indices so lookups remain deterministic.
-    local nextIndex = 1
-    if includeRewardCard then
-        table.insert(deckObjects, { name = cardName, gm_notes = "Fighting Arts", index = nextIndex })
-        nextIndex = nextIndex + 1
-    end
-    table.insert(deckObjects, { name = "Other Card", gm_notes = "Fighting Arts", index = nextIndex })
-
-    faDeck.getObjects = function()
-        return deckObjects
-    end
     local removedCard = { destroyed = false }
-    faDeck.takeObject = function(params)
-        faDeck.lastTakeParams = params
-        if not includeRewardCard then
-            return nil
-        end
-        return {
-            destruct = function()
-                removedCard.destroyed = true
-            end,
-        }
-    end
+    local cardNames = includeRewardCard and { cardName, "Other Card" } or { "Other Card" }
+    local faDeck = tts_objects.deckWithCards(cardNames, {
+        deckName = "Stub Fighting Arts Deck",
+        gm_notes = "Fighting Arts",
+        takeHandler = includeRewardCard and function(params)
+            return {
+                destruct = function()
+                    removedCard.destroyed = true
+                end,
+            }
+        end or function() return nil end,
+    })
+    faDeck.takeCalls = {}
 
     local deckResets = {}
     env.deckStub.ResetDeck = function(location)
@@ -702,53 +573,31 @@ local function setupRemovalScenario(stubs, env, options)
 end
 
 local function setupRewardDeckFallback(stubs, env)
-    local strainDeck = {
-        __objects = {
-            { name = "Story of Blood", gm_notes = "Fighting Arts", index = 1 },
-        },
-        takes = {},
-        getName = function()
-            return "Strain Rewards"
-        end,
-        getGUID = function()
-            return "strain-rewards"
-        end,
-        destruct = function() end,
-    }
-    strainDeck.__takeHandler = function(params)
-        table.insert(strainDeck.takes, params)
-        if params.name ~= "Story of Blood" then
-            return nil
-        end
-        local card = {
-            currentName = "Story of Blood",
-            stateId = 1,
-        }
-        local states = {
-            { id = 1, name = "Story of Blood" },
-            { id = 2, name = "Story of Blood [1, 2x]" },
-        }
-        function card.getStates()
-            return states
-        end
-        function card.setState(stateId)
-            for _, state in ipairs(states) do
-                if state.id == stateId then
-                    card.stateId = state.id
-                    card.currentName = state.name
-                    return card
-                end
+    local takes = {}
+    local strainDeck = tts_objects.deckWithCards({ "Story of Blood" }, {
+        deckName = "Strain Rewards",
+        gm_notes = "Fighting Arts",
+        takeHandler = function(params)
+            table.insert(takes, params)
+            if params.name ~= "Story of Blood" then
+                return nil
             end
-            return card
-        end
-        function card.getName()
-            return card.currentName
-        end
-        function card.getGUID()
-            return "card-guid"
-        end
-        return card
-    end
+            return tts_objects.card({
+                name = "Story of Blood",
+                gm_notes = "Fighting Arts",
+                currentState = 1,
+                states = {
+                    { id = 1, name = "Story of Blood" },
+                    { id = 2, name = "Story of Blood [1, 2x]" },
+                },
+                onStateChange = function(stateId)
+                    -- Card name changes with state
+                end,
+            })
+        end,
+    })
+    strainDeck.getGUID = function() return "strain-rewards" end
+    strainDeck.takes = takes
 
     env.archiveStub.takeHandler = function(params)
         if params.name == "Strain Rewards" then
