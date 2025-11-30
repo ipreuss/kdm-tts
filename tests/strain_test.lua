@@ -162,10 +162,13 @@ local function buildStrainStubs()
     function panelKitStub.VerticalLayout(params)
         return {
             AddTitle = function() return { SetText = function() end } end,
-            AddSection = function() return {
-                content = { SetText = function() end },
-                label = { SetText = function() end }
-            } end,
+            AddSection = function()
+                local content = { text = nil }
+                function content:SetText(value) content.text = value end
+                local label = { text = nil }
+                function label:SetText(value) label.text = value end
+                return { content = content, label = label }
+            end,
             AddSpacer = function() end,
             AddButtonRow = function() return {} end,
             AddCustom = function()
@@ -183,10 +186,13 @@ local function buildStrainStubs()
     function panelKitStub.AutoSizedDialog(params)
         local mockLayout = {
             AddTitle = function() return { SetText = function() end } end,
-            AddSection = function() return {
-                content = { SetText = function() end },
-                label = { SetText = function() end }
-            } end,
+            AddSection = function()
+                local content = { text = nil }
+                function content:SetText(value) content.text = value end
+                local label = { text = nil }
+                function label:SetText(value) label.text = value end
+                return { content = content, label = label }
+            end,
             AddSpacer = function() end,
             AddButtonRow = function() return {} end,
         }
@@ -1216,5 +1222,54 @@ Test.test("Strain.Save serializes reached milestones for export/import", functio
 
         t:assertTrue(saveState.reached["Milestone A"], "reached milestone should be recorded")
         t:assertNil(saveState.reached["Milestone B"], "unreached milestones should not be persisted")
+    end)
+end)
+
+Test.test("ShowConfirmationDialog displays manual steps", function(t)
+    withStrain(t, function(StrainModule, strain, env)
+        StrainModule.Init()
+        
+        local milestone = {
+            title = "Test Milestone",
+            flavorText = "Test flavor",
+            rulesText = "Test rules",
+            consequences = {
+                manual = {
+                    "Do this thing manually",
+                    "Do this other thing"
+                }
+            }
+        }
+        
+        strain:ShowConfirmationDialog(milestone)
+        
+        t:assertNotNil(strain.confirmationManualText, "Manual text element should exist")
+        t:assertNotNil(strain.confirmationManualText.text, "Manual text should have been set")
+        local manualText = strain.confirmationManualText.text
+        t:assertMatch(manualText, "Do this thing manually", "Should display first manual step")
+        t:assertMatch(manualText, "Do this other thing", "Should display second manual step")
+        t:assertMatch(manualText, "•", "Should have bullet points")
+    end)
+end)
+
+Test.test("ShowConfirmationDialog displays (None) when no manual steps", function(t)
+    withStrain(t, function(StrainModule, strain, env)
+        StrainModule.Init()
+        
+        local milestone = {
+            title = "Test Milestone",
+            flavorText = "Test flavor",
+            rulesText = "Test rules",
+            consequences = {
+                fightingArt = "Test Art"
+            }
+        }
+        
+        strain:ShowConfirmationDialog(milestone)
+        
+        t:assertNotNil(strain.confirmationManualText, "Manual text element should exist")
+        t:assertNotNil(strain.confirmationManualText.text, "Manual text should have been set")
+        local manualText = strain.confirmationManualText.text
+        t:assertEqual("(None)", manualText, "Should display (None) when no manual steps")
     end)
 end)

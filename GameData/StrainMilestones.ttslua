@@ -6,6 +6,9 @@ local StrainMilestones = {
         rulesText = [[Permanently add the <b>Ethereal Pact</b> fighting art to your fighting art deck. The survivor gains the <b>Ethereal Pact</b> fighting art.]],
         consequences = {
             fightingArt = "Ethereal Pact",
+            manual = {
+                "Give the spawned Ethereal Pact card to the survivor who consumed the Brain Mint"
+            },
         },
     },
     {
@@ -15,6 +18,9 @@ local StrainMilestones = {
         rulesText = [[Permanently add the <b>Giant's Blood</b> fighting art to your fighting art deck. The survivor's newborn child gains the <b>Giant's Blood</b> fighting art (choose one in case of twins).]],
         consequences = {
             fightingArt = "Giant's Blood",
+            manual = {
+                "Give the spawned Giant's Blood card to the newborn child (choose one in case of twins)"
+            },
         },
     },
     {
@@ -24,6 +30,10 @@ local StrainMilestones = {
         rulesText = [[Permanently add the <b>Backstabber</b> fighting art to your fighting art deck. The survivor gains the <b>Backstabber</b> fighting art. They suffer permanent -1 strength and -1 evasion from lack of sleep!]],
         consequences = {
             fightingArt = "Backstabber",
+            manual = {
+                "Give the spawned Backstabber card to the survivor",
+                "The survivor suffers permanent -1 strength and -1 evasion from lack of sleep"
+            },
         },
     },
     {
@@ -33,6 +43,9 @@ local StrainMilestones = {
         rulesText = [[Permanently add the <b>Infinite Lives</b> fighting art to your fighting art deck. The survivor gains the <b>Infinite Lives</b> fighting art.]],
         consequences = {
             fightingArt = "Infinite Lives",
+            manual = {
+                "Give the spawned Infinite Lives card to the survivor who survived Trepanning five times"
+            },
         },
     },
     {
@@ -42,6 +55,11 @@ local StrainMilestones = {
         rulesText = [[Permanently add the <b>Shielderang</b> fighting art to your fighting art deck. The newborn survivor gains the <b>Shielderang</b> fighting art, 3 levels of <b>Shield</b> weapon proficiency, and the <b>Weak Spot</b> disorder at the body hit location.]],
         consequences = {
             fightingArt = "Shielderang",
+            manual = {
+                "Give the spawned Shielderang card to the newborn survivor",
+                "The newborn survivor gains 3 levels of Shield weapon proficiency",
+                "The newborn survivor gains the Weak Spot disorder at the body hit location"
+            },
         },
     },
     {
@@ -51,6 +69,9 @@ local StrainMilestones = {
         rulesText = [[Permanently add the <b>Rolling Gait</b> fighting art to your fighting art deck. The survivor gains the <b>Rolling Gait</b> fighting art.]],
         consequences = {
             fightingArt = "Rolling Gait",
+            manual = {
+                "Give the spawned Rolling Gait card to the survivor who had their broken leg removed"
+            },
         },
     },
     {
@@ -60,6 +81,9 @@ local StrainMilestones = {
         rulesText = [[Permanently add the <b>Infernal Rhythm</b> fighting art to your fighting art deck. The survivor gains the <b>Infernal Rhythm</b> fighting art.]],
         consequences = {
             fightingArt = "Infernal Rhythm",
+            manual = {
+                "Give the spawned Infernal Rhythm card to the dreaming survivor"
+            },
         },
     },
     {
@@ -69,6 +93,10 @@ local StrainMilestones = {
         rulesText = [[Permanently add the <b>Convalescer</b> fighting art to your fighting art deck. The survivor gains the <b>Convalescer</b> fighting art.]],
         consequences = {
             fightingArt = "Convalescer",
+            manual = {
+                "Give the spawned Convalescer card to the survivor with Ocular Parasites",
+                "The survivor suffers the blind severe head injury"
+            },
         },
     },
     {
@@ -79,6 +107,9 @@ local StrainMilestones = {
         consequences = {
             fightingArt = "Armored Fist",
             vermin = "Fiddler Crab Spider",
+            manual = {
+                "NOTE: The Armored Fist card is added to the fighting art deck only (no specific survivor gains it)"
+            },
         },
     },
     {
@@ -88,6 +119,9 @@ local StrainMilestones = {
         rulesText = [[Permanently add <b>Dark Manifestation</b> to your fighting art deck. The survivor gains <b>Dark Manifestation</b>.]],
         consequences = {
             fightingArt = "Dark Manifestation",
+            manual = {
+                "Give the spawned Dark Manifestation card to the Crazed survivor"
+            },
         },
     },
     {
@@ -97,6 +131,9 @@ local StrainMilestones = {
         rulesText = [[Permanently add <b>Stockist</b> to your fighting art deck. The survivor gains <b>Stockist</b>.]],
         consequences = {
             fightingArt = "Stockist",
+            manual = {
+                "Give the spawned Stockist card to the survivor with Hoarder"
+            },
         },
     },
     {
@@ -111,6 +148,9 @@ local StrainMilestones = {
                 type = "SettlementEvent",
                 offset = 1,
             },
+            manual = {
+                "Give the spawned Sword Oath card to the survivor who delivered the killing blow with a sword"
+            },
         },
     },
     {
@@ -120,6 +160,10 @@ local StrainMilestones = {
         rulesText = [[The next time a survivor would remember a <b>White Secret</b> story, they recall the words recited under her breath instead. Permanently add the <b>Story of Blood</b> fighting art to your fighting art deck. That survivor gains the <b>Story of Blood</b> fighting art.]],
         consequences = {
             fightingArt = "Story of Blood",
+            manual = {
+                "Add 1 Iron strange resource to the settlement storage",
+                "NOTE: The next survivor to remember a White Secret story gains the Story of Blood fighting art (not immediate)"
+            },
         },
     },
 }

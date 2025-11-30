@@ -46,3 +46,4 @@ fi
 
 # Display the current time
 echo "Done: $(date)"
+say done

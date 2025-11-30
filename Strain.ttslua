@@ -148,6 +148,18 @@ function Strain:InitConfirmationDialog()
         Strain.confirmationRulesText = section.content
     end)
 
+    spec:AddSpacer(6)
+
+    spec:AddSection({
+        labelId = "ManualLabel",
+        label = "Manual Steps:",
+        contentId = "MilestoneManualText",
+        contentColor = "#CC0000",  -- Red to draw attention
+        indent = 15,
+    }, function(section)
+        Strain.confirmationManualText = section.content
+    end)
+
     spec:AddSpacer(15)
 
     spec:AddButtonRow({
@@ -650,6 +662,14 @@ function Strain:ShowConfirmationDialog(milestone)
     Strain.confirmationTitle:SetText(milestone.title)
     Strain.confirmationFlavorText:SetText(milestone.flavorText)
     Strain.confirmationRulesText:SetText(milestone.rulesText)
+    
+    -- Format manual steps if present
+    if milestone.consequences and milestone.consequences.manual and #milestone.consequences.manual > 0 then
+        local manualText = "• " .. table.concat(milestone.consequences.manual, "\n• ")
+        Strain.confirmationManualText:SetText(manualText)
+    else
+        Strain.confirmationManualText:SetText("(None)")
+    end
 
     -- Show dialog for all players
     Strain.confirmationDialog:ShowForAll()
