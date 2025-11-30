@@ -403,6 +403,30 @@ local function withStrain(t, callback, options)
     end)
 end
 
+local function createArchiveForDeck(stubs, faDeck)
+    local archiveObject = {
+        takeCalls = {},
+        putCalls = {},
+        resetCount = 0,
+    }
+    archiveObject.takeObject = function(params)
+        table.insert(archiveObject.takeCalls, params)
+        return faDeck
+    end
+    archiveObject.putObject = function(obj)
+        table.insert(archiveObject.putCalls, obj)
+    end
+    archiveObject.reset = function()
+        archiveObject.resetCount = archiveObject.resetCount + 1
+    end
+    stubs["Kdm/NamedObject"] = {
+        Get = function()
+            return archiveObject
+        end,
+    }
+    return archiveObject
+end
+
 local function setupAddToArchiveScenario(stubs, env, options)
     options = options or {}
     local includeRewardCard = options.includeRewardCard ~= false
@@ -425,36 +449,19 @@ local function setupAddToArchiveScenario(stubs, env, options)
         faDeck.destroyed = true
     end
 
-    local archiveObject = {
-        takeCalls = {},
-        putCalls = {},
-        resetCount = 0,
-    }
-    archiveObject.takeObject = function(params)
-        table.insert(archiveObject.takeCalls, params)
-        return faDeck
-    end
-    archiveObject.putObject = function(obj)
-        table.insert(archiveObject.putCalls, obj)
-    end
-    archiveObject.reset = function()
-        archiveObject.resetCount = archiveObject.resetCount + 1
-    end
-
-    stubs["Kdm/NamedObject"] = {
-        Get = function()
-            return archiveObject
-        end,
-    }
+    local archiveObject = createArchiveForDeck(stubs, faDeck)
 
     local strainDeck = {
         destroyed = false,
     }
     local deckObjects = {}
+    -- Mirror TTS deck metadata by assigning sequential indices so lookups remain deterministic.
+    local nextIndex = 1
     if includeRewardCard then
-        table.insert(deckObjects, { name = cardName, gm_notes = "Fighting Arts", index = 2 })
+        table.insert(deckObjects, { name = cardName, gm_notes = "Fighting Arts", index = nextIndex })
+        nextIndex = nextIndex + 1
     end
-    table.insert(deckObjects, { name = "Other Card", gm_notes = "Fighting Arts", index = 5 })
+    table.insert(deckObjects, { name = "Other Card", gm_notes = "Fighting Arts", index = nextIndex })
 
     strainDeck.getObjects = function()
         return deckObjects
@@ -483,6 +490,7 @@ local function setupAddToArchiveScenario(stubs, env, options)
     end
 
     env.acceptance = {
+        archiveStub = env.archiveStub,
         faDeck = faDeck,
         archive = archiveObject,
         strainDeck = strainDeck,
@@ -496,37 +504,17 @@ local function setupRemovalScenario(stubs, env, options)
     local includeRewardCard = options.includeRewardCard ~= false
     local cardName = options.cardName or "Test Art"
 
-    local archiveObject = {
-        takeCalls = {},
-        putCalls = {},
-        resetCount = 0,
-    }
-
     local faDeck = {
         takeCalls = {},
     }
     local deckObjects = {}
+    -- Mirror TTS deck metadata by assigning sequential indices so lookups remain deterministic.
+    local nextIndex = 1
     if includeRewardCard then
-        table.insert(deckObjects, { name = cardName, gm_notes = "Fighting Arts", index = 3 })
+        table.insert(deckObjects, { name = cardName, gm_notes = "Fighting Arts", index = nextIndex })
+        nextIndex = nextIndex + 1
     end
-    table.insert(deckObjects, { name = "Other Card", gm_notes = "Fighting Arts", index = 7 })
-
-    archiveObject.takeObject = function(params)
-        table.insert(archiveObject.takeCalls, params)
-        return faDeck
-    end
-    archiveObject.putObject = function(obj)
-        table.insert(archiveObject.putCalls, obj)
-    end
-    archiveObject.reset = function()
-        archiveObject.resetCount = archiveObject.resetCount + 1
-    end
-
-    stubs["Kdm/NamedObject"] = {
-        Get = function()
-            return archiveObject
-        end,
-    }
+    table.insert(deckObjects, { name = "Other Card", gm_notes = "Fighting Arts", index = nextIndex })
 
     faDeck.getObjects = function()
         return deckObjects
@@ -549,7 +537,9 @@ local function setupRemovalScenario(stubs, env, options)
         table.insert(deckResets, location)
     end
 
+    local archiveObject = createArchiveForDeck(stubs, faDeck)
     env.acceptance = {
+        archiveStub = env.archiveStub,
         archive = archiveObject,
         faDeck = faDeck,
         deckResets = deckResets,
@@ -738,7 +728,7 @@ Test.test("AddFightingArtToArchive transfers reward card into the fighting arts 
         t:assertTrue(env.acceptance.strainDeck.destroyed, "Strain rewards deck should be destroyed after transfer")
         t:assertEqual(1, #env.acceptance.deckResets, "Deck.ResetDeck should run once for fighting arts location")
         t:assertEqual(strain.FIGHTING_ART_LOCATION, env.acceptance.deckResets[1])
-        t:assertEqual(1, env.archiveStub.cleanCount, "Archive.Clean should run after successful transfer")
+        t:assertEqual(1, env.acceptance.archiveStub.cleanCount, "Archive.Clean should run after successful transfer")
     end, {
         customizeStubs = function(stubs, env)
             setupAddToArchiveScenario(stubs, env, {})
@@ -755,7 +745,7 @@ Test.test("AddFightingArtToArchive returns false when the reward card is missing
         t:assertEqual(0, env.acceptance.archive.resetCount, "Archive reset should not run on failure")
         t:assertTrue(env.acceptance.strainDeck.destroyed, "Strain rewards deck should be destroyed after attempting transfer")
         t:assertEqual(0, #env.acceptance.deckResets, "Deck.ResetDeck should not run on failure")
-        t:assertEqual(0, env.archiveStub.cleanCount, "Archive.Clean should not run on failure")
+        t:assertEqual(0, env.acceptance.archiveStub.cleanCount, "Archive.Clean should not run on failure")
     end, {
         customizeStubs = function(stubs, env)
             setupAddToArchiveScenario(stubs, env, { includeRewardCard = false })
@@ -773,7 +763,7 @@ Test.test("RemoveFightingArtFromArchive deletes the card from the fighting arts 
         t:assertEqual(1, env.acceptance.archive.resetCount, "Archive reset should run after successful removal")
         t:assertEqual(1, #env.acceptance.deckResets, "Deck.ResetDeck should run once")
         t:assertEqual(strain.FIGHTING_ART_LOCATION, env.acceptance.deckResets[1])
-        t:assertEqual(1, env.archiveStub.cleanCount, "Archive.Clean should run after removal")
+        t:assertEqual(1, env.acceptance.archiveStub.cleanCount, "Archive.Clean should run after removal")
     end, {
         customizeStubs = function(stubs, env)
             setupRemovalScenario(stubs, env, {})
@@ -790,7 +780,7 @@ Test.test("RemoveFightingArtFromArchive returns false when the card is absent", 
         t:assertFalse(env.acceptance.removedCard.destroyed, "No card should be destroyed when nothing was removed")
         t:assertEqual(0, env.acceptance.archive.resetCount, "Archive reset should not run on failure")
         t:assertEqual(0, #env.acceptance.deckResets, "Deck.ResetDeck should not run on failure")
-        t:assertEqual(0, env.archiveStub.cleanCount, "Archive.Clean should not run on failure")
+        t:assertEqual(0, env.acceptance.archiveStub.cleanCount, "Archive.Clean should not run on failure")
     end, {
         customizeStubs = function(stubs, env)
             setupRemovalScenario(stubs, env, { includeRewardCard = false })
