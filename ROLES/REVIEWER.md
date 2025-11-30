@@ -33,6 +33,16 @@
 2. If only used internally + tests → SRP violation (see CODE_REVIEW_GUIDELINES.md)
 3. Recommend extraction to appropriate abstraction level
 
+**When you find a test-only export smell, analyze the root cause:**
+1. Ask: "What does this function actually do at its core?"
+2. Ask: "Is this functionality specific to this module, or is it a general pattern?"
+3. Ask: "Which module would naturally own this responsibility?"
+
+**Look for generalization opportunities:**
+- Strip away module-specific constants (names, types, positions)
+- What remains? If it's a reusable pattern, it belongs in a lower-level module
+- Don't just note "SRP smell, acceptable for now" - propose where it *should* live and what parameters it would need
+
 ### 4. Write Review
 Update `handover/LATEST_REVIEW.md` with:
 - Date and role

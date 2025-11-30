@@ -428,73 +428,16 @@ function Strain:_ResolveSpawnPosition(params)
 end
 
 function Strain:_TakeFromRewardsDeck(params)
-    log:Debugf("[DEBUG] _TakeFromRewardsDeck START for '%s'", params.name or "<unknown>")
-    
-    local position = Strain:_ResolveSpawnPosition(params)
-    log:Debugf("[DEBUG] Resolved position: (%f, %f, %f)", position.x, position.y, position.z)
-
-    local deckParams = {
-        name = Strain.REWARD_DECK_NAME,
-        type = Strain.REWARD_DECK_TYPE,
-        position = Strain.REWARD_DECK_STAGING_POSITION,
-        rotation = { x = 0, y = 180, z = 180 },
-        lenient = true,
-    }
-    log:Debugf("[DEBUG] Calling Archive.Take for '%s' (type='%s')", Strain.REWARD_DECK_NAME, Strain.REWARD_DECK_TYPE)
-
-    local deck = Archive.Take(deckParams)
-    assert(deck, Util.SafeFormat("Strain rewards deck '%s' not found in archive - mod setup error", Strain.REWARD_DECK_NAME))
-
-    local deckContainer = Container(deck)
-    assert(deckContainer, Util.SafeFormat("Unable to create container for Strain rewards deck '%s' - invalid TTS object", Strain.REWARD_DECK_NAME))
-    
-    -- Log contents of the deck
-    log:Debugf("[DEBUG] Contents of Strain Rewards deck:")
-    for _, entry in ipairs(deckContainer:Objects()) do
-        log:Debugf("[DEBUG]   - name='%s', gm_notes='%s', guid='%s'", entry.name, entry.gm_notes or "<nil>", entry.guid)
-    end
-    log:Debugf("[DEBUG] Looking for name='%s', type='%s'", params.name, params.type)
-
-    local function takeCardCandidate(targetName, desiredStateName)
-        assert(targetName, "targetName is required")
-        
-        local object = deckContainer:Take({
-            name = targetName,
-            type = params.type,
-            position = position,
-            rotation = params.rotation,
-        })
-        if not object then
-            return nil  -- Card not in deck - legitimate case for fallback logic
-        end
-        
-        if desiredStateName then
-            object = ObjectState.ApplyStateByName(object, desiredStateName)
-        end
-        if params.spawnFunc then
-            params.spawnFunc(object)
-        end
-        return object
-    end
-
-    local requestedName = params.name
-    local card = takeCardCandidate(requestedName)
-    log:Debugf("[DEBUG] deckContainer:Take returned: %s", tostring(card))
-
-    -- Try fallback: strip state suffix and look for base card
-    if not card then
-        local strippedName = ObjectState.StripTrailingBracketSuffix(requestedName)
-        if strippedName ~= requestedName then
-            log:Debugf("[DEBUG] Reward deck fallback from '%s' to '%s'", requestedName, strippedName)
-            card = takeCardCandidate(strippedName, requestedName)
-            log:Debugf("[DEBUG] fallback take returned: %s", tostring(card))
-        end
-    end
-
-    deck.destruct()
-    Archive.Clean()
-    
-    assert(card, Util.SafeFormat("Card '%s' not found in Strain rewards deck - check milestone configuration", params.name or "<unknown>"))
+    Archive.TakeFromDeck({
+        deckName = Strain.REWARD_DECK_NAME,
+        deckType = Strain.REWARD_DECK_TYPE,
+        deckStagingPosition = Strain.REWARD_DECK_STAGING_POSITION,
+        name = params.name,
+        cardType = params.type,
+        position = Strain:_ResolveSpawnPosition(params),
+        rotation = params.rotation,
+        spawnFunc = params.spawnFunc,
+    })
 end
 
 function Strain:_TakeRewardCard(params)
@@ -800,7 +743,4 @@ return {
     HideUi = Strain.HideUi,
     IsUiOpen = Strain.IsUiOpen,
     MILESTONE_CARDS = Strain.MILESTONE_CARDS,
-    _test = {
-        _TakeRewardCard = Strain._TakeRewardCard,
-    },
 }

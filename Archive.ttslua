@@ -431,6 +431,83 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+function Archive.TakeFromDeck(params)
+    assert(Check.Str(params.deckName, "deckName is required"))
+    assert(Check.Str(params.name, "card name is required"))
+    assert(Check.Table(params.position, "position is required"))
+    
+    log:Debugf("[DEBUG] TakeFromDeck START deckName='%s', cardName='%s'", params.deckName, params.name)
+    
+    -- Take the deck from archive
+    local deckParams = {
+        name = params.deckName,
+        type = params.deckType,
+        position = params.deckStagingPosition or { x = 0, y = 10, z = 0 },
+        rotation = { x = 0, y = 180, z = 180 },
+        lenient = true,
+    }
+    
+    local deck = Archive.Take(deckParams)
+    assert(deck, Util.SafeFormat("Deck '%s' not found in archive - check mod setup", params.deckName))
+    
+    local deckContainer = Container(deck)
+    assert(deckContainer, Util.SafeFormat("Unable to create container for deck '%s' - invalid TTS object", params.deckName))
+    
+    -- Log contents for debugging
+    if log.level == "DEBUG" then
+        log:Debugf("[DEBUG] Contents of deck '%s':", params.deckName)
+        for _, entry in ipairs(deckContainer:Objects()) do
+            log:Debugf("[DEBUG]   - name='%s', gm_notes='%s', guid='%s'", entry.name, entry.gm_notes or "<nil>", entry.guid)
+        end
+    end
+    log:Debugf("[DEBUG] Looking for card name='%s', type='%s'", params.name, params.cardType or "<any>")
+    
+    -- Try to take card from deck
+    local function takeCardCandidate(targetName, desiredStateName)
+        assert(targetName, "targetName is required")
+        
+        local object = deckContainer:Take({
+            name = targetName,
+            type = params.cardType,
+            position = params.position,
+            rotation = params.rotation,
+        })
+        if not object then
+            return nil  -- Card not in deck - legitimate case for fallback logic
+        end
+        
+        if desiredStateName then
+            object = ObjectState.ApplyStateByName(object, desiredStateName)
+        end
+        if params.spawnFunc then
+            params.spawnFunc(object)
+        end
+        return object
+    end
+    
+    -- First attempt: try requested name
+    local card = takeCardCandidate(params.name)
+    log:Debugf("[DEBUG] First attempt returned: %s", tostring(card))
+    
+    -- Fallback: strip state suffix and look for base card
+    if not card then
+        local strippedName = ObjectState.StripTrailingBracketSuffix(params.name)
+        if strippedName ~= params.name then
+            log:Debugf("[DEBUG] Fallback from '%s' to '%s'", params.name, strippedName)
+            card = takeCardCandidate(strippedName, params.name)
+            log:Debugf("[DEBUG] Fallback returned: %s", tostring(card))
+        end
+    end
+    
+    -- Cleanup
+    deck.destruct()
+    Archive.Clean()
+    
+    assert(card, Util.SafeFormat("Card '%s' not found in deck '%s' - check configuration", params.name, params.deckName))
+end
+
+---------------------------------------------------------------------------------------------------
+
 function Archive.ArchiveSource(name, type)
     return {
         source = "Archive",
