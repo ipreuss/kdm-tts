@@ -35,16 +35,6 @@ Strain.MILESTONE_CARDS = StrainMilestones
 
 ---------------------------------------------------------------------------------------------------
 
-local function stripTrailingBracketSuffix(value)
-    return ObjectState.StripTrailingBracketSuffix(value)
-end
-
-local function applyStateByName(object, stateName)
-    return ObjectState.ApplyStateByName(object, stateName)
-end
-
----------------------------------------------------------------------------------------------------
-
 function Strain:_HydrateMilestones(saveState)
     saveState = saveState or {}
     local reachedByTitle = saveState.reached or {}
@@ -506,7 +496,7 @@ function Strain:_TakeFromRewardsDeck(params)
             return nil
         end
         if desiredStateName then
-            object = applyStateByName(object, desiredStateName)
+            object = ObjectState.ApplyStateByName(object, desiredStateName)
         end
         if params.spawnFunc then
             params.spawnFunc(object)
@@ -519,7 +509,7 @@ function Strain:_TakeFromRewardsDeck(params)
     log:Debugf("[DEBUG] deckContainer:Take returned: %s", tostring(card))
 
     if not card and requestedName then
-        local strippedName = stripTrailingBracketSuffix(requestedName)
+        local strippedName = ObjectState.StripTrailingBracketSuffix(requestedName)
         if strippedName ~= requestedName then
             log:Debugf("[DEBUG] Reward deck fallback from '%s' to '%s'", requestedName, strippedName)
             card = takeCardCandidate(strippedName, requestedName)

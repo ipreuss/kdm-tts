@@ -201,10 +201,6 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-local function stripTrailingBracketSuffix(value)
-    return ObjectState.StripTrailingBracketSuffix(value)
-end
-
 local function applyStateByName(object, stateName)
     log:Debugf("[DEBUG] applyStateByName START object=%s, stateName=%s", tostring(object), tostring(stateName))
     if not stateName or not object then
@@ -261,7 +257,7 @@ function Archive.Take(params)
     assert(Check.Vec3OrNil(rotation))
     assert(Check.FuncOrNil(spawnFunc))
 
-    local strippedName = requestedName and stripTrailingBracketSuffix(requestedName) or nil
+    local strippedName = requestedName and ObjectState.StripTrailingBracketSuffix(requestedName) or nil
     if strippedName == requestedName then
         strippedName = nil
     end
