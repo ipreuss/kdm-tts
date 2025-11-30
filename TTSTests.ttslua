@@ -2,7 +2,6 @@
 -- These tests run inside TTS via console commands to verify actual behavior
 -- Usage: Type ">testhelp" in TTS chat to see available tests
 
-local Check = require("Kdm/Util/Check")
 local Console = require("Kdm/Console")
 local Location = require("Kdm/Location")
 local Archive = require("Kdm/Archive")

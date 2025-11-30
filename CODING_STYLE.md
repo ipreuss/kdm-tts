@@ -9,7 +9,17 @@ This document captures the shared conventions for working on the KDM Tabletop Si
 - Expose test-only helpers with a leading underscore (e.g., `_TestStubUi`) and keep them clearly segregated from production APIs.
   - Preferred pattern: place test-only helpers under a `Module._test` table (e.g., `Module._test.stubUi`) so intent is explicit and separated from runtime APIs.
 
-## Error Handling
+## Fail Fast - Make Wrong States Unrepresentable
+- **Design for debuggability**: code should fail in obvious ways when something is wrong.
+- **Silent failures are the enemy**: they hide problems until it's too late (data corruption, broken game state).
+- **Better to crash during development** than corrupt user data in production.
+- **Avoid defensive abstractions**: don't add helper functions "just in case" - if you need error handling, use assertions/guards directly.
+- **Let errors bubble up naturally**: don't wrap errors in multiple layers - the stack trace should point directly to the source.
+- **Trust your module contracts**: if all Save() functions return tables, don't add nil checks - let violations crash immediately.
+
+## Error Handling Philosophy
+**Core principle: Better to crash visibly than corrupt data silently.**
+
 - **Prefer assertions over guard clauses** to fail fast and make errors visible.
 - Use `assert(Check.Something(value, "message"))` pattern for required parameters and preconditions.
 - **Use assertions for fatal errors** that indicate broken mod setup or game state:
@@ -21,6 +31,14 @@ This document captures the shared conventions for working on the KDM Tabletop Si
   - Optional behavior where nil/false is a valid return (e.g., `lenient` parameter)
   - User-driven operations that might legitimately fail
   - Feature-specific resources that don't break core gameplay
+- **Avoid pcall in production code** - it obscures errors and makes debugging harder:
+  - Use assertions/guards to validate conditions instead of catching errors
+  - **Acceptable pcall uses (rare):**
+    - Protecting against TTS API failures in recoverable contexts (e.g., reading optional deck state)
+    - Testing code that expects to catch errors (see `assertError` in test framework)
+  - **Document why** when using pcall - add comment explaining what can fail and why it's recoverable
+  - If you find yourself catching errors to convert them to nil returns, use guard clauses instead
+  - **Never** use pcall to suppress critical failures (save/load, essential resource initialization) - these should fail loudly
 - **Guideline:** If the game cannot reasonably continue without this resource/condition, use assertion. The "programmer" includes both code developers and mod designers setting up the game content.
 - Example to **avoid** (guard clause for required parameter):
   ```lua

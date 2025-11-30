@@ -299,6 +299,8 @@ function Timeline.SettlementEventNamesFromDeck()
         return nil
     end
 
+    -- Container:Objects() can fail if TTS object is in invalid state (rare but possible)
+    -- This is recoverable - we just can't read current deck state
     local ok, objects = pcall(function() return Container(deck):Objects() end)
     if not ok or not objects then
         log:Debugf("Failed to read settlement events deck: %s", objects or "Container error")

@@ -349,11 +349,9 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Strain:_FightingArtsDeck()
-    local ok, location = pcall(Location.Get, Strain.FIGHTING_ART_LOCATION)
-    if not ok or not location then
-        log:Errorf("Fighting Arts location '%s' not found: %s", Strain.FIGHTING_ART_LOCATION, location)
-        return nil
-    end
+    local location = Location.Get(Strain.FIGHTING_ART_LOCATION)
+    assert(location, Util.SafeFormat("Fighting Arts location '%s' not found - mod setup error", Strain.FIGHTING_ART_LOCATION))
+    
     local deck = location:FirstObject({ types = { Strain.FIGHTING_ART_TYPE } })
     if not deck then
         log:Errorf("Fighting Arts deck not found at %s", Strain.FIGHTING_ART_LOCATION)
@@ -402,8 +400,8 @@ function Strain:SpawnFightingArtForSurvivor(cardName)
         end,
     }
 
-    local okLocation = pcall(Location.Get, Strain.REWARD_SPAWN_LOCATION)
-    if okLocation then
+    local location = Location.Get(Strain.REWARD_SPAWN_LOCATION)
+    if location then
         takeParams.location = Strain.REWARD_SPAWN_LOCATION
     else
         takeParams.position = { x = 0, y = 15, z = -15 }
@@ -424,10 +422,10 @@ function Strain:_ResolveSpawnPosition(params)
     assert(Check.Str(params.location, "Either position or location is required for spawn"))
     local locationName = params.location
 
-    local ok, locationOrErr = pcall(Location.Get, locationName)
-    assert(ok and locationOrErr, Util.SafeFormat("Reward location '%s' not found: %s", locationName, locationOrErr or "nil"))
+    local location = Location.Get(locationName)
+    assert(location, Util.SafeFormat("Reward location '%s' not found - mod setup error", locationName))
 
-    local position = locationOrErr:Center()
+    local position = location:Center()
     position.y = position.y + (params.height or 2)
     return position
 end
@@ -447,14 +445,13 @@ function Strain:_TakeFromRewardsDeck(params)
     }
     log:Debugf("[DEBUG] Calling Archive.Take for '%s' (type='%s')", Strain.REWARD_DECK_NAME, Strain.REWARD_DECK_TYPE)
 
-    local ok, deckOrErr = pcall(Archive.Take, deckParams)
-    log:Debugf("[DEBUG] Archive.Take returned ok=%s, deckOrErr=%s", tostring(ok), tostring(deckOrErr))
+    local deck = Archive.Take(deckParams)
+    log:Debugf("[DEBUG] Archive.Take returned: %s", tostring(deck))
     
-    assert(ok, Util.SafeFormat("Failed to take Strain rewards deck '%s': %s - mod setup error", Strain.REWARD_DECK_NAME, deckOrErr or "error"))
-    assert(deckOrErr, Util.SafeFormat("Strain rewards deck '%s' not found in archive - mod setup error", Strain.REWARD_DECK_NAME))
-    log:Debugf("[DEBUG] Got Strain Rewards deck: %s (guid=%s)", deckOrErr.getName(), deckOrErr.getGUID())
+    assert(deck, Util.SafeFormat("Strain rewards deck '%s' not found in archive - mod setup error", Strain.REWARD_DECK_NAME))
+    log:Debugf("[DEBUG] Got Strain Rewards deck: %s (guid=%s)", deck.getName(), deck.getGUID())
 
-    local deckContainer = Container(deckOrErr)
+    local deckContainer = Container(deck)
     assert(deckContainer, Util.SafeFormat("Unable to create container for Strain rewards deck '%s' - invalid TTS object", Strain.REWARD_DECK_NAME))
     log:Debugf("[DEBUG] Created container for Strain Rewards deck")
     
@@ -502,8 +499,8 @@ function Strain:_TakeFromRewardsDeck(params)
 
     local success = card ~= nil
     
-    if deckOrErr and deckOrErr.destruct then
-        deckOrErr.destruct()
+    if deck and deck.destruct then
+        deck.destruct()
     end
     Archive.Clean()
     
