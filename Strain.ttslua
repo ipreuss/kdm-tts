@@ -443,14 +443,10 @@ function Strain:_TakeFromRewardsDeck(params)
     log:Debugf("[DEBUG] Calling Archive.Take for '%s' (type='%s')", Strain.REWARD_DECK_NAME, Strain.REWARD_DECK_TYPE)
 
     local deck = Archive.Take(deckParams)
-    log:Debugf("[DEBUG] Archive.Take returned: %s", tostring(deck))
-    
     assert(deck, Util.SafeFormat("Strain rewards deck '%s' not found in archive - mod setup error", Strain.REWARD_DECK_NAME))
-    log:Debugf("[DEBUG] Got Strain Rewards deck: %s (guid=%s)", deck.getName(), deck.getGUID())
 
     local deckContainer = Container(deck)
     assert(deckContainer, Util.SafeFormat("Unable to create container for Strain rewards deck '%s' - invalid TTS object", Strain.REWARD_DECK_NAME))
-    log:Debugf("[DEBUG] Created container for Strain Rewards deck")
     
     -- Log contents of the deck
     log:Debugf("[DEBUG] Contents of Strain Rewards deck:")
@@ -460,9 +456,8 @@ function Strain:_TakeFromRewardsDeck(params)
     log:Debugf("[DEBUG] Looking for name='%s', type='%s'", params.name, params.type)
 
     local function takeCardCandidate(targetName, desiredStateName)
-        if not targetName then
-            return nil
-        end
+        assert(targetName, "targetName is required")
+        
         local object = deckContainer:Take({
             name = targetName,
             type = params.type,
@@ -470,8 +465,9 @@ function Strain:_TakeFromRewardsDeck(params)
             rotation = params.rotation,
         })
         if not object then
-            return nil
+            return nil  -- Card not in deck - legitimate case for fallback logic
         end
+        
         if desiredStateName then
             object = ObjectState.ApplyStateByName(object, desiredStateName)
         end
@@ -485,7 +481,8 @@ function Strain:_TakeFromRewardsDeck(params)
     local card = takeCardCandidate(requestedName)
     log:Debugf("[DEBUG] deckContainer:Take returned: %s", tostring(card))
 
-    if not card and requestedName then
+    -- Try fallback: strip state suffix and look for base card
+    if not card then
         local strippedName = ObjectState.StripTrailingBracketSuffix(requestedName)
         if strippedName ~= requestedName then
             log:Debugf("[DEBUG] Reward deck fallback from '%s' to '%s'", requestedName, strippedName)
@@ -494,13 +491,10 @@ function Strain:_TakeFromRewardsDeck(params)
         end
     end
 
-    if deck and deck.destruct then
-        deck.destruct()
-    end
+    deck.destruct()
     Archive.Clean()
     
     assert(card, Util.SafeFormat("Card '%s' not found in Strain rewards deck - check milestone configuration", params.name or "<unknown>"))
-    log:Debugf("[DEBUG] _TakeFromRewardsDeck SUCCESS")
 end
 
 function Strain:_TakeRewardCard(params)
