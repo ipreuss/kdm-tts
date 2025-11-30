@@ -239,13 +239,36 @@ local function buildStrainStubs()
     }
     
     -- Default Strain Rewards deck stub (essential resource, must exist)
+    -- Will be populated with milestone fighting arts when stubs are created
+    local defaultDeckObjects = {}
     local defaultStrainDeck = {
+        __objects = defaultDeckObjects,  -- For Container stub's Objects() method
         getName = function() return "Strain Rewards" end,
         getGUID = function() return "default-strain-deck" end,
-        getObjects = function() return {} end,
-        takeObject = function() return nil end,
+        getObjects = function() return defaultDeckObjects end,
         destruct = function() end,
     }
+    
+    -- Set __takeHandler for Container stub compatibility
+    defaultStrainDeck.__takeHandler = function(_, params)
+        -- Find card by name/type
+        if params and params.name then
+            for _, obj in ipairs(defaultDeckObjects) do
+                if obj.name == params.name and (not params.type or obj.gm_notes == params.type) then
+                    local card = {
+                        name = obj.name,
+                        gm_notes = obj.gm_notes,
+                        getName = function() return obj.name end,
+                    }
+                    if params.spawnFunc then
+                        params.spawnFunc(card)
+                    end
+                    return card
+                end
+            end
+        end
+        return nil
+    end
     
     function archiveStub.Take(params)
         table.insert(archiveStub.calls, params)
@@ -381,6 +404,17 @@ local function buildStrainStubs()
         ["Kdm/VerminArchive"] = {},
         ["Kdm/Timeline"] = {},
     }
+    
+    -- Populate default Strain Rewards deck with milestone fighting arts
+    for i, milestone in ipairs(stubs["Kdm/GameData/StrainMilestones"]) do
+        if milestone.consequences and milestone.consequences.fightingArt then
+            table.insert(defaultDeckObjects, {
+                name = milestone.consequences.fightingArt,
+                gm_notes = "Fighting Arts",
+                index = i,
+            })
+        end
+    end
 
     local verminStub = {
         added = {},
@@ -792,13 +826,13 @@ Test.test("_TakeRewardCard prefers the Strain Rewards deck when available", func
             t:fail("Fallback archive should not be used when Strain deck succeeds")
         end
 
-        local success = strain:_TakeRewardCard({
+        strain:_TakeRewardCard({
             name = "Test Reward",
             type = strain.FIGHTING_ART_TYPE,
             position = { x = 1, y = 2, z = 3 },
         })
 
-        t:assertTrue(success, "_TakeRewardCard should succeed via Strain deck")
+        -- If we get here, it succeeded (would have asserted otherwise)
         t:assertEqual(1, #env.archiveStub.calls, "Archive should be queried once for the deck")
         t:assertEqual(strain.REWARD_DECK_NAME, env.archiveStub.calls[1].name)
         t:assertEqual(1, #env.containers, "Deck container should be created")
@@ -895,7 +929,7 @@ end)
 Test.test("_TakeRewardCard strips bracketed state names", function(t)
     withStrain(t, function(StrainModule, strain)
         local spawnedNames = {}
-        local ok = strain:_TakeRewardCard({
+        strain:_TakeRewardCard({
             name = "Story of Blood [1, 2x]",
             type = StrainModule.FIGHTING_ART_TYPE,
             position = { x = 1, y = 2, z = 3 },
@@ -905,7 +939,7 @@ Test.test("_TakeRewardCard strips bracketed state names", function(t)
             end,
         })
 
-        t:assertTrue(ok, "Expected Strain:_TakeRewardCard to succeed when fallback available")
+        -- If we get here, it succeeded (would have asserted otherwise)
         t:assertEqual(1, #spawnedNames, "Spawn callback should run once")
         t:assertEqual("Story of Blood [1, 2x]", spawnedNames[1], "Card should retain requested state name")
     end, {
@@ -1046,18 +1080,25 @@ Test.test("ConfirmMilestone checks the pending milestone", function(t)
     withStrain(t, function(StrainModule, strain, env)
         StrainModule.Init()
         
+        -- Stub out consequence execution so we don't need full archive setup
+        local originalExecute = strain.ExecuteConsequences
+        strain.ExecuteConsequences = function() end
+        
         local player = { color = "White" }
         strain:ToggleMilestone(1, player)
         
         -- Confirm the milestone
         strain:ConfirmMilestone(player)
         
+        -- Restore
+        strain.ExecuteConsequences = originalExecute
+        
         -- Now it should be checked
         t:assertTrue(strain.milestones[1].reached, "Milestone should be reached after confirmation")
         t:assertTrue(env.recorder.rows[1].checkBox.checked, "Checkbox should be checked after confirmation")
         
         -- Pending info should be cleared
-        t:assertEqual(nil, strain.pendingMilestoneIndex)
+        t:assertNil(strain.pendingMilestoneIndex)
     end)
 end)
 

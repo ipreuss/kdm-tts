@@ -407,10 +407,7 @@ function Strain:SpawnFightingArtForSurvivor(cardName)
         takeParams.position = { x = 0, y = 15, z = -15 }
     end
 
-    local ok = Strain:_TakeRewardCard(takeParams)
-    if not ok then
-        return
-    end
+    Strain:_TakeRewardCard(takeParams)
     Archive.Clean()
 end
 
@@ -497,24 +494,17 @@ function Strain:_TakeFromRewardsDeck(params)
         end
     end
 
-    local success = card ~= nil
-    
     if deck and deck.destruct then
         deck.destruct()
     end
     Archive.Clean()
     
-    if success then
-        log:Debugf("[DEBUG] _TakeFromRewardsDeck SUCCESS")
-        return true
-    end
-
-    log:Errorf("Card '%s' not found inside Strain rewards deck.", rewardName)
-    return false
+    assert(card, Util.SafeFormat("Card '%s' not found in Strain rewards deck - check milestone configuration", params.name or "<unknown>"))
+    log:Debugf("[DEBUG] _TakeFromRewardsDeck SUCCESS")
 end
 
 function Strain:_TakeRewardCard(params)
-    return Strain:_TakeFromRewardsDeck(params)
+    Strain:_TakeFromRewardsDeck(params)
 end
 
 function Strain:ExecuteConsequences(milestone)
