@@ -1,0 +1,48 @@
+local log = require("Kdm/Log").ForModule("ObjectState")
+
+---------------------------------------------------------------------------------------------------
+
+local ObjectState = {}
+
+---------------------------------------------------------------------------------------------------
+
+function ObjectState.StripTrailingBracketSuffix(value)
+    if type(value) ~= "string" then
+        return value
+    end
+    local trimmed = value:gsub("%s*%[[^%[%]]*%]%s*$", "")
+    if trimmed == "" then
+        return value
+    end
+    return trimmed
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ObjectState.ApplyStateByName(object, stateName)
+    if not stateName or not object then
+        return object
+    end
+    if type(object.getStates) ~= "function" or type(object.setState) ~= "function" then
+        return object
+    end
+    local states = object.getStates()
+    if type(states) ~= "table" then
+        return object
+    end
+
+    for _, state in ipairs(states) do
+        if state.name == stateName then
+            return object.setState(state.id) or object
+        end
+    end
+
+    local objectName = (type(object.getName) == "function") and object.getName() or "<unknown>"
+    local guid = (type(object.getGUID) == "function") and object.getGUID() or "<no guid>"
+    log:Errorf("State '%s' not found on %s (%s)", stateName, objectName, guid)
+    return object
+end
+
+---------------------------------------------------------------------------------------------------
+
+return ObjectState

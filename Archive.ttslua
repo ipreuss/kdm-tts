@@ -4,6 +4,7 @@ local Expansion = require("Kdm/Expansion")
 local Location = require("Kdm/Location")
 local log = require("Kdm/Log").ForModule("Archive")
 local NamedObject = require("Kdm/NamedObject")
+local ObjectState = require("Kdm/Util/ObjectState")
 local Util = require("Kdm/Util/Util")
 
 ---------------------------------------------------------------------------------------------------
@@ -201,14 +202,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 local function stripTrailingBracketSuffix(value)
-    if type(value) ~= "string" then
-        return value
-    end
-    local trimmed = value:gsub("%s*%[[^%[%]]*%]%s*$", "")
-    if trimmed == "" then
-        return value
-    end
-    return trimmed
+    return ObjectState.StripTrailingBracketSuffix(value)
 end
 
 local function applyStateByName(object, stateName)
@@ -223,21 +217,7 @@ local function applyStateByName(object, stateName)
     end
     local states = object.getStates()
     log:Debugf("[DEBUG] applyStateByName: got states, type=%s", type(states))
-    if type(states) ~= "table" then
-        return object
-    end
-
-    for _, state in ipairs(states) do
-        if state.name == stateName then
-            local updated = object.setState(state.id)
-            return updated or object
-        end
-    end
-
-    local objectName = (type(object.getName) == "function") and object.getName() or "<unknown>"
-    local guid = (type(object.getGUID) == "function") and object.getGUID() or "<no guid>"
-    log:Errorf("State '%s' not found on %s (%s)", stateName, objectName, guid)
-    return object
+    return ObjectState.ApplyStateByName(object, stateName)
 end
 
 local function wrapSpawnFunc(spawnFunc, stateName)

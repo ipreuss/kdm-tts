@@ -101,7 +101,7 @@ function TTSTests.TestCardStateFallback(baseName, stateId)
     local position = location:Center()
     position.y = position.y + 2
     local spawnedCard
-    local ok = Strain.Test._TakeRewardCard(Strain, {
+    local ok = Strain._test._TakeRewardCard(Strain, {
         name = testName,
         type = FightingArtsArchive.FIGHTING_ART_TYPE,
         position = position,
