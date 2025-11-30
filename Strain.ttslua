@@ -34,6 +34,43 @@ Strain.MILESTONE_CARDS = StrainMilestones
 
 ---------------------------------------------------------------------------------------------------
 
+local function stripTrailingBracketSuffix(value)
+    if type(value) ~= "string" then
+        return value
+    end
+    local trimmed = value:gsub("%s*%[[^%[%]]*%]%s*$", "")
+    if trimmed == "" then
+        return value
+    end
+    return trimmed
+end
+
+local function applyStateByName(object, stateName)
+    if not stateName or not object then
+        return object
+    end
+    if type(object.getStates) ~= "function" or type(object.setState) ~= "function" then
+        return object
+    end
+    local states = object.getStates()
+    if type(states) ~= "table" then
+        return object
+    end
+
+    for _, state in ipairs(states) do
+        if state.name == stateName then
+            return object.setState(state.id) or object
+        end
+    end
+
+    local objectName = (type(object.getName) == "function") and object.getName() or "<unknown>"
+    local guid = (type(object.getGUID) == "function") and object.getGUID() or "<no guid>"
+    log:Errorf("State '%s' not found on %s (%s)", stateName, objectName, guid)
+    return object
+end
+
+---------------------------------------------------------------------------------------------------
+
 function Strain:_HydrateMilestones(saveState)
     saveState = saveState or {}
     local reachedByTitle = saveState.reached or {}
@@ -481,16 +518,49 @@ function Strain:_TakeFromRewardsDeck(params)
     end
     log:Debugf("[DEBUG] Looking for name='%s', type='%s'", params.name, params.type)
 
-    local card = deckContainer:Take({
-        name = params.name,
-        type = params.type,
-        position = position,
-        rotation = params.rotation,
-        spawnFunc = params.spawnFunc,
-    })
+    local function takeCardCandidate(targetName, desiredStateName)
+        if not targetName then
+            return nil
+        end
+        local object = deckContainer:Take({
+            name = targetName,
+            type = params.type,
+            position = position,
+            rotation = params.rotation,
+        })
+        if not object then
+            return nil
+        end
+        if desiredStateName then
+            object = applyStateByName(object, desiredStateName)
+        end
+        if params.spawnFunc then
+            params.spawnFunc(object)
+        end
+        return object
+    end
+
+    local requestedName = params.name
+    local card = takeCardCandidate(requestedName)
     log:Debugf("[DEBUG] deckContainer:Take returned: %s", tostring(card))
 
-    if card then
+    if not card and requestedName then
+        local strippedName = stripTrailingBracketSuffix(requestedName)
+        if strippedName ~= requestedName then
+            log:Debugf("[DEBUG] Reward deck fallback from '%s' to '%s'", requestedName, strippedName)
+            card = takeCardCandidate(strippedName, requestedName)
+            log:Debugf("[DEBUG] fallback take returned: %s", tostring(card))
+        end
+    end
+
+    local success = card ~= nil
+    
+    if deckOrErr and deckOrErr.destruct then
+        deckOrErr.destruct()
+    end
+    Archive.Clean()
+    
+    if success then
         log:Debugf("[DEBUG] _TakeFromRewardsDeck SUCCESS")
         return true
     end
@@ -802,4 +872,7 @@ return {
     HideUi = Strain.HideUi,
     IsUiOpen = Strain.IsUiOpen,
     MILESTONE_CARDS = Strain.MILESTONE_CARDS,
+    Test = {
+        _TakeRewardCard = Strain._TakeRewardCard,
+    },
 }

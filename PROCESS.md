@@ -76,7 +76,7 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 - Trace execution paths to identify root causes
 - Document findings with confidence levels and evidence
 - Suggest solutions ranked by effort and risk
-- Author and maintain debug reports in `handover/LATEST_REVIEW.md`
+- Author and maintain debug reports in `handover/LATEST_DEBUG.md`
 
 **Permitted code changes (debugging only):**
 - Add `log:Debugf(...)` statements to trace execution
@@ -118,6 +118,7 @@ All role-to-role handovers are stored in the `handover/` folder:
 | Document | Purpose | Owner |
 |----------|---------|-------|
 | `LATEST_REVIEW.md` | Most recent code review findings | Reviewer |
+| `LATEST_DEBUG.md` | Most recent debug report | Debugger |
 | `HANDOVER_ARCHITECT.md` | Requirements handoff to Architect | Product Owner |
 | `HANDOVER_IMPLEMENTER.md` | Design handoff to Implementer | Architect |
 | `IMPLEMENTATION_STATUS.md` | Snapshot of what portions of the design/requirements have already been implemented | Implementer |
@@ -169,7 +170,7 @@ Detailed process documentation for each role is in the `ROLES/` directory:
 1. **Plan** – clarify the intent of the change (behavior, data shape, UI outcome) and note which modules are involved. Update or create ADRs/notes if the change affects architecture decisions.
 2. **Specify** – write or extend the relevant test so it fails for the current implementation. If touching multiple layers, prefer starting with the highest-value test and add focused unit tests if needed.
 3. **Implement** – modify the production code in small, reviewed commits while keeping tests red/green visible. Prioritize self-explanatory code (clear names, types, constants, structure) over added documentation; only document when code cannot carry the intent alone. When fixing a bug or untested path, first add/adjust a failing test that reproduces it before changing code.
-4. **Verify** – run `lua tests/run.lua` (and any scenario scripts) until everything passes. If the change affects Tabletop Simulator behavior, run `updateTTS.sh` and perform a quick manual smoke test.
+4. **Verify** – run `lua tests/run.lua` (and any scenario scripts) until everything passes. If the change affects Tabletop Simulator behavior (especially TTS console commands, UI interactions, or Archive/deck operations), run `updateTTS.sh` and perform manual verification in TTS—unit tests alone are insufficient for TTS-specific functionality.
 5. **Refine** – after green tests, scan for smells (brittle test setup, hidden dependencies, duplication) and introduce/refine seams or small refactors while keeping tests green; then re-verify. Apply the Boy Scout Rule: whenever you edit a file, leave it slightly better (naming, structure, guard clauses, comments, tests). If you uncover a larger refactor that is risky to tackle immediately, document it (see Architecture “Future Refactor Opportunities”) so we don’t lose the insight.
 
 ## Code Review Documentation

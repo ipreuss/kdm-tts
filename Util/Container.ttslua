@@ -102,6 +102,7 @@ function ContainerClass:Take(params)
 
     local name = params.name
     local type = params.type
+    log:Debugf("[DEBUG] Container:Take name=%s, type=%s", name or "<nil>", type or "<nil>")
     if name then
         assert(Check(type, "Name '%s' provided, but no type", name))
     end

@@ -198,6 +198,58 @@ function CalculatePosition(params)
     return position
 end
 
+---------------------------------------------------------------------------------------------------
+
+local function stripTrailingBracketSuffix(value)
+    if type(value) ~= "string" then
+        return value
+    end
+    local trimmed = value:gsub("%s*%[[^%[%]]*%]%s*$", "")
+    if trimmed == "" then
+        return value
+    end
+    return trimmed
+end
+
+local function applyStateByName(object, stateName)
+    log:Debugf("[DEBUG] applyStateByName START object=%s, stateName=%s", tostring(object), tostring(stateName))
+    if not stateName or not object then
+        log:Debugf("[DEBUG] applyStateByName: no stateName or no object, returning")
+        return object
+    end
+    if type(object.getStates) ~= "function" or type(object.setState) ~= "function" then
+        log:Debugf("[DEBUG] applyStateByName: object doesn't have state methods, returning")
+        return object
+    end
+    local states = object.getStates()
+    log:Debugf("[DEBUG] applyStateByName: got states, type=%s", type(states))
+    if type(states) ~= "table" then
+        return object
+    end
+
+    for _, state in ipairs(states) do
+        if state.name == stateName then
+            local updated = object.setState(state.id)
+            return updated or object
+        end
+    end
+
+    local objectName = (type(object.getName) == "function") and object.getName() or "<unknown>"
+    local guid = (type(object.getGUID) == "function") and object.getGUID() or "<no guid>"
+    log:Errorf("State '%s' not found on %s (%s)", stateName, objectName, guid)
+    return object
+end
+
+local function wrapSpawnFunc(spawnFunc, stateName)
+    if not spawnFunc or not stateName then
+        return spawnFunc
+    end
+    return function(obj, ...)
+        obj = applyStateByName(obj, stateName)
+        spawnFunc(obj, ...)
+    end
+end
+
 function Archive.TakeObject(params) 
     local archiveParams = {}
     for key, value in pairs(params) do
@@ -216,86 +268,186 @@ end
 
 function Archive.Take(params)
     local archive = params.archive
-    local name = params.name
+    local requestedName = params.name
     local type = params.type
     local position = CalculatePosition(params)
-   
+
     local rotation = params.rotation or { x = 0, y = 180, z = 0 }
     local spawnFunc = params.spawnFunc
+    local directKey = nil
     assert(Check.StrOrNil(archive))
-    assert(Check.StrOrNil(name))
+    assert(Check.StrOrNil(requestedName))
     assert(Check.StrOrNil(type))
     assert(Check.Vec3OrNil(rotation))
     assert(Check.FuncOrNil(spawnFunc))
 
+    local strippedName = requestedName and stripTrailingBracketSuffix(requestedName) or nil
+    if strippedName == requestedName then
+        strippedName = nil
+    end
+
+    local nameCandidates = {}
+    if requestedName then
+        table.insert(nameCandidates, requestedName)
+    end
+    if strippedName and strippedName ~= requestedName then
+        table.insert(nameCandidates, strippedName)
+    end
+
+    local resolvedName = requestedName
+    local archiveKey = params.key
     if not archive then
-        local key = params.key or Archive.Key(name, type)
-        archive = Archive.index[key]
+        for _, candidate in ipairs(nameCandidates) do
+            local candidateKey = params.key or (candidate and Archive.Key(candidate, type))
+            local candidateArchive = candidateKey and Archive.index[candidateKey] or nil
+            if candidateArchive then
+                archive = candidateArchive
+                resolvedName = candidate
+                archiveKey = candidateKey
+                directKey = candidateKey
+                break
+            end
+        end
+
         if not archive then
             if params.lenient then
-                log:Debugf("Archive not found for %s, returning nil", key)
+                log:Debugf("Archive not found for %s, returning nil", archiveKey or "<nil>")
                 return nil
             end
-            assert(Check(false, "Couldn't find archive for %s (%s)", name, type))
-        end
-        assert(Check(archive or params.lenient, "Archive not found for %s", key))
-        if Archive.direct[key] then
-            -- for single item archives no need to pull intermediate container
-            log:Debugf("Using direct from archive %s for %s ", archive, key)
-            return NamedObject.Get(archive).takeObject({
-                position = position,
-                rotation = rotation,
-                smooth = params.smooth,
-                callback_function = spawnFunc,
-            })
+            assert(Check(false, "Couldn't find archive for %s (%s)", requestedName, type))
         end
     end
 
-    log:Debugf("Taking item %s (%s) in archive %s to %s", name, type, archive, position)
+    local function prepareSpawn(stateName)
+        if not stateName then
+            return spawnFunc, false
+        end
+        if not spawnFunc then
+            return nil, false
+        end
+        return wrapSpawnFunc(spawnFunc, stateName), true
+    end
 
-    local container = Archive.containers[archive]
-    if container and not container:IsEmpty() then
-        log:Debugf("Re-using already-spawned archive container %s for %s (%s)", container:Guid(), name, type)
+    local function takeDirect(stateName)
+        log:Debugf("Using direct from archive %s for %s ", archive, archiveKey)
+        local spawnWrapper, appliedInSpawn = prepareSpawn(stateName)
+        local object = NamedObject.Get(archive).takeObject({
+            position = position,
+            rotation = rotation,
+            smooth = params.smooth,
+            callback_function = spawnWrapper,
+        })
+        local applyOnReturn = (stateName and not appliedInSpawn) and stateName or nil
+        return applyStateByName(object, applyOnReturn)
+    end
 
-    else
-        -- spawn new container and cache
+    local function ensureContainer()
+        local container = Archive.containers[archive]
+        log:Debugf("[DEBUG] ensureContainer: archive=%s, cached=%s, isEmpty=%s", 
+            archive, 
+            tostring(container ~= nil),
+            container and tostring(container:IsEmpty()) or "N/A")
+        if container and not container:IsEmpty() then
+            log:Debugf("Re-using already-spawned archive container %s for %s (%s)", container:Guid(), resolvedName, type)
+            return container
+        end
+        
+        log:Debugf("[DEBUG] ensureContainer: spawning fresh container from archive")
         local archiveObject = NamedObject.Get(archive)
+        log:Debugf("[DEBUG] ensureContainer: archiveObject=%s", tostring(archiveObject))
         local containerObject = archiveObject.takeObject({
             position = Archive.NextContainerPosition(),
             smooth = false,
         })
+        log:Debugf("[DEBUG] ensureContainer: containerObject=%s", tostring(containerObject))
         container = Container(containerObject)
+        log:Debugf("[DEBUG] ensureContainer: container=%s", tostring(container))
         if not container then
             log:Errorf("Couldn't take from archive [%s] %s.", archiveObject.getGUID(), archiveObject.getName())
             Util.Highlight(archiveObject)
             return nil
         end
 
-        log:Debugf("Spawned archive container %s at (%f, %f) for %s (%s)", "", Archive.containerX, Archive.containerZ, name, type)
-
-        --container:Lock(true)
+        log:Debugf("Spawned archive container %s at (%f, %f) for %s (%s)", "", Archive.containerX, Archive.containerZ, resolvedName, type)
         Archive.containers[archive] = container
+        return container
     end
 
-    local object = container:Take({
-        name = name,
-        type = type,
-        position = position,
-        rotation = rotation,
-        spawnFunc = spawnFunc,
-        smooth = params.smooth,
-    })
+    if directKey and Archive.direct[directKey] then
+        local stateName = (resolvedName ~= requestedName) and requestedName or nil
+        return takeDirect(stateName)
+    end
+
+    log:Debugf("Taking item %s (%s) in archive %s to %s", resolvedName or "<nil>", type, archive, position)
+    local container = ensureContainer()
+    log:Debugf("[DEBUG] After ensureContainer: container=%s", tostring(container))
+    if not container then
+        return nil
+    end
+
+    local attemptedNames = {}
+    local function queueName(candidate)
+        if not candidate then
+            return
+        end
+        for _, existing in ipairs(attemptedNames) do
+            if existing == candidate then
+                return
+            end
+        end
+        table.insert(attemptedNames, candidate)
+    end
+
+    queueName(resolvedName)
+    for _, candidate in ipairs(nameCandidates) do
+        queueName(candidate)
+    end
+
+    local object
+    local usedStateName = nil
+    log:Debugf("[DEBUG] About to iterate attemptedNames: %s", Util.TabStr(attemptedNames))
+    log:Debugf("[DEBUG] container.object=%s, tag=%s", tostring(container.object), container.object and container.object.tag or "<nil>")
+    for _, candidate in ipairs(attemptedNames) do
+        log:Debugf("[DEBUG] Trying candidate: %s, type: %s", candidate, type or "<nil>")
+        local needsState = requestedName ~= nil and candidate ~= requestedName
+        local stateName = needsState and requestedName or nil
+        local spawnWrapper, appliedInSpawn = prepareSpawn(stateName)
+        object = container:Take({
+            name = candidate,
+            type = type,
+            position = position,
+            rotation = rotation,
+            spawnFunc = spawnWrapper,
+            smooth = params.smooth,
+        })
+        log:Debugf("[DEBUG] container:Take returned object=%s", tostring(object))
+        if object then
+            log:Debugf("[DEBUG] object found, stateName=%s, appliedInSpawn=%s", tostring(stateName), tostring(appliedInSpawn))
+            if stateName and not appliedInSpawn then
+                usedStateName = stateName
+            else
+                usedStateName = nil
+            end
+            log:Debugf("[DEBUG] breaking loop, usedStateName=%s", tostring(usedStateName))
+            break
+        end
+    end
+
+    log:Debugf("[DEBUG] after loop, object=%s", tostring(object))
     if not object then
+        log:Debugf("[DEBUG] object is nil, lenient=%s", tostring(params.lenient))
         if params.lenient then
-            log:Debugf("Couldn't find %s (%s) in archive %s, returning nil", name, type, archive)
+            log:Debugf("Couldn't find %s (%s) in archive %s, returning nil", requestedName or "<nil>", type, archive)
             return nil
         end
         Util.Highlight(NamedObject.Get(archive))
         assert(Check(false,
             "Couldn't find %s (%s) in archive %s.",
-            name, type, archive))
+            requestedName, type, archive))
     end
-    return object
+
+    log:Debugf("[DEBUG] about to call applyStateByName, object=%s, usedStateName=%s", tostring(object), tostring(usedStateName))
+    return applyStateByName(object, usedStateName)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -377,6 +529,7 @@ function Archive.Clean()
     })
     for _, hit in ipairs(hits) do
         local obj = hit.hit_object
+        assert(obj, "Physics.cast returned hit with nil hit_object")
         if obj.tag == "Bag" and obj.getGMNotes() == "Archive Bag" then
             --log:Debugf("Destroying leftover archive bag %s (%s)", obj.getName(), obj.getGUID())
             obj.destruct()

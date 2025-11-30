@@ -12,11 +12,11 @@ Log.logsByModule = {}
 
 Log.DEBUG_MODULES = {
     --["array"] = true,
-    --["Archive"] = true,
+    ["Archive"] = true,
     --["BattleUi"] = true,
     --["Bookmarks"] = true,
     --["Campaign"] = true,
-    --["Container"] = true,
+    ["Container"] = true,
     --["Deck"] = true,
     --["Expansion"] = true,
     --["Gear"] = true,

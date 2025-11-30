@@ -592,6 +592,63 @@ local function setupRemovalScenario(stubs, env, options)
     }
 end
 
+local function setupRewardDeckFallback(stubs, env)
+    local strainDeck = {
+        __objects = {
+            { name = "Story of Blood", gm_notes = "Fighting Arts", index = 1 },
+        },
+        takes = {},
+        getName = function()
+            return "Strain Rewards"
+        end,
+        getGUID = function()
+            return "strain-rewards"
+        end,
+        destruct = function() end,
+    }
+    strainDeck.__takeHandler = function(params)
+        table.insert(strainDeck.takes, params)
+        if params.name ~= "Story of Blood" then
+            return nil
+        end
+        local card = {
+            currentName = "Story of Blood",
+            stateId = 1,
+        }
+        local states = {
+            { id = 1, name = "Story of Blood" },
+            { id = 2, name = "Story of Blood [1, 2x]" },
+        }
+        function card.getStates()
+            return states
+        end
+        function card.setState(stateId)
+            for _, state in ipairs(states) do
+                if state.id == stateId then
+                    card.stateId = state.id
+                    card.currentName = state.name
+                    return card
+                end
+            end
+            return card
+        end
+        function card.getName()
+            return card.currentName
+        end
+        function card.getGUID()
+            return "card-guid"
+        end
+        return card
+    end
+
+    env.archiveStub.takeHandler = function(params)
+        if params.name == "Strain Rewards" then
+            return strainDeck
+        end
+        return nil
+    end
+end
+
 Test.test("Strain.Init clones milestones and builds UI rows", function(t)
     withStrain(t, function(StrainModule, strain, env)
         StrainModule.Init()
@@ -814,6 +871,29 @@ Test.test("RemoveFightingArtFromArchive deletes the card from the fighting arts 
     end, {
         customizeStubs = function(stubs, env)
             setupRemovalScenario(stubs, env, {})
+        end
+    })
+end)
+
+Test.test("_TakeRewardCard strips bracketed state names", function(t)
+    withStrain(t, function(StrainModule, strain)
+        local spawnedNames = {}
+        local ok = strain:_TakeRewardCard({
+            name = "Story of Blood [1, 2x]",
+            type = StrainModule.FIGHTING_ART_TYPE,
+            position = { x = 1, y = 2, z = 3 },
+            rotation = { x = 0, y = 180, z = 0 },
+            spawnFunc = function(card)
+                table.insert(spawnedNames, card:getName())
+            end,
+        })
+
+        t:assertTrue(ok, "Expected Strain:_TakeRewardCard to succeed when fallback available")
+        t:assertEqual(1, #spawnedNames, "Spawn callback should run once")
+        t:assertEqual("Story of Blood [1, 2x]", spawnedNames[1], "Card should retain requested state name")
+    end, {
+        customizeStubs = function(stubs, env)
+            setupRewardDeckFallback(stubs, env)
         end
     })
 end)

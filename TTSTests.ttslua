@@ -4,6 +4,8 @@
 
 local Console = require("Kdm/Console")
 local Location = require("Kdm/Location")
+local Archive = require("Kdm/Archive")
+local Strain = require("Kdm/Strain")
 local FightingArtsArchive = require("Kdm/FightingArtsArchive")
 local VerminArchive = require("Kdm/VerminArchive")
 local log = require("Kdm/Log").ForModule("TTSTests")
@@ -20,6 +22,7 @@ function TTSTests.Init()
         log:Printf("  >teststrain [cardname] - Test adding a strain fighting art to the deck")
         log:Printf("  >teststrainvermin [cardname] - Test adding a strain vermin card to the deck")
         log:Printf("  >testdialogspec - Test DialogFromSpec callback timing issue")
+        log:Printf("  >testcardstate [stateId] - Test archive fallback for Story of Blood stateful names")
     end, "Show available TTS test commands")
     
     TTSTests.RegisterStrainTests()
@@ -40,9 +43,15 @@ function TTSTests.RegisterStrainTests()
         local cardName = args[2] or "Fiddler Crab Spider"
         TTSTests.TestAddVerminToDeck(cardName)
     end, "<cardname> - Test adding a strain vermin card to the deck")
+
+    Console.AddCommand("testcardstate", function(args)
+        local stateId = tonumber(args[2])
+        TTSTests.TestCardStateFallback("Story of Blood", stateId)
+    end, "[stateId] - Test spawning Story of Blood after changing its state")
 end
 
 function TTSTests.TestAddFightingArtToArchive(cardName)
+    log:Printf("=== TEST: TestAddFightingArtToArchive ===")
     TTSTests.RunDeckExperiment(cardName, function()
         log:Printf("TEST: AddFightingArtToArchive with card: %s", cardName)
         local result = FightingArtsArchive.AddCard(cardName)
@@ -56,6 +65,7 @@ function TTSTests.TestAddFightingArtToArchive(cardName)
 end
 
 function TTSTests.TestAddVerminToDeck(cardName)
+    log:Printf("=== TEST: TestAddVerminToDeck ===")
     TTSTests.RunDeckExperiment(cardName, function()
         log:Printf("TEST: AddVerminToDeck with card: %s", cardName)
         local result = VerminArchive.AddCard(cardName)
@@ -66,6 +76,64 @@ function TTSTests.TestAddVerminToDeck(cardName)
         stateFunc = TTSTests.GetVerminDeckState,
         cleanup = TTSTests.RestoreVerminDeck,
     })
+end
+
+function TTSTests.TestCardStateFallback(baseName, stateId)
+    log:Printf("=== TEST: TestCardStateFallback ===")
+    baseName = baseName or "Story of Blood"
+    
+    local totalBefore, matchesBefore = TTSTests.GetStrainRewardsDeckState(baseName)
+    log:Printf("TEST BEFORE: Strain Rewards deck has %d cards, %d copies of '%s'", totalBefore, matchesBefore, baseName)
+    
+    local locationName = "South of Showdown Board"
+    local location = Location.Get(locationName)
+    if not location then
+        log:Errorf("TEST: Location '%s' not found.", locationName)
+        return
+    end
+
+    -- Test: Spawn card with alternate state name suffix like "Story of Blood [1, 1 x]"
+    -- The fallback mechanism should strip the suffix and find the base card
+    local stateName = stateId or "1, 1 x"  -- Default to an existing state for Story of Blood
+    local testName = string.format("%s [%s]", baseName, stateName)
+    log:Printf("TEST: Attempting to spawn '%s' from archive (testing state name fallback)", testName)
+    
+    local position = location:Center()
+    position.y = position.y + 2
+    local spawnedCard
+    local ok = Strain.Test._TakeRewardCard(Strain, {
+        name = testName,
+        type = FightingArtsArchive.FIGHTING_ART_TYPE,
+        position = position,
+        rotation = { x = 0, y = 180, z = 0 },
+        spawnFunc = function(card)
+            spawnedCard = card
+        end,
+    })
+    
+    if ok and spawnedCard then
+        log:Printf("TEST: Successfully spawned '%s' via fallback mechanism", testName)
+    else
+        log:Errorf("TEST: Failed to spawn '%s' - fallback mechanism failed", testName)
+    end
+
+    Wait.frames(function()
+        if spawnedCard and spawnedCard.destruct then
+            spawnedCard.destruct()
+        end
+        Archive.Clean()
+        
+        Wait.frames(function()
+            local totalAfter, matchesAfter = TTSTests.GetStrainRewardsDeckState(baseName)
+            log:Printf("TEST AFTER: Strain Rewards deck has %d cards, %d copies of '%s'", totalAfter, matchesAfter, baseName)
+            
+            if totalAfter ~= totalBefore then
+                log:Errorf("TEST CLEANUP WARNING: Strain Rewards deck changed from %d to %d cards. Manual verification recommended.", totalBefore, totalAfter)
+            else
+                log:Printf("TEST CLEANUP: Successfully restored Strain Rewards deck.")
+            end
+        end, 20)
+    end, 10)
 end
 
 function TTSTests.RunDeckExperiment(cardName, mutateFn, options)
@@ -180,6 +248,50 @@ function TTSTests.GetVerminDeckState(cardName)
     return count, matchCount
 end
 
+function TTSTests.GetStrainRewardsDeckState(cardName)
+    local deckName = "Strain Rewards"
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: calling Archive.Take")
+    local deck = Archive.Take({
+        name = deckName,
+        type = "Rewards",
+        position = { x = -150, y = 60, z = 120 },
+        lenient = true,
+    })
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: Archive.Take returned deck=%s", tostring(deck))
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: calling Archive.Clean")
+    Archive.Clean()
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: Archive.Clean done")
+    
+    if not deck then
+        log:Debugf("[DEBUG] GetStrainRewardsDeckState: deck is nil, returning 0,0")
+        return 0, 0
+    end
+    
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: deck.getObjects type=%s", type(deck.getObjects))
+    local count = 0
+    local matchCount = 0
+    local objects = deck.getObjects and deck.getObjects()
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: objects=%s", tostring(objects))
+    
+    if objects then
+        count = #objects
+        for _, obj in ipairs(objects) do
+            if obj.name == cardName then
+                matchCount = matchCount + 1
+            end
+        end
+    end
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: count=%d, matchCount=%d", count, matchCount)
+    
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: calling deck.destruct")
+    deck.destruct()
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: deck.destruct done")
+    
+    -- Note: Core Archive is an infinite bag, no need to reset
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: returning count=%d, matchCount=%d", count, matchCount)
+    return count, matchCount
+end
+
 ---------------------------------------------------------------------------------------------------
 -- DialogFromSpec Callback Timing Tests
 ---------------------------------------------------------------------------------------------------
@@ -191,10 +303,9 @@ function TTSTests.RegisterDialogFromSpecTests()
 end
 
 function TTSTests.TestDialogFromSpecCallbackTiming()
+    log:Printf("=== TEST: TestDialogFromSpecCallbackTiming ===")
     local PanelKit = require("Kdm/Ui/PanelKit")
     local LayoutManager = require("Kdm/Ui/LayoutManager")
-    
-    log:Printf("TEST: DialogFromSpec callback timing")
     
     -- This simulates the Campaign bug:
     -- layoutSpec callbacks reference a variable that's set AFTER DialogFromSpec returns
