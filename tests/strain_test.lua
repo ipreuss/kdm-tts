@@ -372,6 +372,8 @@ local function buildStrainStubs()
         listPanel = listPanel,
         archiveStub = archiveStub,
         containers = containers,
+        namedObjectStub = namedObjectStub,
+        deckStub = deckStub,
     }
 end
 
@@ -387,8 +389,11 @@ local function getInternalStrain(StrainModule)
     end
 end
 
-local function withStrain(t, callback)
+local function withStrain(t, callback, options)
     local stubs, env = buildStrainStubs()
+    if options and options.customizeStubs then
+        options.customizeStubs(stubs, env)
+    end
     withStubs(stubs, function()
         package.loaded["Kdm/Strain"] = nil
         local StrainModule = require("Kdm/Strain")
@@ -396,6 +401,161 @@ local function withStrain(t, callback)
         t:assertTrue(strainTable ~= nil, "found internal Strain table")
         callback(StrainModule, strainTable, env)
     end)
+end
+
+local function setupAddToArchiveScenario(stubs, env, options)
+    options = options or {}
+    local includeRewardCard = options.includeRewardCard ~= false
+    local cardName = options.cardName or "Test Art"
+
+    local insertedCards = {}
+    local faDeck = {
+        insertedCards = insertedCards,
+    }
+    faDeck.getPosition = function()
+        return { x = 0, y = 0, z = 0 }
+    end
+    faDeck.putObject = function(card)
+        table.insert(insertedCards, card)
+    end
+    faDeck.getName = function()
+        return "Fighting Arts Deck"
+    end
+    faDeck.destruct = function()
+        faDeck.destroyed = true
+    end
+
+    local archiveObject = {
+        takeCalls = {},
+        putCalls = {},
+        resetCount = 0,
+    }
+    archiveObject.takeObject = function(params)
+        table.insert(archiveObject.takeCalls, params)
+        return faDeck
+    end
+    archiveObject.putObject = function(obj)
+        table.insert(archiveObject.putCalls, obj)
+    end
+    archiveObject.reset = function()
+        archiveObject.resetCount = archiveObject.resetCount + 1
+    end
+
+    stubs["Kdm/NamedObject"] = {
+        Get = function()
+            return archiveObject
+        end,
+    }
+
+    local strainDeck = {
+        destroyed = false,
+    }
+    local deckObjects = {}
+    if includeRewardCard then
+        table.insert(deckObjects, { name = cardName, gm_notes = "Fighting Arts", index = 2 })
+    end
+    table.insert(deckObjects, { name = "Other Card", gm_notes = "Fighting Arts", index = 5 })
+
+    strainDeck.getObjects = function()
+        return deckObjects
+    end
+    strainDeck.takeObject = function(params)
+        strainDeck.lastTakeParams = params
+        if not includeRewardCard then
+            return nil
+        end
+        return { name = cardName, gm_notes = "Fighting Arts" }
+    end
+    strainDeck.destruct = function()
+        strainDeck.destroyed = true
+    end
+
+    env.archiveStub.takeHandler = function(params)
+        if params.name == "Strain Rewards" then
+            return strainDeck
+        end
+        return nil
+    end
+
+    local deckResets = {}
+    env.deckStub.ResetDeck = function(location)
+        table.insert(deckResets, location)
+    end
+
+    env.acceptance = {
+        faDeck = faDeck,
+        archive = archiveObject,
+        strainDeck = strainDeck,
+        deckResets = deckResets,
+        cardName = cardName,
+    }
+end
+
+local function setupRemovalScenario(stubs, env, options)
+    options = options or {}
+    local includeRewardCard = options.includeRewardCard ~= false
+    local cardName = options.cardName or "Test Art"
+
+    local archiveObject = {
+        takeCalls = {},
+        putCalls = {},
+        resetCount = 0,
+    }
+
+    local faDeck = {
+        takeCalls = {},
+    }
+    local deckObjects = {}
+    if includeRewardCard then
+        table.insert(deckObjects, { name = cardName, gm_notes = "Fighting Arts", index = 3 })
+    end
+    table.insert(deckObjects, { name = "Other Card", gm_notes = "Fighting Arts", index = 7 })
+
+    archiveObject.takeObject = function(params)
+        table.insert(archiveObject.takeCalls, params)
+        return faDeck
+    end
+    archiveObject.putObject = function(obj)
+        table.insert(archiveObject.putCalls, obj)
+    end
+    archiveObject.reset = function()
+        archiveObject.resetCount = archiveObject.resetCount + 1
+    end
+
+    stubs["Kdm/NamedObject"] = {
+        Get = function()
+            return archiveObject
+        end,
+    }
+
+    faDeck.getObjects = function()
+        return deckObjects
+    end
+    local removedCard = { destroyed = false }
+    faDeck.takeObject = function(params)
+        faDeck.lastTakeParams = params
+        if not includeRewardCard then
+            return nil
+        end
+        return {
+            destruct = function()
+                removedCard.destroyed = true
+            end,
+        }
+    end
+
+    local deckResets = {}
+    env.deckStub.ResetDeck = function(location)
+        table.insert(deckResets, location)
+    end
+
+    env.acceptance = {
+        archive = archiveObject,
+        faDeck = faDeck,
+        deckResets = deckResets,
+        removedCard = removedCard,
+        cardName = cardName,
+    }
 end
 
 Test.test("Strain.Init clones milestones and builds UI rows", function(t)
@@ -565,6 +725,77 @@ Test.test("_TakeRewardCard returns false when the Strain Rewards deck is unavail
         t:assertFalse(success, "Missing Strain rewards deck should be treated as a failure")
         t:assertEqual(1, #env.archiveStub.calls, "Archive.Take should only be invoked for the Strain rewards deck")
     end)
+end)
+
+Test.test("AddFightingArtToArchive transfers reward card into the fighting arts deck", function(t)
+    withStrain(t, function(StrainModule, strain, env)
+        local ok = StrainModule.AddFightingArtToArchive(env.acceptance.cardName)
+
+        t:assertTrue(ok, "Expected AddFightingArtToArchive to succeed when card exists")
+        t:assertEqual(1, #env.acceptance.faDeck.insertedCards, "Reward card should be inserted into the fighting arts deck")
+        t:assertEqual(env.acceptance.cardName, env.acceptance.faDeck.insertedCards[1].name)
+        t:assertEqual(1, env.acceptance.archive.resetCount, "Archive reset should run after successful transfer")
+        t:assertTrue(env.acceptance.strainDeck.destroyed, "Strain rewards deck should be destroyed after transfer")
+        t:assertEqual(1, #env.acceptance.deckResets, "Deck.ResetDeck should run once for fighting arts location")
+        t:assertEqual(strain.FIGHTING_ART_LOCATION, env.acceptance.deckResets[1])
+        t:assertEqual(1, env.archiveStub.cleanCount, "Archive.Clean should run after successful transfer")
+    end, {
+        customizeStubs = function(stubs, env)
+            setupAddToArchiveScenario(stubs, env, {})
+        end
+    })
+end)
+
+Test.test("AddFightingArtToArchive returns false when the reward card is missing", function(t)
+    withStrain(t, function(StrainModule, _, env)
+        local ok = StrainModule.AddFightingArtToArchive("Missing Reward")
+
+        t:assertFalse(ok, "Expected AddFightingArtToArchive to fail when card is absent")
+        t:assertEqual(0, #env.acceptance.faDeck.insertedCards, "No cards should be inserted when transfer fails")
+        t:assertEqual(0, env.acceptance.archive.resetCount, "Archive reset should not run on failure")
+        t:assertTrue(env.acceptance.strainDeck.destroyed, "Strain rewards deck should be destroyed after attempting transfer")
+        t:assertEqual(0, #env.acceptance.deckResets, "Deck.ResetDeck should not run on failure")
+        t:assertEqual(0, env.archiveStub.cleanCount, "Archive.Clean should not run on failure")
+    end, {
+        customizeStubs = function(stubs, env)
+            setupAddToArchiveScenario(stubs, env, { includeRewardCard = false })
+        end
+    })
+end)
+
+Test.test("RemoveFightingArtFromArchive deletes the card from the fighting arts deck", function(t)
+    withStrain(t, function(_, strain, env)
+        local ok = strain.RemoveFightingArtFromArchive(env.acceptance.cardName)
+
+        t:assertTrue(ok, "Expected removal to succeed when card exists")
+        t:assertTrue(env.acceptance.faDeck.lastTakeParams ~= nil, "Deck should be asked to remove the matching card index")
+        t:assertTrue(env.acceptance.removedCard.destroyed, "Removed card should be destroyed after extraction")
+        t:assertEqual(1, env.acceptance.archive.resetCount, "Archive reset should run after successful removal")
+        t:assertEqual(1, #env.acceptance.deckResets, "Deck.ResetDeck should run once")
+        t:assertEqual(strain.FIGHTING_ART_LOCATION, env.acceptance.deckResets[1])
+        t:assertEqual(1, env.archiveStub.cleanCount, "Archive.Clean should run after removal")
+    end, {
+        customizeStubs = function(stubs, env)
+            setupRemovalScenario(stubs, env, {})
+        end
+    })
+end)
+
+Test.test("RemoveFightingArtFromArchive returns false when the card is absent", function(t)
+    withStrain(t, function(_, strain, env)
+        local ok = strain.RemoveFightingArtFromArchive("Missing Reward")
+
+        t:assertFalse(ok, "Expected removal to fail when card is not present")
+        t:assertTrue(env.acceptance.faDeck.lastTakeParams == nil, "Deck should not be asked to remove anything when card missing")
+        t:assertFalse(env.acceptance.removedCard.destroyed, "No card should be destroyed when nothing was removed")
+        t:assertEqual(0, env.acceptance.archive.resetCount, "Archive reset should not run on failure")
+        t:assertEqual(0, #env.acceptance.deckResets, "Deck.ResetDeck should not run on failure")
+        t:assertEqual(0, env.archiveStub.cleanCount, "Archive.Clean should not run on failure")
+    end, {
+        customizeStubs = function(stubs, env)
+            setupRemovalScenario(stubs, env, { includeRewardCard = false })
+        end
+    })
 end)
 
 Test.test("ToggleMilestone shows confirmation dialog before checking", function(t)
