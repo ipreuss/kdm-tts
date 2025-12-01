@@ -503,7 +503,12 @@ function Archive.TakeFromDeck(params)
     deck.destruct()
     Archive.Clean()
     
-    assert(card, Util.SafeFormat("Card '%s' not found in deck '%s' - check configuration", params.name, params.deckName))
+    if not card then
+        log:Errorf("Card '%s' not found in deck '%s'", params.name, params.deckName)
+        return false
+    end
+    
+    return true
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -611,6 +616,7 @@ return {
     RegisterEntries = Archive.RegisterEntries,
     Take = Archive.Take,
     TakeObject = Archive.TakeObject,
+    TakeFromDeck = Archive.TakeFromDeck,
     ArchiveSource = Archive.ArchiveSource,
     ContainerSource = Archive.ContainerSource,
     CreateDeckFromSources = Archive.CreateDeckFromSources,

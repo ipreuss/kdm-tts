@@ -142,6 +142,74 @@ This prevents accidental role violations and keeps the separation of concerns ex
 - **Keep tests close to code** – place new specs in `tests/<area>_test.lua` and register them in `tests/run.lua` so they are part of the default `lua tests/run.lua` run.
 - **Executable behavior specs** – when work changes a user-visible behavior or acceptance criteria, add/refresh a high-level test (integration/behavior) that documents the intent (the “what”) alongside unit tests that cover “how.” This applies to feature additions, refactors that intentionally change UX, and bug fixes with customer-facing impact.
 
+## Test Strategy
+
+### Integration Tests Over Export Lists
+
+**Principle:** Tests should **execute real call paths** through modules, not check that every function exists.
+
+#### ❌ Avoid: Export-Checking Tests
+```lua
+-- BAD: Brittle, reactive, no real value
+Test.test("Module exports all functions", function(t)
+    local Module = require("Module")
+    t:assertNotNil(Module.FunctionA)  -- Just checks it exists
+    t:assertNotNil(Module.FunctionB)  -- Doesn't verify it works
+    -- Problems:
+    -- - Only written AFTER discovering a bug
+    -- - Fails when refactoring legitimately removes unused exports
+    -- - Doesn't verify actual usage or integration
+end)
+```
+
+#### ✅ Prefer: True Integration Tests
+```lua
+-- GOOD: Actually executes the integration
+Test.test("Strain->Archive card spawning integration", function(t)
+    -- Minimal stubs for environment (TTS objects, file I/O)
+    setupMinimalTTSStubs()
+    
+    local Strain = require("Kdm/Strain")
+    
+    -- ACTUALLY CALL Strain, which calls Archive internally
+    local ok = Strain.Test._TakeRewardCard(Strain, {
+        name = "Test Card",
+        type = "Fighting Arts",
+        position = { x = 0, y = 0, z = 0 },
+        spawnFunc = function(card)
+            -- Verify card was passed through
+            t:assertNotNil(card)
+        end
+    })
+    
+    -- If Archive.TakeFromDeck isn't exported, this fails naturally
+    -- If Strain.Test isn't exported, this fails loading Strain
+    t:assertTrue(ok, "Integration should succeed")
+end)
+```
+
+**What makes this a real integration test:**
+- **Executes the actual code path**: Strain → Archive
+- **Fails naturally** if exports are missing (attempt to call nil)
+- **Self-documenting**: Shows how modules actually work together
+- **Self-cleaning**: Remove test when removing the feature
+- **Minimal stubbing**: Only stub environment (TTS, I/O), not the modules being tested
+
+### When to Use Stubs vs Real Modules
+
+**Stub environment dependencies:**
+- TTS objects and APIs (no real game engine in tests)
+- File I/O, network calls
+- Time-dependent behavior
+- Complex UI rendering
+
+**Use real modules for integration:**
+- Business logic calling business logic
+- Data transformations
+- Module coordination and orchestration
+
+**Critical rule:** Don't stub a module just to avoid "function not exported" errors - that defeats the purpose of the test. If you need to stub the module, you're not writing an integration test anymore.
+
 ## Implementation Intake
 - **Research first** – when a new implementation task arrives, pause coding and investigate existing behavior, architecture notes, and related files/tests so the forthcoming plan is grounded in facts rather than assumptions.
 - **Prefer existing patterns** – before implementing a new feature, look for similar functionality in the repo. When overlap exists, follow this loop:

@@ -153,6 +153,104 @@ When objects spawn in wrong locations:
 - **Solution:** Add nil checks: `if obj and obj.getName then ...`
 - **Better solution:** Use `assert(obj, "message")` to fail loudly and reveal timing issues
 
+### Missing Module Exports
+- **Problem:** Functions exist in module but aren't exported in return statement → "attempt to call a nil value"
+- **Symptom:** Debug logs show function exists internally but calling code gets nil
+- **Solution:** Add function to module's return table
+- **Prevention:** Write integration tests, not export-checking tests (see below)
+
+## Test Strategy Lessons Learned
+
+### ❌ Don't: Export-Checking Tests
+```lua
+-- BAD: This test is brittle and adds no real value
+Test.test("Module exports all functions", function(t)
+    local Module = require("Module")
+    t:assertNotNil(Module.FunctionA)
+    t:assertNotNil(Module.FunctionB)
+    -- Fails when refactoring removes unused exports
+    -- Only catches bugs after they've already happened
+end)
+```
+
+**Problems:**
+- Only written after discovering a missing export bug
+- Fails when legitimately removing unused exports during refactoring
+- Doesn't verify actual client usage
+
+### ✅ Do: Integration Tests
+```lua
+-- GOOD: Tests actual integration between modules
+Test.test("Strain can take reward card via Archive", function(t)
+    local Strain = require("Kdm/Strain")
+    local Archive = require("Kdm/Archive")
+    
+    -- Verify integration contract exists
+    t:assertNotNil(Strain.Test._TakeRewardCard, "Strain must export for TTS harness")
+    t:assertNotNil(Archive.TakeFromDeck, "Archive must export for Strain to use")
+    
+    -- Note: Full behavior tested in TTS via >testcardstate
+end)
+```
+
+**Benefits:**
+- Documents actual integration dependencies
+- Only fails when real client code breaks
+- When refactoring removes Strain.Test, you remove this test too
+- Clear relationship: "Strain needs Archive.TakeFromDeck"
+
+## Progressive Debug Logging Strategy
+
+When functions don't execute, add logging **backwards through the call chain**:
+
+```lua
+-- 1. Start at the deepest point that should execute
+function Archive.TakeFromDeck(params)
+    log:Debugf("[DEBUG] TakeFromDeck START") -- Never appears? Check caller
+    -- ...
+end
+
+-- 2. Add logging to the caller
+function Strain:_TakeFromRewardsDeck(params)
+    log:Debugf("[DEBUG] _TakeFromRewardsDeck START") -- Appears? Check function exists
+    log:Debugf("[DEBUG] Archive.TakeFromDeck exists: %s", tostring(Archive.TakeFromDeck ~= nil))
+    Archive.TakeFromDeck({...})
+end
+
+-- 3. Check at call site
+log:Debugf("[DEBUG] Strain.Test._TakeRewardCard exists: %s", tostring(Strain.Test._TakeRewardCard ~= nil))
+local ok = Strain.Test._TakeRewardCard(Strain, {...})
+```
+
+**Pattern:** Work backwards from where execution stops until you find the nil value or missing export.
+
+## Return Value Discipline
+
+**Critical lesson from this session:** Functions that orchestrate async operations via callbacks must still return success/failure:
+
+```lua
+-- BAD: No return value
+function Module.DoSomething(params)
+    SomeAsync.Call({
+        callback = function(result)
+            params.onComplete(result) -- Callback executes
+        end
+    })
+end -- Caller gets nil
+
+-- GOOD: Return boolean for caller to check
+function Module.DoSomething(params)
+    local success = SomeAsync.Call({
+        callback = function(result)
+            params.onComplete(result)
+        end
+    })
+    return success -- Caller can check if operation started
+end
+```
+
+Even when the actual result comes via callback, return a boolean indicating whether the operation was initiated successfully.
+
 ## Handover File Format
 
 Keep `handover/LATEST_DEBUG.md` updated with the resolved bug:

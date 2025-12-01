@@ -38,7 +38,21 @@ The framework (`tests/framework.lua`) provides comprehensive assertion methods:
 - `t:fail(message)` - immediately fail the test
 
 ## TTS Acceptance Tests
-The in-game console harness (`TTSTests.ttslua`) lets us sanity-check live TTS behavior without polluting the campaign. Open TTS chat and type `>testhelp` to see the available commands (for example, `>teststrain Shielderang` runs the Strain fighting art workflow end-to-end, `>teststrainvermin Fiddler Crab Spider` validates the vermin reward path, and `>testcardstate 2` exercises the multi-state fighting art fallback used when returning survivors to the settlement). Every TTS acceptance test must follow the same pattern:
+The in-game console harness (`TTSTests.ttslua`) lets us sanity-check live TTS behavior without polluting the campaign. Open TTS chat and type `>testhelp` to see the available commands.
+
+**Running all tests:**
+```
+>testall
+```
+This runs the complete TTS test suite sequentially with automatic cleanup between tests.
+
+**Individual tests:**
+- `>teststrain [cardname]` - Test adding a strain fighting art to the deck (default: Shielderang)
+- `>teststrainvermin [cardname]` - Test adding a strain vermin card (default: Fiddler Crab Spider)
+- `>testcardstate [stateId]` - Test archive fallback for Story of Blood stateful names
+- `>testdialogspec` - Test DialogFromSpec callback timing
+
+Every TTS acceptance test must follow the same pattern:
 
 1. Snapshot the relevant state (deck contents, timelines, etc.) before running any actions.
 2. Perform the action under test and log the observable effects so players get immediate feedback.

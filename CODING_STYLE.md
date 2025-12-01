@@ -96,6 +96,38 @@ This document captures the shared conventions for working on the KDM Tabletop Si
   end
   ```
 
+## Return Values for Async Operations
+
+Functions that orchestrate async operations via callbacks **must still return success/failure indicators**:
+
+```lua
+-- ❌ BAD: No return value
+function Module.SpawnCard(params)
+    Archive.TakeFromDeck({
+        name = params.cardName,
+        spawnFunc = function(card)
+            params.onComplete(card)  -- Result comes via callback
+        end
+    })
+end  -- Returns nil - caller can't tell if operation started
+
+-- ✅ GOOD: Return boolean success
+function Module.SpawnCard(params)
+    local success = Archive.TakeFromDeck({
+        name = params.cardName,
+        spawnFunc = function(card)
+            params.onComplete(card)  -- Result still via callback
+        end
+    })
+    return success  -- Caller knows if operation initiated
+end
+```
+
+**Rationale:**
+- Even when results come asynchronously, callers need to know if the operation **started successfully**
+- Returning boolean allows callers to distinguish "operation pending" from "operation failed to start"
+- Consistent with existing patterns in Archive, Strain, and other modules
+
 ## Documentation Strategy
 1. **Self-speaking code** – choose expressive names, extract helper methods/objects, and keep logic small enough to read without comments. Prefer removing ambiguity over adding prose.
 2. **Executable specifications** – encode behavior in automated tests (unit, integration, or high-level regression scripts) so readers can run them to learn and verify intent.

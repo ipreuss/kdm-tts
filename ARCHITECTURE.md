@@ -196,64 +196,39 @@ When extending the game flow, prefer emitting a new event constant in `EventMana
 6. **Log liberally when debugging**. Create a module logger via `Log.ForModule("ModuleName")` so you can toggle debug output through the console without spamming every user.
 7. **Mind the physical table**. If you spawn or move objects, always route through `NamedObject` and `Location` so automation such as cleanup and warnings continue to work.
 
-## Strain Milestones — Requirements
+## Strain Milestones — Implementation (Complete)
 
-Strain milestones unlock permanent benefits when specific in-game conditions are met. The UI already supports viewing and checking milestones; this section documents the requirements for implementing milestone consequences.
+Strain milestones unlock permanent benefits when specific in-game conditions are met. **Status: Fully implemented.**
+
+### Implementation Summary
+
+| Feature | Module | Status |
+|---------|--------|--------|
+| UI to view/check milestones | `Strain.ttslua` | ✅ |
+| Confirmation dialog with flavor/rules text | `Strain.ttslua` | ✅ |
+| Manual steps shown in dialog | `Strain.ttslua` | ✅ |
+| Add fighting art to deck on confirm | `FightingArtsArchive.AddCard()` | ✅ |
+| Spawn copy for survivor (south of board) | `Strain:SpawnFightingArtForSurvivor()` | ✅ |
+| Remove fighting art on uncheck | `FightingArtsArchive.RemoveCard()` | ✅ |
+| Add vermin to deck | `VerminArchive.AddCard()` | ✅ |
+| Schedule timeline event | `Timeline.ScheduleEvent()` | ✅ |
+| New campaign: add unlocked rewards | `Campaign.AddStrainRewards()` | ✅ |
+| New campaign: random 5 if >5 unlocked | `Campaign.RandomSelect()` | ✅ |
+| Clear milestones option | `Campaign.clearStrainMilestones` | ✅ |
+
+### Key Files
+- `Strain.ttslua` — UI, confirmation flow, consequence execution
+- `GameData/StrainMilestones.ttslua` — Milestone definitions with structured `consequences`
+- `FightingArtsArchive.ttslua` — Add/remove fighting arts from deck
+- `VerminArchive.ttslua` — Add/remove vermin from deck
+- `Campaign.ttslua` — `AddStrainRewards()` for new campaign setup
 
 ### Card Source
-All reward cards (fighting arts, vermin, etc.) are spawned from the **"Strain Rewards"** archive entry in Core.
+All reward cards spawn from the **"Strain Rewards"** archive entry in Core.
 
-### Key Concept: "The Survivor"
-When a milestone says "the survivor gains X," this refers to **the survivor who triggered the milestone condition**. The confirmation dialog should prompt the user to select which survivor triggered it if not already known.
-
-### Persistence Across Campaigns
-- When a milestone is reached, cards are added to decks **immediately** in the current campaign
-- On **new campaign start**, all previously unlocked milestone rewards are automatically added to the appropriate decks
-- **Exception:** If more than 5 fighting arts are unlocked, only 5 are randomly chosen and added to the new campaign's fighting art deck
-- Strain milestone state persists across campaigns unless explicitly reset
-
-### Consequence Types and Automation
-
-| Consequence Type | Automation | Priority | Notes |
-|------------------|------------|----------|-------|
-| Add fighting art to deck | **Automated** | P1 | Spawn card from "Strain Rewards" archive to fighting art deck |
-| Survivor gains fighting art | **Automated** | P1 | Spawn card to triggering survivor's grid |
-| Add to timeline | **Automated** | P2 | Insert event at specified year |
-| Add to vermin deck | **Automated** | P2 | Spawn card from "Strain Rewards" archive to vermin deck |
-| Survivor gains disorder | Manual | P3 | Show reminder; user handles |
-| Survivor gains weapon proficiency | Manual | P3 | Show reminder; user handles |
-| Survivor suffers injury | Manual | P3 | Show reminder; user handles |
-| Survivor suffers stat penalty | Manual | P3 | Show reminder; user handles |
-| Add strange resource | Manual | P3 | Show reminder; user handles |
-
-### Acceptance Criteria (P1 — Fighting Arts)
-
-**On milestone confirm:**
-1. Spawn the fighting art card from "Strain Rewards" and add it to the settlement's fighting art deck.
-2. Spawn a second copy south of the battle grid.
-3. Display message telling player to add the card to the triggering survivor.
-
-**On milestone uncheck:**
-1. Remove the fighting art from the settlement's fighting art deck (search and destroy).
-2. Display message telling player to remove the card from the survivor who has it.
-
-### Acceptance Criteria (New Campaign Setup)
-
-1. On new campaign creation, check which strain milestones are marked as reached.
-2. Collect all fighting arts from reached milestones.
-3. If more than 5 fighting arts are unlocked, randomly select 5.
-4. Spawn the selected fighting arts from "Strain Rewards" to the fighting art deck.
-5. Spawn any other permanent rewards (vermin cards, etc.) to their respective decks.
-
-### Acceptance Criteria (P2 — Timeline/Vermin)
-
-1. "Add Acid Storm to next lantern year" → insert the event on timeline automatically.
-2. "Add Fiddler Crab Spider to vermin deck" → spawn card from "Strain Rewards" to vermin deck.
-
-### Deferred (P3 — Manual)
-
-For these, show a clear reminder in the confirmation dialog listing what the user must do manually:
-- Disorders, weapon proficiency, injuries, stat penalties, strange resources.
+### Persistence
+- Milestone state persists across campaigns unless cleared via checkbox
+- On new campaign, unlocked rewards are automatically added (max 5 fighting arts, randomly selected)
 
 ## Future Refactor Opportunities
 
@@ -266,6 +241,17 @@ We keep a running list of refactors that surfaced during reviews so the insights
 
 2. **Test seam helpers**
    - Introduce reusable stub builders for Campaign import/export tests to avoid duplicating the 20+ stubs required today.
+
+3. **Archive module violates Single Responsibility Principle** *(Identified: 2025-12-01)*
+   - **Problem**: Archive mixes pure business logic (finding cards, state management) with external dependencies (TTS spawning, physics casts), making integration tests impossible without stubbing the entire module
+   - **Solution**: Extract TTS interactions into separate seam
+     - Create `ArchiveSpawner` or use constructor injection: `Archive.new(spawner)`
+     - Split into: 
+       * `Archive` (pure logic: indexing, searching, state management)
+       * `TTSObjectSpawner` (TTS calls: spawning, physics casts, object manipulation)
+   - **Benefit**: Integration tests can use real Archive logic with fake spawner
+   - **Reference**: "Working Effectively with Legacy Code" by Michael Feathers (seams pattern)
+   - **Current workaround**: `>testcardstate` provides full TTS integration test; unit tests must stub Archive entirely
 
 When touching any of these areas, try to land at least one of the above improvements (Boy Scout Rule), and update this section if new opportunities are identified.
 

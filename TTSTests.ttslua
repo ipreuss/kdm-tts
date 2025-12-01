@@ -19,14 +19,75 @@ local TTSTests = {}
 function TTSTests.Init()
     Console.AddCommand("testhelp", function(args)
         log:Printf("Available TTS tests:")
+        log:Printf("  >testall - Run all TTS tests")
         log:Printf("  >teststrain [cardname] - Test adding a strain fighting art to the deck")
         log:Printf("  >teststrainvermin [cardname] - Test adding a strain vermin card to the deck")
         log:Printf("  >testdialogspec - Test DialogFromSpec callback timing issue")
         log:Printf("  >testcardstate [stateId] - Test archive fallback for Story of Blood stateful names")
     end, "Show available TTS test commands")
     
+    Console.AddCommand("testall", function(args)
+        TTSTests.RunAllTests()
+    end, "Run all TTS tests")
+    
     TTSTests.RegisterStrainTests()
     TTSTests.RegisterDialogFromSpecTests()
+end
+
+---------------------------------------------------------------------------------------------------
+-- Run All Tests
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.RunAllTests()
+    log:Printf("=== RUNNING ALL TTS TESTS ===")
+    
+    local tests = {
+        { name = "Add Fighting Art (Shielderang)", fn = function() TTSTests.TestAddFightingArtToArchive("Shielderang") end },
+        { name = "Add Vermin (Fiddler Crab Spider)", fn = function() TTSTests.TestAddVerminToDeck("Fiddler Crab Spider") end },
+        { name = "Card State Fallback (Story of Blood)", fn = function() TTSTests.TestCardStateFallback("Story of Blood", nil) end },
+        { name = "DialogFromSpec Callback Timing", fn = function() TTSTests.TestDialogFromSpecCallbackTiming() end },
+    }
+    
+    local currentTest = 1
+    local totalTests = #tests
+    local passedTests = 0
+    local failedTests = 0
+    local failedNames = {}
+    
+    local function runNextTest()
+        if currentTest > totalTests then
+            log:Printf("=== ALL TTS TESTS COMPLETE ===")
+            log:Printf("Ran %d tests: %d passed, %d failed", totalTests, passedTests, failedTests)
+            if failedTests > 0 then
+                log:Errorf("Failed tests:")
+                for _, name in ipairs(failedNames) do
+                    log:Errorf("  - %s", name)
+                end
+            end
+            return
+        end
+        
+        local test = tests[currentTest]
+        log:Printf("=== TEST %d/%d: %s ===", currentTest, totalTests, test.name)
+        
+        local ok, err = pcall(test.fn)
+        if not ok then
+            log:Errorf("TEST FAILED: %s - %s", test.name, tostring(err))
+            failedTests = failedTests + 1
+            table.insert(failedNames, test.name)
+        else
+            passedTests = passedTests + 1
+        end
+        
+        currentTest = currentTest + 1
+        
+        -- Wait between tests to allow cleanup to complete
+        Wait.frames(function()
+            runNextTest()
+        end, 60)  -- Wait 60 frames (~2 seconds) between tests
+    end
+    
+    runNextTest()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -95,10 +156,16 @@ function TTSTests.TestCardStateFallback(baseName, stateId)
     local testName = string.format("%s [%s]", baseName, stateName)
     log:Printf("TEST: Attempting to spawn '%s' from archive (testing state name fallback)", testName)
     
+    log:Debugf("[DEBUG] Strain module type: %s", type(Strain))
+    log:Debugf("[DEBUG] Strain.Test exists: %s", tostring(Strain.Test ~= nil))
+    if Strain.Test then
+        log:Debugf("[DEBUG] Strain.Test._TakeRewardCard exists: %s", tostring(Strain.Test._TakeRewardCard ~= nil))
+    end
+    
     local position = location:Center()
     position.y = position.y + 2
     local spawnedCard
-    local ok = Strain._test._TakeRewardCard(Strain, {
+    local ok = Strain.Test._TakeRewardCard(Strain, {
         name = testName,
         type = FightingArtsArchive.FIGHTING_ART_TYPE,
         position = position,
