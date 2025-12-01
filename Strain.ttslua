@@ -410,8 +410,8 @@ function Strain:_ResolveSpawnPosition(params)
 end
 
 function Strain:_TakeFromRewardsDeck(params)
-    log:Debugf("[DEBUG] _TakeFromRewardsDeck START, params.name=%s", tostring(params.name))
-    log:Debugf("[DEBUG] Archive.TakeFromDeck exists: %s", tostring(Archive.TakeFromDeck ~= nil))
+    log:Debugf("_TakeFromRewardsDeck START, params.name=%s", tostring(params.name))
+    log:Debugf("Archive.TakeFromDeck exists: %s", tostring(Archive.TakeFromDeck ~= nil))
     return Archive.TakeFromDeck({
         deckName = Strain.REWARD_DECK_NAME,
         deckType = Strain.REWARD_DECK_TYPE,
@@ -425,7 +425,7 @@ function Strain:_TakeFromRewardsDeck(params)
 end
 
 function Strain:_TakeRewardCard(params)
-    log:Debugf("[DEBUG] _TakeRewardCard START, params=%s", tostring(params))
+    log:Debugf("_TakeRewardCard START, params=%s", tostring(params))
     return Strain:_TakeFromRewardsDeck(params)
 end
 

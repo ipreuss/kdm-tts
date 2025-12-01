@@ -118,10 +118,28 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function getPlayerInfo(ordinal)
+    -- BUG INVESTIGATION (2025-12-01): Intermittent "attempt to index a nil value" at lines 169-172
+    -- Error not reproducible on demand. Debug logging left active to capture when it recurs.
+    -- Suspected: Either player[ordinal] is nil OR player.survivorSheet is nil
+    -- TODO: Remove debug logging once root cause identified and fixed
     log(ordinal)
     if initialized then
         local players = Player.Players()
+        log("[DEBUG] getPlayerInfo: players type = " .. type(players))
+        log("[DEBUG] getPlayerInfo: ordinal = " .. tostring(ordinal))
         local player = players[ordinal]
+        log("[DEBUG] getPlayerInfo: player = " .. tostring(player))
+        
+        if not player then
+            log("[ERROR] getPlayerInfo: No player found at ordinal " .. tostring(ordinal))
+            return nil
+        end
+        
+        if not player.survivorSheet then
+            log("[ERROR] getPlayerInfo: player.survivorSheet is nil for ordinal " .. tostring(ordinal))
+            return nil
+        end
+        
         return {
             name = player.survivorSheet:Survivor().name,
             color = player.markerObject.getColorTint(),
