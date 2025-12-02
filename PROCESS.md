@@ -166,22 +166,24 @@ This prevents accidental role violations and keeps the separation of concerns ex
 
 ### Session Closing Signature
 
-**At the end of every conversation**, provide a clear closing signature to indicate which role was active:
+**At the end of every conversation**, provide a clear closing signature to indicate which role was active and when:
 
 ```
 **═══════════════════════════════════════**
 **║        [ROLE NAME] ROLE END          ║**
+**║        YYYY-MM-DD HH:MM UTC          ║**
 **═══════════════════════════════════════**
 ```
 
-This helps the user immediately recognize which role they just spoke to, avoiding confusion when switching between roles across multiple conversations.
+This helps the user immediately recognize which role they just spoke to and when, avoiding confusion when switching between roles across multiple conversations.
 
-**Example closing signatures:**
-- `ARCHITECT ROLE END`
-- `IMPLEMENTER ROLE END`
-- `DEBUGGER ROLE END`
-- `REVIEWER ROLE END`
-- `TESTER ROLE END`
+**Example closing signature:**
+```
+**═══════════════════════════════════════**
+**║        IMPLEMENTER ROLE END          ║**
+**║        2025-12-02 16:58 UTC          ║**
+**═══════════════════════════════════════**
+```
 
 Include a brief session summary before the signature with key accomplishments and any outstanding tasks.
 

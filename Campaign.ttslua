@@ -783,8 +783,9 @@ function Campaign.RandomSelect(items, count)
 end
 
 ---------------------------------------------------------------------------------------------------
--- Campaign.CalculateStrainRewards: Pure logic extraction for testing
+-- Campaign.CalculateStrainRewards: Pure business logic for strain reward calculation.
 -- Returns the rewards that WOULD be added, without TTS side effects.
+-- Used by AddStrainRewards and by acceptance tests.
 ---------------------------------------------------------------------------------------------------
 function Campaign.CalculateStrainRewards(reached, milestoneCards)
     reached = reached or {}
@@ -818,33 +819,18 @@ end
 function Campaign.AddStrainRewards()
     local strainState = Strain.Save() or {}
     local reached = strainState.reached or {}
-    local unlockedFightingArts = {}
-    local unlockedVermin = {}
-
-    for _, milestone in ipairs(Strain.MILESTONE_CARDS or {}) do
-        local consequences = milestone.consequences
-        local fightingArt = consequences and consequences.fightingArt
-        if fightingArt and reached[milestone.title] then
-            table.insert(unlockedFightingArts, fightingArt)
-        end
-        local vermin = consequences and consequences.vermin
-        if vermin and reached[milestone.title] then
-            table.insert(unlockedVermin, vermin)
-        end
+    
+    -- Use pure logic function to calculate rewards
+    local rewards = Campaign.CalculateStrainRewards(reached, Strain.MILESTONE_CARDS)
+    
+    if #rewards.fightingArts == 0 and #rewards.vermin == 0 then
+        return
     end
 
-    if #unlockedFightingArts == 0 then
-        -- still allow vermin/timeline rewards
-        if #unlockedVermin == 0 then
-            return
-        end
-    end
-
-    local additions = {}
-    if #unlockedFightingArts > 0 then
-        additions = Campaign.RandomSelect(unlockedFightingArts, 5)
+    -- Handle TTS side effects: spawn fighting arts
+    if #rewards.fightingArts > 0 then
         local addedCount = 0
-        for _, cardName in ipairs(additions) do
+        for _, cardName in ipairs(rewards.fightingArts) do
             local ok = FightingArtsArchive.AddCard(cardName)
             if ok then
                 addedCount = addedCount + 1
@@ -858,9 +844,10 @@ function Campaign.AddStrainRewards()
         end
     end
 
-    if #unlockedVermin > 0 then
+    -- Handle TTS side effects: spawn vermin
+    if #rewards.vermin > 0 then
         local addedVermin = 0
-        for _, cardName in ipairs(unlockedVermin) do
+        for _, cardName in ipairs(rewards.vermin) do
             if VerminArchive.AddCard(cardName) then
                 addedVermin = addedVermin + 1
             end
