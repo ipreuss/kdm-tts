@@ -100,7 +100,7 @@ function TestWorld:startNewCampaign()
     end
     
     -- Call REAL Campaign logic to calculate rewards
-    local rewards = self._campaignModule._test.CalculateStrainRewards(
+    local rewards = self._campaignModule.CalculateStrainRewards(
         reached,
         self._strainModule.MILESTONE_CARDS
     )

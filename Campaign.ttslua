@@ -1253,12 +1253,12 @@ return {
     HideUi = Campaign.HideUi,
     IsUiOpen = Campaign.IsUiOpen,
     Campaign = function() return Campaign.campaign end,
+    CalculateStrainRewards = Campaign.CalculateStrainRewards,
     _test = {
         SetupSettlementEventsDeck = Campaign.SetupSettlementEventsDeck,
         Import = Campaign.Import,
         EXPORT_VERSION = Campaign.EXPORT_VERSION,
         BuildStrainMilestoneState = buildStrainMilestoneState,
         RandomSelect = Campaign.RandomSelect,
-        CalculateStrainRewards = Campaign.CalculateStrainRewards,
     },
 }

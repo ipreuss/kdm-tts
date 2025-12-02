@@ -130,11 +130,6 @@ function TestTTSAdapter:reset()
     self._nextGuid = 1
 end
 
-function TestTTSAdapter:trackCardSpawn(deckType, cardName)
-    self._spawnedCards[deckType] = self._spawnedCards[deckType] or {}
-    table.insert(self._spawnedCards[deckType], cardName)
-end
-
 ---------------------------------------------------------------------------------------------------
 -- Internal helpers
 ---------------------------------------------------------------------------------------------------
