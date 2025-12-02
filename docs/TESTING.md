@@ -338,3 +338,87 @@ end)
 - Single-module logic (use unit tests)
 - UI rendering (use TTS manual testing)
 - Performance testing (TTS environment differs too much)
+
+---
+
+## Acceptance Testing
+
+Acceptance tests verify user-visible behavior from the user's perspective. See `docs/ACCEPTANCE_TESTING_GUIDELINES.md` for detailed principles.
+
+### Key Architecture Decisions
+
+1. **TestWorld must call real mod code** — not reimplement business logic
+2. **Use `Module._test` tables** to expose pure functions for testing
+3. **TTSAdapter singleton** allows injecting test adapter for TTS operations
+
+### File Structure
+
+```
+tests/acceptance/
+├── test_world.lua              # TestWorld facade (thin wiring layer)
+├── tts_environment.lua         # TTS stub management
+├── test_tts_adapter.lua        # Fake TTS adapter for tracking operations
+├── walking_skeleton_test.lua   # Infrastructure proof
+└── strain_acceptance_test.lua  # Strain milestone scenarios
+```
+
+### Pattern: Extracting Pure Logic
+
+Modules with TTS dependencies should extract pure business logic for testing:
+
+```lua
+-- Campaign.ttslua
+function Campaign.CalculateStrainRewards(reached, milestoneCards)
+    -- Pure logic, no TTS calls
+    local unlockedFightingArts = {}
+    for _, milestone in ipairs(milestoneCards) do
+        if reached[milestone.title] and milestone.consequences then
+            table.insert(unlockedFightingArts, milestone.consequences.fightingArt)
+        end
+    end
+    return {
+        fightingArts = Campaign.RandomSelect(unlockedFightingArts, 5),
+        vermin = unlockedVermin,
+    }
+end
+
+-- Expose for testing
+Campaign._test = {
+    CalculateStrainRewards = Campaign.CalculateStrainRewards,
+}
+```
+
+### Pattern: TestWorld as Thin Wrapper
+
+```lua
+-- tests/acceptance/test_world.lua
+function TestWorld:startNewCampaign()
+    -- Call REAL Campaign logic - no duplicate business logic here
+    local rewards = self._campaignModule._test.CalculateStrainRewards(
+        self._milestones,
+        self._strainModule.MILESTONE_CARDS
+    )
+    self._decks["Fighting Arts"] = rewards.fightingArts
+    self._decks["Vermin"] = rewards.vermin
+end
+```
+
+### Verification
+
+Always verify acceptance tests are meaningful by temporarily breaking mod logic:
+
+```lua
+-- Change Campaign.CalculateStrainRewards max from 5 to 3
+local selected = Campaign.RandomSelect(unlockedFightingArts, 3)  -- was 5
+
+-- Test MUST fail:
+-- ✗ ACCEPTANCE: at most 5 strain fighting arts added
+```
+
+If breaking the mod doesn't break the test, the test is testing TestWorld, not the mod.
+
+### Related Documentation
+
+- `docs/ACCEPTANCE_TESTING_GUIDELINES.md` — Principles and naming conventions
+- `docs/DESIGN_TTS_ADAPTER_PATTERN.md` — Full adapter pattern design
+- `Util/TTSAdapter.lua` — Singleton adapter implementation

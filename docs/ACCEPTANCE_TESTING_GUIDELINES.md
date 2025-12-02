@@ -139,6 +139,56 @@ Methods should use game terminology, not code terminology.
 
 ---
 
+## Critical: TestWorld Must Call Real Mod Code
+
+**TestWorld should be thin (wiring only).** It must NOT reimplement business logic.
+
+### ❌ WRONG: Duplicating Logic
+```lua
+-- BAD: TestWorld reimplements Campaign.AddStrainRewards
+function TestWorld:startNewCampaign()
+    local rewards = {}
+    for _, milestone in ipairs(self._strainModule.MILESTONE_CARDS) do
+        if self._milestones[milestone.title] then
+            table.insert(rewards, milestone.consequences.fightingArt)
+        end
+    end
+    self._decks["Fighting Arts"] = self:_randomSelect(rewards, 5)  -- DUPLICATE LOGIC!
+end
+```
+
+This tests whether TestWorld matches our assumptions, not whether the mod works.
+
+### ✅ CORRECT: Calling Real Code
+```lua
+-- GOOD: TestWorld calls real Campaign logic
+function TestWorld:startNewCampaign()
+    local rewards = self._campaignModule._test.CalculateStrainRewards(
+        self._milestones,
+        self._strainModule.MILESTONE_CARDS
+    )
+    self._decks["Fighting Arts"] = rewards.fightingArts
+end
+```
+
+This tests the actual mod code.
+
+### Verification
+
+**Always verify tests are meaningful:** Temporarily break the mod logic and confirm the test fails.
+
+```lua
+-- In Campaign.ttslua, change max 5 → max 3:
+local selected = Campaign.RandomSelect(unlockedFightingArts, 3)  -- was 5
+
+-- Run tests - they MUST fail:
+-- ✗ ACCEPTANCE: at most 5 strain fighting arts added
+```
+
+If breaking the mod doesn't break the test, the test is worthless.
+
+---
+
 ## What Acceptance Tests Are NOT For
 
 1. **Edge cases in internal logic** — use unit tests
@@ -155,9 +205,9 @@ Methods should use game terminology, not code terminology.
 tests/acceptance/
 ├── test_world.lua              # TestWorld facade
 ├── tts_environment.lua         # TTS stub management
-├── assertions.lua              # Domain-specific assertions (future)
+├── test_tts_adapter.lua        # Fake TTS adapter for tracking
 ├── walking_skeleton_test.lua   # Infrastructure proof
-├── strain_milestones_test.lua  # Strain milestone scenarios (future)
+├── strain_acceptance_test.lua  # Strain milestone scenarios
 └── campaign_setup_test.lua     # Campaign scenarios (future)
 ```
 

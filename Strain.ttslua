@@ -681,8 +681,27 @@ function Strain:CancelMilestone(player)
 end
 
 ---------------------------------------------------------------------------------------------------
+-- Test helpers for injecting reached milestones state
+---------------------------------------------------------------------------------------------------
+
+local _testReachedOverride = nil
+
+function Strain.Test_SetReachedMilestones(reached)
+    _testReachedOverride = reached
+end
+
+function Strain.Test_ResetReachedMilestones()
+    _testReachedOverride = nil
+end
+
+---------------------------------------------------------------------------------------------------
 
 function Strain.Save()
+    -- Allow tests to override reached state
+    if _testReachedOverride then
+        return { reached = _testReachedOverride }
+    end
+    
     local state = { reached = {} }
     if not Strain.milestones then
         return state
@@ -738,5 +757,7 @@ return {
     MILESTONE_CARDS = Strain.MILESTONE_CARDS,
     Test = {
         _TakeRewardCard = Strain._TakeRewardCard,
+        SetReachedMilestones = Strain.Test_SetReachedMilestones,
+        ResetReachedMilestones = Strain.Test_ResetReachedMilestones,
     },
 }

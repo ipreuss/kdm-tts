@@ -295,6 +295,54 @@ end)
 
 **Current implementations:** See `Archive.ttslua`, `Util/TTSSpawner.ttslua`, `tests/stubs/tts_spawner_stub.lua`
 
+### TTS Adapter Pattern for Acceptance Tests
+
+**Problem:** Acceptance tests that reimplement business logic test the test code, not the mod.
+
+**Solution:** Extract pure business logic from TTS-dependent modules and call real mod code from acceptance tests.
+
+**Pattern:**
+1. **Extract pure logic** into testable functions (e.g., `Campaign.CalculateStrainRewards`)
+2. **Expose via `_test` table** for acceptance test access
+3. **TestWorld calls real mod code**, not duplicate implementations
+
+**Example:**
+```lua
+-- Campaign.ttslua
+function Campaign.CalculateStrainRewards(reached, milestoneCards)
+    -- Pure logic, no TTS calls
+    local unlockedFightingArts = {}
+    for _, milestone in ipairs(milestoneCards) do
+        if reached[milestone.title] and milestone.consequences then
+            table.insert(unlockedFightingArts, milestone.consequences.fightingArt)
+        end
+    end
+    return { fightingArts = Campaign.RandomSelect(unlockedFightingArts, 5) }
+end
+
+Campaign._test = {
+    CalculateStrainRewards = Campaign.CalculateStrainRewards,
+}
+
+-- tests/acceptance/test_world.lua
+function TestWorld:startNewCampaign()
+    -- Call REAL Campaign logic
+    local rewards = self._campaignModule._test.CalculateStrainRewards(
+        self._milestones,
+        self._strainModule.MILESTONE_CARDS
+    )
+    self._decks["Fighting Arts"] = rewards.fightingArts
+end
+```
+
+**Verification:** If breaking the mod logic doesn't fail tests, the tests are worthless. Always verify by temporarily breaking logic.
+
+**Key principle:** TestWorld should be thin (wiring only), not reimplement business logic.
+
+**Current implementations:** See `Campaign.ttslua`, `tests/acceptance/test_world.lua`, `Util/TTSAdapter.lua`
+
+**Design doc:** `docs/DESIGN_TTS_ADAPTER_PATTERN.md`
+
 ## Implementation Intake
 - **Research first** – when a new implementation task arrives, pause coding and investigate existing behavior, architecture notes, and related files/tests so the forthcoming plan is grounded in facts rather than assumptions.
 - **Prefer existing patterns** – before implementing a new feature, look for similar functionality in the repo. When overlap exists, follow this loop:

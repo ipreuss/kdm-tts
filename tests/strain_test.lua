@@ -1125,3 +1125,46 @@ Test.test("ShowConfirmationDialog displays (None) when no manual steps", functio
         t:assertEqual("(None)", manualText, "Should display (None) when no manual steps")
     end)
 end)
+
+---------------------------------------------------------------------------------------------------
+-- Strain.Test_SetReachedMilestones tests
+---------------------------------------------------------------------------------------------------
+
+local function countKeys(tbl)
+    local count = 0
+    for _ in pairs(tbl or {}) do count = count + 1 end
+    return count
+end
+
+Test.test("Strain.Test.SetReachedMilestones: overrides Save() return value", function(t)
+    local stubs = buildStrainStubs()
+    
+    withStubs(stubs, function()
+        package.loaded["Kdm/Strain"] = nil
+        local Strain = require("Kdm/Strain")
+        
+        -- Without override, Save returns empty reached
+        local state1 = Strain.Save()
+        t:assertEqual(0, countKeys(state1.reached or {}), "Initially no milestones reached")
+        
+        -- Set override
+        Strain.Test.SetReachedMilestones({
+            ["Test Milestone"] = true,
+            ["Another Milestone"] = true,
+        })
+        
+        -- Save now returns overridden state
+        local state2 = Strain.Save()
+        t:assertTrue(state2.reached["Test Milestone"], "Override should set Test Milestone")
+        t:assertTrue(state2.reached["Another Milestone"], "Override should set Another Milestone")
+        
+        -- Reset override
+        Strain.Test.ResetReachedMilestones()
+        
+        -- Save returns normal state again
+        local state3 = Strain.Save()
+        t:assertFalse(state3.reached["Test Milestone"], "After reset, override should be cleared")
+        
+        package.loaded["Kdm/Strain"] = nil
+    end)
+end)
