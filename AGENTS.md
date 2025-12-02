@@ -22,6 +22,8 @@
 - Start every behavioral change with a failing test (unit or harness) per `PROCESS.md`; keep specs near the code they cover (e.g., strain logic in `tests/strain_test.lua`).
 - Acceptance tests go through `TTSTests.ttslua`; document any new console command’s snapshot/action/restore loop in `README.md`, and when feasible, add headless equivalents so CI can catch regressions without launching TTS.
 - Ensure new systems integrate with the regression suite before running in TTS.
+- For detailed testing patterns (integration tests, test seams, stubbing strategies), see [docs/TESTING.md](docs/TESTING.md).
+- For TTS-specific debugging patterns, see [docs/TTS_PATTERNS.md](docs/TTS_PATTERNS.md).
 
 ## Commit & Pull Request Guidelines
 - Before a PR, run `lua tests/run.lua`, update any impacted docs (README, ARCHITECTURE, FAQ), and refresh `handover/LATEST_REVIEW.md` after each review cycle.

@@ -10,6 +10,8 @@ lua tests/run.lua
 
 Add new test files as `tests/<area>_test.lua` and list them inside `tests/run.lua`.
 
+For detailed testing patterns including integration tests and test seams, see [docs/TESTING.md](docs/TESTING.md).
+
 ### Test Framework Assertions
 The framework (`tests/framework.lua`) provides comprehensive assertion methods:
 
