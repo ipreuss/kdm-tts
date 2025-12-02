@@ -636,8 +636,6 @@ end
 
 return {
     Init = Archive.Init,
-    Key = Archive.Key,
-    RegisterIndexEntry = Archive.RegisterIndexEntry,
     RegisterEntries = Archive.RegisterEntries,
     Take = Archive.Take,
     TakeObject = Archive.TakeObject,
@@ -651,4 +649,6 @@ return {
     -- Test seam exports
     Test_SetSpawner = Archive.Test_SetSpawner,
     Test_ResetSpawner = Archive.Test_ResetSpawner,
+    Test_Key = Archive.Key,
+    Test_RegisterIndexEntry = Archive.RegisterIndexEntry,
 }

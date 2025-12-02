@@ -242,16 +242,15 @@ We keep a running list of refactors that surfaced during reviews so the insights
 2. **Test seam helpers**
    - Introduce reusable stub builders for Campaign import/export tests to avoid duplicating the 20+ stubs required today.
 
-3. **Archive module violates Single Responsibility Principle** *(Identified: 2025-12-01)*
+3. **Archive module violates Single Responsibility Principle** *(Identified: 2025-12-01, Partially addressed: 2025-12-02)*
    - **Problem**: Archive mixes pure business logic (finding cards, state management) with external dependencies (TTS spawning, physics casts), making integration tests impossible without stubbing the entire module
    - **Solution**: Extract TTS interactions into separate seam
-     - Create `ArchiveSpawner` or use constructor injection: `Archive.new(spawner)`
-     - Split into: 
-       * `Archive` (pure logic: indexing, searching, state management)
-       * `TTSObjectSpawner` (TTS calls: spawning, physics casts, object manipulation)
-   - **Benefit**: Integration tests can use real Archive logic with fake spawner
+     - ✅ Created `Util/TTSSpawner.ttslua` for spawning operations
+     - ✅ Added `Archive.Test_SetSpawner` seam for integration testing
+     - ❌ `Archive.Clean()` still uses `Physics.cast` directly (minor - only affects cleanup)
+   - **Benefit**: Integration tests can now use real Archive logic with fake spawner
    - **Reference**: "Working Effectively with Legacy Code" by Michael Feathers (seams pattern)
-   - **Current workaround**: `>testcardstate` provides full TTS integration test; unit tests must stub Archive entirely
+   - **Remaining work**: Wrap `Physics.cast` in TTSSpawner for full testability (low priority)
 
 When touching any of these areas, try to land at least one of the above improvements (Boy Scout Rule), and update this section if new opportunities are identified.
 

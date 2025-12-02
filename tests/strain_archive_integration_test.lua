@@ -68,33 +68,9 @@ Test.test("TTSSpawner seam: Archive.Test_SetSpawner/ResetSpawner work correctly"
 end)
 
 ---------------------------------------------------------------------------------------------------
-
-Test.test("Strain→Archive integration: call chain exercises real code", function(t)
-    -- This test verifies the REAL call chain works by checking that:
-    -- 1. Strain.Test._TakeRewardCard is exported and callable
-    -- 2. It calls Archive.TakeFromDeck (which is exported)
-    -- 3. Any missing export causes "attempt to call nil" immediately
-    --
-    -- This is a "smoke test" for the integration - the full behavioral tests
-    -- are in strain_test.lua with comprehensive stubbing.
-    
-    local Archive = require("Kdm/Archive")
-    local Strain = require("Kdm/Strain")
-    
-    -- Verify the critical exports exist - if these fail, the integration is broken
-    t:assertNotNil(Archive.TakeFromDeck, "Archive.TakeFromDeck must be exported for Strain integration")
-    t:assertNotNil(Archive.Take, "Archive.Take must be exported")
-    t:assertNotNil(Archive.Test_SetSpawner, "Archive.Test_SetSpawner must be exported for testing")
-    t:assertNotNil(Archive.Test_ResetSpawner, "Archive.Test_ResetSpawner must be exported for testing")
-    
-    t:assertNotNil(Strain.Test, "Strain.Test namespace must be exported")
-    t:assertNotNil(Strain.Test._TakeRewardCard, "Strain.Test._TakeRewardCard must be exported")
-    
-    -- Verify they're actually functions (not accidentally exported as nil)
-    t:assertType(Archive.TakeFromDeck, "function", "Archive.TakeFromDeck must be a function")
-    t:assertType(Strain.Test._TakeRewardCard, "function", "Strain.Test._TakeRewardCard must be a function")
-end)
-
+-- NOTE: Export-checking test removed per code review.
+-- The TRUE INTEGRATION tests (below) catch missing exports naturally by executing real code paths.
+-- If Archive.TakeFromDeck isn't exported, the integration test fails with "attempt to call nil".
 ---------------------------------------------------------------------------------------------------
 
 Test.test("TTSSpawner stub records calls correctly", function(t)
@@ -264,6 +240,7 @@ Test.test("TRUE INTEGRATION: Strain._TakeRewardCard → Archive.TakeFromDeck →
     local origArchive = package.loaded["Kdm/Archive"]
     local origStrain = package.loaded["Kdm/Strain"]
     local origLocation = package.loaded["Kdm/Location"]
+    local origPhysics = _G.Physics
     
     -- Track spawner calls
     local spawnerCalls = {}
@@ -353,7 +330,6 @@ Test.test("TRUE INTEGRATION: Strain._TakeRewardCard → Archive.TakeFromDeck →
     local Archive = require("Kdm/Archive")
     
     -- Stub Physics global for Archive.Clean
-    local origPhysics = _G.Physics
     _G.Physics = {
         cast = function() return {} end
     }

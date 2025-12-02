@@ -2,52 +2,8 @@ local Test = require("tests.framework")
 local ui_stubs = require("tests.stubs.ui_stubs")
 local tts_objects = require("tests.stubs.tts_objects")
 
-Test.test("Strain calls Archive.TakeFromDeck integration", function(t)
-    -- True integration test: actually executes Strain -> Archive call chain
-    -- If Archive.TakeFromDeck isn't exported, Strain._TakeFromRewardsDeck fails with "attempt to call nil"
-    -- If Strain.Test._TakeRewardCard isn't exported, this test fails loading it
-    -- Unlike export-checking tests, this only fails when actual call path breaks
-    
-    local takeFromDeckCalled = false
-    local cardSpawned = false
-    
-    -- Stub Archive module with TakeFromDeck that tracks if it's called
-    local origArchive = package.loaded["Kdm/Archive"]
-    package.loaded["Kdm/Archive"] = {
-        TakeFromDeck = function(params)
-            takeFromDeckCalled = true
-            -- Simulate successful card spawn
-            if params.spawnFunc then
-                local fakeCard = { name = params.name }
-                params.spawnFunc(fakeCard)
-                cardSpawned = true
-            end
-            return true
-        end
-    }
-    
-    -- Reload Strain with stubbed Archive
-    package.loaded["Kdm/Strain"] = nil
-    local Strain = require("Kdm/Strain")
-    
-    -- EXECUTE INTEGRATION: Strain.Test._TakeRewardCard calls Archive.TakeFromDeck
-    local ok = Strain.Test._TakeRewardCard(Strain, {
-        name = "Test Card",
-        type = "Fighting Arts",
-        position = { x = 0, y = 0, z = 0 },
-        rotation = { x = 0, y = 180, z = 0 },
-        spawnFunc = function(card) end
-    })
-    
-    -- Restore
-    package.loaded["Kdm/Archive"] = origArchive
-    package.loaded["Kdm/Strain"] = nil
-    
-    -- Verify integration worked
-    t:assertTrue(ok, "Integration should succeed")
-    t:assertTrue(takeFromDeckCalled, "Strain should call Archive.TakeFromDeck")
-    t:assertTrue(cardSpawned, "Card should spawn via callback")
-end)
+-- NOTE: True integration test for Strain→Archive moved to strain_archive_integration_test.lua
+-- That test exercises real Archive code; this file now only tests Strain-specific logic.
 
 local function withStubs(stubs, fn)
     local originals = {}
