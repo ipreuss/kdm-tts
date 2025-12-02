@@ -5,11 +5,32 @@ local Location = require("Kdm/Location")
 local log = require("Kdm/Log").ForModule("Archive")
 local NamedObject = require("Kdm/NamedObject")
 local ObjectState = require("Kdm/Util/ObjectState")
+local TTSSpawner = require("Kdm/Util/TTSSpawner")
 local Util = require("Kdm/Util/Util")
 
 ---------------------------------------------------------------------------------------------------
 
 local Archive = {}
+
+---------------------------------------------------------------------------------------------------
+-- Test seam: allows tests to inject fake spawner for integration testing without TTS
+---------------------------------------------------------------------------------------------------
+
+Archive._spawner = nil
+
+function Archive.Test_SetSpawner(spawner)
+    Archive._spawner = spawner
+end
+
+function Archive.Test_ResetSpawner()
+    Archive._spawner = nil
+end
+
+local function getSpawner()
+    return Archive._spawner or TTSSpawner
+end
+
+---------------------------------------------------------------------------------------------------
 
 Archive.data = {
     { "Abilities", "Abilities", "Abilities Archive" },
@@ -304,7 +325,8 @@ function Archive.Take(params)
     local function takeDirect(stateName)
         log:Debugf("Using direct from archive %s for %s ", archive, archiveKey)
         local spawnWrapper, appliedInSpawn = prepareSpawn(stateName)
-        local object = NamedObject.Get(archive).takeObject({
+        local spawner = getSpawner()
+        local object = spawner.TakeFromArchive(NamedObject.Get(archive), {
             position = position,
             rotation = rotation,
             smooth = params.smooth,
@@ -331,7 +353,8 @@ function Archive.Take(params)
         log:Debugf("[DEBUG] ensureContainer: spawning fresh container from archive")
         local archiveObject = NamedObject.Get(archive)
         log:Debugf("[DEBUG] ensureContainer: archiveObject=%s", tostring(archiveObject))
-        local containerObject = archiveObject.takeObject({
+        local spawner = getSpawner()
+        local containerObject = spawner.TakeFromArchive(archiveObject, {
             position = Archive.NextContainerPosition(),
             smooth = false,
         })
@@ -613,6 +636,8 @@ end
 
 return {
     Init = Archive.Init,
+    Key = Archive.Key,
+    RegisterIndexEntry = Archive.RegisterIndexEntry,
     RegisterEntries = Archive.RegisterEntries,
     Take = Archive.Take,
     TakeObject = Archive.TakeObject,
@@ -622,4 +647,8 @@ return {
     CreateDeckFromSources = Archive.CreateDeckFromSources,
     Clean = Archive.Clean,
     CreateAllGearDeck = Archive.CreateAllGearDeck,
+    
+    -- Test seam exports
+    Test_SetSpawner = Archive.Test_SetSpawner,
+    Test_ResetSpawner = Archive.Test_ResetSpawner,
 }

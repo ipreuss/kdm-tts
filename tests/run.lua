@@ -3,6 +3,10 @@ package.path = "./?.lua;./?/init.lua;" .. package.path
 local bootstrap = require("tests.support.bootstrap")
 bootstrap.setup()
 
+-- Enable Check test mode for headless testing (allows tables instead of TTS userdata)
+local Check = require("Kdm/Util/Check")
+Check.Test_SetTestMode(true)
+
 local Test = require("tests.framework")
 
 local testFiles = {
@@ -21,6 +25,7 @@ local testFiles = {
     "tests.timeline_showhide_test",
     "tests.timeline_schedule_test",
     "tests.strain_test",
+    "tests.strain_archive_integration_test",
     "tests.vermin_archive_test",
     "tests.layoutmanager_test",
 }
@@ -30,6 +35,11 @@ for _, file in ipairs(testFiles) do
 end
 
 local success = Test.run()
+
+-- Disable test mode and verify cleanup
+Check.Test_SetTestMode(false)
+assert(not Check.Test_IsTestMode(), "Check test mode was not properly disabled")
+
 if not success then
     os.exit(1)
 end

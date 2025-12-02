@@ -5,6 +5,22 @@ local Util = require("Kdm/Util/Util")
 local Check = {}
 
 ---------------------------------------------------------------------------------------------------
+-- Test mode: allows Lua tables to pass Object checks (for headless testing without TTS)
+-- When enabled, Check.Object/Check.ObjectOrNil accept tables instead of userdata.
+-- This enables integration testing of modules that interact with TTS objects.
+---------------------------------------------------------------------------------------------------
+
+Check._testMode = false
+
+function Check.Test_SetTestMode(enabled)
+    Check._testMode = enabled == true
+end
+
+function Check.Test_IsTestMode()
+    return Check._testMode
+end
+
+---------------------------------------------------------------------------------------------------
 
 -- this is the __call metamethod, so the first parameter is ignored
 function Check.Check(ignore, condition, fmt, ...)
@@ -62,8 +78,19 @@ function Check.NumOrNil(value, fmt, ...) return Check.TypeOrNil(value, "number",
 function Check.Table(value, fmt, ...) return Check.Type(value, "table", fmt, ...) end
 function Check.TableOrNil(value, fmt, ...) return Check.TypeOrNil(value, "table", fmt, ...) end
 
-function Check.Object(value, fmt, ...) return Check.Type(value, "userdata", fmt, ...) end
-function Check.ObjectOrNil(value, fmt, ...) return Check.TypeOrNil(value, "userdata", fmt, ...) end
+function Check.Object(value, fmt, ...)
+    if Check._testMode then
+        return Check.Type(value, "table", fmt, ...)
+    end
+    return Check.Type(value, "userdata", fmt, ...)
+end
+
+function Check.ObjectOrNil(value, fmt, ...)
+    if Check._testMode then
+        return Check.TypeOrNil(value, "table", fmt, ...)
+    end
+    return Check.TypeOrNil(value, "userdata", fmt, ...)
+end
 
 function Check.Func(value, fmt, ...) return Check.Type(value, "function", fmt, ...) end
 function Check.FuncOrNil(value, fmt, ...) return Check.TypeOrNil(value, "function", fmt, ...) end

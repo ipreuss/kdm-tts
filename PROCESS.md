@@ -210,6 +210,40 @@ end)
 
 **Critical rule:** Don't stub a module just to avoid "function not exported" errors - that defeats the purpose of the test. If you need to stub the module, you're not writing an integration test anymore.
 
+### TTSSpawner Test Seam Pattern
+
+**Problem:** Missing module exports cause runtime nil errors that are expensive to debug (require TTS launch, 5-10 minute debug cycles, 2-4 hours per bug).
+
+**Solution:** For modules with TTS API dependencies, use the TTSSpawner pattern to enable integration testing without TTS:
+
+1. **Extract TTS calls** into `Util/TTSSpawner.ttslua`
+2. **Add test seam** to module: `Module._spawner` field with `Test_SetSpawner()` / `Test_ResetSpawner()`
+3. **Write integration tests** that verify exports exist by exercising real call paths
+
+**Example:**
+```lua
+-- tests/module_integration_test.lua
+Test.test("ModuleA→ModuleB: verifies critical exports", function(t)
+    local ModuleA = require("Kdm/ModuleA")
+    local ModuleB = require("Kdm/ModuleB")
+    
+    -- If ModuleB.CriticalFunction isn't exported, this fails immediately:
+    t:assertNotNil(ModuleB.CriticalFunction, "ModuleB.CriticalFunction must be exported")
+    
+    -- Error: "ModuleB.CriticalFunction must be exported" (clear, actionable)
+    -- NOT: "attempt to call nil value" discovered after hours in TTS
+end)
+```
+
+**Time savings:** 2-4 hours → <5 minutes per export bug. With 5-10 such bugs per feature, this pays for itself immediately.
+
+**When to use:**
+- Modules with direct TTS API calls (`takeObject`, `Physics.cast`)
+- Cross-module integration points prone to export bugs
+- Historical sources of "attempt to call nil value" errors
+
+**Current implementations:** See `Archive.ttslua`, `Util/TTSSpawner.ttslua`, `tests/stubs/tts_spawner_stub.lua`
+
 ## Implementation Intake
 - **Research first** – when a new implementation task arrives, pause coding and investigate existing behavior, architecture notes, and related files/tests so the forthcoming plan is grounded in facts rather than assumptions.
 - **Prefer existing patterns** – before implementing a new feature, look for similar functionality in the repo. When overlap exists, follow this loop:

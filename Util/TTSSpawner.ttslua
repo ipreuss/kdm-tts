@@ -1,0 +1,55 @@
+---------------------------------------------------------------------------------------------------
+-- TTSSpawner: Encapsulates TTS-specific object spawning and physics operations
+-- 
+-- This module exists to provide a seam for testing Archive logic without TTS environment.
+-- By extracting TTS API calls into this module, tests can inject a fake spawner to exercise
+-- Archive behavior without requiring Tabletop Simulator.
+--
+-- Rationale: Missing exports cause runtime nil errors that require full TTS to debug.
+-- With this seam, integration tests catch export issues in seconds via `lua tests/run.lua`.
+---------------------------------------------------------------------------------------------------
+
+local log = require("Kdm/Log").ForModule("TTSSpawner")
+
+---------------------------------------------------------------------------------------------------
+
+local TTSSpawner = {}
+
+---------------------------------------------------------------------------------------------------
+-- Object spawning from archive bags/infinite containers
+---------------------------------------------------------------------------------------------------
+
+function TTSSpawner.TakeFromArchive(archiveObject, params)
+    assert(archiveObject, "TTSSpawner.TakeFromArchive: archiveObject is required")
+    assert(params, "TTSSpawner.TakeFromArchive: params is required")
+    
+    return archiveObject.takeObject({
+        position = params.position,
+        rotation = params.rotation,
+        smooth = params.smooth,
+        callback_function = params.callback_function,
+    })
+end
+
+---------------------------------------------------------------------------------------------------
+-- Physics operations
+---------------------------------------------------------------------------------------------------
+
+function TTSSpawner.PhysicsCast(params)
+    assert(params, "TTSSpawner.PhysicsCast: params is required")
+    return Physics.cast(params)
+end
+
+---------------------------------------------------------------------------------------------------
+-- Object destruction
+---------------------------------------------------------------------------------------------------
+
+function TTSSpawner.DestroyObject(object)
+    if object and object.destruct then
+        object.destruct()
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+
+return TTSSpawner

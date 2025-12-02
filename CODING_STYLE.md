@@ -181,3 +181,33 @@ See `PROCESS.md` for the full change-management loop (test-first, safety net, PR
 - When reviews trigger follow-ups, keep commits clean and focused; avoid mixing refactors with feature changes unless validated by tests.
 
 Following these conventions keeps the project understandable for future contributors and reduces regressions as we continue to expand the simulator.
+
+## Integration Testing ROI: TTSSpawner Pattern
+
+**Time investment vs. savings:**
+
+Creating test seams (like TTSSpawner) requires upfront work:
+- Extract TTS operations: ~30 minutes
+- Add test seam to module: ~15 minutes  
+- Write integration tests: ~15 minutes
+- Total: **~1 hour**
+
+But missing export bugs are expensive:
+- TTS launch + reproduction: 5-10 minutes per attempt
+- Typical debug session: 2-4 hours (10-30 attempts)
+- Typical feature: 5-10 export bugs discovered at runtime
+
+**Payback:** First export bug caught saves 2-4 hours. With 5-10 bugs per feature, investment pays for itself 10-40x.
+
+**When to invest:**
+- ✅ Modules with TTS API calls (Archive, Campaign, Timeline)
+- ✅ Cross-module integrations prone to export bugs
+- ✅ Historical sources of "attempt to call nil value" errors
+- ❌ Pure logic modules with no TTS dependencies
+- ❌ UI-only modules (use ui_stubs instead)
+- ❌ Code with <5 call sites (overhead not worth it)
+
+**Pattern documented in:**
+- ARCHITECTURE.md: "TTSSpawner Test Seam Pattern"
+- PROCESS.md: "TTSSpawner Test Seam Pattern"
+- Reference implementation: `Archive.ttslua` + `Util/TTSSpawner.ttslua`
