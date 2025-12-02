@@ -18,6 +18,8 @@ function TestWorld.create()
         _milestones = {},
         _strainModule = nil,
         _decks = {},
+        _currentYear = 1,
+        _timeline = {},
     }
     setmetatable(world, { __index = TestWorld })
     
@@ -55,19 +57,101 @@ end
 
 function TestWorld:reachMilestone(title)
     -- Validate against real milestone data
-    local found = false
-    for _, milestone in ipairs(self._strainModule.MILESTONE_CARDS) do
-        if milestone.title == title then
-            found = true
-            break
-        end
-    end
-    
-    if not found then
+    local milestone = self._strainModule.FindMilestone(title)
+    if not milestone then
         error("Unknown milestone: " .. title .. " (not in MILESTONE_CARDS)")
     end
     
     self._milestones[title] = true
+    return true
+end
+
+function TestWorld:confirmMilestone(title)
+    local milestone = self._strainModule.FindMilestone(title)
+    if not milestone then
+        error("Unknown milestone: " .. title)
+    end
+    
+    -- Mark as reached
+    self._milestones[title] = true
+    
+    -- Use REAL Strain logic to compute consequences
+    local changes = self._strainModule.ComputeConsequenceChanges(milestone, self._currentYear)
+    
+    -- Apply changes to test state
+    for _, art in ipairs(changes.fightingArts) do
+        self._decks["Fighting Arts"] = self._decks["Fighting Arts"] or {}
+        table.insert(self._decks["Fighting Arts"], art)
+    end
+    
+    for _, vermin in ipairs(changes.vermin) do
+        self._decks["Vermin"] = self._decks["Vermin"] or {}
+        table.insert(self._decks["Vermin"], vermin)
+    end
+    
+    for _, event in ipairs(changes.timelineEvents) do
+        self._timeline[event.year] = self._timeline[event.year] or { events = {} }
+        table.insert(self._timeline[event.year].events, {
+            name = event.name,
+            type = event.type,
+        })
+    end
+    
+    return true
+end
+
+function TestWorld:uncheckMilestone(title)
+    local milestone = self._strainModule.FindMilestone(title)
+    if not milestone then
+        error("Unknown milestone: " .. title)
+    end
+    
+    -- Must have been reached
+    if not self._milestones[title] then
+        error("Milestone not reached: " .. title)
+    end
+    
+    -- Mark as not reached
+    self._milestones[title] = nil
+    
+    -- Use REAL Strain logic to compute what to remove
+    local changes = self._strainModule.ComputeConsequenceChanges(milestone, self._currentYear)
+    
+    -- Remove fighting arts
+    for _, art in ipairs(changes.fightingArts) do
+        local deck = self._decks["Fighting Arts"] or {}
+        for i, card in ipairs(deck) do
+            if card == art then
+                table.remove(deck, i)
+                break
+            end
+        end
+    end
+    
+    -- Remove vermin
+    for _, vermin in ipairs(changes.vermin) do
+        local deck = self._decks["Vermin"] or {}
+        for i, card in ipairs(deck) do
+            if card == vermin then
+                table.remove(deck, i)
+                break
+            end
+        end
+    end
+    
+    -- Remove timeline events (by name, searching all years)
+    for _, event in ipairs(changes.timelineEvents) do
+        for year, yearData in pairs(self._timeline or {}) do
+            local events = yearData.events or {}
+            for i, e in ipairs(events) do
+                if e.name == event.name then
+                    table.remove(events, i)
+                    break
+                end
+            end
+        end
+    end
+    
     return true
 end
 
@@ -77,6 +161,25 @@ end
 
 function TestWorld:isReached(title)
     return self._milestones[title] == true
+end
+
+function TestWorld:advanceToYear(year)
+    self._currentYear = year
+end
+
+function TestWorld:timeline()
+    return self._timeline
+end
+
+function TestWorld:timelineContains(year, eventName)
+    local yearData = self._timeline[year]
+    if not yearData then return false end
+    for _, event in ipairs(yearData.events or {}) do
+        if event.name == eventName then
+            return true
+        end
+    end
+    return false
 end
 
 function TestWorld:milestoneReward(title)

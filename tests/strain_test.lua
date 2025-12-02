@@ -1168,3 +1168,106 @@ Test.test("Strain.Test.SetReachedMilestones: overrides Save() return value", fun
         package.loaded["Kdm/Strain"] = nil
     end)
 end)
+
+---------------------------------------------------------------------------------------------------
+-- ComputeConsequenceChanges tests
+---------------------------------------------------------------------------------------------------
+
+Test.test("Strain.ComputeConsequenceChanges: returns empty for nil milestone", function(t)
+    local stubs = buildStrainStubs()
+    
+    withStubs(stubs, function()
+        package.loaded["Kdm/Strain"] = nil
+        local Strain = require("Kdm/Strain")
+        
+        local changes = Strain.ComputeConsequenceChanges(nil, 1)
+        
+        t:assertEqual(0, #changes.fightingArts)
+        t:assertEqual(0, #changes.vermin)
+        t:assertEqual(0, #changes.timelineEvents)
+        
+        package.loaded["Kdm/Strain"] = nil
+    end)
+end)
+
+Test.test("Strain.ComputeConsequenceChanges: extracts fighting art", function(t)
+    local stubs = buildStrainStubs()
+    
+    withStubs(stubs, function()
+        package.loaded["Kdm/Strain"] = nil
+        local Strain = require("Kdm/Strain")
+        
+        local milestone = {
+            title = "Test",
+            consequences = { fightingArt = "Test Art" },
+        }
+        
+        local changes = Strain.ComputeConsequenceChanges(milestone, 1)
+        
+        t:assertEqual(1, #changes.fightingArts)
+        t:assertEqual("Test Art", changes.fightingArts[1])
+        
+        package.loaded["Kdm/Strain"] = nil
+    end)
+end)
+
+Test.test("Strain.ComputeConsequenceChanges: computes timeline year with offset", function(t)
+    local stubs = buildStrainStubs()
+    
+    withStubs(stubs, function()
+        package.loaded["Kdm/Strain"] = nil
+        local Strain = require("Kdm/Strain")
+        
+        local milestone = {
+            title = "Test",
+            consequences = {
+                timelineEvent = {
+                    name = "Test Event",
+                    type = "SettlementEvent",
+                    offset = 2,
+                },
+            },
+        }
+        
+        local changes = Strain.ComputeConsequenceChanges(milestone, 5)
+        
+        t:assertEqual(1, #changes.timelineEvents)
+        t:assertEqual("Test Event", changes.timelineEvents[1].name)
+        t:assertEqual(7, changes.timelineEvents[1].year)  -- 5 + 2
+        
+        package.loaded["Kdm/Strain"] = nil
+    end)
+end)
+
+Test.test("Strain.FindMilestone: returns milestone by title", function(t)
+    local stubs = buildStrainStubs()
+    
+    withStubs(stubs, function()
+        package.loaded["Kdm/Strain"] = nil
+        local Strain = require("Kdm/Strain")
+        
+        -- Use stub milestone name (from buildStrainStubs)
+        local milestone = Strain.FindMilestone("Milestone A")
+        
+        t:assertNotNil(milestone)
+        t:assertEqual("Milestone A", milestone.title)
+        t:assertEqual("Test Art", milestone.consequences.fightingArt)
+        
+        package.loaded["Kdm/Strain"] = nil
+    end)
+end)
+
+Test.test("Strain.FindMilestone: returns nil for unknown title", function(t)
+    local stubs = buildStrainStubs()
+    
+    withStubs(stubs, function()
+        package.loaded["Kdm/Strain"] = nil
+        local Strain = require("Kdm/Strain")
+        
+        local milestone = Strain.FindMilestone("Nonexistent Milestone")
+        
+        t:assertNil(milestone)
+        
+        package.loaded["Kdm/Strain"] = nil
+    end)
+end)

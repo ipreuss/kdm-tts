@@ -496,6 +496,53 @@ function Strain:ReverseConsequences(milestone)
 end
 
 ---------------------------------------------------------------------------------------------------
+-- Pure consequence computation (no TTS side effects)
+-- Used by acceptance tests to verify logic without spawning cards
+---------------------------------------------------------------------------------------------------
+
+function Strain.ComputeConsequenceChanges(milestone, currentYear)
+    local consequences = milestone and milestone.consequences
+    if not consequences then
+        return { fightingArts = {}, vermin = {}, timelineEvents = {} }
+    end
+
+    local changes = {
+        fightingArts = {},
+        vermin = {},
+        timelineEvents = {},
+    }
+
+    if consequences.fightingArt then
+        table.insert(changes.fightingArts, consequences.fightingArt)
+    end
+
+    if consequences.vermin then
+        table.insert(changes.vermin, consequences.vermin)
+    end
+
+    if consequences.timelineEvent then
+        local event = consequences.timelineEvent
+        local targetYear = (currentYear or 1) + (event.offset or 0)
+        table.insert(changes.timelineEvents, {
+            year = targetYear,
+            name = event.name,
+            type = event.type,
+        })
+    end
+
+    return changes
+end
+
+function Strain.FindMilestone(title)
+    for _, milestone in ipairs(Strain.MILESTONE_CARDS) do
+        if milestone.title == title then
+            return milestone
+        end
+    end
+    return nil
+end
+
+---------------------------------------------------------------------------------------------------
 
 function Strain:RefreshMilestones()
     if not Strain.listPanel then
@@ -755,6 +802,8 @@ return {
     HideUi = Strain.HideUi,
     IsUiOpen = Strain.IsUiOpen,
     MILESTONE_CARDS = Strain.MILESTONE_CARDS,
+    ComputeConsequenceChanges = Strain.ComputeConsequenceChanges,
+    FindMilestone = Strain.FindMilestone,
     Test = {
         _TakeRewardCard = Strain._TakeRewardCard,
         SetReachedMilestones = Strain.Test_SetReachedMilestones,

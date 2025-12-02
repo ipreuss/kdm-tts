@@ -114,3 +114,65 @@ Test.test("ACCEPTANCE: strain vermin rewards are added to new campaign", functio
     
     world:destroy()
 end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: confirming Sword Oath adds Acid Storm to next year", function(t)
+    local world = TestWorld.create()
+    
+    -- Campaign is in year 5
+    world:advanceToYear(5)
+    
+    -- User confirms Sweat Stained Oath milestone
+    world:confirmMilestone("Sweat Stained Oath")
+    
+    -- Acid Storm is scheduled for year 6 (current + offset 1)
+    t:assertTrue(world:timelineContains(6, "Acid Storm"), 
+        "Acid Storm should be added to year 6")
+    
+    -- Fighting art was also added
+    t:assertTrue(world:deckContains(world:fightingArtsDeck(), "Sword Oath"))
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: unchecking milestone removes rewards", function(t)
+    local world = TestWorld.create()
+    
+    -- Confirm a milestone
+    world:confirmMilestone("Ethereal Culture Strain")
+    t:assertTrue(world:deckContains(world:fightingArtsDeck(), "Ethereal Pact"))
+    
+    -- Uncheck the milestone
+    world:uncheckMilestone("Ethereal Culture Strain")
+    
+    -- Reward is removed
+    t:assertFalse(world:deckContains(world:fightingArtsDeck(), "Ethereal Pact"))
+    t:assertFalse(world:isReached("Ethereal Culture Strain"))
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: unchecking milestone removes timeline event", function(t)
+    local world = TestWorld.create()
+    
+    -- Campaign is in year 3
+    world:advanceToYear(3)
+    
+    -- Confirm Sweat Stained Oath (has timeline event)
+    world:confirmMilestone("Sweat Stained Oath")
+    t:assertTrue(world:timelineContains(4, "Acid Storm"))
+    
+    -- Uncheck the milestone
+    world:uncheckMilestone("Sweat Stained Oath")
+    
+    -- Timeline event is removed
+    t:assertFalse(world:timelineContains(4, "Acid Storm"))
+    t:assertFalse(world:deckContains(world:fightingArtsDeck(), "Sword Oath"))
+    
+    world:destroy()
+end)
