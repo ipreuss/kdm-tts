@@ -59,3 +59,58 @@ Test.test("ACCEPTANCE: strain rewards are added to new campaign", function(t)
     
     world:destroy()
 end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: new campaign works with no milestones reached", function(t)
+    local world = TestWorld.create()
+    
+    -- User starts campaign without reaching any milestones
+    world:startNewCampaign()
+    
+    -- Fighting arts deck has no strain rewards
+    t:assertFalse(world:deckContains(world:fightingArtsDeck(), "Ethereal Pact"))
+    t:assertFalse(world:deckContains(world:fightingArtsDeck(), "Giant's Blood"))
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: at most 5 strain fighting arts added to new campaign", function(t)
+    local world = TestWorld.create()
+    
+    -- User reaches more than 5 milestones with fighting art rewards
+    world:reachMilestone("Ethereal Culture Strain")   -- Ethereal Pact
+    world:reachMilestone("Giant's Strain")            -- Giant's Blood
+    world:reachMilestone("Opportunist Strain")        -- Backstabber
+    world:reachMilestone("Trepanning Strain")         -- Infinite Lives
+    world:reachMilestone("Hyper Cerebellum")          -- Shielderang
+    world:reachMilestone("Marrow Transformation")     -- Rolling Gait
+    world:reachMilestone("Memetic Symphony")          -- Infernal Rhythm
+    
+    world:startNewCampaign()
+    
+    -- Only 5 fighting arts should be added (randomly selected)
+    local deck = world:fightingArtsDeck()
+    t:assertEqual(5, #deck, "Should have exactly 5 strain fighting arts")
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: strain vermin rewards are added to new campaign", function(t)
+    local world = TestWorld.create()
+    
+    -- User reaches a milestone with vermin reward
+    world:reachMilestone("Ashen Claw Strain")  -- Fiddler Crab Spider (vermin) + Armored Fist (fighting art)
+    
+    world:startNewCampaign()
+    
+    -- Both rewards are added
+    t:assertTrue(world:deckContains(world:fightingArtsDeck(), "Armored Fist"))
+    t:assertTrue(world:deckContains(world:verminDeck(), "Fiddler Crab Spider"))
+    
+    world:destroy()
+end)

@@ -164,6 +164,27 @@ When the user requests an action outside the current role's responsibilities, **
 
 This prevents accidental role violations and keeps the separation of concerns explicit.
 
+### Session Closing Signature
+
+**At the end of every conversation**, provide a clear closing signature to indicate which role was active:
+
+```
+**═══════════════════════════════════════**
+**║        [ROLE NAME] ROLE END          ║**
+**═══════════════════════════════════════**
+```
+
+This helps the user immediately recognize which role they just spoke to, avoiding confusion when switching between roles across multiple conversations.
+
+**Example closing signatures:**
+- `ARCHITECT ROLE END`
+- `IMPLEMENTER ROLE END`
+- `DEBUGGER ROLE END`
+- `REVIEWER ROLE END`
+- `TESTER ROLE END`
+
+Include a brief session summary before the signature with key accomplishments and any outstanding tasks.
+
 ## Safety Net First
 - **Baseline tests before edits** – confirm existing behavior has automated coverage (unit/integration). If coverage is missing for the code you are about to edit, add characterization tests that express the current behavior before changing logic.
 - **Protect regressions** – when a bug is reported, reproduce it in a failing test before touching implementation code. The test should prove the fix and guard against future regressions.

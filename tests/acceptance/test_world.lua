@@ -2,26 +2,37 @@
 -- TestWorld: Facade for acceptance tests
 -- 
 -- Manages game state and provides high-level actions for test scenarios.
--- Loads real game modules with stubbed TTS environment.
+-- Uses TestTTSAdapter to track TTS operations without actually calling TTS.
 ---------------------------------------------------------------------------------------------------
 
 local TTSEnvironment = require("tests.acceptance.tts_environment")
+local TTSAdapter = require("Kdm/Util/TTSAdapter")
+local TestTTSAdapter = require("tests.acceptance.test_tts_adapter")
 
 local TestWorld = {}
 
 function TestWorld.create()
     local world = {
-        _env = TTSEnvironment.create(),
+        _adapter = TestTTSAdapter.create(),
+        _env = nil,
         _milestones = {},
         _strainModule = nil,
+        _decks = {},
     }
     setmetatable(world, { __index = TestWorld })
+    
+    -- Install test adapter FIRST (before modules load)
+    TTSAdapter.Set(world._adapter)
+    
+    world._env = TTSEnvironment.create()
     world._env:install()
-    world:_loadStrainModule()
+    world:_loadModules()
+    
     return world
 end
 
 function TestWorld:destroy()
+    TTSAdapter.Reset()
     self._env:uninstall()
 end
 
@@ -29,10 +40,13 @@ end
 -- Module Loading
 ---------------------------------------------------------------------------------------------------
 
-function TestWorld:_loadStrainModule()
-    -- Clear cached module to get fresh load with stubs in place
+function TestWorld:_loadModules()
+    -- Clear cached modules to get fresh load with stubs in place
     package.loaded["Kdm/Strain"] = nil
+    package.loaded["Kdm/Campaign"] = nil
+    
     self._strainModule = require("Kdm/Strain")
+    self._campaignModule = require("Kdm/Campaign")
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -85,36 +99,24 @@ function TestWorld:startNewCampaign()
         reached[title] = true
     end
     
-    -- Get rewards that should be added
-    local rewards = self:_calculateRewards(reached)
+    -- Call REAL Campaign logic to calculate rewards
+    local rewards = self._campaignModule._test.CalculateStrainRewards(
+        reached,
+        self._strainModule.MILESTONE_CARDS
+    )
     
-    -- Track in deck state (no TTS spawning)
+    -- Track in deck state
     self._decks = self._decks or {}
-    self._decks["Fighting Arts"] = self._decks["Fighting Arts"] or {}
-    for _, reward in ipairs(rewards) do
-        if reward.type == "fightingArt" then
-            table.insert(self._decks["Fighting Arts"], reward.name)
-        end
-    end
-end
-
-function TestWorld:_calculateRewards(reached)
-    local rewards = {}
-    for _, milestone in ipairs(self._strainModule.MILESTONE_CARDS) do
-        if reached[milestone.title] and milestone.consequences then
-            if milestone.consequences.fightingArt then
-                table.insert(rewards, {
-                    type = "fightingArt",
-                    name = milestone.consequences.fightingArt
-                })
-            end
-        end
-    end
-    return rewards
+    self._decks["Fighting Arts"] = rewards.fightingArts or {}
+    self._decks["Vermin"] = rewards.vermin or {}
 end
 
 function TestWorld:fightingArtsDeck()
     return self._decks and self._decks["Fighting Arts"] or {}
+end
+
+function TestWorld:verminDeck()
+    return self._decks and self._decks["Vermin"] or {}
 end
 
 function TestWorld:deckContains(deck, cardName)

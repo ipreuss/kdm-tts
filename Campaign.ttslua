@@ -782,6 +782,39 @@ function Campaign.RandomSelect(items, count)
     return selected
 end
 
+---------------------------------------------------------------------------------------------------
+-- Campaign.CalculateStrainRewards: Pure logic extraction for testing
+-- Returns the rewards that WOULD be added, without TTS side effects.
+---------------------------------------------------------------------------------------------------
+function Campaign.CalculateStrainRewards(reached, milestoneCards)
+    reached = reached or {}
+    milestoneCards = milestoneCards or (Strain and Strain.MILESTONE_CARDS) or {}
+    
+    local unlockedFightingArts = {}
+    local unlockedVermin = {}
+
+    for _, milestone in ipairs(milestoneCards) do
+        local consequences = milestone.consequences
+        local fightingArt = consequences and consequences.fightingArt
+        if fightingArt and reached[milestone.title] then
+            table.insert(unlockedFightingArts, fightingArt)
+        end
+        local vermin = consequences and consequences.vermin
+        if vermin and reached[milestone.title] then
+            table.insert(unlockedVermin, vermin)
+        end
+    end
+
+    local selectedFightingArts = Campaign.RandomSelect(unlockedFightingArts, 5)
+    
+    return {
+        fightingArts = selectedFightingArts,
+        vermin = unlockedVermin,
+    }
+end
+
+---------------------------------------------------------------------------------------------------
+
 function Campaign.AddStrainRewards()
     local strainState = Strain.Save() or {}
     local reached = strainState.reached or {}
@@ -1239,5 +1272,6 @@ return {
         EXPORT_VERSION = Campaign.EXPORT_VERSION,
         BuildStrainMilestoneState = buildStrainMilestoneState,
         RandomSelect = Campaign.RandomSelect,
+        CalculateStrainRewards = Campaign.CalculateStrainRewards,
     },
 }
