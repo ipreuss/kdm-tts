@@ -10,7 +10,7 @@ This backlog captures feature ideas and improvements for future consideration. I
 | ID | Area | Description | Priority | Status | Notes |
 |----|------|-------------|----------|--------|-------|
 | 1 | Strain Milestones | Auto-spawn disorder, injury, and strange resource cards (like fighting arts) instead of requiring manual search | — | New | Currently these are manual steps shown in confirmation dialog; spawning cards would improve UX consistency |
-| 2 | Strain Milestones | Add "Atmospheric Change" strain milestone | — | New | Missing from current 13 milestones |
+| 2 | Strain Milestones | Add "Atmospheric Change" strain milestone | P1 | Ready | Handover to Architect created; introduces new consequence types (archive settlement event, add basic resource) |
 
 ## Epics
 
