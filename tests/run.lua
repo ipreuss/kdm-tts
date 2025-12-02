@@ -29,6 +29,7 @@ local testFiles = {
     "tests.vermin_archive_test",
     "tests.layoutmanager_test",
     "tests.acceptance.walking_skeleton_test",
+    "tests.acceptance.strain_acceptance_test",
 }
 
 for _, file in ipairs(testFiles) do

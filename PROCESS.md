@@ -89,27 +89,54 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 - Do not change requirements or architecture
 - Must provide evidence for conclusions (log output, code references)
 
+### Tester
+**Focus:** Acceptance testing from the user's perspective.
+
+**Responsibilities:**
+- Write acceptance tests that verify user-visible behavior
+- Maintain TestWorld facade and acceptance test infrastructure
+- Author and maintain `docs/ACCEPTANCE_TESTING_GUIDELINES.md`
+- Ensure tests use domain language, not implementation details
+- Validate that acceptance criteria are testable
+
+**Permitted code changes:**
+- Files in `tests/acceptance/` directory
+- TestWorld and TTSEnvironment infrastructure
+- Acceptance testing documentation
+
+**Constraints:**
+- Do not edit implementation code or unit tests
+- Do not perform git operations
+- Do not test implementation details or impossible user actions
+- Tests must be written from user's perspective (see guidelines)
+
+**Key Principle:** Ask "What can a user do? What do they see?" — not "How does the code work?"
+
 ### Role Workflow
 
 ```
-Product Owner          Architect              Implementer           Reviewer
-     │                     │                       │                    │
-     │  requirements       │                       │                    │
-     ├────────────────────►│                       │                    │
-     │                     │  technical design     │                    │
-     │                     ├──────────────────────►│                    │
-     │                     │                       │  implementation    │
-     │                     │                       ├───────────────────►│
-     │                     │                       │                    │
-     │◄────────────────────┼───────────────────────┼────────────────────┤
-     │                     │       feedback loop (iterate as needed)    │
+Product Owner          Architect              Implementer           Reviewer            Tester
+     │                     │                       │                    │                  │
+     │  requirements       │                       │                    │                  │
+     ├────────────────────►│                       │                    │                  │
+     │                     │  technical design     │                    │                  │
+     │                     ├──────────────────────►│                    │                  │
+     │                     │                       │  implementation    │                  │
+     │                     │                       ├───────────────────►│                  │
+     │                     │                       │                    │                  │
+     │  acceptance criteria│                       │                    │                  │
+     ├─────────────────────┼───────────────────────┼────────────────────┼─────────────────►│
+     │                     │                       │                    │                  │
+     │◄────────────────────┼───────────────────────┼────────────────────┼──────────────────┤
+     │                     │       feedback loop (iterate as needed)                       │
 ```
 
 **Handoff points:**
 1. Product Owner validates requirements → Architect designs solution
 2. Architect provides design → Implementer codes
 3. Implementer completes changes → Reviewer checks
-4. Reviewer findings may loop back to any prior role
+4. Product Owner provides acceptance criteria → Tester writes acceptance tests
+5. Reviewer/Tester findings may loop back to any prior role
 
 ### Handover Documents
 
@@ -121,6 +148,7 @@ All role-to-role handovers are stored in the `handover/` folder:
 | `LATEST_DEBUG.md` | Most recent debug report | Debugger |
 | `HANDOVER_ARCHITECT.md` | Requirements handoff to Architect | Product Owner |
 | `HANDOVER_IMPLEMENTER.md` | Design handoff to Implementer | Architect |
+| `HANDOVER_TESTER.md` | Acceptance criteria handoff to Tester | Product Owner |
 | `IMPLEMENTATION_STATUS.md` | Snapshot of what portions of the design/requirements have already been implemented | Implementer |
 
 **Guidelines:**
