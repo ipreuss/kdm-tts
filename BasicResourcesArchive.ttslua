@@ -41,7 +41,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-function BasicResourcesArchive.AddCard(cardName)
+function BasicResourcesArchive.AddCard(cardName, onComplete)
     local brDeck, archive = takeBasicResourcesDeck()
     if not brDeck then
         return false
@@ -82,56 +82,14 @@ function BasicResourcesArchive.AddCard(cardName)
         return false
     end
 
-    -- Take card and wait for it to settle before putting into deck
-    strainDeck.takeObject({
-        index = cardIndex,
-        position = brDeck.getPosition(),
-        smooth = false,
-        callback_function = function(spawnedCard)
-            -- Wait for card to stop moving before putting into deck
-            Wait.condition(
-                function()
-                    -- Card is at rest, now put it in the deck
-                    brDeck.putObject(spawnedCard)
-                    -- putObject copies the card, so destroy the original
-                    spawnedCard.destruct()
-                    
-                    -- Don't destruct strainDeck here - Archive.Clean() will handle it
-                    -- This allows multiple operations to share the same strainDeck
-                    
-                    if archive then
-                        if archive.reset then
-                            archive.reset()
-                        end
-                        archive.putObject(brDeck)
-                    end
-
-                    Archive.Clean()
-                    Deck.ResetDeck(BasicResourcesArchive.DECK_LOCATION)
-                    log:Printf("Added %s to the Basic Resources deck.", cardName)
-                end,
-                function()
-                    return spawnedCard.resting
-                end,
-                5,  -- timeout after 5 seconds
-                function()
-                    -- Timeout fallback - try anyway
-                    log:Debugf("Timeout waiting for card to rest, proceeding anyway")
-                    brDeck.putObject(spawnedCard)
-                    spawnedCard.destruct()
-                    -- Don't destruct strainDeck here - Archive.Clean() will handle it
-                    if archive then
-                        if archive.reset then
-                            archive.reset()
-                        end
-                        archive.putObject(brDeck)
-                    end
-                    Archive.Clean()
-                    Deck.ResetDeck(BasicResourcesArchive.DECK_LOCATION)
-                    log:Printf("Added %s to the Basic Resources deck.", cardName)
-                end
-            )
-        end,
+    Archive.TransferCard({
+        source = strainDeck,
+        target = brDeck,
+        cardIndex = cardIndex,
+        archive = archive,
+        deckLocation = BasicResourcesArchive.DECK_LOCATION,
+        logMessage = "Added " .. cardName .. " to the Basic Resources deck.",
+        onComplete = onComplete,
     })
 
     return true
@@ -139,7 +97,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-function BasicResourcesArchive.RemoveCard(cardName)
+function BasicResourcesArchive.RemoveCard(cardName, onComplete)
     local brDeck, archive = takeBasicResourcesDeck()
     if not brDeck then
         return false
@@ -161,51 +119,13 @@ function BasicResourcesArchive.RemoveCard(cardName)
         return false
     end
 
-    -- Take card and wait for it to settle before destroying and archiving deck
-    brDeck.takeObject({
-        index = removeIndex,
-        smooth = false,
-        callback_function = function(removed)
-            Wait.condition(
-                function()
-                    -- Card is at rest, now destroy it
-                    if removed then
-                        removed.destruct()
-                    end
-                    
-                    if archive then
-                        if archive.reset then
-                            archive.reset()
-                        end
-                        archive.putObject(brDeck)
-                    end
-
-                    Archive.Clean()
-                    Deck.ResetDeck(BasicResourcesArchive.DECK_LOCATION)
-                    log:Printf("Removed %s from the Basic Resources deck.", cardName)
-                end,
-                function()
-                    return removed == nil or removed.resting
-                end,
-                5,
-                function()
-                    -- Timeout fallback
-                    log:Debugf("Timeout waiting for card to rest in RemoveCard")
-                    if removed then
-                        removed.destruct()
-                    end
-                    if archive then
-                        if archive.reset then
-                            archive.reset()
-                        end
-                        archive.putObject(brDeck)
-                    end
-                    Archive.Clean()
-                    Deck.ResetDeck(BasicResourcesArchive.DECK_LOCATION)
-                    log:Printf("Removed %s from the Basic Resources deck.", cardName)
-                end
-            )
-        end,
+    Archive.RemoveAndDestroyCard({
+        deck = brDeck,
+        cardIndex = removeIndex,
+        archive = archive,
+        deckLocation = BasicResourcesArchive.DECK_LOCATION,
+        logMessage = "Removed " .. cardName .. " from the Basic Resources deck.",
+        onComplete = onComplete,
     })
 
     return true

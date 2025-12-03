@@ -213,6 +213,9 @@ local function buildStrainStubs()
     function archiveStub.Clean()
         archiveStub.cleanCount = archiveStub.cleanCount + 1
     end
+    -- These will be set up after deckStub is created
+    archiveStub.TransferCard = nil
+    archiveStub.RemoveAndDestroyCard = nil
     function archiveStub.TakeFromDeck(params)
         -- Simplified implementation that delegates to Take and Container stubs
         local ObjectState = require("Kdm/Util/ObjectState")
@@ -349,6 +352,44 @@ local function buildStrainStubs()
     local deckStub = {
         ResetDeck = function() end,
     }
+
+    -- Now that deckStub exists, set up the archive helper stubs
+    function archiveStub.TransferCard(params)
+        local card = params.source.takeObject({
+            index = params.cardIndex,
+            position = params.target.getPosition(),
+            smooth = false,
+        })
+        if card then
+            params.target.putObject(card)
+            card.destruct()
+        end
+        if params.archive then
+            if params.archive.reset then params.archive.reset() end
+            params.archive.putObject(params.target)
+        end
+        archiveStub.cleanCount = archiveStub.cleanCount + 1
+        if params.deckLocation then
+            deckStub.ResetDeck(params.deckLocation)
+        end
+        if params.onComplete then params.onComplete() end
+    end
+    function archiveStub.RemoveAndDestroyCard(params)
+        local card = params.deck.takeObject({
+            index = params.cardIndex,
+            smooth = false,
+        })
+        if card then card.destruct() end
+        if params.archive then
+            if params.archive.reset then params.archive.reset() end
+            params.archive.putObject(params.deck)
+        end
+        archiveStub.cleanCount = archiveStub.cleanCount + 1
+        if params.deckLocation then
+            deckStub.ResetDeck(params.deckLocation)
+        end
+        if params.onComplete then params.onComplete() end
+    end
 
     local consoleStub = {}
     consoleStub.commands = {}

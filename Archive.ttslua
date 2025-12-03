@@ -649,6 +649,98 @@ function Archive.Clean()
 end
 
 ---------------------------------------------------------------------------------------------------
+-- Helper for transferring cards between decks with proper async handling
+-- Used by FightingArtsArchive, VerminArchive, BasicResourcesArchive
+---------------------------------------------------------------------------------------------------
+
+function Archive.TransferCard(params)
+    -- params:
+    --   source: deck to take card from
+    --   target: deck to put card into
+    --   cardIndex: index of card in source deck
+    --   archive: (optional) infinite archive to return target deck to
+    --   deckLocation: (optional) location name for Deck.ResetDeck
+    --   logMessage: (optional) message to log on completion
+    --   onComplete: (optional) callback when operation completes
+
+    local Deck = require("Kdm/Deck")
+    
+    params.source.takeObject({
+        index = params.cardIndex,
+        position = params.target.getPosition(),
+        smooth = false,
+        callback_function = function(card)
+            local function complete()
+                params.target.putObject(card)
+                card.destruct()
+                if params.archive then
+                    if params.archive.reset then
+                        params.archive.reset()
+                    end
+                    params.archive.putObject(params.target)
+                end
+                Archive.Clean()
+                if params.deckLocation then
+                    Deck.ResetDeck(params.deckLocation)
+                end
+                if params.logMessage then
+                    log:Printf(params.logMessage)
+                end
+                if params.onComplete then
+                    params.onComplete()
+                end
+            end
+            Wait.condition(complete, function() return card.resting end, 5, complete)
+        end,
+    })
+end
+
+---------------------------------------------------------------------------------------------------
+-- Helper for removing and destroying a card from a deck with proper async handling
+---------------------------------------------------------------------------------------------------
+
+function Archive.RemoveAndDestroyCard(params)
+    -- params:
+    --   deck: deck to remove card from
+    --   cardIndex: index of card in deck
+    --   archive: (optional) infinite archive to return deck to
+    --   deckLocation: (optional) location name for Deck.ResetDeck
+    --   logMessage: (optional) message to log on completion
+    --   onComplete: (optional) callback when operation completes
+
+    local Deck = require("Kdm/Deck")
+    
+    params.deck.takeObject({
+        index = params.cardIndex,
+        smooth = false,
+        callback_function = function(card)
+            local function complete()
+                if card then
+                    card.destruct()
+                end
+                if params.archive then
+                    if params.archive.reset then
+                        params.archive.reset()
+                    end
+                    params.archive.putObject(params.deck)
+                end
+                Archive.Clean()
+                if params.deckLocation then
+                    Deck.ResetDeck(params.deckLocation)
+                end
+                if params.logMessage then
+                    log:Printf(params.logMessage)
+                end
+                if params.onComplete then
+                    params.onComplete()
+                end
+            end
+            Wait.condition(complete, function() return card == nil or card.resting end, 5, complete)
+        end,
+    })
+end
+
+---------------------------------------------------------------------------------------------------
 
 return {
     Init = Archive.Init,
@@ -661,6 +753,8 @@ return {
     CreateDeckFromSources = Archive.CreateDeckFromSources,
     Clean = Archive.Clean,
     CreateAllGearDeck = Archive.CreateAllGearDeck,
+    TransferCard = Archive.TransferCard,
+    RemoveAndDestroyCard = Archive.RemoveAndDestroyCard,
     
     -- Test seam exports
     Test_SetSpawner = Archive.Test_SetSpawner,
