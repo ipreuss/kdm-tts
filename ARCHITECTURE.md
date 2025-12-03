@@ -138,6 +138,29 @@ Many card decks (Fighting Arts, Disorders, etc.) follow a three-stage lifecycle:
 
 This ensures all future resets include the modifications.
 
+### Archive Container Caching
+
+`Archive.Take` caches spawned containers in `Archive.containers` to avoid repeatedly spawning the same deck during a multi-card operation. However, this caching creates a hazard when multiple async operations need the same deck:
+
+**Problem scenario:**
+```lua
+FightingArtsArchive.AddCard(cardName)  -- Takes card from Strain Rewards (async)
+Strain:SpawnFightingArtForSurvivor(cardName)  -- Also needs Strain Rewards
+```
+
+The second call gets the cached container, but the first call already took the card from it → "card not found" error.
+
+**Wrong fix:** Calling `Archive.Clean()` between operations destroys objects that async callbacks still need, causing TTS `<Unknown Error>`.
+
+**Correct pattern:** Chain async operations via callbacks:
+```lua
+FightingArtsArchive.AddCard(cardName, function()
+    Strain:SpawnFightingArtForSurvivor(cardName)
+end)
+```
+
+**Implementation:** Archive functions that do async deck operations (`AddCard`, etc.) accept an optional `onComplete` callback parameter that fires after the operation completes and `Archive.Clean()` has run.
+
 ### Trash System for Card Removal
 
 Players sometimes need to permanently remove cards from decks (e.g., archiving a Settlement Event as a game consequence). Rather than having them interact directly with the Archive system, the mod provides a **Trash container**:

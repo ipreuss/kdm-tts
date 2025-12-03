@@ -6,6 +6,7 @@ local StrainRewardsConstants = {}
 -- Strain Rewards deck is the archive containing all strain milestone reward cards
 StrainRewardsConstants.REWARD_DECK_NAME = "Strain Rewards"
 StrainRewardsConstants.REWARD_DECK_TYPE = "Rewards"
-StrainRewardsConstants.REWARD_DECK_STAGING_POSITION = { x = -150, y = 60, z = 120 }
+StrainRewardsConstants.REWARD_DECK_STAGING_POSITION = { x = -150, y = 15, z = 120 }
+StrainRewardsConstants.REWARD_DECK_ARCHIVE = "Core Archive"
 
 return StrainRewardsConstants

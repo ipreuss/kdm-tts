@@ -513,7 +513,12 @@ local function setupAddToArchiveScenario(stubs, env, options)
         deckName = "Strain Rewards",
         gm_notes = "Fighting Arts",
         takeHandler = includeRewardCard and function(params)
-            return { name = cardName, gm_notes = "Fighting Arts" }
+            return { 
+                name = cardName, 
+                gm_notes = "Fighting Arts",
+                resting = true,  -- For Wait.condition check
+                destruct = function() end,  -- For cleanup after putObject
+            }
         end or function() return nil end,
     })
 
@@ -901,8 +906,11 @@ Test.test("ExecuteConsequences applies fighting art rewards", function(t)
         local archiveModule = env.fightingArtsArchive
         local originalAdd = archiveModule.AddCard
         local originalSpawn = strain.SpawnFightingArtForSurvivor
-        archiveModule.AddCard = function(name)
+        archiveModule.AddCard = function(name, onComplete)
             added = name
+            if onComplete then
+                onComplete()  -- Call the callback to simulate async completion
+            end
             return true
         end
         strain.SpawnFightingArtForSurvivor = function(_, name)

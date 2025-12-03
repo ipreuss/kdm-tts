@@ -38,16 +38,23 @@ function tts_objects.deck(options)
     
     deck.takeObject = function(params)
         deck.lastTakeParams = params
+        local result
         if options.takeHandler then
-            return options.takeHandler(params)
-        end
-        -- Default: return first matching object
-        for _, obj in ipairs(deckObjects) do
-            if not params.index or obj.index == params.index then
-                return { name = obj.name, gm_notes = obj.gm_notes }
+            result = options.takeHandler(params)
+        else
+            -- Default: return first matching object
+            for _, obj in ipairs(deckObjects) do
+                if not params.index or obj.index == params.index then
+                    result = { name = obj.name, gm_notes = obj.gm_notes }
+                    break
+                end
             end
         end
-        return nil
+        -- If callback_function is provided, invoke it with the result (TTS async pattern)
+        if params.callback_function and result then
+            params.callback_function(result)
+        end
+        return result
     end
     
     deck.putObject = function(card)

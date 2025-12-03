@@ -61,6 +61,10 @@ function Bootstrap.stubTts()
             frames = function(callback)
                 return callback()
             end,
+            condition = function(callback, condition, timeout, timeoutCallback)
+                -- In tests, just call the callback immediately (assume condition is met)
+                return callback()
+            end,
         }
     end
 end

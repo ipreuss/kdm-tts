@@ -439,8 +439,11 @@ function Strain:ExecuteConsequences(milestone)
 
     local fightingArt = consequences.fightingArt
     if fightingArt then
-        FightingArtsArchive.AddCard(fightingArt)
-        Strain:SpawnFightingArtForSurvivor(fightingArt)
+        -- AddCard is async; SpawnFightingArtForSurvivor must wait for it to complete
+        -- Pass a callback to spawn the card after the deck operation finishes
+        FightingArtsArchive.AddCard(fightingArt, function()
+            Strain:SpawnFightingArtForSurvivor(fightingArt)
+        end)
     end
 
     local vermin = consequences.vermin

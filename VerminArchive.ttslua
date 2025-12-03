@@ -82,22 +82,58 @@ function VerminArchive.AddCard(cardName)
         return false
     end
 
-    verminDeck.putObject(strainDeck.takeObject({
+    -- Take card and wait for it to settle before putting into deck
+    strainDeck.takeObject({
         index = cardIndex,
         position = verminDeck.getPosition(),
         smooth = false,
-    }))
+        callback_function = function(spawnedCard)
+            -- Wait for card to stop moving before putting into deck
+            Wait.condition(
+                function()
+                    -- Card is at rest, now put it in the deck
+                    verminDeck.putObject(spawnedCard)
+                    -- putObject copies the card, so destroy the original
+                    spawnedCard.destruct()
+                    
+                    -- Don't destruct strainDeck here - Archive.Clean() will handle it
+                    -- This allows multiple operations to share the same strainDeck
+                    
+                    if archive then
+                        if archive.reset then
+                            archive.reset()
+                        end
+                        archive.putObject(verminDeck)
+                    end
 
-    if archive then
-        if archive.reset then
-            archive.reset()
-        end
-        archive.putObject(verminDeck)
-    end
+                    Archive.Clean()
+                    Deck.ResetDeck(VerminArchive.VERMIN_LOCATION)
+                    log:Printf("Added %s to the Vermin deck.", cardName)
+                end,
+                function()
+                    return spawnedCard.resting
+                end,
+                5,  -- timeout after 5 seconds
+                function()
+                    -- Timeout fallback - try anyway
+                    log:Debugf("Timeout waiting for card to rest, proceeding anyway")
+                    verminDeck.putObject(spawnedCard)
+                    spawnedCard.destruct()
+                    -- Don't destruct strainDeck here - Archive.Clean() will handle it
+                    if archive then
+                        if archive.reset then
+                            archive.reset()
+                        end
+                        archive.putObject(verminDeck)
+                    end
+                    Archive.Clean()
+                    Deck.ResetDeck(VerminArchive.VERMIN_LOCATION)
+                    log:Printf("Added %s to the Vermin deck.", cardName)
+                end
+            )
+        end,
+    })
 
-    Archive.Clean()
-    Deck.ResetDeck(VerminArchive.VERMIN_LOCATION)
-    log:Printf("Added %s to the Vermin deck.", cardName)
     return true
 end
 
@@ -125,24 +161,53 @@ function VerminArchive.RemoveCard(cardName)
         return false
     end
 
-    local removed = verminDeck.takeObject({
+    -- Take card and wait for it to settle before destroying and archiving deck
+    verminDeck.takeObject({
         index = removeIndex,
         smooth = false,
+        callback_function = function(removed)
+            Wait.condition(
+                function()
+                    -- Card is at rest, now destroy it
+                    if removed then
+                        removed.destruct()
+                    end
+                    
+                    if archive then
+                        if archive.reset then
+                            archive.reset()
+                        end
+                        archive.putObject(verminDeck)
+                    end
+
+                    Archive.Clean()
+                    Deck.ResetDeck(VerminArchive.VERMIN_LOCATION)
+                    log:Printf("Removed %s from the Vermin deck.", cardName)
+                end,
+                function()
+                    return removed == nil or removed.resting
+                end,
+                5,
+                function()
+                    -- Timeout fallback
+                    log:Debugf("Timeout waiting for card to rest in RemoveCard")
+                    if removed then
+                        removed.destruct()
+                    end
+                    if archive then
+                        if archive.reset then
+                            archive.reset()
+                        end
+                        archive.putObject(verminDeck)
+                    end
+                    Archive.Clean()
+                    Deck.ResetDeck(VerminArchive.VERMIN_LOCATION)
+                    log:Printf("Removed %s from the Vermin deck.", cardName)
+                end
+            )
+        end,
     })
-    if removed then
-        removed.destruct()
-    end
 
-    if archive then
-        if archive.reset then
-            archive.reset()
-        end
-        archive.putObject(verminDeck)
-    end
-
-    Archive.Clean()
-    Deck.ResetDeck(VerminArchive.VERMIN_LOCATION)
-    log:Printf("Removed %s from the Vermin deck.", cardName)
     return true
 end
 

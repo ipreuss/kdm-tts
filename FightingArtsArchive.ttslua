@@ -41,7 +41,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-function FightingArtsArchive.AddCard(cardName)
+function FightingArtsArchive.AddCard(cardName, onComplete)
     local faDeck, archive = takeFightingArtsDeck()
     if not faDeck then
         return false
@@ -82,23 +82,64 @@ function FightingArtsArchive.AddCard(cardName)
         return false
     end
 
-    faDeck.putObject(strainDeck.takeObject({
+    -- Take card and wait for it to settle before putting into deck
+    strainDeck.takeObject({
         index = cardIndex,
         position = faDeck.getPosition(),
         smooth = false,
-    }))
+        callback_function = function(spawnedCard)
+            -- Wait for card to stop moving before putting into deck
+            Wait.condition(
+                function()
+                    -- Card is at rest, now put it in the deck
+                    faDeck.putObject(spawnedCard)
+                    -- putObject copies the card, so destroy the original
+                    spawnedCard.destruct()
+                    
+                    -- Don't destruct strainDeck here - Archive.Clean() will handle it
+                    -- This allows multiple operations to share the same strainDeck
+                    
+                    if archive then
+                        if archive.reset then
+                            archive.reset()
+                        end
+                        archive.putObject(faDeck)
+                    end
 
-    if archive then
-        if archive.reset then
-            archive.reset()
-        end
-        archive.putObject(faDeck)
-    end
+                    Archive.Clean()
+                    Deck.ResetDeck(FightingArtsArchive.FIGHTING_ART_LOCATION)
+                    log:Printf("Added %s to the Fighting Arts deck.", cardName)
+                    if onComplete then
+                        onComplete()
+                    end
+                end,
+                function()
+                    return spawnedCard.resting
+                end,
+                5,  -- timeout after 5 seconds
+                function()
+                    -- Timeout fallback - try anyway
+                    log:Debugf("Timeout waiting for card to rest, proceeding anyway")
+                    faDeck.putObject(spawnedCard)
+                    spawnedCard.destruct()
+                    -- Don't destruct strainDeck here - Archive.Clean() will handle it
+                    if archive then
+                        if archive.reset then
+                            archive.reset()
+                        end
+                        archive.putObject(faDeck)
+                    end
+                    Archive.Clean()
+                    Deck.ResetDeck(FightingArtsArchive.FIGHTING_ART_LOCATION)
+                    log:Printf("Added %s to the Fighting Arts deck.", cardName)
+                    if onComplete then
+                        onComplete()
+                    end
+                end
+            )
+        end,
+    })
 
-    Archive.Clean()
-    Deck.ResetDeck(FightingArtsArchive.FIGHTING_ART_LOCATION)
-
-    log:Printf("Added %s to the Fighting Arts deck.", cardName)
     return true
 end
 
@@ -126,24 +167,53 @@ function FightingArtsArchive.RemoveCard(cardName)
         return false
     end
 
-    local removed = faDeck.takeObject({
+    -- Take card and wait for it to settle before destroying and archiving deck
+    faDeck.takeObject({
         index = removeIndex,
         smooth = false,
+        callback_function = function(removed)
+            Wait.condition(
+                function()
+                    -- Card is at rest, now destroy it
+                    if removed then
+                        removed.destruct()
+                    end
+                    
+                    if archive then
+                        if archive.reset then
+                            archive.reset()
+                        end
+                        archive.putObject(faDeck)
+                    end
+
+                    Archive.Clean()
+                    Deck.ResetDeck(FightingArtsArchive.FIGHTING_ART_LOCATION)
+                    log:Printf("Removed %s from the Fighting Arts deck.", cardName)
+                end,
+                function()
+                    return removed == nil or removed.resting
+                end,
+                5,
+                function()
+                    -- Timeout fallback
+                    log:Debugf("Timeout waiting for card to rest in RemoveCard")
+                    if removed then
+                        removed.destruct()
+                    end
+                    if archive then
+                        if archive.reset then
+                            archive.reset()
+                        end
+                        archive.putObject(faDeck)
+                    end
+                    Archive.Clean()
+                    Deck.ResetDeck(FightingArtsArchive.FIGHTING_ART_LOCATION)
+                    log:Printf("Removed %s from the Fighting Arts deck.", cardName)
+                end
+            )
+        end,
     })
-    if removed then
-        removed.destruct()
-    end
 
-    if archive then
-        if archive.reset then
-            archive.reset()
-        end
-        archive.putObject(faDeck)
-    end
-
-    Archive.Clean()
-    Deck.ResetDeck(FightingArtsArchive.FIGHTING_ART_LOCATION)
-    log:Printf("Removed %s from the Fighting Arts deck.", cardName)
     return true
 end
 

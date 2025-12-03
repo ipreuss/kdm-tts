@@ -38,6 +38,7 @@ Log.DEBUG_MODULES = {
     --["Trash"] = true,
     --["Ui"] = true,
     --["Weapon"] = true,
+    --["FightingArtsArchive"] = true,  -- RESOLVED: putObject copies cards, need destruct after (2025-12-03)
 }
 
 Log.POST_INIT_DEBUG_MODULES = {

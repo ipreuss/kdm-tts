@@ -35,7 +35,15 @@ local function buildVerminStubs(options)
     end
     function deckObject.takeObject(params)
         table.insert(deckObject.removed, params)
-        return { destruct = function() end }
+        local card = { 
+            resting = true,  -- For Wait.condition check
+            destruct = function() end,
+        }
+        -- Invoke callback_function if provided (simulates async TTS behavior)
+        if params.callback_function then
+            params.callback_function(card)
+        end
+        return card
     end
 
     if options.includeCard ~= false then
@@ -75,10 +83,16 @@ local function buildVerminStubs(options)
     end
     function strainDeck.takeObject(params)
         strainDeck.lastTakeParams = params
-        return {
+        local card = {
             name = options.cardName or "Fiddler Crab Spider",
+            resting = true,  -- For Wait.condition check
             destruct = function() end,
         }
+        -- Invoke callback_function if provided (simulates async TTS behavior)
+        if params.callback_function then
+            params.callback_function(card)
+        end
+        return card
     end
     function strainDeck.destruct()
         strainDeck.destroyed = true

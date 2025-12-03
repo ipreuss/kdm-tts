@@ -135,3 +135,78 @@ This applies to:
 - `Archive.Take({ spawnFunc = ... })`
 
 Any logic depending on the spawned object must be inside the callback or use `Wait.frames`.
+
+---
+
+## Infinite Archives
+
+**Behavior**: Infinite archives (bags with infinite contents) have special rules:
+
+1. **Can't put objects back directly** - `infiniteArchive.putObject(obj)` does nothing unless `reset()` is called first
+2. **reset() empties the archive** - After `reset()`, `putObject` works but the archive loses its original contents
+3. **Pattern for returning decks**: After modifying a deck taken from an infinite archive, call `archive.reset()` then `archive.putObject(deck)` to restore it
+
+**Identifying infinite archives**: Check `template_workshop.json` (the complete mod file with Lua stripped) to see object configurations.
+
+**Common archives in this mod**:
+- Core Archive (infinite)
+- Fighting Arts Archive (infinite)
+- Vermin Archive (infinite)
+
+---
+
+## Mod Configuration Reference
+
+**File**: `template_workshop.json` contains the complete TTS mod save file with Lua scripts stripped out.
+
+**Use cases**:
+- Check how objects are configured (infinite vs regular bags, deck contents, etc.)
+- Verify card names and `GMNotes` values
+- Debug "object not found" errors by confirming exact naming
+
+---
+
+## putObject() Copies, Not Moves
+
+**Problem**: TTS's `deck.putObject(card)` does NOT move the card into the deck - it **copies** the card data into the deck, leaving the original card object in place.
+
+**Symptoms**:
+- "Stray" cards appearing at staging positions after deck operations
+- Cards falling through the table (y coordinate going negative)
+- Duplicate cards accumulating over multiple test runs
+
+**Solution**: Always destroy the original card after `putObject()`:
+```lua
+targetDeck.putObject(card)
+card.destruct()  -- Destroy the original - putObject copied it
+```
+
+**Discovery method**: We traced stray cards by their GUID - the same GUID appeared both in the deck AND as a stray object, proving putObject copies rather than moves.
+
+---
+
+## TTS Unknown Error
+
+**Problem**: `<Unknown Error>` in TTS console typically means code tried to operate on a destroyed object.
+
+**Common causes**:
+- Async callback tries to use an object that was destroyed
+- Object reference held across frames after the object was destroyed
+- `destruct()` called on an object, then later code tries to use it
+
+**Debugging**: Add logging before operations to track object GUIDs and identify which object was destroyed prematurely.
+
+---
+
+## CardCustom Type Triggers Import Dialog
+
+**Problem**: When putting a `CardCustom` type object (single custom card, not part of a deck) into a deck, TTS may show the "CUSTOM CARD" import dialog with empty URL fields.
+
+**Symptoms**:
+- Empty "CUSTOM CARD" dialog appearing during card transfers
+- Dialog shows empty Face/Back URL fields
+- Tests pass but dialog is visually distracting
+
+**Cause**: `CardCustom` objects have different internal handling than cards that were originally part of decks.
+
+**Investigation approach**: Check card's type via `object.type` - cards from decks are typically `Card`, standalone custom cards are `CardCustom`.

@@ -28,6 +28,7 @@ function TTSTests.Init()
         log:Printf("  >testcardstate [stateId] - Test archive fallback for Story of Blood stateful names")
         log:Printf("  >testatmospheric - Test Atmospheric Change milestone (archive/add)")
         log:Printf("  >testheatwaverestore - Test restoring Heat Wave from Trash to Settlement Events")
+        log:Printf("  >testmilestone - Test full milestone execution (AddCard + SpawnForSurvivor)")
     end, "Show available TTS test commands")
     
     Console.AddCommand("testall", function(args)
@@ -38,6 +39,7 @@ function TTSTests.Init()
     TTSTests.RegisterDialogFromSpecTests()
     TTSTests.RegisterAtmosphericTests()
     TTSTests.RegisterTrashRestoreTests()
+    TTSTests.RegisterMilestoneTests()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -365,8 +367,10 @@ function TTSTests.GetStrainRewardsDeckState(cardName)
     end
     log:Debugf("[DEBUG] GetStrainRewardsDeckState: count=%d, matchCount=%d", count, matchCount)
     
-    -- Clean up via Archive.Clean() which properly handles the deck
-    log:Debugf("[DEBUG] GetStrainRewardsDeckState: calling Archive.Clean")
+    -- Destruct the deck (Core Archive is infinite, no need to put back)
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: destroying deck")
+    deck.destruct()
+    
     Archive.Clean()
     log:Debugf("[DEBUG] GetStrainRewardsDeckState: Archive.Clean done")
     
@@ -655,6 +659,120 @@ function TTSTests.CountStrayCardsOnTable(cardName)
                 local pos = obj.getPosition()
                 log:Printf("Found stray '%s' at position (%.1f, %.1f, %.1f) GUID: %s", cardName, pos.x, pos.y, pos.z, obj.getGUID())
             end
+        end
+    end
+    return count
+end
+
+---------------------------------------------------------------------------------------------------
+-- Milestone Execution Tests (AddCard + SpawnFightingArtForSurvivor)
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.RegisterMilestoneTests()
+    Console.AddCommand("testmilestone", function(args)
+        TTSTests.TestMilestoneExecution()
+    end, "Test full milestone execution (AddCard + SpawnForSurvivor)")
+end
+
+function TTSTests.TestMilestoneExecution()
+    log:Printf("=== TEST: TestMilestoneExecution ===")
+    log:Printf("TEST: This tests that ExecuteConsequences correctly:")
+    log:Printf("TEST:   - Adds fighting art to deck (FightingArtsArchive.AddCard)")
+    log:Printf("TEST:   - Spawns fighting art for survivor (Strain:SpawnFightingArtForSurvivor)")
+    log:Printf("TEST: Both operations use the Strain Rewards deck - tests deck reuse")
+    
+    local cardName = "Ethereal Pact"
+    local deckLocation = FightingArtsArchive.FIGHTING_ART_LOCATION
+    local cardType = FightingArtsArchive.FIGHTING_ART_TYPE
+    
+    -- Create a fake milestone with fightingArt consequence
+    local milestone = {
+        title = "Test Milestone",
+        consequences = {
+            fightingArt = cardName,
+        },
+    }
+    
+    -- Get initial state
+    local countBefore = TTSTests.GetFightingArtsDeckCount(cardName)
+    log:Printf("TEST BEFORE: Fighting Arts deck has %d copies of '%s'", countBefore, cardName)
+    
+    -- Execute consequences - this should:
+    -- 1. Call FightingArtsArchive.AddCard (adds to deck)
+    -- 2. Call Strain:SpawnFightingArtForSurvivor (spawns for survivor)
+    log:Printf("TEST: Calling Strain.Test.ExecuteConsequences...")
+    
+    local ok, err = pcall(function()
+        Strain.Test.ExecuteConsequences(milestone)
+    end)
+    
+    if not ok then
+        log:Errorf("TEST FAILED: ExecuteConsequences threw error: %s", tostring(err))
+        return
+    end
+    
+    log:Printf("TEST: ExecuteConsequences completed without error")
+    
+    -- Wait for async operations to complete
+    Wait.frames(function()
+        -- Check results
+        local countAfter = TTSTests.GetFightingArtsDeckCount(cardName)
+        log:Printf("TEST AFTER: Fighting Arts deck has %d copies of '%s'", countAfter, cardName)
+        
+        -- Count spawned cards on table (should be exactly 1 for survivor)
+        local spawnedCount = TTSTests.CountStrayCardsOnTable(cardName)
+        log:Printf("TEST: Found %d spawned '%s' card(s) on table", spawnedCount, cardName)
+        
+        -- Cleanup: remove the added card from deck and destroy spawned card
+        log:Printf("TEST CLEANUP: Removing '%s' from Fighting Arts deck...", cardName)
+        FightingArtsArchive.RemoveCard(cardName)
+        
+        Wait.frames(function()
+            -- Destroy any spawned cards
+            for _, obj in ipairs(getAllObjects()) do
+                if obj.tag == "Card" and obj.getName() == cardName then
+                    local container = obj.getVar("containerGUID") or obj.held_by_color
+                    if not container then
+                        obj.destruct()
+                    end
+                end
+            end
+            
+            log:Printf("=== TEST: TestMilestoneExecution COMPLETE ===")
+            
+            -- Verify results
+            local passed = true
+            if countAfter ~= countBefore + 1 then
+                log:Errorf("TEST FAILED: Expected %d cards in deck, got %d", countBefore + 1, countAfter)
+                passed = false
+            end
+            if spawnedCount ~= 1 then
+                log:Errorf("TEST FAILED: Expected 1 spawned card, got %d", spawnedCount)
+                passed = false
+            end
+            
+            if passed then
+                log:Printf("TEST RESULT: PASSED - Milestone execution worked correctly")
+            end
+        end, 30)
+    end, 60)
+end
+
+function TTSTests.GetFightingArtsDeckCount(cardName)
+    local location = Location.Get(FightingArtsArchive.FIGHTING_ART_LOCATION)
+    if not location then
+        return 0
+    end
+    local deck = location:FirstObject({ types = { FightingArtsArchive.FIGHTING_ART_TYPE } })
+    if not deck then
+        return 0
+    end
+    
+    local count = 0
+    local objects = deck.getObjects and deck.getObjects() or {}
+    for _, obj in ipairs(objects) do
+        if obj.name == cardName then
+            count = count + 1
         end
     end
     return count

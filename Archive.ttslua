@@ -627,6 +627,22 @@ function Archive.Clean()
         end
     end
 
+    -- Clean up Strain Rewards deck at staging position (-150, 15, 120)
+    -- This deck is spawned by FightingArtsArchive/VerminArchive/BasicResourcesArchive
+    -- and should be cleaned up after all operations are complete
+    local stagingHits = Physics.cast({
+        origin    = { x = -150, y = 50, z = 120 },
+        direction = { x = 0, y = -1, z = 0 },
+        type      = 3,
+        size      = { x = 20, y = 100, z = 20 },
+    })
+    for _, hit in ipairs(stagingHits) do
+        local obj = hit.hit_object
+        if obj and obj.tag == "Deck" and obj.getName() == "Strain Rewards" then
+            obj.destruct()
+        end
+    end
+
     Archive.containers = {}
     Archive.containerX = -150
     Archive.containerZ = 120
