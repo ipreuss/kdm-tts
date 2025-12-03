@@ -8,6 +8,8 @@ local Archive = require("Kdm/Archive")
 local Strain = require("Kdm/Strain")
 local FightingArtsArchive = require("Kdm/FightingArtsArchive")
 local VerminArchive = require("Kdm/VerminArchive")
+local BasicResourcesArchive = require("Kdm/BasicResourcesArchive")
+local Trash = require("Kdm/Trash")
 local log = require("Kdm/Log").ForModule("TTSTests")
 
 ---------------------------------------------------------------------------------------------------
@@ -24,6 +26,8 @@ function TTSTests.Init()
         log:Printf("  >teststrainvermin [cardname] - Test adding a strain vermin card to the deck")
         log:Printf("  >testdialogspec - Test DialogFromSpec callback timing issue")
         log:Printf("  >testcardstate [stateId] - Test archive fallback for Story of Blood stateful names")
+        log:Printf("  >testatmospheric - Test Atmospheric Change milestone (archive/add)")
+        log:Printf("  >testheatwaverestore - Test restoring Heat Wave from Trash to Settlement Events")
     end, "Show available TTS test commands")
     
     Console.AddCommand("testall", function(args)
@@ -32,6 +36,8 @@ function TTSTests.Init()
     
     TTSTests.RegisterStrainTests()
     TTSTests.RegisterDialogFromSpecTests()
+    TTSTests.RegisterAtmosphericTests()
+    TTSTests.RegisterTrashRestoreTests()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -46,6 +52,7 @@ function TTSTests.RunAllTests()
         { name = "Add Vermin (Fiddler Crab Spider)", fn = function() TTSTests.TestAddVerminToDeck("Fiddler Crab Spider") end },
         { name = "Card State Fallback (Story of Blood)", fn = function() TTSTests.TestCardStateFallback("Story of Blood", nil) end },
         { name = "DialogFromSpec Callback Timing", fn = function() TTSTests.TestDialogFromSpecCallbackTiming() end },
+        { name = "Atmospheric Change (Heat Wave/Lump of Atnas)", fn = function() TTSTests.TestAtmosphericChange() end },
     }
     
     local currentTest = 1
@@ -202,6 +209,13 @@ end
 
 function TTSTests.RunDeckExperiment(cardName, mutateFn, options)
     local deckLabel = options.deckLabel or "Deck"
+    
+    -- Check for stray cards from previous tests
+    local strayBefore = TTSTests.CountStrayCardsOnTable(cardName)
+    if strayBefore > 0 then
+        log:Errorf("TEST SETUP: Found %d stray '%s' card(s) on table before test started (leaked from previous test)", strayBefore, cardName)
+    end
+    
     local totalBefore, matchesBefore = options.stateFunc(cardName)
     log:Printf("TEST BEFORE: %s deck has %d cards, %d copies of '%s'", deckLabel, totalBefore, matchesBefore, cardName)
 
@@ -237,6 +251,12 @@ local function restoreDeck(cardName, copiesToRemove, targetCopies, removeFunc, d
                 log:Errorf("TEST CLEANUP: Expected %d copies of '%s' after cleanup but found %d.", targetCopies, cardName, matches)
             else
                 log:Printf("TEST CLEANUP: Restored %s deck to %d copies of '%s'.", deckLabel, matches, cardName)
+            end
+            
+            -- Check for stray cards left on the table
+            local strayCards = TTSTests.CountStrayCardsOnTable(cardName)
+            if strayCards > 0 then
+                log:Errorf("TEST CLEANUP: Found %d stray '%s' card(s) on table (resource leak)", strayCards, cardName)
             end
         end, 20)
     end
@@ -322,12 +342,10 @@ function TTSTests.GetStrainRewardsDeckState(cardName)
         lenient = true,
     })
     log:Debugf("[DEBUG] GetStrainRewardsDeckState: Archive.Take returned deck=%s", tostring(deck))
-    log:Debugf("[DEBUG] GetStrainRewardsDeckState: calling Archive.Clean")
-    Archive.Clean()
-    log:Debugf("[DEBUG] GetStrainRewardsDeckState: Archive.Clean done")
     
     if not deck then
         log:Debugf("[DEBUG] GetStrainRewardsDeckState: deck is nil, returning 0,0")
+        Archive.Clean()
         return 0, 0
     end
     
@@ -347,13 +365,79 @@ function TTSTests.GetStrainRewardsDeckState(cardName)
     end
     log:Debugf("[DEBUG] GetStrainRewardsDeckState: count=%d, matchCount=%d", count, matchCount)
     
-    log:Debugf("[DEBUG] GetStrainRewardsDeckState: calling deck.destruct")
-    deck.destruct()
-    log:Debugf("[DEBUG] GetStrainRewardsDeckState: deck.destruct done")
+    -- Clean up via Archive.Clean() which properly handles the deck
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: calling Archive.Clean")
+    Archive.Clean()
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: Archive.Clean done")
     
-    -- Note: Core Archive is an infinite bag, no need to reset
     log:Debugf("[DEBUG] GetStrainRewardsDeckState: returning count=%d, matchCount=%d", count, matchCount)
     return count, matchCount
+end
+
+---------------------------------------------------------------------------------------------------
+-- Atmospheric Change Tests
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.RegisterAtmosphericTests()
+    Console.AddCommand("testatmospheric", function(args)
+        TTSTests.TestAtmosphericChange()
+    end, "Test Atmospheric Change milestone (trash Heat Wave, add Lump of Atnas)")
+end
+
+function TTSTests.TestAtmosphericChange()
+    log:Printf("=== TEST: TestAtmosphericChange ===")
+    log:Printf("TEST: This tests the Atmospheric Change milestone consequences:")
+    log:Printf("TEST:   - Trash 'Heat Wave' from Settlement Events deck")
+    log:Printf("TEST:   - Add 'Lump of Atnas' to Basic Resources deck")
+    
+    -- Step 1: Trash Heat Wave (move from Settlement Events to Trash)
+    log:Printf("TEST: Step 1 - Trashing 'Heat Wave' from Settlement Events...")
+    local trashResult = Trash.AddCard("Heat Wave", "Settlement Events", "Settlement Events")
+    if trashResult then
+        log:Printf("TEST: Successfully trashed 'Heat Wave'")
+    else
+        log:Errorf("TEST: Failed to trash 'Heat Wave' - card may not exist in Settlement Events deck")
+    end
+    
+    Wait.frames(function()
+        -- Step 2: Add Lump of Atnas to Basic Resources
+        log:Printf("TEST: Step 2 - Adding 'Lump of Atnas' to Basic Resources...")
+        local addResult = BasicResourcesArchive.AddCard("Lump of Atnas")
+        if addResult then
+            log:Printf("TEST: Successfully added 'Lump of Atnas' to Basic Resources")
+        else
+            log:Errorf("TEST: Failed to add 'Lump of Atnas' - card may not exist in Strain Rewards deck")
+        end
+        
+        Wait.frames(function()
+            -- Step 3: Undo - remove Heat Wave from Trash
+            log:Printf("TEST: Step 3 (Undo) - Removing 'Heat Wave' from Trash...")
+            local restoreResult = Trash.RemoveCard("Heat Wave", "Settlement Events")
+            if restoreResult then
+                log:Printf("TEST: Successfully removed 'Heat Wave' from Trash")
+            else
+                log:Errorf("TEST: Failed to remove 'Heat Wave' from Trash")
+            end
+            
+            Wait.frames(function()
+                -- Step 4: Undo - remove Lump of Atnas
+                log:Printf("TEST: Step 4 (Undo) - Removing 'Lump of Atnas' from Basic Resources...")
+                local removeResult = BasicResourcesArchive.RemoveCard("Lump of Atnas")
+                if removeResult then
+                    log:Printf("TEST: Successfully removed 'Lump of Atnas'")
+                else
+                    log:Errorf("TEST: Failed to remove 'Lump of Atnas'")
+                end
+                
+                log:Printf("=== TEST: TestAtmosphericChange COMPLETE ===")
+                if trashResult and addResult and restoreResult and removeResult then
+                    log:Printf("TEST RESULT: PASSED - All operations succeeded")
+                else
+                    log:Errorf("TEST RESULT: FAILED - Some operations failed")
+                end
+            end, 30)
+        end, 30)
+    end, 30)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -432,6 +516,148 @@ function TTSTests.TestDialogFromSpecCallbackTiming()
     log:Printf("TEST: lateInitializedVar now set to: %s", lateInitializedVar)
     
     log:Printf("TEST COMPLETE: The bug is that callbacks run BEFORE this line")
+end
+
+---------------------------------------------------------------------------------------------------
+-- Trash Restore Tests
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.RegisterTrashRestoreTests()
+    Console.AddCommand("testheatwaverestore", function(args)
+        TTSTests.TestHeatWaveRestore()
+    end, "Test restoring Heat Wave from Trash back to Settlement Events deck")
+end
+
+function TTSTests.TestHeatWaveRestore()
+    log:Printf("=== TEST: TestHeatWaveRestore ===")
+    log:Printf("TEST: This tests that ReverseConsequences restores Heat Wave to Settlement Events")
+    
+    local cardName = "Heat Wave"
+    local cardType = "Settlement Events"
+    local deckLocation = "Settlement Events"
+    
+    -- The Atmospheric Change milestone consequence
+    local milestone = {
+        title = "Atmospheric Change",
+        consequences = {
+            trashSettlementEvent = "Heat Wave",
+            addBasicResource = "Lump of Atnas",
+        },
+    }
+    
+    -- Step 1: Count Heat Wave in Settlement Events deck before
+    local countBefore = TTSTests.CountCardInDeck(cardName, cardType, deckLocation)
+    log:Printf("TEST BEFORE: Settlement Events deck has %d copies of '%s'", countBefore, cardName)
+    
+    -- Step 2: Execute consequences (simulates checking the milestone)
+    log:Printf("TEST: Step 1 - Executing consequences (trashing Heat Wave)...")
+    Strain.Test.ExecuteConsequences(milestone)
+    
+    Wait.frames(function()
+        -- Step 3: Verify Heat Wave is in Trash
+        local inTrash = Trash.IsInTrash(cardName, cardType)
+        if not inTrash then
+            log:Errorf("TEST SETUP FAILED: '%s' not found in Trash after ExecuteConsequences", cardName)
+            return
+        end
+        log:Printf("TEST: Verified '%s' is in Trash", cardName)
+        
+        -- Step 4: Reverse consequences (simulates unchecking the milestone)
+        log:Printf("TEST: Step 2 - Reversing consequences (should restore Heat Wave)...")
+        Strain.Test.ReverseConsequences(milestone)
+        
+        Wait.frames(function()
+            -- Step 5: Verify Heat Wave is back in Settlement Events deck
+            local countAfter = TTSTests.CountCardInDeck(cardName, cardType, deckLocation)
+            log:Printf("TEST AFTER: Settlement Events deck has %d copies of '%s'", countAfter, cardName)
+            
+            -- Step 6: Verify Heat Wave is no longer in Trash
+            local stillInTrash = Trash.IsInTrash(cardName, cardType)
+            
+            -- Step 7: Check for stray cards near the Trash (leaked objects)
+            local strayCards = TTSTests.CountStrayCardsNearTrash(cardName)
+            if strayCards > 0 then
+                log:Printf("TEST: Found %d stray '%s' card(s) near Trash", strayCards, cardName)
+            end
+            
+            log:Printf("=== TEST: TestHeatWaveRestore COMPLETE ===")
+            if countAfter >= countBefore and not stillInTrash and strayCards == 0 then
+                log:Printf("TEST RESULT: PASSED - Heat Wave restored to Settlement Events deck")
+            else
+                log:Errorf("TEST RESULT: FAILED - Heat Wave not properly restored")
+                if countAfter < countBefore then
+                    log:Errorf("  - Card count decreased from %d to %d", countBefore, countAfter)
+                end
+                if stillInTrash then
+                    log:Errorf("  - Card still in Trash")
+                end
+                if strayCards > 0 then
+                    log:Errorf("  - %d stray card(s) left near Trash (resource leak)", strayCards)
+                end
+            end
+        end, 30)
+    end, 30)
+end
+
+function TTSTests.CountCardInDeck(cardName, cardType, deckLocation)
+    local location = Location.Get(deckLocation)
+    if not location then
+        return 0
+    end
+    local deck = location:FirstObject({ types = { cardType } })
+    if not deck then
+        return 0
+    end
+    
+    local count = 0
+    local objects = deck.getObjects and deck.getObjects() or {}
+    for _, obj in ipairs(objects) do
+        if obj.name == cardName then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+function TTSTests.CountStrayCardsNearTrash(cardName)
+    local NamedObject = require("Kdm/NamedObject")
+    local trash = NamedObject.Get("Trash")
+    if not trash then
+        return 0
+    end
+    
+    local trashPos = trash.getPosition()
+    local hits = Physics.cast({
+        origin = { x = trashPos.x, y = trashPos.y + 5, z = trashPos.z },
+        direction = { x = 0, y = -1, z = 0 },
+        type = 3,  -- box cast
+        size = { x = 10, y = 10, z = 10 },
+    })
+    
+    local count = 0
+    for _, hit in ipairs(hits) do
+        local obj = hit.hit_object
+        if obj and obj.tag == "Card" and obj.getName() == cardName then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+function TTSTests.CountStrayCardsOnTable(cardName)
+    local count = 0
+    for _, obj in ipairs(getAllObjects()) do
+        if obj.tag == "Card" and obj.getName() == cardName then
+            -- Skip cards that are in containers (decks, bags, etc.)
+            local container = obj.getVar("containerGUID") or obj.held_by_color
+            if not container then
+                count = count + 1
+                local pos = obj.getPosition()
+                log:Printf("Found stray '%s' at position (%.1f, %.1f, %.1f) GUID: %s", cardName, pos.x, pos.y, pos.z, obj.getGUID())
+            end
+        end
+    end
+    return count
 end
 
 ---------------------------------------------------------------------------------------------------

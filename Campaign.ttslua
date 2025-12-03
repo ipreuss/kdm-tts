@@ -24,6 +24,8 @@ local LayoutManager = require("Kdm/Ui/LayoutManager")
 local Strain = require("Kdm/Strain")
 local FightingArtsArchive = require("Kdm/FightingArtsArchive")
 local VerminArchive = require("Kdm/VerminArchive")
+local BasicResourcesArchive = require("Kdm/BasicResourcesArchive")
+local Trash = require("Kdm/Trash")
 local CampaignMigrations = require("Kdm/GameData/CampaignMigrations")
 
 -------------------------------------------------------------------------------------------------
@@ -793,16 +795,28 @@ function Campaign.CalculateStrainRewards(reached, milestoneCards)
     
     local unlockedFightingArts = {}
     local unlockedVermin = {}
+    local trashSettlementEvents = {}
+    local addBasicResources = {}
 
     for _, milestone in ipairs(milestoneCards) do
         local consequences = milestone.consequences
-        local fightingArt = consequences and consequences.fightingArt
-        if fightingArt and reached[milestone.title] then
-            table.insert(unlockedFightingArts, fightingArt)
-        end
-        local vermin = consequences and consequences.vermin
-        if vermin and reached[milestone.title] then
-            table.insert(unlockedVermin, vermin)
+        if reached[milestone.title] then
+            local fightingArt = consequences and consequences.fightingArt
+            if fightingArt then
+                table.insert(unlockedFightingArts, fightingArt)
+            end
+            local vermin = consequences and consequences.vermin
+            if vermin then
+                table.insert(unlockedVermin, vermin)
+            end
+            local trashSettlementEvent = consequences and consequences.trashSettlementEvent
+            if trashSettlementEvent then
+                table.insert(trashSettlementEvents, trashSettlementEvent)
+            end
+            local addBasicResource = consequences and consequences.addBasicResource
+            if addBasicResource then
+                table.insert(addBasicResources, addBasicResource)
+            end
         end
     end
 
@@ -811,6 +825,8 @@ function Campaign.CalculateStrainRewards(reached, milestoneCards)
     return {
         fightingArts = selectedFightingArts,
         vermin = unlockedVermin,
+        trashSettlementEvents = trashSettlementEvents,
+        addBasicResources = addBasicResources,
     }
 end
 
@@ -823,7 +839,9 @@ function Campaign.AddStrainRewards()
     -- Use pure logic function to calculate rewards
     local rewards = Campaign.CalculateStrainRewards(reached, Strain.MILESTONE_CARDS)
     
-    if #rewards.fightingArts == 0 and #rewards.vermin == 0 then
+    local hasRewards = #rewards.fightingArts > 0 or #rewards.vermin > 0 or 
+                       #rewards.trashSettlementEvents > 0 or #rewards.addBasicResources > 0
+    if not hasRewards then
         return
     end
 
@@ -854,6 +872,32 @@ function Campaign.AddStrainRewards()
         end
         if addedVermin > 0 then
             log:Printf("Added %d strain reward vermin cards to the Vermin deck.", addedVermin)
+        end
+    end
+
+    -- Handle TTS side effects: trash settlement events
+    if #rewards.trashSettlementEvents > 0 then
+        local trashedCount = 0
+        for _, cardName in ipairs(rewards.trashSettlementEvents) do
+            if Trash.AddCard(cardName, "Settlement Events", "Settlement Events") then
+                trashedCount = trashedCount + 1
+            end
+        end
+        if trashedCount > 0 then
+            log:Printf("Trashed %d settlement events.", trashedCount)
+        end
+    end
+
+    -- Handle TTS side effects: add basic resources
+    if #rewards.addBasicResources > 0 then
+        local addedResources = 0
+        for _, cardName in ipairs(rewards.addBasicResources) do
+            if BasicResourcesArchive.AddCard(cardName) then
+                addedResources = addedResources + 1
+            end
+        end
+        if addedResources > 0 then
+            log:Printf("Added %d basic resources to the Basic Resources deck.", addedResources)
         end
     end
 

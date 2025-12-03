@@ -20,6 +20,7 @@ function TestWorld.create()
         _decks = {},
         _currentYear = 1,
         _timeline = {},
+        _trashedSettlementEvents = {},
     }
     setmetatable(world, { __index = TestWorld })
     
@@ -97,6 +98,15 @@ function TestWorld:confirmMilestone(title)
         })
     end
     
+    for _, cardName in ipairs(changes.trashSettlementEvents) do
+        self._trashedSettlementEvents[cardName] = true
+    end
+    
+    for _, cardName in ipairs(changes.addBasicResources) do
+        self._decks["Basic Resources"] = self._decks["Basic Resources"] or {}
+        table.insert(self._decks["Basic Resources"], cardName)
+    end
+    
     return true
 end
 
@@ -152,6 +162,22 @@ function TestWorld:uncheckMilestone(title)
         end
     end
     
+    -- Restore trashed settlement events
+    for _, cardName in ipairs(changes.trashSettlementEvents) do
+        self._trashedSettlementEvents[cardName] = nil
+    end
+    
+    -- Remove basic resources
+    for _, cardName in ipairs(changes.addBasicResources) do
+        local deck = self._decks["Basic Resources"] or {}
+        for i, card in ipairs(deck) do
+            if card == cardName then
+                table.remove(deck, i)
+                break
+            end
+        end
+    end
+    
     return true
 end
 
@@ -189,6 +215,14 @@ function TestWorld:milestoneReward(title)
         end
     end
     return nil
+end
+
+function TestWorld:settlementEventTrashed(cardName)
+    return self._trashedSettlementEvents[cardName] == true
+end
+
+function TestWorld:basicResourcesDeck()
+    return self._decks and self._decks["Basic Resources"] or {}
 end
 
 ---------------------------------------------------------------------------------------------------

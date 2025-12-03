@@ -11,6 +11,27 @@ Acceptance tests verify the system behaves correctly **from the user's perspecti
 
 ---
 
+## Scope
+
+### In Scope (Headless Acceptance Tests)
+
+- **Business logic and state transitions** — rewards added to decks, timeline events scheduled
+- **Game rules** — max 5 fighting arts, milestone consequences applied correctly
+- **Data integrity** — milestone data loads, rewards match milestones
+
+### Out of Scope (Verified via TTS Console Tests)
+
+- **UI interactions** — dialogs, buttons, checkbox clicks
+- **Log messages** — console output, debug logs
+- **Card spawning visuals** — physical card placement, animations
+- **TTS object manipulation** — deck operations, archive access
+
+UI behavior is verified via TTS console tests (`>teststrain`, `>teststrainvermin`, `>testcardstate`). See `TTSTests.ttslua` for the snapshot/action/restore test pattern.
+
+**Rationale:** Acceptance tests run headlessly without TTS. They verify the "what" (correct outcomes) while TTS console tests verify the "how" (UI/visual feedback works).
+
+---
+
 ## Core Principles
 
 ### 1. Write Tests from the User's Perspective

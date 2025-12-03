@@ -10,6 +10,8 @@ local Deck = require("Kdm/Deck")
 local LayoutManager = require("Kdm/Ui/LayoutManager")
 local FightingArtsArchive = require("Kdm/FightingArtsArchive")
 local VerminArchive = require("Kdm/VerminArchive")
+local BasicResourcesArchive = require("Kdm/BasicResourcesArchive")
+local Trash = require("Kdm/Trash")
 local Timeline = require("Kdm/Timeline")
 local Util = require("Kdm/Util/Util")
 local log = require("Kdm/Log").ForModule("Strain")
@@ -458,6 +460,22 @@ function Strain:ExecuteConsequences(milestone)
             log:Printf("Scheduled %s on the timeline.", timelineEvent.name)
         end
     end
+
+    local trashSettlementEvent = consequences.trashSettlementEvent
+    if trashSettlementEvent then
+        local trashed = Trash.AddCard(trashSettlementEvent, "Settlement Events", "Settlement Events")
+        if not trashed then
+            log:Errorf("Failed to trash %s from the Settlement Events deck.", trashSettlementEvent)
+        end
+    end
+
+    local addBasicResource = consequences.addBasicResource
+    if addBasicResource then
+        local added = BasicResourcesArchive.AddCard(addBasicResource)
+        if not added then
+            log:Errorf("Failed to add %s to the Basic Resources deck.", addBasicResource)
+        end
+    end
 end
 
 function Strain:ReverseConsequences(milestone)
@@ -493,6 +511,22 @@ function Strain:ReverseConsequences(milestone)
             log:Debugf("Timeline event '%s' not found while undoing milestone.", timelineEvent.name)
         end
     end
+
+    local trashSettlementEvent = consequences.trashSettlementEvent
+    if trashSettlementEvent then
+        local removed = Trash.RemoveCard(trashSettlementEvent, "Settlement Events", "Settlement Events")
+        if not removed then
+            log:Errorf("Failed to remove %s from Trash.", trashSettlementEvent)
+        end
+    end
+
+    local addBasicResource = consequences.addBasicResource
+    if addBasicResource then
+        local removed = BasicResourcesArchive.RemoveCard(addBasicResource)
+        if not removed then
+            log:Errorf("Failed to remove %s from the Basic Resources deck.", addBasicResource)
+        end
+    end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -503,13 +537,15 @@ end
 function Strain.ComputeConsequenceChanges(milestone, currentYear)
     local consequences = milestone and milestone.consequences
     if not consequences then
-        return { fightingArts = {}, vermin = {}, timelineEvents = {} }
+        return { fightingArts = {}, vermin = {}, timelineEvents = {}, trashSettlementEvents = {}, addBasicResources = {} }
     end
 
     local changes = {
         fightingArts = {},
         vermin = {},
         timelineEvents = {},
+        trashSettlementEvents = {},
+        addBasicResources = {},
     }
 
     if consequences.fightingArt then
@@ -528,6 +564,14 @@ function Strain.ComputeConsequenceChanges(milestone, currentYear)
             name = event.name,
             type = event.type,
         })
+    end
+
+    if consequences.trashSettlementEvent then
+        table.insert(changes.trashSettlementEvents, consequences.trashSettlementEvent)
+    end
+
+    if consequences.addBasicResource then
+        table.insert(changes.addBasicResources, consequences.addBasicResource)
     end
 
     return changes
@@ -808,5 +852,7 @@ return {
         _TakeRewardCard = Strain._TakeRewardCard,
         SetReachedMilestones = Strain.Test_SetReachedMilestones,
         ResetReachedMilestones = Strain.Test_ResetReachedMilestones,
+        ExecuteConsequences = function(milestone) return Strain:ExecuteConsequences(milestone) end,
+        ReverseConsequences = function(milestone) return Strain:ReverseConsequences(milestone) end,
     },
 }

@@ -33,6 +33,7 @@ Log.DEBUG_MODULES = {
     --["Showdown"] = true,
     --["Strain"] = true,
     --["Survivor"] = true,
+    --["VerminArchive"] = true,  -- RESOLVED: Custom Card dialog bug caused by CardCustom objects (2025-12-03)
     --["Timeline"] = true,
     --["Trash"] = true,
     --["Ui"] = true,

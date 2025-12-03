@@ -1,7 +1,7 @@
 # Strain Milestones
 
-**Status:** ✅ Complete  
-**Last Updated:** 2025-12-02
+**Status:** ✅ Complete (13 milestones), 🚧 In Progress (14th milestone)  
+**Last Updated:** 2025-12-03
 
 ## Overview
 
@@ -77,11 +77,19 @@ Strain milestones are permanent achievements that unlock rewards persisting acro
 | Spawn copy for survivor | ✅ Automated | Card spawns south of showdown board; player assigns to survivor |
 | Add vermin to deck | ✅ Automated | "Fiddler Crab Spider" added to Vermin deck |
 | Add timeline event | ✅ Automated | "Acid Storm" scheduled on next lantern year |
+| Trash settlement event | ✅ Automated | "Heat Wave" moved to Trash, removed from deck |
+| Add basic resource | ✅ Automated | "Lump of Atnas" added to Basic Resources deck |
 | Survivor gains disorder | 📋 Manual | Reminder shown; player adds disorder card |
 | Survivor gains proficiency | 📋 Manual | Reminder shown; player updates survivor sheet |
 | Survivor suffers injury | 📋 Manual | Reminder shown; player applies injury |
 | Survivor stat penalty | 📋 Manual | Reminder shown; player updates stats |
 | Add strange resource | 📋 Manual | Reminder shown; player adds to storage |
+
+### Trash System for Card Removal
+
+Some milestones require removing cards from regular game decks (e.g., archiving "Heat Wave" from Settlement Events). This uses the **Trash system** — see `docs/features/trash.md` for full documentation.
+
+**Summary:** Cards are moved to the Trash container; when decks rebuild from archives, trashed cards are excluded. Undo removes from Trash and triggers rebuild to restore.
 
 ## UI Elements
 
@@ -103,9 +111,13 @@ Strain milestones are permanent achievements that unlock rewards persisting acro
 
 ## Card Source
 
-All reward cards spawn from the **"Strain Rewards"** archive entry in Core. This dedicated archive contains:
+**Strain Rewards archive** (in Core) contains cards that are *added* to decks:
 - All 13 strain fighting arts
 - Fiddler Crab Spider (vermin)
+- Lump of Atnas (basic resource)
+
+**Regular game decks** — some milestones remove cards from these using the Trash system:
+- Settlement Events deck (e.g., "Heat Wave")
 
 ## Milestones Reference
 
@@ -124,6 +136,7 @@ All reward cards spawn from the **"Strain Rewards"** archive entry in Core. This
 | 11 | Material Feedback Strain | Stockist | — |
 | 12 | Sweat Stained Oath | Sword Oath | Acid Storm (timeline) |
 | 13 | Plot Twist | Story of Blood | 1 Iron (manual) |
+| 14 | Atmospheric Change | — | Archive Heat Wave (trash), Add Lump of Atnas (basic resource) |
 
 ## Acceptance Criteria
 
@@ -152,12 +165,17 @@ All reward cards spawn from the **"Strain Rewards"** archive entry in Core. This
 - [ ] Vermin reward (Ashen Claw) adds to Vermin deck on confirm
 - [ ] Timeline event (Sweat Stained Oath) schedules Acid Storm
 - [ ] Stateful cards (Story of Blood) resolve correctly
+- [ ] Trash settlement event (Atmospheric Change) removes Heat Wave from deck
+- [ ] Add basic resource (Atmospheric Change) adds Lump of Atnas to Basic Resources
 
 ## Technical Notes
 
 For implementation details, see:
 - `Strain.ttslua` — UI and consequence execution
 - `GameData/StrainMilestones.ttslua` — Milestone definitions
-- `FightingArtsArchive.ttslua` — Deck add/remove operations
+- `FightingArtsArchive.ttslua` — Fighting arts deck add/remove operations
+- `VerminArchive.ttslua` — Vermin deck add/remove operations
+- `BasicResourcesArchive.ttslua` — Basic resources deck add/remove operations
+- `Trash.ttslua` — Trash system for removing cards from regular decks
 - `Campaign.ttslua` — `AddStrainRewards()` for new campaign setup
-- `ARCHITECTURE.md` — Module relationships
+- `ARCHITECTURE.md` — Module relationships, Trash System documentation

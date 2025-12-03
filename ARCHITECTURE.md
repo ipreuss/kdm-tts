@@ -138,6 +138,36 @@ Many card decks (Fighting Arts, Disorders, etc.) follow a three-stage lifecycle:
 
 This ensures all future resets include the modifications.
 
+### Trash System for Card Removal
+
+Players sometimes need to permanently remove cards from decks (e.g., archiving a Settlement Event as a game consequence). Rather than having them interact directly with the Archive system, the mod provides a **Trash container**:
+
+**How it works:**
+1. Players (or automation) put removed cards into the "Trash" container
+2. When decks are rebuilt from archives, `Deck.AdjustToTrash()` checks the Trash and excludes matching cards
+3. Trash contents are saved/loaded with campaigns via `Trash.Export()`/`Trash.Import()`
+
+**Key files:**
+- `Trash.ttslua` - `IsInTrash(name, type)`, `Export()`, `Import()`
+- `Deck.ttslua` - `Deck.AdjustToTrash(deck, cardNames, archives, type)` filters cards present in Trash
+- `Campaign.ttslua` - `Campaign.SetupSettlementEventsDeck()` uses `Deck.AdjustToTrash`
+
+**Pattern for programmatic card removal:**
+```lua
+-- To "archive" (permanently remove) a card:
+1. Take the card from its deck
+2. Put it in the Trash container
+3. Trigger deck rebuild (which will exclude trashed cards)
+
+-- To undo:
+1. Remove the card from Trash (destruct it)
+2. Trigger deck rebuild (which will restore it from archive)
+```
+
+**When to use Trash vs Archive modules:**
+- **Trash system**: For removing cards that exist in the normal game decks (e.g., Settlement Events, Hunt Events)
+- **Archive modules** (FightingArtsArchive, VerminArchive): For adding/removing cards from Strain Rewards or similar special sources
+
 ## Domain Systems
 ### Campaign & Timeline
 - `Campaign.Init` merges expansion metadata, builds the campaign-selection UI, wires export/import helpers, and registers providers survivors rely on (character deck, innovation checker, survival limit) (`Campaign.ttslua:46-65`).

@@ -78,7 +78,7 @@ function FightingArtsArchive.AddCard(cardName)
         if archive then
             archive.putObject(faDeck)
         end
-        strainDeck.destruct()
+        Archive.Clean()
         return false
     end
 
@@ -87,7 +87,6 @@ function FightingArtsArchive.AddCard(cardName)
         position = faDeck.getPosition(),
         smooth = false,
     }))
-    strainDeck.destruct()
 
     if archive then
         if archive.reset then

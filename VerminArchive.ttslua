@@ -78,7 +78,7 @@ function VerminArchive.AddCard(cardName)
         if archive then
             archive.putObject(verminDeck)
         end
-        strainDeck.destruct()
+        Archive.Clean()
         return false
     end
 
@@ -87,7 +87,6 @@ function VerminArchive.AddCard(cardName)
         position = verminDeck.getPosition(),
         smooth = false,
     }))
-    strainDeck.destruct()
 
     if archive then
         if archive.reset then

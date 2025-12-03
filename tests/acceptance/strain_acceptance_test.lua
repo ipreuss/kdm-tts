@@ -1,7 +1,16 @@
 ---------------------------------------------------------------------------------------------------
 -- Strain Acceptance Tests
 --
--- Tests for strain milestone user-visible behavior.
+-- Tests for strain milestone user-visible behavior (game state changes).
+--
+-- SCOPE: These tests verify business logic and state transitions:
+--   - Rewards added to decks when milestones are reached/confirmed
+--   - Timeline events scheduled at correct years
+--   - Undo removes rewards correctly
+--
+-- OUT OF SCOPE: UI interactions (dialogs, log messages, card spawning visuals).
+-- UI behavior is verified via TTS console tests (>teststrain, >teststrainvermin, etc.)
+-- See TTSTests.ttslua for the snapshot/action/restore test pattern.
 ---------------------------------------------------------------------------------------------------
 
 local Test = require("tests.framework")
@@ -173,6 +182,39 @@ Test.test("ACCEPTANCE: unchecking milestone removes timeline event", function(t)
     -- Timeline event is removed
     t:assertFalse(world:timelineContains(4, "Acid Storm"))
     t:assertFalse(world:deckContains(world:fightingArtsDeck(), "Sword Oath"))
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: Atmospheric Change trashes Heat Wave and adds Lump of Atnas", function(t)
+    local world = TestWorld.create()
+    
+    world:confirmMilestone("Atmospheric Change")
+    
+    -- Heat Wave should be trashed
+    t:assertTrue(world:settlementEventTrashed("Heat Wave"))
+    
+    -- Lump of Atnas should be added to basic resources
+    t:assertTrue(world:deckContains(world:basicResourcesDeck(), "Lump of Atnas"))
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: unchecking Atmospheric Change restores Heat Wave", function(t)
+    local world = TestWorld.create()
+    
+    world:confirmMilestone("Atmospheric Change")
+    world:uncheckMilestone("Atmospheric Change")
+    
+    -- Heat Wave should be restored (removed from trash)
+    t:assertFalse(world:settlementEventTrashed("Heat Wave"))
+    
+    -- Lump of Atnas should be removed
+    t:assertFalse(world:deckContains(world:basicResourcesDeck(), "Lump of Atnas"))
     
     world:destroy()
 end)

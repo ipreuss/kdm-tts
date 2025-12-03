@@ -16,6 +16,9 @@
 ### Log Excerpts from User
 When the user provides log excerpts, **disregard everything before the last "Loading complete." message** - those are from earlier TTS runs and not relevant to the current issue.
 
+### Screenshots from User
+Screenshots are typically saved to the user's **Desktop folder** (`~/Desktop/`), not the repo's `debug_screenshots/` directory. When asked for screenshots, check `~/Desktop/Bildschirmfoto*.png` (macOS default naming).
+
 ## Debug Logging
 
 ### Retention Policy
@@ -97,6 +100,44 @@ When objects spawn in wrong locations:
 2. Check if the location name is correct and exists in `LocationData.ttslua`
 3. Verify the location coordinates match expectations
 
+### CardCustom vs Card Objects
+When TTS opens an unexpected "Custom Card" dialog during deck operations:
+1. **Root cause:** The card being manipulated is a `CardCustom` object (single custom card) instead of a `Card` object (from a card sheet)
+2. **Symptom:** Empty "Custom Card" import dialog appears when calling `deck.putObject(card)`
+3. **How to identify:** Inspect the card in the save file JSON:
+   - Problem: `"Name": "CardCustom"`, `"NumWidth": 1`, `"NumHeight": 1`
+   - Correct: `"Name": "Card"`, `"NumWidth": 7`, `"NumHeight": 3` (or similar sheet dimensions)
+4. **Fix:** Convert affected cards from `CardCustom` to `Card` type in the save file
+5. **Prevention:** Always use card sheets for cards that will be programmatically moved between decks
+
+### Binary Search Debugging for TTS Issues
+When you can't see debug logs during test execution (e.g., TTS console limitations):
+1. **Comment out sections of code** to isolate which operation causes the issue
+2. **Test incrementally:** If removing code X makes the bug disappear, the bug is in X
+3. **Example isolation sequence:**
+   ```lua
+   -- Test 1: Comment out everything after Archive.Take -> bug disappears?
+   -- Test 2: Comment out just putObject -> bug disappears?
+   -- Test 3: Comment out just shuffle -> bug disappears?
+   ```
+4. This approach found the `CardCustom` bug in ~5 iterations
+
+### Save File Inspection
+The TTS save file (`template_workshop.json`) contains all object data and can be inspected:
+1. **Use Python/jq to query the JSON** for specific objects by GUID or name
+2. **Compare working vs broken objects** to find property differences
+3. **Key properties to check:**
+   - `Name`: Object type (`Card`, `CardCustom`, `Deck`, etc.)
+   - `CustomDeck`: Card image sheet definitions with `FaceURL`, `BackURL`, `NumWidth`, `NumHeight`
+   - `ContainedObjects`: Items inside decks/bags
+4. **Example query pattern:**
+   ```python
+   # Find object by name
+   find_all(data, lambda o: o.get('Nickname') == 'CardName')
+   # Compare CustomDeck properties
+   card.get('CustomDeck', {}).get('1234', {}).get('NumWidth')
+   ```
+
 ## Debugging Workflow
 
 ### 1. Identify the Error Context
@@ -157,7 +198,63 @@ When objects spawn in wrong locations:
 - **Problem:** Functions exist in module but aren't exported in return statement → "attempt to call a nil value"
 - **Symptom:** Debug logs show function exists internally but calling code gets nil
 - **Solution:** Add function to module's return table
+- **For test access:** Add internal functions to a `Module.Test` table in the exports:
+  ```lua
+  return {
+      PublicFunction = Module.PublicFunction,
+      Test = {
+          InternalFunction = function(...) return Module:InternalFunction(...) end,
+      },
+  }
+  ```
 - **Prevention:** Write integration tests, not export-checking tests (see below)
+
+## Writing TTS Console Tests
+
+### Test Structure Pattern
+TTS console tests in `TTSTests.ttslua` follow this pattern:
+1. **Register command** in `TTSTests.Init()` or a `Register*Tests()` function
+2. **Snapshot state** before making changes (count cards, check locations)
+3. **Execute the operation** being tested
+4. **Use `Wait.frames()`** to allow TTS operations to complete
+5. **Verify results** and report PASSED/FAILED
+6. **Clean up** to restore original state when possible
+
+### Example Test Pattern
+```lua
+function TTSTests.TestSomeFeature()
+    log:Printf("=== TEST: TestSomeFeature ===")
+    
+    -- Step 1: Snapshot before state
+    local countBefore = TTSTests.CountCardInDeck(cardName, cardType, location)
+    
+    -- Step 2: Execute operation under test
+    Module.Test.SomeOperation(params)
+    
+    Wait.frames(function()
+        -- Step 3: Verify results
+        local countAfter = TTSTests.CountCardInDeck(cardName, cardType, location)
+        
+        if countAfter == expectedCount then
+            log:Printf("TEST RESULT: PASSED")
+        else
+            log:Errorf("TEST RESULT: FAILED - expected %d, got %d", expectedCount, countAfter)
+        end
+    end, 30)  -- Wait ~1 second for TTS operations
+end
+```
+
+### Testing Internal Module Functions
+When testing functions that aren't publicly exported:
+1. **Add to `Module.Test` table** in the module's return statement
+2. **Wrap colon-methods** to handle `self` correctly:
+   ```lua
+   Test = {
+       -- For Module:Method(arg) syntax
+       Method = function(arg) return Module:Method(arg) end,
+   }
+   ```
+3. **Call via `Module.Test.Method()`** in tests
 
 ## Test Strategy Lessons Learned
 

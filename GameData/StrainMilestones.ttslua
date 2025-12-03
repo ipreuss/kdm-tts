@@ -166,6 +166,16 @@ local StrainMilestones = {
             },
         },
     },
+    {
+        title = "Atmospheric Change",
+        condition = "When the settlement triggers Story Event <b>Necrotoxic Mistletoe</b> or Settlement Event <b>Story in the Snow</b>.",
+        flavorText = [[The settlement wakes to find itself transformed. An ever-present chill pimples the survivor's flesh. Occasionally, evanescent flakes of snow drift through the sky.]],
+        rulesText = [[Archive <b>Heat Wave</b> from the settlement event deck. Add <b>Lump of Atnas</b> to the basic resource deck.]],
+        consequences = {
+            trashSettlementEvent = "Heat Wave",
+            addBasicResource = "Lump of Atnas",
+        },
+    },
 }
 
 return StrainMilestones

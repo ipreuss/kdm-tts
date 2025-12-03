@@ -127,7 +127,7 @@ Test.test("VerminArchive.AddCard inserts reward card", function(t)
         t:assertEqual(1, #env.deckObject.inserted, "Card should be inserted into Vermin deck")
         t:assertEqual("Fiddler Crab Spider", env.deckObject.inserted[1].name)
         t:assertEqual("Vermin", env.deckResets[1])
-        t:assertTrue(env.strainDeck.destroyed, "Strain deck instance should be destroyed after use")
+        t:assertEqual(1, env.archiveStub.cleans, "Archive.Clean should be called after use")
     end)
 end)
 

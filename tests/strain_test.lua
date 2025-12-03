@@ -791,7 +791,6 @@ Test.test("AddFightingArtToArchive transfers reward card into the fighting arts 
         t:assertEqual(1, #env.acceptance.faDeck.insertedCards, "Reward card should be inserted into the fighting arts deck")
         t:assertEqual(env.acceptance.cardName, env.acceptance.faDeck.insertedCards[1].name)
         t:assertEqual(1, env.acceptance.archive.resetCount, "Archive reset should run after successful transfer")
-        t:assertTrue(env.acceptance.strainDeck.destroyed, "Strain rewards deck should be destroyed after transfer")
         t:assertEqual(1, #env.acceptance.deckResets, "Deck.ResetDeck should run once for fighting arts location")
         t:assertEqual(strain.FIGHTING_ART_LOCATION, env.acceptance.deckResets[1])
         t:assertEqual(1, env.acceptance.archiveStub.cleanCount, "Archive.Clean should run after successful transfer")
@@ -810,9 +809,8 @@ Test.test("AddFightingArtToArchive returns false when the reward card is missing
         t:assertFalse(ok, "Expected AddFightingArtToArchive to fail when card is absent")
         t:assertEqual(0, #env.acceptance.faDeck.insertedCards, "No cards should be inserted when transfer fails")
         t:assertEqual(0, env.acceptance.archive.resetCount, "Archive reset should not run on failure")
-        t:assertTrue(env.acceptance.strainDeck.destroyed, "Strain rewards deck should be destroyed after attempting transfer")
         t:assertEqual(0, #env.acceptance.deckResets, "Deck.ResetDeck should not run on failure")
-        t:assertEqual(0, env.acceptance.archiveStub.cleanCount, "Archive.Clean should not run on failure")
+        t:assertEqual(1, env.acceptance.archiveStub.cleanCount, "Archive.Clean should run to cleanup on failure")
     end, {
         customizeStubs = function(stubs, env)
             setupAddToArchiveScenario(stubs, env, { includeRewardCard = false })
@@ -1267,6 +1265,48 @@ Test.test("Strain.FindMilestone: returns nil for unknown title", function(t)
         local milestone = Strain.FindMilestone("Nonexistent Milestone")
         
         t:assertNil(milestone)
+        
+        package.loaded["Kdm/Strain"] = nil
+    end)
+end)
+
+Test.test("Strain.ComputeConsequenceChanges: extracts trashSettlementEvent", function(t)
+    local stubs = buildStrainStubs()
+    
+    withStubs(stubs, function()
+        package.loaded["Kdm/Strain"] = nil
+        local Strain = require("Kdm/Strain")
+        
+        local milestone = {
+            title = "Test",
+            consequences = { trashSettlementEvent = "Heat Wave" },
+        }
+        
+        local changes = Strain.ComputeConsequenceChanges(milestone, 1)
+        
+        t:assertEqual(1, #changes.trashSettlementEvents)
+        t:assertEqual("Heat Wave", changes.trashSettlementEvents[1])
+        
+        package.loaded["Kdm/Strain"] = nil
+    end)
+end)
+
+Test.test("Strain.ComputeConsequenceChanges: extracts addBasicResource", function(t)
+    local stubs = buildStrainStubs()
+    
+    withStubs(stubs, function()
+        package.loaded["Kdm/Strain"] = nil
+        local Strain = require("Kdm/Strain")
+        
+        local milestone = {
+            title = "Test",
+            consequences = { addBasicResource = "Lump of Atnas" },
+        }
+        
+        local changes = Strain.ComputeConsequenceChanges(milestone, 1)
+        
+        t:assertEqual(1, #changes.addBasicResources)
+        t:assertEqual("Lump of Atnas", changes.addBasicResources[1])
         
         package.loaded["Kdm/Strain"] = nil
     end)
