@@ -3,17 +3,20 @@
 -- 
 -- Manages game state and provides high-level actions for test scenarios.
 -- Uses TestTTSAdapter to track TTS operations without actually calling TTS.
+-- Uses ArchiveSpy to intercept archive calls and verify real execution code.
 ---------------------------------------------------------------------------------------------------
 
 local TTSEnvironment = require("tests.acceptance.tts_environment")
 local TTSAdapter = require("Kdm/Util/TTSAdapter")
 local TestTTSAdapter = require("tests.acceptance.test_tts_adapter")
+local ArchiveSpy = require("tests.acceptance.archive_spy")
 
 local TestWorld = {}
 
 function TestWorld.create()
     local world = {
         _adapter = TestTTSAdapter.create(),
+        _archiveSpy = ArchiveSpy.create(),
         _env = nil,
         _milestones = {},
         _strainModule = nil,
@@ -26,6 +29,9 @@ function TestWorld.create()
     
     -- Install test adapter FIRST (before modules load)
     TTSAdapter.Set(world._adapter)
+    
+    -- Install archive spies BEFORE loading modules
+    world:_installArchiveSpies()
     
     world._env = TTSEnvironment.create()
     world._env:install()
@@ -40,11 +46,26 @@ function TestWorld:destroy()
 end
 
 ---------------------------------------------------------------------------------------------------
+-- Archive Spy Installation
+---------------------------------------------------------------------------------------------------
+
+function TestWorld:_installArchiveSpies()
+    package.loaded["Kdm/FightingArtsArchive"] = self._archiveSpy:createFightingArtsArchiveStub()
+    package.loaded["Kdm/VerminArchive"] = self._archiveSpy:createVerminArchiveStub()
+    package.loaded["Kdm/BasicResourcesArchive"] = self._archiveSpy:createBasicResourcesArchiveStub()
+    package.loaded["Kdm/Trash"] = self._archiveSpy:createTrashStub()
+    package.loaded["Kdm/Timeline"] = self._archiveSpy:createTimelineStub(function()
+        return self._currentYear
+    end)
+end
+
+---------------------------------------------------------------------------------------------------
 -- Module Loading
 ---------------------------------------------------------------------------------------------------
 
 function TestWorld:_loadModules()
     -- Clear cached modules to get fresh load with stubs in place
+    -- The archive modules are already stubbed via _installArchiveSpies
     package.loaded["Kdm/Strain"] = nil
     package.loaded["Kdm/Campaign"] = nil
     
@@ -76,36 +97,8 @@ function TestWorld:confirmMilestone(title)
     -- Mark as reached
     self._milestones[title] = true
     
-    -- Use REAL Strain logic to compute consequences
-    local changes = self._strainModule.ComputeConsequenceChanges(milestone, self._currentYear)
-    
-    -- Apply changes to test state
-    for _, art in ipairs(changes.fightingArts) do
-        self._decks["Fighting Arts"] = self._decks["Fighting Arts"] or {}
-        table.insert(self._decks["Fighting Arts"], art)
-    end
-    
-    for _, vermin in ipairs(changes.vermin) do
-        self._decks["Vermin"] = self._decks["Vermin"] or {}
-        table.insert(self._decks["Vermin"], vermin)
-    end
-    
-    for _, event in ipairs(changes.timelineEvents) do
-        self._timeline[event.year] = self._timeline[event.year] or { events = {} }
-        table.insert(self._timeline[event.year].events, {
-            name = event.name,
-            type = event.type,
-        })
-    end
-    
-    for _, cardName in ipairs(changes.trashSettlementEvents) do
-        self._trashedSettlementEvents[cardName] = true
-    end
-    
-    for _, cardName in ipairs(changes.addBasicResources) do
-        self._decks["Basic Resources"] = self._decks["Basic Resources"] or {}
-        table.insert(self._decks["Basic Resources"], cardName)
-    end
+    -- Call REAL ExecuteConsequences (archive calls go to spies)
+    self._strainModule.Test.ExecuteConsequences(milestone)
     
     return true
 end
@@ -124,59 +117,8 @@ function TestWorld:uncheckMilestone(title)
     -- Mark as not reached
     self._milestones[title] = nil
     
-    -- Use REAL Strain logic to compute what to remove
-    local changes = self._strainModule.ComputeConsequenceChanges(milestone, self._currentYear)
-    
-    -- Remove fighting arts
-    for _, art in ipairs(changes.fightingArts) do
-        local deck = self._decks["Fighting Arts"] or {}
-        for i, card in ipairs(deck) do
-            if card == art then
-                table.remove(deck, i)
-                break
-            end
-        end
-    end
-    
-    -- Remove vermin
-    for _, vermin in ipairs(changes.vermin) do
-        local deck = self._decks["Vermin"] or {}
-        for i, card in ipairs(deck) do
-            if card == vermin then
-                table.remove(deck, i)
-                break
-            end
-        end
-    end
-    
-    -- Remove timeline events (by name, searching all years)
-    for _, event in ipairs(changes.timelineEvents) do
-        for year, yearData in pairs(self._timeline or {}) do
-            local events = yearData.events or {}
-            for i, e in ipairs(events) do
-                if e.name == event.name then
-                    table.remove(events, i)
-                    break
-                end
-            end
-        end
-    end
-    
-    -- Restore trashed settlement events
-    for _, cardName in ipairs(changes.trashSettlementEvents) do
-        self._trashedSettlementEvents[cardName] = nil
-    end
-    
-    -- Remove basic resources
-    for _, cardName in ipairs(changes.addBasicResources) do
-        local deck = self._decks["Basic Resources"] or {}
-        for i, card in ipairs(deck) do
-            if card == cardName then
-                table.remove(deck, i)
-                break
-            end
-        end
-    end
+    -- Call REAL ReverseConsequences (archive calls go to spies)
+    self._strainModule.Test.ReverseConsequences(milestone)
     
     return true
 end
@@ -198,14 +140,10 @@ function TestWorld:timeline()
 end
 
 function TestWorld:timelineContains(year, eventName)
-    local yearData = self._timeline[year]
-    if not yearData then return false end
-    for _, event in ipairs(yearData.events or {}) do
-        if event.name == eventName then
-            return true
-        end
-    end
-    return false
+    -- Check spy: scheduled at specific year AND NOT removed
+    local scheduled = self._archiveSpy:timelineEventScheduled(eventName, year)
+    local removed = self._archiveSpy:timelineEventRemoved(eventName)
+    return scheduled and not removed
 end
 
 function TestWorld:milestoneReward(title)
@@ -218,11 +156,14 @@ function TestWorld:milestoneReward(title)
 end
 
 function TestWorld:settlementEventTrashed(cardName)
+    -- Check spy: trashed AND NOT restored (via trashRemove)
+    local trashed = self._archiveSpy:trashAdded(cardName)
+    local restored = self._archiveSpy:trashRemoved(cardName)
+    if trashed and not restored then
+        return true
+    end
+    -- Also check local state for startNewCampaign
     return self._trashedSettlementEvents[cardName] == true
-end
-
-function TestWorld:basicResourcesDeck()
-    return self._decks and self._decks["Basic Resources"] or {}
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -260,20 +201,91 @@ function TestWorld:startNewCampaign()
 end
 
 function TestWorld:fightingArtsDeck()
+    -- Return local deck for count operations (startNewCampaign populates this)
     return self._decks and self._decks["Fighting Arts"] or {}
 end
 
 function TestWorld:verminDeck()
+    -- Return local deck for count operations
     return self._decks and self._decks["Vermin"] or {}
 end
 
 function TestWorld:deckContains(deck, cardName)
-    for _, card in ipairs(deck) do
-        if card == cardName then
+    -- Determine which deck we're checking
+    local deckName = nil
+    
+    -- Get actual deck references for comparison
+    local faDeck = self._decks and self._decks["Fighting Arts"]
+    local vDeck = self._decks and self._decks["Vermin"]
+    local brDeck = self._decks and self._decks["Basic Resources"]
+    
+    if type(deck) == "string" then
+        deckName = deck
+    elseif faDeck and deck == faDeck then
+        deckName = "Fighting Arts"
+    elseif vDeck and deck == vDeck then
+        deckName = "Vermin"
+    elseif brDeck and deck == brDeck then
+        deckName = "Basic Resources"
+    elseif type(deck) == "table" and #deck == 0 then
+        -- Empty table passed - could be any deck, check all spies
+        -- This handles the case where fightingArtsDeck() returns {} because _decks is empty
+        if self._archiveSpy:fightingArtAdded(cardName) and not self._archiveSpy:fightingArtRemoved(cardName) then
             return true
+        end
+        if self._archiveSpy:verminAdded(cardName) and not self._archiveSpy:verminRemoved(cardName) then
+            return true
+        end
+        if self._archiveSpy:basicResourceAdded(cardName) and not self._archiveSpy:basicResourceRemoved(cardName) then
+            return true
+        end
+        return false
+    end
+    
+    if deckName == "Fighting Arts" then
+        if self._archiveSpy:fightingArtAdded(cardName) and not self._archiveSpy:fightingArtRemoved(cardName) then
+            return true
+        end
+        local localDeck = self._decks and self._decks["Fighting Arts"] or {}
+        for _, card in ipairs(localDeck) do
+            if card == cardName then return true end
+        end
+        return false
+    end
+    if deckName == "Vermin" then
+        if self._archiveSpy:verminAdded(cardName) and not self._archiveSpy:verminRemoved(cardName) then
+            return true
+        end
+        local localDeck = self._decks and self._decks["Vermin"] or {}
+        for _, card in ipairs(localDeck) do
+            if card == cardName then return true end
+        end
+        return false
+    end
+    if deckName == "Basic Resources" then
+        if self._archiveSpy:basicResourceAdded(cardName) and not self._archiveSpy:basicResourceRemoved(cardName) then
+            return true
+        end
+        local localDeck = self._decks and self._decks["Basic Resources"] or {}
+        for _, card in ipairs(localDeck) do
+            if card == cardName then return true end
+        end
+        return false
+    end
+    
+    -- Legacy: array-based deck iteration (for non-empty tables)
+    if type(deck) == "table" then
+        for _, card in ipairs(deck) do
+            if card == cardName then
+                return true
+            end
         end
     end
     return false
+end
+
+function TestWorld:basicResourcesDeck()
+    return self._decks and self._decks["Basic Resources"] or {}
 end
 
 return TestWorld
