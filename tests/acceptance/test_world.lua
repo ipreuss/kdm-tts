@@ -276,8 +276,4 @@ function TestWorld:deckContains(deck, cardName)
     return false
 end
 
-function TestWorld:getMilestone(title)
-    return self._strainModule.FindMilestone(title)
-end
-
 return TestWorld

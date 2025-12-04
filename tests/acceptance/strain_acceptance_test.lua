@@ -243,15 +243,94 @@ end)
 
 ---------------------------------------------------------------------------------------------------
 
-Test.test("ACCEPTANCE: Atmospheric Change shows no manual steps", function(t)
+Test.test("ACCEPTANCE: timeline events are not scheduled when starting new campaign", function(t)
     local world = TestWorld.create()
     
-    local milestone = world:getMilestone("Atmospheric Change")
-    t:assertNotNil(milestone, "Atmospheric Change milestone should exist")
+    -- Reach Sweat Stained Oath (has timeline event) without confirming during gameplay
+    world:reachMilestone("Sweat Stained Oath")
     
-    -- Atmospheric Change has no manual steps (unlike other milestones)
-    local manualSteps = milestone.consequences and milestone.consequences.manual
-    t:assertNil(manualSteps, "Atmospheric Change should have no manual steps")
+    world:startNewCampaign()
+    
+    -- The fighting art should be in deck
+    t:assertTrue(world:deckContains(world:fightingArtsDeck(), "Sword Oath"))
+    
+    -- But Acid Storm should NOT be in timeline (only scheduled on confirm during gameplay)
+    t:assertFalse(world:timelineContains(1, "Acid Storm"))
+    t:assertFalse(world:timelineContains(2, "Acid Storm"))
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: milestones remain reached across multiple campaigns", function(t)
+    local world = TestWorld.create()
+    
+    world:reachMilestone("Ethereal Culture Strain")
+    world:startNewCampaign()
+    
+    -- Start another campaign - milestone should still be reached
+    world:startNewCampaign()
+    
+    t:assertTrue(world:deckContains(world:fightingArtsDeck(), "Ethereal Pact"),
+        "Milestone reward should persist across campaigns")
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: confirming Ashen Claw adds both fighting art and vermin", function(t)
+    local world = TestWorld.create()
+    
+    world:confirmMilestone("Ashen Claw Strain")
+    
+    -- Both rewards should be applied
+    t:assertTrue(world:deckContains(world:fightingArtsDeck(), "Armored Fist"))
+    t:assertTrue(world:deckContains(world:verminDeck(), "Fiddler Crab Spider"))
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: unchecking Ashen Claw removes both fighting art and vermin", function(t)
+    local world = TestWorld.create()
+    
+    world:confirmMilestone("Ashen Claw Strain")
+    world:uncheckMilestone("Ashen Claw Strain")
+    
+    t:assertFalse(world:deckContains(world:fightingArtsDeck(), "Armored Fist"))
+    t:assertFalse(world:deckContains(world:verminDeck(), "Fiddler Crab Spider"))
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: confirming timeline milestone at year 1 schedules for year 2", function(t)
+    local world = TestWorld.create()
+    
+    -- Default year is 1
+    world:confirmMilestone("Sweat Stained Oath")
+    
+    -- Acid Storm should be at year 2 (1 + offset 1)
+    t:assertTrue(world:timelineContains(2, "Acid Storm"))
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: all vermin rewards are added to new campaign", function(t)
+    local world = TestWorld.create()
+    
+    -- Currently only Ashen Claw has vermin
+    world:reachMilestone("Ashen Claw Strain")
+    
+    world:startNewCampaign()
+    
+    t:assertTrue(world:deckContains(world:verminDeck(), "Fiddler Crab Spider"))
     
     world:destroy()
 end)
