@@ -218,3 +218,40 @@ Test.test("ACCEPTANCE: unchecking Atmospheric Change restores Heat Wave", functi
     
     world:destroy()
 end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: new campaign with Atmospheric Change has correct deck state", function(t)
+    local world = TestWorld.create()
+    
+    -- User has previously reached Atmospheric Change milestone
+    world:reachMilestone("Atmospheric Change")
+    
+    -- User starts a new campaign
+    world:startNewCampaign()
+    
+    -- Heat Wave should already be trashed in new campaign
+    t:assertTrue(world:settlementEventTrashed("Heat Wave"),
+        "Heat Wave should be trashed when starting new campaign with Atmospheric Change reached")
+    
+    -- Lump of Atnas should be in basic resources
+    t:assertTrue(world:deckContains(world:basicResourcesDeck(), "Lump of Atnas"),
+        "Lump of Atnas should be in basic resources deck")
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: Atmospheric Change shows no manual steps", function(t)
+    local world = TestWorld.create()
+    
+    local milestone = world:getMilestone("Atmospheric Change")
+    t:assertNotNil(milestone, "Atmospheric Change milestone should exist")
+    
+    -- Atmospheric Change has no manual steps (unlike other milestones)
+    local manualSteps = milestone.consequences and milestone.consequences.manual
+    t:assertNil(manualSteps, "Atmospheric Change should have no manual steps")
+    
+    world:destroy()
+end)

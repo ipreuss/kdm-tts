@@ -246,6 +246,17 @@ function TestWorld:startNewCampaign()
     self._decks = self._decks or {}
     self._decks["Fighting Arts"] = rewards.fightingArts or {}
     self._decks["Vermin"] = rewards.vermin or {}
+    
+    -- Apply trashed settlement events
+    for _, cardName in ipairs(rewards.trashSettlementEvents or {}) do
+        self._trashedSettlementEvents[cardName] = true
+    end
+    
+    -- Apply added basic resources
+    self._decks["Basic Resources"] = self._decks["Basic Resources"] or {}
+    for _, cardName in ipairs(rewards.addBasicResources or {}) do
+        table.insert(self._decks["Basic Resources"], cardName)
+    end
 end
 
 function TestWorld:fightingArtsDeck()
@@ -263,6 +274,10 @@ function TestWorld:deckContains(deck, cardName)
         end
     end
     return false
+end
+
+function TestWorld:getMilestone(title)
+    return self._strainModule.FindMilestone(title)
 end
 
 return TestWorld
