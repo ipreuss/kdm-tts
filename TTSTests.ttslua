@@ -50,11 +50,11 @@ function TTSTests.RunAllTests()
     log:Printf("=== RUNNING ALL TTS TESTS ===")
     
     local tests = {
-        { name = "Add Fighting Art (Shielderang)", fn = function() TTSTests.TestAddFightingArtToArchive("Shielderang") end },
-        { name = "Add Vermin (Fiddler Crab Spider)", fn = function() TTSTests.TestAddVerminToDeck("Fiddler Crab Spider") end },
-        { name = "Card State Fallback (Story of Blood)", fn = function() TTSTests.TestCardStateFallback("Story of Blood", nil) end },
-        { name = "DialogFromSpec Callback Timing", fn = function() TTSTests.TestDialogFromSpecCallbackTiming() end },
-        { name = "Atmospheric Change (Heat Wave/Lump of Atnas)", fn = function() TTSTests.TestAtmosphericChange() end },
+        { name = "Add Fighting Art (Shielderang)", fn = function(onComplete) TTSTests.TestAddFightingArtToArchive("Shielderang", onComplete) end },
+        { name = "Add Vermin (Fiddler Crab Spider)", fn = function(onComplete) TTSTests.TestAddVerminToDeck("Fiddler Crab Spider", onComplete) end },
+        { name = "Card State Fallback (Story of Blood)", fn = function(onComplete) TTSTests.TestCardStateFallback("Story of Blood", nil, onComplete) end },
+        { name = "DialogFromSpec Callback Timing", fn = function(onComplete) TTSTests.TestDialogFromSpecCallbackTiming(onComplete) end },
+        { name = "Atmospheric Change (Heat Wave/Lump of Atnas)", fn = function(onComplete) TTSTests.TestAtmosphericChange(onComplete) end },
     }
     
     local currentTest = 1
@@ -79,21 +79,29 @@ function TTSTests.RunAllTests()
         local test = tests[currentTest]
         log:Printf("=== TEST %d/%d: %s ===", currentTest, totalTests, test.name)
         
-        local ok, err = pcall(test.fn)
-        if not ok then
-            log:Errorf("TEST FAILED: %s - %s", test.name, tostring(err))
-            failedTests = failedTests + 1
-            table.insert(failedNames, test.name)
-        else
-            passedTests = passedTests + 1
+        local function onTestComplete(success)
+            if success == false then
+                failedTests = failedTests + 1
+                table.insert(failedNames, test.name)
+            else
+                passedTests = passedTests + 1
+            end
+            
+            currentTest = currentTest + 1
+            
+            -- Small delay between tests for visual separation
+            Wait.frames(function()
+                runNextTest()
+            end, 10)
         end
         
-        currentTest = currentTest + 1
-        
-        -- Wait between tests to allow cleanup to complete
-        Wait.frames(function()
-            runNextTest()
-        end, 60)  -- Wait 60 frames (~2 seconds) between tests
+        local ok, err = pcall(function()
+            test.fn(onTestComplete)
+        end)
+        if not ok then
+            log:Errorf("TEST FAILED: %s - %s", test.name, tostring(err))
+            onTestComplete(false)
+        end
     end
     
     runNextTest()
@@ -120,7 +128,7 @@ function TTSTests.RegisterStrainTests()
     end, "[stateId] - Test spawning Story of Blood after changing its state")
 end
 
-function TTSTests.TestAddFightingArtToArchive(cardName)
+function TTSTests.TestAddFightingArtToArchive(cardName, onComplete)
     log:Printf("=== TEST: TestAddFightingArtToArchive ===")
     TTSTests.RunDeckExperiment(cardName, function()
         log:Printf("TEST: AddFightingArtToArchive with card: %s", cardName)
@@ -131,10 +139,11 @@ function TTSTests.TestAddFightingArtToArchive(cardName)
         deckLabel = "Fighting Arts",
         stateFunc = TTSTests.GetFightingArtsDeckState,
         cleanup = TTSTests.RestoreFightingArtsDeck,
+        onComplete = onComplete,
     })
 end
 
-function TTSTests.TestAddVerminToDeck(cardName)
+function TTSTests.TestAddVerminToDeck(cardName, onComplete)
     log:Printf("=== TEST: TestAddVerminToDeck ===")
     TTSTests.RunDeckExperiment(cardName, function()
         log:Printf("TEST: AddVerminToDeck with card: %s", cardName)
@@ -145,10 +154,11 @@ function TTSTests.TestAddVerminToDeck(cardName)
         deckLabel = "Vermin",
         stateFunc = TTSTests.GetVerminDeckState,
         cleanup = TTSTests.RestoreVerminDeck,
+        onComplete = onComplete,
     })
 end
 
-function TTSTests.TestCardStateFallback(baseName, stateId)
+function TTSTests.TestCardStateFallback(baseName, stateId, onComplete)
     log:Printf("=== TEST: TestCardStateFallback ===")
     baseName = baseName or "Story of Blood"
     
@@ -205,12 +215,15 @@ function TTSTests.TestCardStateFallback(baseName, stateId)
             else
                 log:Printf("TEST CLEANUP: Successfully restored Strain Rewards deck.")
             end
+            
+            if onComplete then onComplete() end
         end, 20)
     end, 10)
 end
 
 function TTSTests.RunDeckExperiment(cardName, mutateFn, options)
     local deckLabel = options.deckLabel or "Deck"
+    local onComplete = options.onComplete
     
     -- Check for stray cards from previous tests
     local strayBefore = TTSTests.CountStrayCardsOnTable(cardName)
@@ -224,6 +237,7 @@ function TTSTests.RunDeckExperiment(cardName, mutateFn, options)
     local ok, err = pcall(mutateFn)
     if not ok then
         log:Errorf("TEST FAILED: error while executing action: %s", tostring(err))
+        if onComplete then onComplete(false) end
         return
     end
 
@@ -234,16 +248,18 @@ function TTSTests.RunDeckExperiment(cardName, mutateFn, options)
         local delta = matchesAfter - matchesBefore
         if delta > 0 then
             log:Printf("TEST INFO: Detected %d new copies of '%s'. Scheduling cleanup.", delta, cardName)
-            options.cleanup(cardName, delta, matchesBefore, options.stateFunc)
+            options.cleanup(cardName, delta, matchesBefore, options.stateFunc, onComplete)
         elseif delta == 0 then
             log:Printf("TEST INFO: Copy count unchanged. No cleanup required.")
+            if onComplete then onComplete() end
         else
             log:Errorf("TEST WARNING: Deck has fewer copies of '%s' (%d) than baseline (%d). Manual verification recommended.", cardName, matchesAfter, matchesBefore)
+            if onComplete then onComplete() end
         end
     end, 30)
 end
 
-local function restoreDeck(cardName, copiesToRemove, targetCopies, removeFunc, deckLabel, stateFunc)
+local function restoreDeck(cardName, copiesToRemove, targetCopies, removeFunc, deckLabel, stateFunc, onComplete)
     local removed = 0
 
     local function finalizeCleanup()
@@ -260,6 +276,8 @@ local function restoreDeck(cardName, copiesToRemove, targetCopies, removeFunc, d
             if strayCards > 0 then
                 log:Errorf("TEST CLEANUP: Found %d stray '%s' card(s) on table (resource leak)", strayCards, cardName)
             end
+            
+            if onComplete then onComplete() end
         end, 20)
     end
 
@@ -272,6 +290,7 @@ local function restoreDeck(cardName, copiesToRemove, targetCopies, removeFunc, d
         local success = removeFunc(cardName)
         if not success then
             log:Errorf("TEST CLEANUP: Failed while removing '%s' (%d/%d). Deck may contain leftover copies.", cardName, removed + 1, copiesToRemove)
+            if onComplete then onComplete(false) end
             return
         end
 
@@ -282,12 +301,12 @@ local function restoreDeck(cardName, copiesToRemove, targetCopies, removeFunc, d
     removeNext()
 end
 
-function TTSTests.RestoreFightingArtsDeck(cardName, copiesToRemove, targetCopies, stateFunc)
-    restoreDeck(cardName, copiesToRemove, targetCopies, FightingArtsArchive.RemoveCard, "Fighting Arts", stateFunc or TTSTests.GetFightingArtsDeckState)
+function TTSTests.RestoreFightingArtsDeck(cardName, copiesToRemove, targetCopies, stateFunc, onComplete)
+    restoreDeck(cardName, copiesToRemove, targetCopies, FightingArtsArchive.RemoveCard, "Fighting Arts", stateFunc or TTSTests.GetFightingArtsDeckState, onComplete)
 end
 
-function TTSTests.RestoreVerminDeck(cardName, copiesToRemove, targetCopies, stateFunc)
-    restoreDeck(cardName, copiesToRemove, targetCopies, VerminArchive.RemoveCard, "Vermin", stateFunc or TTSTests.GetVerminDeckState)
+function TTSTests.RestoreVerminDeck(cardName, copiesToRemove, targetCopies, stateFunc, onComplete)
+    restoreDeck(cardName, copiesToRemove, targetCopies, VerminArchive.RemoveCard, "Vermin", stateFunc or TTSTests.GetVerminDeckState, onComplete)
 end
 
 function TTSTests.GetFightingArtsDeckState(cardName)
@@ -388,11 +407,13 @@ function TTSTests.RegisterAtmosphericTests()
     end, "Test Atmospheric Change milestone (trash Heat Wave, add Lump of Atnas)")
 end
 
-function TTSTests.TestAtmosphericChange()
+function TTSTests.TestAtmosphericChange(onComplete)
     log:Printf("=== TEST: TestAtmosphericChange ===")
     log:Printf("TEST: This tests the Atmospheric Change milestone consequences:")
     log:Printf("TEST:   - Trash 'Heat Wave' from Settlement Events deck")
     log:Printf("TEST:   - Add 'Lump of Atnas' to Basic Resources deck")
+    
+    local passed = true
     
     -- Step 1: Trash Heat Wave (move from Settlement Events to Trash)
     log:Printf("TEST: Step 1 - Trashing 'Heat Wave' from Settlement Events...")
@@ -401,6 +422,7 @@ function TTSTests.TestAtmosphericChange()
         log:Printf("TEST: Successfully trashed 'Heat Wave'")
     else
         log:Errorf("TEST: Failed to trash 'Heat Wave' - card may not exist in Settlement Events deck")
+        passed = false
     end
     
     Wait.frames(function()
@@ -411,6 +433,7 @@ function TTSTests.TestAtmosphericChange()
             log:Printf("TEST: Successfully added 'Lump of Atnas' to Basic Resources")
         else
             log:Errorf("TEST: Failed to add 'Lump of Atnas' - card may not exist in Strain Rewards deck")
+            passed = false
         end
         
         Wait.frames(function()
@@ -421,6 +444,7 @@ function TTSTests.TestAtmosphericChange()
                 log:Printf("TEST: Successfully removed 'Heat Wave' from Trash")
             else
                 log:Errorf("TEST: Failed to remove 'Heat Wave' from Trash")
+                passed = false
             end
             
             Wait.frames(function()
@@ -431,14 +455,18 @@ function TTSTests.TestAtmosphericChange()
                     log:Printf("TEST: Successfully removed 'Lump of Atnas'")
                 else
                     log:Errorf("TEST: Failed to remove 'Lump of Atnas'")
+                    passed = false
                 end
                 
                 log:Printf("=== TEST: TestAtmosphericChange COMPLETE ===")
-                if trashResult and addResult and restoreResult and removeResult then
+                if passed and trashResult and addResult and restoreResult and removeResult then
                     log:Printf("TEST RESULT: PASSED - All operations succeeded")
                 else
                     log:Errorf("TEST RESULT: FAILED - Some operations failed")
+                    passed = false
                 end
+                
+                if onComplete then onComplete(passed) end
             end, 30)
         end, 30)
     end, 30)
@@ -454,7 +482,7 @@ function TTSTests.RegisterDialogFromSpecTests()
     end, "Test DialogFromSpec callback timing issue")
 end
 
-function TTSTests.TestDialogFromSpecCallbackTiming()
+function TTSTests.TestDialogFromSpecCallbackTiming(onComplete)
     log:Printf("=== TEST: TestDialogFromSpecCallbackTiming ===")
     local PanelKit = require("Kdm/Ui/PanelKit")
     local LayoutManager = require("Kdm/Ui/LayoutManager")
@@ -520,6 +548,8 @@ function TTSTests.TestDialogFromSpecCallbackTiming()
     log:Printf("TEST: lateInitializedVar now set to: %s", lateInitializedVar)
     
     log:Printf("TEST COMPLETE: The bug is that callbacks run BEFORE this line")
+    
+    if onComplete then onComplete() end
 end
 
 ---------------------------------------------------------------------------------------------------
