@@ -310,6 +310,62 @@ function Strain:InitUncheckDialog()
     end
 end
 
+function Strain.BuildUndoMessage(milestone)
+    local consequences = milestone and milestone.consequences
+    if not consequences then
+        return "This will undo the milestone."
+    end
+    
+    local parts = {}
+    
+    if consequences.fightingArt then
+        table.insert(parts, string.format(
+            "removes %s from the Fighting Arts deck",
+            consequences.fightingArt
+        ))
+    end
+    
+    if consequences.vermin then
+        table.insert(parts, string.format(
+            "removes %s from the Vermin deck",
+            consequences.vermin
+        ))
+    end
+    
+    if consequences.timelineEvent then
+        table.insert(parts, string.format(
+            "removes %s from the timeline",
+            consequences.timelineEvent.name
+        ))
+    end
+    
+    if consequences.trashSettlementEvent then
+        table.insert(parts, string.format(
+            "restores %s to the Settlement Events deck",
+            consequences.trashSettlementEvent
+        ))
+    end
+    
+    if consequences.addBasicResource then
+        table.insert(parts, string.format(
+            "removes %s from the Basic Resources deck",
+            consequences.addBasicResource
+        ))
+    end
+    
+    if #parts == 0 then
+        return "This will undo the milestone."
+    end
+    
+    local message = "This " .. table.concat(parts, " and ") .. "."
+    
+    if consequences.fightingArt then
+        message = message .. " Remove it from any survivor who gained it."
+    end
+    
+    return message
+end
+
 function Strain:ShowUncheckDialog(milestone)
     if not Strain.uncheckDialog then
         return
@@ -318,18 +374,8 @@ function Strain:ShowUncheckDialog(milestone)
     if Strain.uncheckTitleText then
         Strain.uncheckTitleText:SetText(string.format("Undo: %s", title))
     end
-    local artName = milestone and milestone.consequences and milestone.consequences.fightingArt
-    if artName then
-        Strain.uncheckMessage:SetText(string.format(
-            "This removes %s from the Fighting Arts deck. Remove it from any survivor who gained it.",
-            artName
-        ))
-    else
-        Strain.uncheckMessage:SetText(string.format(
-            "This removes the fighting art unlocked by \"%s\" from the settlement deck. Remove it from any survivor who gained it.",
-            title
-        ))
-    end
+    local message = Strain.BuildUndoMessage(milestone)
+    Strain.uncheckMessage:SetText(message)
     Strain.uncheckDialog:ShowForAll()
 end
 
@@ -851,6 +897,7 @@ return {
     MILESTONE_CARDS = Strain.MILESTONE_CARDS,
     ComputeConsequenceChanges = Strain.ComputeConsequenceChanges,
     FindMilestone = Strain.FindMilestone,
+    BuildUndoMessage = Strain.BuildUndoMessage,
     Test = {
         _TakeRewardCard = Strain._TakeRewardCard,
         SetReachedMilestones = Strain.Test_SetReachedMilestones,

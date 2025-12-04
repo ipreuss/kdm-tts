@@ -1360,3 +1360,124 @@ Test.test("Strain.ComputeConsequenceChanges: extracts addBasicResource", functio
         package.loaded["Kdm/Strain"] = nil
     end)
 end)
+
+
+---------------------------------------------------------------------------------------------------
+-- BuildUndoMessage Tests
+---------------------------------------------------------------------------------------------------
+
+Test.test("BuildUndoMessage: fighting art only", function(t)
+    local stubs = buildStrainStubs()
+    
+    withStubs(stubs, function()
+        package.loaded["Kdm/Strain"] = nil
+        local Strain = require("Kdm/Strain")
+        
+        local milestone = {
+            title = "Test",
+            consequences = { fightingArt = "Test Art" },
+        }
+        local message = Strain.BuildUndoMessage(milestone)
+        t:assertContains(message, "removes Test Art from the Fighting Arts deck")
+        t:assertContains(message, "Remove it from any survivor")
+        
+        package.loaded["Kdm/Strain"] = nil
+    end)
+end)
+
+Test.test("BuildUndoMessage: Atmospheric Change (no fighting art)", function(t)
+    local stubs = buildStrainStubs()
+    
+    withStubs(stubs, function()
+        package.loaded["Kdm/Strain"] = nil
+        local Strain = require("Kdm/Strain")
+        
+        local milestone = {
+            title = "Atmospheric Change",
+            consequences = {
+                trashSettlementEvent = "Heat Wave",
+                addBasicResource = "Lump of Atnas",
+            },
+        }
+        local message = Strain.BuildUndoMessage(milestone)
+        t:assertContains(message, "restores Heat Wave to the Settlement Events deck")
+        t:assertContains(message, "removes Lump of Atnas from the Basic Resources deck")
+        t:assertNotContains(message, "fighting art")
+        t:assertNotContains(message, "survivor")
+        
+        package.loaded["Kdm/Strain"] = nil
+    end)
+end)
+
+Test.test("BuildUndoMessage: fighting art + vermin (Ashen Claw)", function(t)
+    local stubs = buildStrainStubs()
+    
+    withStubs(stubs, function()
+        package.loaded["Kdm/Strain"] = nil
+        local Strain = require("Kdm/Strain")
+        
+        local milestone = {
+            title = "Ashen Claw Strain",
+            consequences = {
+                fightingArt = "Armored Fist",
+                vermin = "Fiddler Crab Spider",
+            },
+        }
+        local message = Strain.BuildUndoMessage(milestone)
+        t:assertContains(message, "removes Armored Fist from the Fighting Arts deck")
+        t:assertContains(message, "removes Fiddler Crab Spider from the Vermin deck")
+        
+        package.loaded["Kdm/Strain"] = nil
+    end)
+end)
+
+Test.test("BuildUndoMessage: fighting art + timeline event (Sweat Stained Oath)", function(t)
+    local stubs = buildStrainStubs()
+    
+    withStubs(stubs, function()
+        package.loaded["Kdm/Strain"] = nil
+        local Strain = require("Kdm/Strain")
+        
+        local milestone = {
+            title = "Sweat Stained Oath",
+            consequences = {
+                fightingArt = "Sword Oath",
+                timelineEvent = { name = "Acid Storm", type = "SettlementEvent", offset = 1 },
+            },
+        }
+        local message = Strain.BuildUndoMessage(milestone)
+        t:assertContains(message, "removes Sword Oath from the Fighting Arts deck")
+        t:assertContains(message, "removes Acid Storm from the timeline")
+        
+        package.loaded["Kdm/Strain"] = nil
+    end)
+end)
+
+Test.test("BuildUndoMessage: nil milestone", function(t)
+    local stubs = buildStrainStubs()
+    
+    withStubs(stubs, function()
+        package.loaded["Kdm/Strain"] = nil
+        local Strain = require("Kdm/Strain")
+        
+        local message = Strain.BuildUndoMessage(nil)
+        t:assertEqual("This will undo the milestone.", message)
+        
+        package.loaded["Kdm/Strain"] = nil
+    end)
+end)
+
+Test.test("BuildUndoMessage: empty consequences", function(t)
+    local stubs = buildStrainStubs()
+    
+    withStubs(stubs, function()
+        package.loaded["Kdm/Strain"] = nil
+        local Strain = require("Kdm/Strain")
+        
+        local milestone = { title = "Test", consequences = {} }
+        local message = Strain.BuildUndoMessage(milestone)
+        t:assertEqual("This will undo the milestone.", message)
+        
+        package.loaded["Kdm/Strain"] = nil
+    end)
+end)
