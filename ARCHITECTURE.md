@@ -305,6 +305,20 @@ We keep a running list of refactors that surfaced during reviews so the insights
    - **Reference**: "Working Effectively with Legacy Code" by Michael Feathers (seams pattern)
    - **Remaining work**: Wrap `Physics.cast` in TTSSpawner for full testability (low priority)
 
+4. **Strain module SOLID violations** *(Identified: 2025-12-03)*
+   - **Problem**: `Strain.ttslua` mixes UI management, state persistence, and consequence execution. Tests require 460+ lines of stubs that duplicate production logic.
+   - **Symptoms**:
+     - Tests break when implementation changes (testing implementation, not behavior)
+     - Stubs must reimplement `Archive.TakeFromDeck` logic
+     - No clear boundary between business logic and TTS interaction
+   - **Suggested Solution**:
+     - Extract `ConsequenceExecutor` module for orchestration (DIP + SRP)
+     - Split into `StrainState.ttslua` (pure state) + `StrainUi.ttslua` (UI) + `Strain.ttslua` (facade)
+     - Add dependency injection to `Strain.Init(saveState, deps)`
+   - **Benefit**: Tests inject simple fakes without `package.loaded` manipulation; reduces test maintenance
+   - **Priority**: P3 — Current design works; prefer acceptance tests for new features
+   - **Reference**: Code review 2025-12-03
+
 When touching any of these areas, try to land at least one of the above improvements (Boy Scout Rule), and update this section if new opportunities are identified.
 
 ## Appendix: Frequently Referenced Files

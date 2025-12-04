@@ -220,6 +220,41 @@ If breaking the mod doesn't break the test, the test is worthless.
 
 ---
 
+## Known Gaps
+
+### `TestWorld:startNewCampaign()` Does Not Exercise `Campaign.AddStrainRewards()`
+
+**Issue:** The current implementation calls real `Campaign.CalculateStrainRewards()` but then manually applies rewards to environment state instead of calling `Campaign.AddStrainRewards()`.
+
+```lua
+-- Current (incomplete):
+function TestWorld:startNewCampaign()
+    local rewards = self._campaignModule.CalculateStrainRewards(...)
+    -- Manually applies rewards to env — does NOT call AddStrainRewards()
+    for _, art in ipairs(rewards.fightingArts or {}) do
+        table.insert(self._env.fightingArtsAdded, art)
+    end
+end
+```
+
+**Impact:** If `Campaign.AddStrainRewards()` has bugs (wrong order, missing null checks, incorrect archive calls), the acceptance tests won't catch them.
+
+**Recommended Fix:** Call real `AddStrainRewards()` with archive stubs intercepting the calls:
+
+```lua
+-- Better (exercises full code path):
+function TestWorld:startNewCampaign()
+    -- Set up Strain.Save() to return current milestones
+    self._strainModule.Test.SetReachedMilestones(self._milestones)
+    -- Call REAL Campaign code
+    self._campaignModule.AddStrainRewards()
+end
+```
+
+**Status:** Documented gap; fix deferred. Current tests still verify calculation logic correctly.
+
+---
+
 ## File Organization
 
 ```
