@@ -29,6 +29,7 @@ local testFiles = {
     "tests.vermin_archive_test",
     "tests.basic_resources_archive_test",
     "tests.layoutmanager_test",
+    "tests.consequence_applicator_test",
     "tests.acceptance.walking_skeleton_test",
     "tests.acceptance.strain_acceptance_test",
 }
