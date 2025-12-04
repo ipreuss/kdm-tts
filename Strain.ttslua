@@ -30,6 +30,13 @@ Strain.FIGHTING_ART_TYPE = FightingArtsArchive.FIGHTING_ART_TYPE
 Strain.FIGHTING_ART_LOCATION = FightingArtsArchive.FIGHTING_ART_LOCATION
 Strain.FIGHTING_ART_ARCHIVE = FightingArtsArchive.FIGHTING_ART_ARCHIVE
 
+-- Core deck names for spawning disorder/injury/resource cards
+-- These cards already exist in their respective Core decks and just need to be spawned
+Strain.CORE_DISORDERS_DECK = "Core Disorders"
+Strain.CORE_SEVERE_INJURIES_DECK = "Core Severe Injuries"
+Strain.CORE_STRANGE_RESOURCES_DECK = "Core Strange Resources"
+Strain.CORE_DECK_STAGING_POSITION = { x = -150, y = 15, z = 110 }
+
 Strain.TITLE_HEIGHT = 26
 Strain.CONDITION_HEIGHT = 70
 Strain.ROW_PADDING = 24
@@ -445,52 +452,52 @@ end
 function Strain:SpawnDisorder(cardName)
     local position = Strain:_ResolveSpawnPosition({ location = Strain.REWARD_SPAWN_LOCATION })
     Archive.TakeFromDeck({
-        deckName = "Core Disorders",
+        deckName = Strain.CORE_DISORDERS_DECK,
         deckType = "Disorders",
-        deckStagingPosition = { x = -150, y = 15, z = 110 },
+        deckStagingPosition = Strain.CORE_DECK_STAGING_POSITION,
         name = cardName,
         cardType = "Disorders",
         position = position,
         rotation = { x = 0, y = 180, z = 0 },
         spawnFunc = function()
             log:Printf("Spawned %s near the showdown board. Give this card to the triggering survivor.", cardName)
+            Archive.Clean()
         end,
     })
-    -- Note: Archive.TakeFromDeck already calls Archive.Clean() internally
 end
 
 function Strain:SpawnSevereInjury(cardName)
     local position = Strain:_ResolveSpawnPosition({ location = Strain.REWARD_SPAWN_LOCATION })
     Archive.TakeFromDeck({
-        deckName = "Core Severe Injuries",
+        deckName = Strain.CORE_SEVERE_INJURIES_DECK,
         deckType = "Severe Injuries",
-        deckStagingPosition = { x = -150, y = 15, z = 110 },
+        deckStagingPosition = Strain.CORE_DECK_STAGING_POSITION,
         name = cardName,
         cardType = "Severe Injuries",
         position = position,
         rotation = { x = 0, y = 180, z = 0 },
         spawnFunc = function()
             log:Printf("Spawned %s near the showdown board. Give this card to the triggering survivor.", cardName)
+            Archive.Clean()
         end,
     })
-    -- Note: Archive.TakeFromDeck already calls Archive.Clean() internally
 end
 
 function Strain:SpawnStrangeResource(cardName)
     local position = Strain:_ResolveSpawnPosition({ location = Strain.REWARD_SPAWN_LOCATION })
     Archive.TakeFromDeck({
-        deckName = "Core Strange Resources",
+        deckName = Strain.CORE_STRANGE_RESOURCES_DECK,
         deckType = "Strange Resources",
-        deckStagingPosition = { x = -150, y = 15, z = 110 },
+        deckStagingPosition = Strain.CORE_DECK_STAGING_POSITION,
         name = cardName,
         cardType = "Strange Resources",
         position = position,
         rotation = { x = 0, y = 180, z = 0 },
         spawnFunc = function()
             log:Printf("Spawned %s near the showdown board. Add to settlement storage.", cardName)
+            Archive.Clean()
         end,
     })
-    -- Note: Archive.TakeFromDeck already calls Archive.Clean() internally
 end
 
 function Strain:_ResolveSpawnPosition(params)
