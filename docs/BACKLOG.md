@@ -13,7 +13,8 @@ This backlog captures feature ideas and improvements for future consideration. I
 | 2 | Strain Milestones | Add "Atmospheric Change" strain milestone | P1 | Done | Completed 2025-12-04; all acceptance tests passing |
 | 3 | Strain Milestones | Fix undo dialog text for non-fighting-art milestones | P1 | Done | Completed 2025-12-04; `BuildUndoMessage()` generates dynamic text based on actual consequences |
 | 4 | Code Quality | Strain module SOLID refactoring | P3 | New | Extract ConsequenceExecutor, separate StrainState/StrainUi, add dependency injection. Reduces test complexity. See code review 2025-12-03. |
-| 5 | Testing | Acceptance tests should exercise ExecuteConsequences/ReverseConsequences | P2 | Ready | Currently TestWorld calls `ComputeConsequenceChanges()` then manually applies results, bypassing archive interactions. Add test seams to verify `FightingArtsArchive.AddCard()`, `Timeline.ScheduleEvent()`, etc. are called correctly. See `docs/ACCEPTANCE_TESTING_GUIDELINES.md` Known Gaps. |
+| 5 | Testing | Acceptance tests should exercise ExecuteConsequences/ReverseConsequences (Phase 1) | P2 | In Progress | Make `startNewCampaign()` call real `AddStrainRewards()`, simplify `deckContains()` to spy-only queries. See `handover/HANDOVER_IMPLEMENTER.md`. |
+| 6 | Code Quality | Extract ConsequenceApplicator module (Phase 2) | P3 | New | `Campaign.AddStrainRewards()` and `Strain.ExecuteConsequences()` duplicate archive interaction logic. Extract shared `ConsequenceApplicator` module with methods like `ApplyFightingArt()`, `ApplyVermin()`, `TrashSettlementEvent()`. Improves testability and reduces duplication. Depends on Item #5 completion. |
 
 ## Epics
 

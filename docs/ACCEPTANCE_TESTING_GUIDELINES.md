@@ -226,32 +226,29 @@ If breaking the mod doesn't break the test, the test is worthless.
 
 **Issue:** The current implementation calls real `Campaign.CalculateStrainRewards()` but then manually applies rewards to environment state instead of calling `Campaign.AddStrainRewards()`.
 
-```lua
--- Current (incomplete):
-function TestWorld:startNewCampaign()
-    local rewards = self._campaignModule.CalculateStrainRewards(...)
-    -- Manually applies rewards to env — does NOT call AddStrainRewards()
-    for _, art in ipairs(rewards.fightingArts or {}) do
-        table.insert(self._env.fightingArtsAdded, art)
-    end
-end
-```
-
 **Impact:** If `Campaign.AddStrainRewards()` has bugs (wrong order, missing null checks, incorrect archive calls), the acceptance tests won't catch them.
 
-**Recommended Fix:** Call real `AddStrainRewards()` with archive stubs intercepting the calls:
+**Status:** Being addressed in Backlog Item #5 (Phase 1). See `handover/HANDOVER_IMPLEMENTER.md`.
+
+**Recommended Fix:** Call real `AddStrainRewards()` with archive spies intercepting the calls:
 
 ```lua
--- Better (exercises full code path):
 function TestWorld:startNewCampaign()
-    -- Set up Strain.Save() to return current milestones
     self._strainModule.Test.SetReachedMilestones(self._milestones)
-    -- Call REAL Campaign code
-    self._campaignModule.AddStrainRewards()
+    self._campaignModule.AddStrainRewards()  -- Real code, spies capture calls
 end
 ```
 
-**Status:** Documented gap; fix deferred. Current tests still verify calculation logic correctly.
+### Code Duplication: `ExecuteConsequences` vs `AddStrainRewards`
+
+**Issue:** `Strain:ExecuteConsequences()` and `Campaign.AddStrainRewards()` both contain similar archive interaction logic (calling `FightingArtsArchive.AddCard()`, `VerminArchive.AddCard()`, etc.).
+
+**Impact:** 
+- Bugs fixed in one place may not be fixed in the other
+- Test coverage must verify both code paths separately
+- Increases maintenance burden
+
+**Status:** Documented as Backlog Item #6 (Phase 2). Extract shared `ConsequenceApplicator` module.
 
 ---
 
@@ -262,6 +259,7 @@ tests/acceptance/
 ├── test_world.lua              # TestWorld facade
 ├── tts_environment.lua         # TTS stub management
 ├── test_tts_adapter.lua        # Fake TTS adapter for tracking
+├── archive_spy.lua             # Archive module spies for verification
 ├── walking_skeleton_test.lua   # Infrastructure proof
 ├── strain_acceptance_test.lua  # Strain milestone scenarios
 └── campaign_setup_test.lua     # Campaign scenarios (future)

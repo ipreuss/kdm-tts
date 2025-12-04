@@ -4,6 +4,36 @@ This document covers testing infrastructure, patterns, and strategies for the KD
 
 ---
 
+## Test Strategy Overview
+
+We aim for **outstanding test quality**, not merely acceptable. Investing in tests saves significant debugging time later.
+
+### Testing Layers
+
+| Layer | Purpose | Tools | Speed |
+|-------|---------|-------|-------|
+| **Unit Tests** | Test pure business logic in isolation | `tests/framework.lua`, stubs | ~2 seconds |
+| **Integration Tests** | Verify cross-module interactions | TTSSpawner seam, module stubs | ~2 seconds |
+| **Acceptance Tests** | Verify user-visible behavior end-to-end | `TestWorld`, `ArchiveSpy` | ~2 seconds |
+| **TTS Console Tests** | Verify TTS environment interactions | `>teststrain`, `>testatmospheric` | Manual, ~1 min each |
+
+### Core Principles
+
+1. **Headless tests are strongly preferred** — They run in seconds, can run in CI, and catch bugs before TTS launch
+2. **TTS console tests when headless impossible** — Automated `>teststrain` style tests are preferred over manual verification
+3. **Manual testing is strongly discouraged** — Document manual test steps only when automated TTS tests are also impossible
+4. **Tests must exercise real production code** — Never reimplement business logic in test helpers
+5. **Spy pattern over manual state** — Use spies to intercept and verify calls, not manual state tracking
+6. **Test outcomes, not mechanisms** — Verify what users see, not internal implementation details
+
+### Test Quality Bar
+
+- **All code paths through spies** — If `confirmMilestone()` goes through spies, so should `startNewCampaign()`
+- **Simple test helpers** — If `deckContains()` has complex edge-case handling, it's a code smell
+- **Breaking production code must fail tests** — Verify by temporarily breaking code and confirming test failure
+
+---
+
 ## Running Tests
 
 ```bash

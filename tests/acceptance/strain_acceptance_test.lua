@@ -101,8 +101,7 @@ Test.test("ACCEPTANCE: at most 5 strain fighting arts added to new campaign", fu
     world:startNewCampaign()
     
     -- Only 5 fighting arts should be added (randomly selected)
-    local deck = world:fightingArtsDeck()
-    t:assertEqual(5, #deck, "Should have exactly 5 strain fighting arts")
+    t:assertEqual(5, world:fightingArtsCount(), "Should have exactly 5 strain fighting arts")
     
     world:destroy()
 end)

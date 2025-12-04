@@ -119,6 +119,10 @@ function ArchiveSpy:fightingArtAdded(cardName)
     return false
 end
 
+function ArchiveSpy:fightingArtsAddedCount()
+    return #self._calls.fightingArtsAdd
+end
+
 function ArchiveSpy:fightingArtRemoved(cardName)
     for _, call in ipairs(self._calls.fightingArtsRemove) do
         if call.card == cardName then return true end

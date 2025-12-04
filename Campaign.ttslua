@@ -1298,6 +1298,7 @@ return {
     IsUiOpen = Campaign.IsUiOpen,
     Campaign = function() return Campaign.campaign end,
     CalculateStrainRewards = Campaign.CalculateStrainRewards,
+    AddStrainRewards = Campaign.AddStrainRewards,
     _test = {
         SetupSettlementEventsDeck = Campaign.SetupSettlementEventsDeck,
         Import = Campaign.Import,

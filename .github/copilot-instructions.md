@@ -72,15 +72,28 @@ lua tests/run.lua
 - **Test helpers:** Place under `Module._test` table or `Module.Test`
 - **Comments:** Explain "why" not "what"; prefer self-documenting code
 
-## Testing Patterns
+## Testing Strategy
 
-1. **TTSSpawner seam:** Modules with TTS API calls use `Util/TTSSpawner.ttslua` for testability. Inject fake spawner via `Module.Test_SetSpawner()`.
+We aim for **outstanding test quality** — investment in tests saves significant debugging time.
 
-2. **Check test mode:** Tests enable `Check.Test_SetTestMode(true)` so table stubs pass userdata checks.
+### Principles
+1. **Headless tests strongly preferred** — Run in seconds, catch bugs before TTS launch
+2. **TTS console tests when headless impossible** — Automated `>teststrain` style tests over manual verification
+3. **Manual testing strongly discouraged** — Only when automated TTS tests are also impossible
+4. **Tests must exercise real production code** — Never reimplement logic in test helpers
+5. **Spy pattern over manual state** — Intercept and verify calls, don't track state manually
+6. **All code paths through spies** — Consistent verification across all test scenarios
 
-3. **Stub order matters:** Install stubs in `package.loaded` BEFORE requiring modules (Lua caches at load time).
+### Patterns
+1. **TTSSpawner seam:** Modules with TTS API calls use `Util/TTSSpawner.ttslua`. Inject fake spawner via `Module.Test_SetSpawner()`.
+2. **Archive spy:** Acceptance tests use `tests/acceptance/archive_spy.lua` to intercept archive module calls.
+3. **Check test mode:** Tests enable `Check.Test_SetTestMode(true)` so table stubs pass userdata checks.
+4. **Stub order matters:** Install stubs in `package.loaded` BEFORE requiring modules (Lua caches at load time).
 
-4. **Integration tests:** Exercise real module logic, stub only TTS environment layer.
+### Quality Bar
+- Breaking production code must fail tests — verify by temporarily breaking code
+- Test helpers should be simple — complex helpers indicate design issues
+- `deckContains()` should be <15 lines with no edge-case handling
 
 ## Common Pitfalls
 
@@ -91,6 +104,7 @@ lua tests/run.lua
 | Card not found in archive | Verify exact `Nickname` and `GMNotes` in `savefile_backup.json` |
 | UI dialog wrong size | Pre-calculate height with `LayoutManager.Specification()` before creation |
 | Stray cards after deck ops | Call `card.destruct()` after `deck.putObject(card)` — putObject copies, not moves |
+| Complex test helpers | Code smell — simplify production code to improve testability |
 
 ## Workflow Requirements
 

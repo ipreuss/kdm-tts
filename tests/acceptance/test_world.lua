@@ -20,10 +20,8 @@ function TestWorld.create()
         _env = nil,
         _milestones = {},
         _strainModule = nil,
-        _decks = {},
+        _campaignModule = nil,
         _currentYear = 1,
-        _timeline = {},
-        _trashedSettlementEvents = {},
     }
     setmetatable(world, { __index = TestWorld })
     
@@ -123,6 +121,14 @@ function TestWorld:uncheckMilestone(title)
     return true
 end
 
+function TestWorld:startNewCampaign()
+    -- Set up Strain state so Campaign.AddStrainRewards reads correct milestones
+    self._strainModule.Test.SetReachedMilestones(self._milestones)
+    
+    -- Call REAL Campaign.AddStrainRewards (archive calls go to spies)
+    self._campaignModule.AddStrainRewards()
+end
+
 ---------------------------------------------------------------------------------------------------
 -- State Inspection
 ---------------------------------------------------------------------------------------------------
@@ -133,10 +139,6 @@ end
 
 function TestWorld:advanceToYear(year)
     self._currentYear = year
-end
-
-function TestWorld:timeline()
-    return self._timeline
 end
 
 function TestWorld:timelineContains(year, eventName)
@@ -156,136 +158,38 @@ function TestWorld:milestoneReward(title)
 end
 
 function TestWorld:settlementEventTrashed(cardName)
-    -- Check spy: trashed AND NOT restored (via trashRemove)
-    local trashed = self._archiveSpy:trashAdded(cardName)
-    local restored = self._archiveSpy:trashRemoved(cardName)
-    if trashed and not restored then
-        return true
-    end
-    -- Also check local state for startNewCampaign
-    return self._trashedSettlementEvents[cardName] == true
-end
-
----------------------------------------------------------------------------------------------------
--- Campaign Actions
----------------------------------------------------------------------------------------------------
-
-function TestWorld:startNewCampaign()
-    -- Build list of reached milestones
-    local reached = {}
-    for title, _ in pairs(self._milestones) do
-        reached[title] = true
-    end
-    
-    -- Call REAL Campaign logic to calculate rewards
-    local rewards = self._campaignModule.CalculateStrainRewards(
-        reached,
-        self._strainModule.MILESTONE_CARDS
-    )
-    
-    -- Track in deck state
-    self._decks = self._decks or {}
-    self._decks["Fighting Arts"] = rewards.fightingArts or {}
-    self._decks["Vermin"] = rewards.vermin or {}
-    
-    -- Apply trashed settlement events
-    for _, cardName in ipairs(rewards.trashSettlementEvents or {}) do
-        self._trashedSettlementEvents[cardName] = true
-    end
-    
-    -- Apply added basic resources
-    self._decks["Basic Resources"] = self._decks["Basic Resources"] or {}
-    for _, cardName in ipairs(rewards.addBasicResources or {}) do
-        table.insert(self._decks["Basic Resources"], cardName)
-    end
+    return self._archiveSpy:trashAdded(cardName)
+       and not self._archiveSpy:trashRemoved(cardName)
 end
 
 function TestWorld:fightingArtsDeck()
-    -- Return local deck for count operations (startNewCampaign populates this)
-    return self._decks and self._decks["Fighting Arts"] or {}
+    return "Fighting Arts"
+end
+
+function TestWorld:fightingArtsCount()
+    return self._archiveSpy:fightingArtsAddedCount()
 end
 
 function TestWorld:verminDeck()
-    -- Return local deck for count operations
-    return self._decks and self._decks["Vermin"] or {}
-end
-
-function TestWorld:deckContains(deck, cardName)
-    -- Determine which deck we're checking
-    local deckName = nil
-    
-    -- Get actual deck references for comparison
-    local faDeck = self._decks and self._decks["Fighting Arts"]
-    local vDeck = self._decks and self._decks["Vermin"]
-    local brDeck = self._decks and self._decks["Basic Resources"]
-    
-    if type(deck) == "string" then
-        deckName = deck
-    elseif faDeck and deck == faDeck then
-        deckName = "Fighting Arts"
-    elseif vDeck and deck == vDeck then
-        deckName = "Vermin"
-    elseif brDeck and deck == brDeck then
-        deckName = "Basic Resources"
-    elseif type(deck) == "table" and #deck == 0 then
-        -- Empty table passed - could be any deck, check all spies
-        -- This handles the case where fightingArtsDeck() returns {} because _decks is empty
-        if self._archiveSpy:fightingArtAdded(cardName) and not self._archiveSpy:fightingArtRemoved(cardName) then
-            return true
-        end
-        if self._archiveSpy:verminAdded(cardName) and not self._archiveSpy:verminRemoved(cardName) then
-            return true
-        end
-        if self._archiveSpy:basicResourceAdded(cardName) and not self._archiveSpy:basicResourceRemoved(cardName) then
-            return true
-        end
-        return false
-    end
-    
-    if deckName == "Fighting Arts" then
-        if self._archiveSpy:fightingArtAdded(cardName) and not self._archiveSpy:fightingArtRemoved(cardName) then
-            return true
-        end
-        local localDeck = self._decks and self._decks["Fighting Arts"] or {}
-        for _, card in ipairs(localDeck) do
-            if card == cardName then return true end
-        end
-        return false
-    end
-    if deckName == "Vermin" then
-        if self._archiveSpy:verminAdded(cardName) and not self._archiveSpy:verminRemoved(cardName) then
-            return true
-        end
-        local localDeck = self._decks and self._decks["Vermin"] or {}
-        for _, card in ipairs(localDeck) do
-            if card == cardName then return true end
-        end
-        return false
-    end
-    if deckName == "Basic Resources" then
-        if self._archiveSpy:basicResourceAdded(cardName) and not self._archiveSpy:basicResourceRemoved(cardName) then
-            return true
-        end
-        local localDeck = self._decks and self._decks["Basic Resources"] or {}
-        for _, card in ipairs(localDeck) do
-            if card == cardName then return true end
-        end
-        return false
-    end
-    
-    -- Legacy: array-based deck iteration (for non-empty tables)
-    if type(deck) == "table" then
-        for _, card in ipairs(deck) do
-            if card == cardName then
-                return true
-            end
-        end
-    end
-    return false
+    return "Vermin"
 end
 
 function TestWorld:basicResourcesDeck()
-    return self._decks and self._decks["Basic Resources"] or {}
+    return "Basic Resources"
+end
+
+function TestWorld:deckContains(deck, cardName)
+    if deck == "Fighting Arts" then
+        return self._archiveSpy:fightingArtAdded(cardName)
+           and not self._archiveSpy:fightingArtRemoved(cardName)
+    elseif deck == "Vermin" then
+        return self._archiveSpy:verminAdded(cardName)
+           and not self._archiveSpy:verminRemoved(cardName)
+    elseif deck == "Basic Resources" then
+        return self._archiveSpy:basicResourceAdded(cardName)
+           and not self._archiveSpy:basicResourceRemoved(cardName)
+    end
+    return false
 end
 
 return TestWorld
