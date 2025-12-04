@@ -55,10 +55,11 @@ local StrainMilestones = {
         rulesText = [[Permanently add the <b>Shielderang</b> fighting art to your fighting art deck. The newborn survivor gains the <b>Shielderang</b> fighting art, 3 levels of <b>Shield</b> weapon proficiency, and the <b>Weak Spot</b> disorder at the body hit location.]],
         consequences = {
             fightingArt = "Shielderang",
+            disorder = "Weak Spot",
             manual = {
                 "Give the spawned Shielderang card to the newborn survivor",
                 "The newborn survivor gains 3 levels of Shield weapon proficiency",
-                "The newborn survivor gains the Weak Spot disorder at the body hit location"
+                "Give the spawned Weak Spot disorder to the newborn survivor (body hit location)"
             },
         },
     },
@@ -93,9 +94,10 @@ local StrainMilestones = {
         rulesText = [[Permanently add the <b>Convalescer</b> fighting art to your fighting art deck. The survivor gains the <b>Convalescer</b> fighting art.]],
         consequences = {
             fightingArt = "Convalescer",
+            severeInjury = "blind",
             manual = {
                 "Give the spawned Convalescer card to the survivor with Ocular Parasites",
-                "The survivor suffers the blind severe head injury"
+                "Give the spawned blind injury to the survivor (head hit location)"
             },
         },
     },
@@ -160,9 +162,10 @@ local StrainMilestones = {
         rulesText = [[The next time a survivor would remember a <b>White Secret</b> story, they recall the words recited under her breath instead. Permanently add the <b>Story of Blood</b> fighting art to your fighting art deck. That survivor gains the <b>Story of Blood</b> fighting art.]],
         consequences = {
             fightingArt = "Story of Blood",
+            strangeResource = "Iron",
             manual = {
-                "Add 1 Iron strange resource to the settlement storage",
-                "NOTE: The next survivor to remember a White Secret story gains the Story of Blood fighting art (not immediate)"
+                "Add the spawned Iron to settlement storage",
+                "NOTE: The next survivor to remember a White Secret story gains Story of Blood (not immediate)"
             },
         },
     },

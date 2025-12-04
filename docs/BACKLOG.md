@@ -9,11 +9,12 @@ This backlog captures feature ideas and improvements for future consideration. I
 
 | ID | Area | Description | Priority | Status | Notes |
 |----|------|-------------|----------|--------|-------|
-| 1 | Strain Milestones | Auto-spawn disorder, injury, and strange resource cards (like fighting arts) instead of requiring manual search | — | New | Currently these are manual steps shown in confirmation dialog; spawning cards would improve UX consistency |
+| 1 | Strain Milestones | Auto-spawn disorder, injury, and strange resource cards (like fighting arts) instead of requiring manual search | P2 | In Progress | Currently these are manual steps shown in confirmation dialog; spawning cards would improve UX consistency |
 | 2 | Strain Milestones | Add "Atmospheric Change" strain milestone | P1 | Done | Completed 2025-12-04; all acceptance tests passing |
 | 3 | Strain Milestones | Fix undo dialog text for non-fighting-art milestones | P1 | Done | Completed 2025-12-04; `BuildUndoMessage()` generates dynamic text based on actual consequences |
 | 4 | Code Quality | Strain module SOLID refactoring | P2 | Done | Completed 2025-12-04; extracted `ConsequenceApplicator` module (110 lines, 10 methods). Both `Strain` and `Campaign` now delegate to it. Code duplication eliminated. |
 | 5 | Testing | Acceptance tests should exercise ExecuteConsequences/ReverseConsequences (Phase 1) | P2 | Done | Completed 2025-12-04; `startNewCampaign()` calls real `AddStrainRewards()`, `deckContains()` simplified to spy-only queries (~12 lines). All code paths now go through spies. |
+| 6 | Gear | Pattern gear implementation | P1 | New | High priority — details TBD |
 
 ## Epics
 

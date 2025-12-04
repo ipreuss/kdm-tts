@@ -1,6 +1,9 @@
 local FightingArtsArchive = require("Kdm/FightingArtsArchive")
 local VerminArchive = require("Kdm/VerminArchive")
 local BasicResourcesArchive = require("Kdm/BasicResourcesArchive")
+local DisordersArchive = require("Kdm/DisordersArchive")
+local SevereInjuriesArchive = require("Kdm/SevereInjuriesArchive")
+local StrangeResourcesArchive = require("Kdm/StrangeResourcesArchive")
 local Trash = require("Kdm/Trash")
 local Timeline = require("Kdm/Timeline")
 local log = require("Kdm/Log").ForModule("ConsequenceApplicator")
@@ -11,6 +14,9 @@ local _deps = {
     FightingArtsArchive = FightingArtsArchive,
     VerminArchive = VerminArchive,
     BasicResourcesArchive = BasicResourcesArchive,
+    DisordersArchive = DisordersArchive,
+    SevereInjuriesArchive = SevereInjuriesArchive,
+    StrangeResourcesArchive = StrangeResourcesArchive,
     Trash = Trash,
     Timeline = Timeline,
 }
@@ -24,6 +30,9 @@ function ConsequenceApplicator.ResetDeps()
         FightingArtsArchive = require("Kdm/FightingArtsArchive"),
         VerminArchive = require("Kdm/VerminArchive"),
         BasicResourcesArchive = require("Kdm/BasicResourcesArchive"),
+        DisordersArchive = require("Kdm/DisordersArchive"),
+        SevereInjuriesArchive = require("Kdm/SevereInjuriesArchive"),
+        StrangeResourcesArchive = require("Kdm/StrangeResourcesArchive"),
         Trash = require("Kdm/Trash"),
         Timeline = require("Kdm/Timeline"),
     }
@@ -62,6 +71,24 @@ end
 function ConsequenceApplicator.AddBasicResource(cardName)
     local ok = _deps.BasicResourcesArchive.AddCard(cardName)
     if not ok then log:Errorf("Failed to add %s to Basic Resources.", cardName) end
+    return ok
+end
+
+function ConsequenceApplicator.ApplyDisorder(cardName)
+    local ok = _deps.DisordersArchive.AddCard(cardName)
+    if not ok then log:Errorf("Failed to add %s to Disorders.", cardName) end
+    return ok
+end
+
+function ConsequenceApplicator.ApplySevereInjury(cardName)
+    local ok = _deps.SevereInjuriesArchive.AddCard(cardName)
+    if not ok then log:Errorf("Failed to add %s to Severe Injuries.", cardName) end
+    return ok
+end
+
+function ConsequenceApplicator.ApplyStrangeResource(cardName)
+    local ok = _deps.StrangeResourcesArchive.AddCard(cardName)
+    if not ok then log:Errorf("Failed to add %s to Strange Resources.", cardName) end
     return ok
 end
 
@@ -104,6 +131,24 @@ end
 function ConsequenceApplicator.RemoveBasicResource(cardName)
     local ok = _deps.BasicResourcesArchive.RemoveCard(cardName)
     if not ok then log:Errorf("Failed to remove %s from Basic Resources.", cardName) end
+    return ok
+end
+
+function ConsequenceApplicator.RemoveDisorder(cardName)
+    local ok = _deps.DisordersArchive.RemoveCard(cardName)
+    if not ok then log:Errorf("Failed to remove %s from Disorders.", cardName) end
+    return ok
+end
+
+function ConsequenceApplicator.RemoveSevereInjury(cardName)
+    local ok = _deps.SevereInjuriesArchive.RemoveCard(cardName)
+    if not ok then log:Errorf("Failed to remove %s from Severe Injuries.", cardName) end
+    return ok
+end
+
+function ConsequenceApplicator.RemoveStrangeResource(cardName)
+    local ok = _deps.StrangeResourcesArchive.RemoveCard(cardName)
+    if not ok then log:Errorf("Failed to remove %s from Strange Resources.", cardName) end
     return ok
 end
 

@@ -116,26 +116,34 @@ function Trash.RemoveCard(cardName, cardType, deckLocation)
         index = cardIndex,
         smooth = false,
     })
-    if card then
-        -- If deckLocation provided, move card back to deck; otherwise just destroy
-        if deckLocation then
-            local location = Location.Get(deckLocation)
-            if location then
-                local deck = location:FirstObject({ types = { cardType } })
-                if deck then
-                    deck.putObject(card)
-                    log:Printf("Restored %s to %s deck", cardName, deckLocation)
-                    return true
-                end
-            end
+    if not card then
+        log:Errorf("Failed to take %s from Trash", cardName)
+        return false
+    end
+
+    -- If deckLocation provided, restore card to deck
+    if deckLocation then
+        local location = Location.Get(deckLocation)
+        if not location then
+            log:Errorf("Failed to restore %s: Location '%s' not found", cardName, deckLocation)
+            trash.putObject(card)
+            return false
         end
-        -- Fallback: destroy the card (deck will be rebuilt from archive)
-        card.destruct()
-        log:Printf("Removed %s from Trash", cardName)
+        local deck = location:FirstObject({ types = { cardType } })
+        if not deck then
+            log:Errorf("Failed to restore %s: No %s deck found at '%s'", cardName, cardType, deckLocation)
+            trash.putObject(card)
+            return false
+        end
+        deck.putObject(card)
+        log:Printf("Restored %s to %s deck", cardName, deckLocation)
         return true
     end
 
-    return false
+    -- No deckLocation: just remove from trash (destroy)
+    card.destruct()
+    log:Printf("Removed %s from Trash", cardName)
+    return true
 end
 
 return Trash

@@ -198,6 +198,63 @@ card.destruct()  -- Destroy the original - putObject copied it
 
 ---
 
+## Archive.Clean() and Concurrent Async Operations
+
+**Problem**: `Archive.Clean()` destroys all spawned archive objects at staging positions. If multiple async operations are running concurrently, one operation's `Archive.Clean()` can destroy objects another operation still needs.
+
+**Symptoms**:
+- `<Unknown Error>` in async callback
+- Object reference becomes `null` between when it was captured and when callback fires
+- Error occurs "after everything completes" - actually occurs when delayed callback fires
+
+**Example - Plot Twist Milestone Bug (2024-12)**:
+```lua
+-- This code had a bug:
+function ExecuteConsequences(milestone)
+    -- Operation 1: Async - callback fires later
+    ApplyFightingArt(cardName, function()
+        SpawnFightingArtForSurvivor(cardName)  -- Uses Fighting Arts deck
+    end)
+    
+    -- Operation 2: Runs immediately, doesn't wait for Operation 1
+    SpawnStrangeResource("Iron")  -- Calls Archive.Clean()!
+    -- Archive.Clean() destroys Fighting Arts deck
+    -- Later, Operation 1's callback fires, but deck is null → <Unknown Error>
+end
+```
+
+**Root Cause**: `SpawnStrangeResource` → `Archive.TakeFromDeck` → `Archive.Clean()` destroyed the Fighting Arts deck while `ApplyFightingArt`'s async callback was still pending.
+
+**Solution**: Chain operations that use `Archive.Clean()` so they don't overlap:
+```lua
+function ExecuteConsequences(milestone)
+    if consequences.fightingArt then
+        ApplyFightingArt(cardName, function()
+            SpawnFightingArtForSurvivor(cardName)
+            -- Run other spawn operations AFTER fightingArt completes
+            if consequences.strangeResource then
+                SpawnStrangeResource(consequences.strangeResource)
+            end
+        end)
+    else
+        -- No fightingArt, safe to run immediately
+        if consequences.strangeResource then
+            SpawnStrangeResource(consequences.strangeResource)
+        end
+    end
+end
+```
+
+**Debugging approach**:
+1. Add logging to identify when async callbacks fire relative to other operations
+2. Log object references (`tostring(obj)`) - `null` indicates destroyed object
+3. Create a TTS test command (e.g., `>testplottwist`) to reproduce the issue consistently
+4. Trace which `Archive.Clean()` call destroys the needed object
+
+**Key insight**: The error message `<Unknown Error>` gives no indication of what object was destroyed or why. Granular logging showing object state (`params.target=null`) is essential for diagnosis.
+
+---
+
 ## CardCustom Type Triggers Import Dialog
 
 **Problem**: When putting a `CardCustom` type object (single custom card, not part of a deck) into a deck, TTS may show the "CUSTOM CARD" import dialog with empty URL fields.

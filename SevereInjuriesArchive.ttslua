@@ -1,0 +1,137 @@
+local Archive = require("Kdm/Archive")
+local NamedObject = require("Kdm/NamedObject")
+local Deck = require("Kdm/Deck")
+local StrainRewardsConstants = require("Kdm/StrainRewardsConstants")
+local log = require("Kdm/Log").ForModule("SevereInjuriesArchive")
+
+---------------------------------------------------------------------------------------------------
+
+local SevereInjuriesArchive = {}
+
+-- Import shared Strain Rewards constants
+SevereInjuriesArchive.REWARD_DECK_NAME = StrainRewardsConstants.REWARD_DECK_NAME
+SevereInjuriesArchive.REWARD_DECK_TYPE = StrainRewardsConstants.REWARD_DECK_TYPE
+SevereInjuriesArchive.REWARD_DECK_STAGING_POSITION = StrainRewardsConstants.REWARD_DECK_STAGING_POSITION
+
+-- Severe Injuries specific constants
+SevereInjuriesArchive.CARD_TYPE = "Severe Injuries"
+SevereInjuriesArchive.DECK_LOCATION = "Severe Injuries"
+SevereInjuriesArchive.ARCHIVE_NAME = "Severe Injuries Archive"
+
+---------------------------------------------------------------------------------------------------
+
+local function takeSevereInjuriesDeck()
+    local archive = NamedObject.Get(SevereInjuriesArchive.ARCHIVE_NAME)
+    if not archive then
+        log:Errorf("Severe Injuries archive '%s' not found.", SevereInjuriesArchive.ARCHIVE_NAME)
+        return nil, nil
+    end
+
+    local deck = archive.takeObject({
+        position = SevereInjuriesArchive.REWARD_DECK_STAGING_POSITION,
+        rotation = { x = 0, y = 180, z = 180 },
+        smooth = false,
+    })
+    if not deck then
+        log:Errorf("Unable to take Severe Injuries deck from archive.")
+        return nil, archive
+    end
+    return deck, archive
+end
+
+---------------------------------------------------------------------------------------------------
+
+function SevereInjuriesArchive.AddCard(cardName, onComplete)
+    local deck, archive = takeSevereInjuriesDeck()
+    if not deck then
+        return false
+    end
+
+    local strainDeck = Archive.Take({
+        name = SevereInjuriesArchive.REWARD_DECK_NAME,
+        type = SevereInjuriesArchive.REWARD_DECK_TYPE,
+        position = {
+            x = SevereInjuriesArchive.REWARD_DECK_STAGING_POSITION.x + 5,
+            y = SevereInjuriesArchive.REWARD_DECK_STAGING_POSITION.y,
+            z = SevereInjuriesArchive.REWARD_DECK_STAGING_POSITION.z,
+        },
+        rotation = { x = 0, y = 180, z = 180 },
+    })
+    if not strainDeck then
+        log:Errorf("Unable to take Strain Rewards deck from archive.")
+        if archive then
+            archive.putObject(deck)
+        end
+        Archive.Clean()
+        return false
+    end
+
+    local cardIndex
+    for _, obj in ipairs(strainDeck.getObjects()) do
+        if obj.name == cardName and obj.gm_notes == SevereInjuriesArchive.CARD_TYPE then
+            cardIndex = obj.index
+            break
+        end
+    end
+
+    if not cardIndex then
+        log:Errorf("Card '%s' not found in Strain Rewards deck.", cardName)
+        if archive then
+            archive.putObject(deck)
+        end
+        Archive.Clean()
+        return false
+    end
+
+    Archive.TransferCard({
+        source = strainDeck,
+        target = deck,
+        cardIndex = cardIndex,
+        archive = archive,
+        deckLocation = SevereInjuriesArchive.DECK_LOCATION,
+        logMessage = "Added " .. cardName .. " to the Severe Injuries deck.",
+        onComplete = onComplete,
+    })
+
+    return true
+end
+
+---------------------------------------------------------------------------------------------------
+
+function SevereInjuriesArchive.RemoveCard(cardName, onComplete)
+    local deck, archive = takeSevereInjuriesDeck()
+    if not deck then
+        return false
+    end
+
+    local removeIndex
+    for _, obj in ipairs(deck.getObjects()) do
+        if obj.name == cardName and obj.gm_notes == SevereInjuriesArchive.CARD_TYPE then
+            removeIndex = obj.index
+            break
+        end
+    end
+
+    if not removeIndex then
+        if archive then
+            archive.putObject(deck)
+        end
+        log:Debugf("%s not present in Severe Injuries deck.", cardName)
+        return false
+    end
+
+    Archive.RemoveAndDestroyCard({
+        deck = deck,
+        cardIndex = removeIndex,
+        archive = archive,
+        deckLocation = SevereInjuriesArchive.DECK_LOCATION,
+        logMessage = "Removed " .. cardName .. " from the Severe Injuries deck.",
+        onComplete = onComplete,
+    })
+
+    return true
+end
+
+---------------------------------------------------------------------------------------------------
+
+return SevereInjuriesArchive

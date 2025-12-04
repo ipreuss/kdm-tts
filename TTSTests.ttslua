@@ -10,6 +10,7 @@ local FightingArtsArchive = require("Kdm/FightingArtsArchive")
 local VerminArchive = require("Kdm/VerminArchive")
 local BasicResourcesArchive = require("Kdm/BasicResourcesArchive")
 local Trash = require("Kdm/Trash")
+local ConsequenceApplicator = require("Kdm/ConsequenceApplicator")
 local log = require("Kdm/Log").ForModule("TTSTests")
 
 ---------------------------------------------------------------------------------------------------
@@ -29,6 +30,8 @@ function TTSTests.Init()
         log:Printf("  >testatmospheric - Test Atmospheric Change milestone (archive/add)")
         log:Printf("  >testheatwaverestore - Test restoring Heat Wave from Trash to Settlement Events")
         log:Printf("  >testmilestone - Test full milestone execution (AddCard + SpawnForSurvivor)")
+        log:Printf("  >testplottwist - Test Plot Twist milestone (fightingArt + strangeResource)")
+        log:Printf("  >testconsequence - Test ConsequenceApplicator operations")
     end, "Show available TTS test commands")
     
     Console.AddCommand("testall", function(args)
@@ -40,6 +43,7 @@ function TTSTests.Init()
     TTSTests.RegisterAtmosphericTests()
     TTSTests.RegisterTrashRestoreTests()
     TTSTests.RegisterMilestoneTests()
+    TTSTests.RegisterConsequenceApplicatorTests()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -55,6 +59,7 @@ function TTSTests.RunAllTests()
         { name = "Card State Fallback (Story of Blood)", fn = function(onComplete) TTSTests.TestCardStateFallback("Story of Blood", nil, onComplete) end },
         { name = "DialogFromSpec Callback Timing", fn = function(onComplete) TTSTests.TestDialogFromSpecCallbackTiming(onComplete) end },
         { name = "Atmospheric Change (Heat Wave/Lump of Atnas)", fn = function(onComplete) TTSTests.TestAtmosphericChange(onComplete) end },
+        { name = "ConsequenceApplicator Operations", fn = function(onComplete) TTSTests.TestConsequenceApplicator(onComplete) end },
     }
     
     local currentTest = 1
@@ -437,13 +442,13 @@ function TTSTests.TestAtmosphericChange(onComplete)
         end
         
         Wait.frames(function()
-            -- Step 3: Undo - remove Heat Wave from Trash
-            log:Printf("TEST: Step 3 (Undo) - Removing 'Heat Wave' from Trash...")
-            local restoreResult = Trash.RemoveCard("Heat Wave", "Settlement Events")
+            -- Step 3: Undo - restore Heat Wave from Trash to Settlement Events deck
+            log:Printf("TEST: Step 3 (Undo) - Restoring 'Heat Wave' to Settlement Events...")
+            local restoreResult = Trash.RemoveCard("Heat Wave", "Settlement Events", "Settlement Events")
             if restoreResult then
-                log:Printf("TEST: Successfully removed 'Heat Wave' from Trash")
+                log:Printf("TEST: Successfully restored 'Heat Wave' to Settlement Events")
             else
-                log:Errorf("TEST: Failed to remove 'Heat Wave' from Trash")
+                log:Errorf("TEST: Failed to restore 'Heat Wave' to Settlement Events")
                 passed = false
             end
             
@@ -701,6 +706,10 @@ function TTSTests.RegisterMilestoneTests()
     Console.AddCommand("testmilestone", function(args)
         TTSTests.TestMilestoneExecution()
     end, "Test full milestone execution (AddCard + SpawnForSurvivor)")
+    
+    Console.AddCommand("testplottwist", function(args)
+        TTSTests.TestPlotTwistMilestone()
+    end, "Test Plot Twist milestone (fightingArt + strangeResource)")
 end
 
 function TTSTests.TestMilestoneExecution()
@@ -787,6 +796,67 @@ function TTSTests.TestMilestoneExecution()
     end, 60)
 end
 
+function TTSTests.TestPlotTwistMilestone()
+    log:Printf("=== TEST: TestPlotTwistMilestone ===")
+    log:Printf("TEST: This tests Plot Twist milestone which has TWO consequences:")
+    log:Printf("TEST:   - fightingArt = 'Story of Blood'")
+    log:Printf("TEST:   - strangeResource = 'Iron'")
+    log:Printf("TEST: This reproduces the <Unknown Error> bug from concurrent Archive.Clean() calls")
+    
+    -- Create the Plot Twist milestone
+    local milestone = {
+        title = "Plot Twist",
+        consequences = {
+            fightingArt = "Story of Blood",
+            strangeResource = "Iron",
+        },
+    }
+    
+    log:Printf("TEST: Calling Strain.Test.ExecuteConsequences...")
+    
+    local ok, err = pcall(function()
+        Strain.Test.ExecuteConsequences(milestone)
+    end)
+    
+    if not ok then
+        log:Errorf("TEST FAILED: ExecuteConsequences threw error: %s", tostring(err))
+        return
+    end
+    
+    log:Printf("TEST: ExecuteConsequences returned without immediate error")
+    log:Printf("TEST: Waiting for async operations to complete...")
+    
+    -- Wait for async operations - the error typically occurs during async callbacks
+    Wait.frames(function()
+        log:Printf("TEST: 60 frames later - checking for delayed errors")
+        
+        -- Clean up any spawned cards
+        local cleanedUp = 0
+        for _, obj in ipairs(getAllObjects()) do
+            if obj.tag == "Card" then
+                local name = obj.getName()
+                if name == "Story of Blood" or name == "Iron" then
+                    local container = obj.getVar("containerGUID") or obj.held_by_color
+                    if not container then
+                        obj.destruct()
+                        cleanedUp = cleanedUp + 1
+                    end
+                end
+            end
+        end
+        
+        log:Printf("TEST CLEANUP: Destroyed %d spawned cards", cleanedUp)
+        
+        -- Remove added card from Fighting Arts deck
+        FightingArtsArchive.RemoveCard("Story of Blood")
+        
+        Wait.frames(function()
+            log:Printf("=== TEST: TestPlotTwistMilestone COMPLETE ===")
+            log:Printf("TEST RESULT: If no <Unknown Error> appeared above, the test PASSED")
+        end, 30)
+    end, 60)
+end
+
 function TTSTests.GetFightingArtsDeckCount(cardName)
     local location = Location.Get(FightingArtsArchive.FIGHTING_ART_LOCATION)
     if not location then
@@ -805,6 +875,155 @@ function TTSTests.GetFightingArtsDeckCount(cardName)
         end
     end
     return count
+end
+
+---------------------------------------------------------------------------------------------------
+-- ConsequenceApplicator Tests
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.RegisterConsequenceApplicatorTests()
+    Console.AddCommand("testconsequence", function(args)
+        TTSTests.TestConsequenceApplicator()
+    end, "Test ConsequenceApplicator operations (apply and remove)")
+end
+
+function TTSTests.TestConsequenceApplicator(onComplete)
+    log:Printf("=== TEST: TestConsequenceApplicator ===")
+    log:Printf("TEST: This tests ConsequenceApplicator operations:")
+    log:Printf("TEST:   - ApplyFightingArt / RemoveFightingArt")
+    log:Printf("TEST:   - ApplyVermin / RemoveVermin")
+    log:Printf("TEST:   - AddBasicResource / RemoveBasicResource")
+    log:Printf("TEST:   - TrashSettlementEvent / RestoreSettlementEvent")
+    
+    local passed = true
+    local testCardFA = "Shielderang"
+    local testCardVermin = "Fiddler Crab Spider"
+    local testCardBasic = "Lump of Atnas"
+    local testCardEvent = "Heat Wave"
+    
+    -- Get baseline counts
+    local faCountBefore = TTSTests.GetFightingArtsDeckCount(testCardFA)
+    local verminCountBefore, _ = TTSTests.GetVerminDeckState(testCardVermin)
+    
+    log:Printf("TEST BEFORE: Fighting Arts has %d '%s'", faCountBefore, testCardFA)
+    log:Printf("TEST BEFORE: Vermin deck has %d cards", verminCountBefore)
+    
+    -- Step 1: Test ApplyFightingArt
+    log:Printf("TEST: Step 1 - ApplyFightingArt('%s')...", testCardFA)
+    local faResult = ConsequenceApplicator.ApplyFightingArt(testCardFA)
+    if faResult then
+        log:Printf("TEST: ApplyFightingArt succeeded")
+    else
+        log:Errorf("TEST: ApplyFightingArt FAILED")
+        passed = false
+    end
+    
+    Wait.frames(function()
+        -- Verify fighting art was added
+        local faCountAfter = TTSTests.GetFightingArtsDeckCount(testCardFA)
+        if faCountAfter > faCountBefore then
+            log:Printf("TEST: Verified - Fighting Arts deck now has %d '%s'", faCountAfter, testCardFA)
+        else
+            log:Errorf("TEST: Fighting art not added to deck")
+            passed = false
+        end
+        
+        -- Step 2: Test ApplyVermin
+        log:Printf("TEST: Step 2 - ApplyVermin('%s')...", testCardVermin)
+        local verminResult = ConsequenceApplicator.ApplyVermin(testCardVermin)
+        if verminResult then
+            log:Printf("TEST: ApplyVermin succeeded")
+        else
+            log:Errorf("TEST: ApplyVermin FAILED")
+            passed = false
+        end
+        
+        Wait.frames(function()
+            -- Step 3: Test AddBasicResource
+            log:Printf("TEST: Step 3 - AddBasicResource('%s')...", testCardBasic)
+            local basicResult = ConsequenceApplicator.AddBasicResource(testCardBasic)
+            if basicResult then
+                log:Printf("TEST: AddBasicResource succeeded")
+            else
+                log:Errorf("TEST: AddBasicResource FAILED")
+                passed = false
+            end
+            
+            Wait.frames(function()
+                -- Step 4: Test TrashSettlementEvent
+                log:Printf("TEST: Step 4 - TrashSettlementEvent('%s')...", testCardEvent)
+                local trashResult = ConsequenceApplicator.TrashSettlementEvent(testCardEvent)
+                if trashResult then
+                    log:Printf("TEST: TrashSettlementEvent succeeded")
+                else
+                    log:Errorf("TEST: TrashSettlementEvent FAILED")
+                    passed = false
+                end
+                
+                Wait.frames(function()
+                    -- Now undo all operations
+                    log:Printf("TEST: Step 5 - Undoing all operations...")
+                    
+                    -- Restore settlement event
+                    local restoreResult = ConsequenceApplicator.RestoreSettlementEvent(testCardEvent)
+                    if restoreResult then
+                        log:Printf("TEST: RestoreSettlementEvent succeeded")
+                    else
+                        log:Errorf("TEST: RestoreSettlementEvent FAILED")
+                        passed = false
+                    end
+                    
+                    Wait.frames(function()
+                        -- Remove basic resource
+                        local removeBasicResult = ConsequenceApplicator.RemoveBasicResource(testCardBasic)
+                        if removeBasicResult then
+                            log:Printf("TEST: RemoveBasicResource succeeded")
+                        else
+                            log:Errorf("TEST: RemoveBasicResource FAILED")
+                            passed = false
+                        end
+                        
+                        Wait.frames(function()
+                            -- Remove vermin
+                            local removeVerminResult = ConsequenceApplicator.RemoveVermin(testCardVermin)
+                            if removeVerminResult then
+                                log:Printf("TEST: RemoveVermin succeeded")
+                            else
+                                log:Errorf("TEST: RemoveVermin FAILED")
+                                passed = false
+                            end
+                            
+                            Wait.frames(function()
+                                -- Remove fighting art
+                                local removeFAResult = ConsequenceApplicator.RemoveFightingArt(testCardFA)
+                                if removeFAResult then
+                                    log:Printf("TEST: RemoveFightingArt succeeded")
+                                else
+                                    log:Errorf("TEST: RemoveFightingArt FAILED")
+                                    passed = false
+                                end
+                                
+                                Wait.frames(function()
+                                    -- Final verification
+                                    local faCountFinal = TTSTests.GetFightingArtsDeckCount(testCardFA)
+                                    log:Printf("TEST AFTER: Fighting Arts has %d '%s' (expected %d)", faCountFinal, testCardFA, faCountBefore)
+                                    
+                                    log:Printf("=== TEST: TestConsequenceApplicator COMPLETE ===")
+                                    if passed then
+                                        log:Printf("TEST RESULT: PASSED - All ConsequenceApplicator operations worked")
+                                    else
+                                        log:Errorf("TEST RESULT: FAILED - Some operations failed")
+                                    end
+                                    
+                                    if onComplete then onComplete(passed) end
+                                end, 30)
+                            end, 30)
+                        end, 30)
+                    end, 30)
+                end, 30)
+            end, 30)
+        end, 30)
+    end, 30)
 end
 
 ---------------------------------------------------------------------------------------------------

@@ -48,9 +48,13 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function TestWorld:_installArchiveSpies()
+    package.loaded["Kdm/Archive"] = self._archiveSpy:createArchiveStub()
     package.loaded["Kdm/FightingArtsArchive"] = self._archiveSpy:createFightingArtsArchiveStub()
     package.loaded["Kdm/VerminArchive"] = self._archiveSpy:createVerminArchiveStub()
     package.loaded["Kdm/BasicResourcesArchive"] = self._archiveSpy:createBasicResourcesArchiveStub()
+    package.loaded["Kdm/DisordersArchive"] = self._archiveSpy:createDisordersArchiveStub()
+    package.loaded["Kdm/SevereInjuriesArchive"] = self._archiveSpy:createSevereInjuriesArchiveStub()
+    package.loaded["Kdm/StrangeResourcesArchive"] = self._archiveSpy:createStrangeResourcesArchiveStub()
     package.loaded["Kdm/Trash"] = self._archiveSpy:createTrashStub()
     package.loaded["Kdm/Timeline"] = self._archiveSpy:createTimelineStub(function()
         return self._currentYear

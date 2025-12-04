@@ -371,6 +371,95 @@ end)
 
 ---
 
+## TTS Console Tests
+
+TTS console tests (commands like `>teststrain`, `>testplottwist`) run inside the actual TTS environment. They're essential for bugs that **cannot be reproduced headlessly**.
+
+### When TTS Console Tests Are Required
+
+| Scenario | Why Headless Can't Catch It |
+|----------|----------------------------|
+| **Async timing issues** | Headless stubs invoke callbacks synchronously; TTS invokes them across frames |
+| **Object destruction races** | Headless doesn't simulate real object lifecycle and physics |
+| **UI interactions** | Dialog display, button callbacks, visual state |
+| **Physics-dependent code** | `Physics.cast()` returns different results in TTS |
+
+### Example: Plot Twist Async Bug (2024-12)
+
+This bug could NOT be caught by headless tests because:
+1. Headless stubs for `takeObject` invoke `callback_function` synchronously
+2. The bug only manifests when callback fires **after** other code runs
+3. In TTS, `Archive.TransferCard`'s callback fired after `SpawnStrangeResource` destroyed the deck
+
+**Solution**: Created `>testplottwist` console command to reproduce the issue:
+```lua
+Console.AddCommand("testplottwist", function(args)
+    local milestone = {
+        consequences = {
+            fightingArt = "Story of Blood",
+            strangeResource = "Iron",
+        },
+    }
+    Strain.Test.ExecuteConsequences(milestone)
+    Wait.frames(function()
+        -- Check for errors, cleanup
+    end, 60)
+end)
+```
+
+### TTS Console Test Structure
+
+```lua
+function TTSTests.RegisterMyTests()
+    Console.AddCommand("testmyfeature", function(args)
+        TTSTests.TestMyFeature()
+    end, "Description for help text")
+end
+
+function TTSTests.TestMyFeature()
+    log:Printf("=== TEST: TestMyFeature ===")
+    log:Printf("TEST: Description of what we're testing")
+    
+    -- Setup
+    local initialState = captureState()
+    
+    -- Execute (may be async)
+    local ok, err = pcall(function()
+        ModuleUnderTest.DoSomething()
+    end)
+    
+    if not ok then
+        log:Errorf("TEST FAILED: %s", tostring(err))
+        return
+    end
+    
+    -- Wait for async completion
+    Wait.frames(function()
+        -- Verify results
+        local finalState = captureState()
+        
+        -- Cleanup
+        restoreState(initialState)
+        
+        -- Report
+        if stateIsCorrect(finalState) then
+            log:Printf("TEST RESULT: PASSED")
+        else
+            log:Errorf("TEST RESULT: FAILED - details...")
+        end
+    end, 60)  -- Wait 60 frames for async ops
+end
+```
+
+### Key Patterns
+
+1. **Always cleanup** - Tests should restore game state so they can be re-run
+2. **Use `Wait.frames`** - Allow async operations to complete before checking results
+3. **Log extensively** - TTS errors like `<Unknown Error>` give no context; logging is essential
+4. **pcall for error capture** - Catch errors without stopping the test
+
+---
+
 ## Acceptance Testing
 
 Acceptance tests verify user-visible behavior from the user's perspective. See `docs/ACCEPTANCE_TESTING_GUIDELINES.md` for detailed principles.

@@ -439,7 +439,58 @@ function Strain:SpawnFightingArtForSurvivor(cardName)
     end
 
     Strain:_TakeRewardCard(takeParams)
-    Archive.Clean()
+    -- Note: _TakeRewardCard -> _TakeFromRewardsDeck -> Archive.TakeFromDeck already calls Archive.Clean() internally
+end
+
+function Strain:SpawnDisorder(cardName)
+    local position = Strain:_ResolveSpawnPosition({ location = Strain.REWARD_SPAWN_LOCATION })
+    Archive.TakeFromDeck({
+        deckName = "Core Disorders",
+        deckType = "Disorders",
+        deckStagingPosition = { x = -150, y = 15, z = 110 },
+        name = cardName,
+        cardType = "Disorders",
+        position = position,
+        rotation = { x = 0, y = 180, z = 0 },
+        spawnFunc = function()
+            log:Printf("Spawned %s near the showdown board. Give this card to the triggering survivor.", cardName)
+        end,
+    })
+    -- Note: Archive.TakeFromDeck already calls Archive.Clean() internally
+end
+
+function Strain:SpawnSevereInjury(cardName)
+    local position = Strain:_ResolveSpawnPosition({ location = Strain.REWARD_SPAWN_LOCATION })
+    Archive.TakeFromDeck({
+        deckName = "Core Severe Injuries",
+        deckType = "Severe Injuries",
+        deckStagingPosition = { x = -150, y = 15, z = 110 },
+        name = cardName,
+        cardType = "Severe Injuries",
+        position = position,
+        rotation = { x = 0, y = 180, z = 0 },
+        spawnFunc = function()
+            log:Printf("Spawned %s near the showdown board. Give this card to the triggering survivor.", cardName)
+        end,
+    })
+    -- Note: Archive.TakeFromDeck already calls Archive.Clean() internally
+end
+
+function Strain:SpawnStrangeResource(cardName)
+    local position = Strain:_ResolveSpawnPosition({ location = Strain.REWARD_SPAWN_LOCATION })
+    Archive.TakeFromDeck({
+        deckName = "Core Strange Resources",
+        deckType = "Strange Resources",
+        deckStagingPosition = { x = -150, y = 15, z = 110 },
+        name = cardName,
+        cardType = "Strange Resources",
+        position = position,
+        rotation = { x = 0, y = 180, z = 0 },
+        spawnFunc = function()
+            log:Printf("Spawned %s near the showdown board. Add to settlement storage.", cardName)
+        end,
+    })
+    -- Note: Archive.TakeFromDeck already calls Archive.Clean() internally
 end
 
 function Strain:_ResolveSpawnPosition(params)
@@ -447,11 +498,15 @@ function Strain:_ResolveSpawnPosition(params)
         return params.position
     end
 
-    assert(Check.Str(params.location, "Either position or location is required for spawn"))
     local locationName = params.location
+    if not locationName then
+        return { x = 0, y = 15, z = -15 }
+    end
 
     local location = Location.Get(locationName)
-    assert(location, Util.SafeFormat("Reward location '%s' not found - mod setup error", locationName))
+    if not location then
+        return { x = 0, y = 15, z = -15 }
+    end
 
     local position = location:Center()
     position.y = position.y + (params.height or 2)
@@ -484,11 +539,20 @@ function Strain:ExecuteConsequences(milestone)
         return
     end
 
-    if consequences.fightingArt then
-        ConsequenceApplicator.ApplyFightingArt(consequences.fightingArt, function()
-            Strain:SpawnFightingArtForSurvivor(consequences.fightingArt)
-        end)
+    -- Helper to execute spawn-only consequences (these don't need async waiting)
+    local function executeSpawnConsequences()
+        if consequences.disorder then
+            Strain:SpawnDisorder(consequences.disorder)
+        end
+        if consequences.severeInjury then
+            Strain:SpawnSevereInjury(consequences.severeInjury)
+        end
+        if consequences.strangeResource then
+            Strain:SpawnStrangeResource(consequences.strangeResource)
+        end
     end
+
+    -- Execute synchronous consequences first
     if consequences.vermin then
         ConsequenceApplicator.ApplyVermin(consequences.vermin)
     end
@@ -500,6 +564,19 @@ function Strain:ExecuteConsequences(milestone)
     end
     if consequences.addBasicResource then
         ConsequenceApplicator.AddBasicResource(consequences.addBasicResource)
+    end
+
+    -- FightingArt is async - chain spawn consequences after it completes
+    -- to avoid concurrent Archive.Clean() calls destroying shared objects
+    if consequences.fightingArt then
+        ConsequenceApplicator.ApplyFightingArt(consequences.fightingArt, function()
+            Strain:SpawnFightingArtForSurvivor(consequences.fightingArt)
+            -- Execute spawn consequences after fightingArt completes
+            executeSpawnConsequences()
+        end)
+    else
+        -- No fightingArt, execute spawn consequences immediately
+        executeSpawnConsequences()
     end
 end
 
@@ -523,6 +600,17 @@ function Strain:ReverseConsequences(milestone)
     end
     if consequences.addBasicResource then
         ConsequenceApplicator.RemoveBasicResource(consequences.addBasicResource)
+    end
+    -- Spawned cards (disorder, severeInjury, strangeResource) cannot be auto-removed
+    -- The player must manually return them to the archive
+    if consequences.disorder then
+        log:Printf("Manually return the %s disorder card to the Disorders Archive.", consequences.disorder)
+    end
+    if consequences.severeInjury then
+        log:Printf("Manually return the %s severe injury card to the Severe Injuries Archive.", consequences.severeInjury)
+    end
+    if consequences.strangeResource then
+        log:Printf("Manually return the %s strange resource to the Strange Resources Archive.", consequences.strangeResource)
     end
 end
 
