@@ -64,6 +64,7 @@ end
 function TestWorld:_loadModules()
     -- Clear cached modules to get fresh load with stubs in place
     -- The archive modules are already stubbed via _installArchiveSpies
+    package.loaded["Kdm/ConsequenceApplicator"] = nil
     package.loaded["Kdm/Strain"] = nil
     package.loaded["Kdm/Campaign"] = nil
     

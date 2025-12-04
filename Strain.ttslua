@@ -16,6 +16,7 @@ local Timeline = require("Kdm/Timeline")
 local Util = require("Kdm/Util/Util")
 local log = require("Kdm/Log").ForModule("Strain")
 local StrainMilestones = require("Kdm/GameData/StrainMilestones")
+local ConsequenceApplicator = require("Kdm/ConsequenceApplicator")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -483,47 +484,22 @@ function Strain:ExecuteConsequences(milestone)
         return
     end
 
-    local fightingArt = consequences.fightingArt
-    if fightingArt then
-        -- AddCard is async; SpawnFightingArtForSurvivor must wait for it to complete
-        -- Pass a callback to spawn the card after the deck operation finishes
-        FightingArtsArchive.AddCard(fightingArt, function()
-            Strain:SpawnFightingArtForSurvivor(fightingArt)
+    if consequences.fightingArt then
+        ConsequenceApplicator.ApplyFightingArt(consequences.fightingArt, function()
+            Strain:SpawnFightingArtForSurvivor(consequences.fightingArt)
         end)
     end
-
-    local vermin = consequences.vermin
-    if vermin then
-        local added = VerminArchive.AddCard(vermin)
-        if not added then
-            log:Errorf("Failed to add %s to the Vermin deck.", vermin)
-        end
+    if consequences.vermin then
+        ConsequenceApplicator.ApplyVermin(consequences.vermin)
     end
-
-    local timelineEvent = consequences.timelineEvent
-    if timelineEvent then
-        local scheduled = Timeline.ScheduleEvent(timelineEvent)
-        if not scheduled then
-            log:Errorf("Unable to schedule '%s' on the timeline automatically. Please add it manually.", timelineEvent.name)
-        else
-            log:Printf("Scheduled %s on the timeline.", timelineEvent.name)
-        end
+    if consequences.timelineEvent then
+        ConsequenceApplicator.ApplyTimelineEvent(consequences.timelineEvent)
     end
-
-    local trashSettlementEvent = consequences.trashSettlementEvent
-    if trashSettlementEvent then
-        local trashed = Trash.AddCard(trashSettlementEvent, "Settlement Events", "Settlement Events")
-        if not trashed then
-            log:Errorf("Failed to trash %s from the Settlement Events deck.", trashSettlementEvent)
-        end
+    if consequences.trashSettlementEvent then
+        ConsequenceApplicator.TrashSettlementEvent(consequences.trashSettlementEvent)
     end
-
-    local addBasicResource = consequences.addBasicResource
-    if addBasicResource then
-        local added = BasicResourcesArchive.AddCard(addBasicResource)
-        if not added then
-            log:Errorf("Failed to add %s to the Basic Resources deck.", addBasicResource)
-        end
+    if consequences.addBasicResource then
+        ConsequenceApplicator.AddBasicResource(consequences.addBasicResource)
     end
 end
 
@@ -533,48 +509,20 @@ function Strain:ReverseConsequences(milestone)
         return
     end
 
-    local fightingArt = consequences.fightingArt
-    if fightingArt then
-        local removed = FightingArtsArchive.RemoveCard(fightingArt)
-        if removed then
-            log:Printf("Remove %s from any survivor that gained it.", fightingArt)
-        else
-            log:Errorf("Failed to remove %s from the Fighting Arts deck.", fightingArt)
-        end
+    if consequences.fightingArt then
+        ConsequenceApplicator.RemoveFightingArt(consequences.fightingArt)
     end
-
-    local vermin = consequences.vermin
-    if vermin then
-        local removed = VerminArchive.RemoveCard(vermin)
-        if not removed then
-            log:Errorf("Failed to remove %s from the Vermin deck.", vermin)
-        end
+    if consequences.vermin then
+        ConsequenceApplicator.RemoveVermin(consequences.vermin)
     end
-
-    local timelineEvent = consequences.timelineEvent
-    if timelineEvent then
-        local removed = Timeline.RemoveEventByName(timelineEvent.name, timelineEvent.type)
-        if removed then
-            log:Printf("Removed %s from the timeline.", timelineEvent.name)
-        else
-            log:Debugf("Timeline event '%s' not found while undoing milestone.", timelineEvent.name)
-        end
+    if consequences.timelineEvent then
+        ConsequenceApplicator.RemoveTimelineEvent(consequences.timelineEvent.name, consequences.timelineEvent.type)
     end
-
-    local trashSettlementEvent = consequences.trashSettlementEvent
-    if trashSettlementEvent then
-        local removed = Trash.RemoveCard(trashSettlementEvent, "Settlement Events", "Settlement Events")
-        if not removed then
-            log:Errorf("Failed to remove %s from Trash.", trashSettlementEvent)
-        end
+    if consequences.trashSettlementEvent then
+        ConsequenceApplicator.RestoreSettlementEvent(consequences.trashSettlementEvent)
     end
-
-    local addBasicResource = consequences.addBasicResource
-    if addBasicResource then
-        local removed = BasicResourcesArchive.RemoveCard(addBasicResource)
-        if not removed then
-            log:Errorf("Failed to remove %s from the Basic Resources deck.", addBasicResource)
-        end
+    if consequences.addBasicResource then
+        ConsequenceApplicator.RemoveBasicResource(consequences.addBasicResource)
     end
 end
 

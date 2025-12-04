@@ -220,24 +220,17 @@ If breaking the mod doesn't break the test, the test is worthless.
 
 ---
 
+## Resolved Gaps
+
+### ~~`TestWorld:startNewCampaign()` Does Not Exercise `Campaign.AddStrainRewards()`~~ (RESOLVED)
+
+**Resolved:** 2025-12-04 in Backlog Item #5.
+
+`TestWorld:startNewCampaign()` now calls real `Campaign.AddStrainRewards()` with archive spies intercepting calls. All acceptance tests now exercise real production code paths.
+
+---
+
 ## Known Gaps
-
-### `TestWorld:startNewCampaign()` Does Not Exercise `Campaign.AddStrainRewards()`
-
-**Issue:** The current implementation calls real `Campaign.CalculateStrainRewards()` but then manually applies rewards to environment state instead of calling `Campaign.AddStrainRewards()`.
-
-**Impact:** If `Campaign.AddStrainRewards()` has bugs (wrong order, missing null checks, incorrect archive calls), the acceptance tests won't catch them.
-
-**Status:** Being addressed in Backlog Item #5 (Phase 1). See `handover/HANDOVER_IMPLEMENTER.md`.
-
-**Recommended Fix:** Call real `AddStrainRewards()` with archive spies intercepting the calls:
-
-```lua
-function TestWorld:startNewCampaign()
-    self._strainModule.Test.SetReachedMilestones(self._milestones)
-    self._campaignModule.AddStrainRewards()  -- Real code, spies capture calls
-end
-```
 
 ### Code Duplication: `ExecuteConsequences` vs `AddStrainRewards`
 

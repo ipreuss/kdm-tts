@@ -502,6 +502,7 @@ local function withStrain(t, callback, options)
     withStubs(stubs, function()
         package.loaded["Kdm/FightingArtsArchive"] = nil
         local FightingArtsArchiveModule = require("Kdm/FightingArtsArchive")
+        package.loaded["Kdm/ConsequenceApplicator"] = nil
         package.loaded["Kdm/Strain"] = nil
         local StrainModule = require("Kdm/Strain")
         local strainTable = getInternalStrain(StrainModule)

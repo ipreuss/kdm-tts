@@ -27,6 +27,7 @@ local VerminArchive = require("Kdm/VerminArchive")
 local BasicResourcesArchive = require("Kdm/BasicResourcesArchive")
 local Trash = require("Kdm/Trash")
 local CampaignMigrations = require("Kdm/GameData/CampaignMigrations")
+local ConsequenceApplicator = require("Kdm/ConsequenceApplicator")
 
 -------------------------------------------------------------------------------------------------
 
@@ -845,16 +846,14 @@ function Campaign.AddStrainRewards()
         return
     end
 
-    -- Handle TTS side effects: spawn fighting arts
+    -- Apply fighting arts
     if #rewards.fightingArts > 0 then
         local addedCount = 0
         for _, cardName in ipairs(rewards.fightingArts) do
-            local ok = FightingArtsArchive.AddCard(cardName)
-            if ok then
+            if ConsequenceApplicator.ApplyFightingArt(cardName) then
                 addedCount = addedCount + 1
             end
         end
-
         if addedCount > 0 then
             log:Printf("Added %d strain reward fighting arts to the Fighting Arts deck.", addedCount)
         else
@@ -862,11 +861,11 @@ function Campaign.AddStrainRewards()
         end
     end
 
-    -- Handle TTS side effects: spawn vermin
+    -- Apply vermin
     if #rewards.vermin > 0 then
         local addedVermin = 0
         for _, cardName in ipairs(rewards.vermin) do
-            if VerminArchive.AddCard(cardName) then
+            if ConsequenceApplicator.ApplyVermin(cardName) then
                 addedVermin = addedVermin + 1
             end
         end
@@ -875,11 +874,11 @@ function Campaign.AddStrainRewards()
         end
     end
 
-    -- Handle TTS side effects: trash settlement events
+    -- Trash settlement events
     if #rewards.trashSettlementEvents > 0 then
         local trashedCount = 0
         for _, cardName in ipairs(rewards.trashSettlementEvents) do
-            if Trash.AddCard(cardName, "Settlement Events", "Settlement Events") then
+            if ConsequenceApplicator.TrashSettlementEvent(cardName) then
                 trashedCount = trashedCount + 1
             end
         end
@@ -888,11 +887,11 @@ function Campaign.AddStrainRewards()
         end
     end
 
-    -- Handle TTS side effects: add basic resources
+    -- Add basic resources
     if #rewards.addBasicResources > 0 then
         local addedResources = 0
         for _, cardName in ipairs(rewards.addBasicResources) do
-            if BasicResourcesArchive.AddCard(cardName) then
+            if ConsequenceApplicator.AddBasicResource(cardName) then
                 addedResources = addedResources + 1
             end
         end
