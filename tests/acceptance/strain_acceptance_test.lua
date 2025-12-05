@@ -398,3 +398,33 @@ Test.test("ACCEPTANCE: unchecking Hyper Cerebellum removes fighting art from dec
     
     world:destroy()
 end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: unchecking Surgical Sight removes fighting art from deck", function(t)
+    local world = TestWorld.create()
+    
+    world:confirmMilestone("Surgical Sight")
+    world:uncheckMilestone("Surgical Sight")
+    
+    t:assertFalse(world:deckContains(world:fightingArtsDeck(), "Convalescer"),
+        "Convalescer should be removed from Fighting Arts deck")
+    -- Note: Severe injury removal is manual (card is handed to survivor)
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: unchecking Plot Twist removes fighting art from deck", function(t)
+    local world = TestWorld.create()
+    
+    world:confirmMilestone("Plot Twist")
+    world:uncheckMilestone("Plot Twist")
+    
+    t:assertFalse(world:deckContains(world:fightingArtsDeck(), "Story of Blood"),
+        "Story of Blood should be removed from Fighting Arts deck")
+    -- Note: Strange resource removal is manual (card is handed to survivor)
+    
+    world:destroy()
+end)
