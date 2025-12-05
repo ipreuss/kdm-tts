@@ -41,8 +41,42 @@ Key points:
 The mod includes a custom UI framework built on top of TTS's XML UI system:
 
 - **PanelKit**: Core dialog and panel creation utilities
-- **LayoutManager**: Handles positioning and sizing of UI elements  
+- **LayoutManager**: Handles positioning and sizing of UI elements
 - **ClassicDialog**: Standardized dialog chrome with KDM styling
+
+### UI Color Palette
+
+Standard colors are defined in `Ui.ttslua` and should be used consistently:
+
+| Constant | Value | Usage |
+|----------|-------|-------|
+| `Ui.LIGHT_BROWN` | `#bbb4a1` | Text on dark backgrounds, button labels |
+| `Ui.MID_BROWN` | `#7f7059` | Secondary backgrounds |
+| `Ui.DARK_BROWN` | `#453824` | Primary button/panel backgrounds |
+| `Ui.LIGHT_RED` | `#E96C6C` | Warning/error highlights |
+| `Ui.DARK_RED` | `#831010` | Critical warnings |
+| `Ui.LIGHT_GREEN` | `#90ee90` | Success/positive highlights |
+
+### Standard UI Components
+
+**ResetButton** (`Ui:ResetButton`) - Used for deck/gear reset buttons on boards:
+```lua
+ui:ResetButton({
+    id = "MyButton",
+    topLeft = { x = 1.0, y = 2.0 },
+    bottomRight = { x = 1.5, y = 3.0 },
+    onClick = function() ... end,
+    text = "Reset",      -- optional, defaults to "Reset"
+    fontSize = 120,      -- optional, defaults to 120
+    rotation = "0 0 270" -- optional, for vertical text
+})
+```
+
+Creates a Panel (DARK_BROWN) + Button (invisible click area) + Text (LIGHT_BROWN).
+
+**Rotation Values** for 3D UI elements:
+- `"0 0 180"` - Default (text reads normally when viewed from default camera)
+- `"0 0 270"` - Rotated 90° counterclockwise (vertical text, reads bottom-to-top)
 
 ### Layout System Design
 

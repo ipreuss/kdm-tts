@@ -1072,16 +1072,18 @@ function TTSTests.TestPatternDeckSpawn(onComplete)
     if positionCorrect then
         log:Printf("TEST: Position correct (x=%.2f, z=%.2f)", actualPos.x, actualPos.z)
     else
-        log:Errorf("TEST: Position incorrect - expected (%.2f, %.2f), got (%.2f, %.2f)", 
+        log:Errorf("TEST: Position incorrect - expected (%.2f, %.2f), got (%.2f, %.2f)",
             expectedPos.x, expectedPos.z, actualPos.x, actualPos.z)
     end
-    
+
+    -- Capture result before cleanup (deck object may be destroyed by Archive.Clean)
+    local passed = deck ~= nil and positionCorrect
+
     -- Cleanup: return deck to archive
     Wait.frames(function()
         Archive.Clean()
         log:Printf("TEST: Cleaned up - returned deck to archive")
         log:Printf("=== TEST: TestPatternDeckSpawn COMPLETE ===")
-        local passed = deck ~= nil and positionCorrect
         log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
         if onComplete then onComplete(passed) end
     end, 30)
@@ -1119,16 +1121,18 @@ function TTSTests.TestPatternGearDeckSpawn(onComplete)
     if positionCorrect then
         log:Printf("TEST: Position correct (x=%.2f, z=%.2f)", actualPos.x, actualPos.z)
     else
-        log:Errorf("TEST: Position incorrect - expected (%.2f, %.2f), got (%.2f, %.2f)", 
+        log:Errorf("TEST: Position incorrect - expected (%.2f, %.2f), got (%.2f, %.2f)",
             expectedPos.x, expectedPos.z, actualPos.x, actualPos.z)
     end
-    
+
+    -- Capture result before cleanup (deck object may be destroyed by Archive.Clean)
+    local passed = deck ~= nil and positionCorrect
+
     -- Cleanup: return deck to archive
     Wait.frames(function()
         Archive.Clean()
         log:Printf("TEST: Cleaned up - returned deck to archive")
         log:Printf("=== TEST: TestPatternGearDeckSpawn COMPLETE ===")
-        local passed = deck ~= nil and positionCorrect
         log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
         if onComplete then onComplete(passed) end
     end, 30)

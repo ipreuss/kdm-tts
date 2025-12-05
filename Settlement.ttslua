@@ -26,36 +26,28 @@ function Settlement.Init()
 
     local ui = Ui.Create3d("SettlementBoard", NamedObject.Get("Settlement Board"), 0.61)
 
-    local width = -0.21765
-    local height = 0.644982
-    local createButton = function(name, x, y, onClick, visible)
-        local topLeft = { x =  x, y = y }
-        local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
-        if visible then
-            ui:Panel({ id = name .. "Panel", topLeft = topLeft, bottomRight = bottomRight, color = Ui.DARK_BROWN })
-            ui:Text({
-                id = name .. "Label",
-                topLeft = topLeft,
-                bottomRight = bottomRight,
-                text = "Reset",
-                fontSize = 120,
-                alignment = "MiddleCenter",
-                color = Ui.LIGHT_BROWN,
-                rotation = "0 0 270",
-            })
-        end
-        ui:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
-    end
-
+    local gearWidth = -0.21765
+    local gearHeight = 0.644982
     local gearX = 7.031489
     local gearY1 = 3.920273
     local gearY3 = 5.323954
     local gearDy = (gearY3 - gearY1) / 2
     local gearNames = { "Starting Gear", "Rare Gear", "Promo Gear", "Seed Pattern Gear", "Pattern Gear" }
     for i, name in ipairs(gearNames) do
-        createButton("Reset "..name, gearX, gearY1 + (i - 1) * gearDy, function() Settlement.ResetGear(name, name) end, true)
+        local x = gearX
+        local y = gearY1 + (i - 1) * gearDy
+        ui:ResetButton({
+            id = "Reset " .. name,
+            topLeft = { x = x, y = y },
+            bottomRight = { x = x + gearWidth, y = y + gearHeight },
+            fontSize = 120,
+            rotation = "0 0 270",
+            onClick = function() Settlement.ResetGear(name, name) end,
+        })
     end
 
+    local locWidth = -0.21765
+    local locHeight = 0.644982
     local locX1 = 5.764139
     local locX10 = -7.409930
     local locDx = (locX10 - locX1) / 9
@@ -65,8 +57,14 @@ function Settlement.Init()
     for col = 1, 10 do
         for row = 1, 2 do
             local i = (row - 1) * 10 + col
-            local name = string.format("Reset Settlement Location Gear %d", i)
-            createButton(name, locX1 + (col - 1) * locDx, locY1 + (row - 1)* locDy, function() Settlement.ResetSettlementLocationGear(i) end, false)
+            local x = locX1 + (col - 1) * locDx
+            local y = locY1 + (row - 1) * locDy
+            ui:Button({
+                id = string.format("Reset Settlement Location Gear %d", i),
+                topLeft = { x = x, y = y },
+                bottomRight = { x = x + locWidth, y = y + locHeight },
+                onClick = function() Settlement.ResetSettlementLocationGear(i) end,
+            })
         end
     end
 

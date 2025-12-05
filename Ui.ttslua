@@ -191,6 +191,38 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+function Ui:ResetButton(params)
+    assert(Check.Str(params.id, "id"))
+    assert(Check.Vec2(params.topLeft, "topLeft"))
+    assert(Check.Vec2(params.bottomRight, "bottomRight"))
+    assert(Check.Func(params.onClick, "onClick"))
+
+    self:Panel({
+        id = params.id .. "Panel",
+        topLeft = params.topLeft,
+        bottomRight = params.bottomRight,
+        color = Ui.DARK_BROWN,
+    })
+    self:Button({
+        id = params.id,
+        topLeft = params.topLeft,
+        bottomRight = params.bottomRight,
+        onClick = params.onClick,
+    })
+    self:Text({
+        id = params.id .. "Label",
+        topLeft = params.topLeft,
+        bottomRight = params.bottomRight,
+        text = params.text or "Reset",
+        fontSize = params.fontSize or 120,
+        alignment = "MiddleCenter",
+        color = Ui.LIGHT_BROWN,
+        rotation = params.rotation,
+    })
+end
+
+---------------------------------------------------------------------------------------------------
+
 function Ui:CheckBox(params)
     local checkBox = self:CreateElem("Button", params)
     checkBox.checkedImage = params.checkedImage or "CheckBoxFilled"

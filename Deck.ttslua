@@ -44,30 +44,18 @@ function Deck.Init()
     local y4 = 3.030348
     local dy = (y4 - y1) / 3
 
-    local function createResetButton(name, topLeft, bottomRight, onClick)
-        ui:Panel({ id = name .. "Panel", topLeft = topLeft, bottomRight = bottomRight, color = Ui.DARK_BROWN })
-        ui:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
-        ui:Text({
-            id = name .. "Label",
-            topLeft = topLeft,
-            bottomRight = bottomRight,
-            text = "Reset",
-            fontSize = 140,
-            alignment = "MiddleCenter",
-            color = Ui.LIGHT_BROWN,
-            rotation = "0 0 270",
-        })
-    end
-
     for row, decks in ipairs(deckGrid) do
         for col, deck in ipairs(decks) do
             local x = x1 + (col - 1) * dx
             local y = y1 + (row - 2) * dy
-            local topLeft = { x = x, y = y }
-            local bottomRight = { x = x + width, y = y + height }
-            createResetButton(deck, topLeft, bottomRight, function()
-                Deck.ResetDeck(deck)
-            end)
+            ui:ResetButton({
+                id = deck,
+                topLeft = { x = x, y = y },
+                bottomRight = { x = x + width, y = y + height },
+                fontSize = 140,
+                rotation = "0 0 270",
+                onClick = function() Deck.ResetDeck(deck) end,
+            })
         end
     end
 
