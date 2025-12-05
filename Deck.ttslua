@@ -19,6 +19,7 @@ Deck.NEEDS_SHUFFLE = {
     ["Monster Resources"] = true,
     ["Terrain"] = true,
     ["Seed Patterns"] = true,
+    ["Patterns"] = true,
 }
 
 ---------------------------------------------------------------------------------------------------
@@ -27,7 +28,7 @@ function Deck.Init()
     local ui = Ui.Create3d("Deck", NamedObject.Get("Showdown Board"), 10.74)
 
     local deckGrid = {
-        { "Seed Patterns" },
+        { "Seed Patterns", "Patterns" },
         { "Abilities", "Fighting Arts", "Secret Fighting Arts" },
         { "Disorders", "Severe Injuries", "Tactics" },
         { "Weapon Proficiencies", "Armor Sets", "Vermin" },

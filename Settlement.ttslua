@@ -38,7 +38,7 @@ function Settlement.Init()
     local y1 = 3.920273
     local y3 = 5.323954
     local dy = (y3 - y1) / 2
-    local names = { "Starting Gear", "Rare Gear", "Promo Gear", "Seed Pattern Gear" }
+    local names = { "Starting Gear", "Rare Gear", "Promo Gear", "Seed Pattern Gear", "Pattern Gear" }
     for i, name in ipairs(names) do
         createButton("Reset "..name, x, y1 + (i - 1) * dy, function() Settlement.ResetGear(name, name) end)
     end

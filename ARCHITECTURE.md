@@ -98,6 +98,16 @@ spec:Render(layout)
 | UI Components | `Ui`, `GlobalUi`, `MessageBox`, `BattleUi`, `Rules`, `Bookmarks` | Low-level UI DSL plus composable panels and overlays. |
 | Tooling | `updateTTS.sh`, `restoreBackup.sh`, `template_workshop.json` | Bundle scripts, push backups, generate workshop template. |
 
+### Gear Variant Handling
+
+Physical gear cards in TTS often have variant names (e.g., `"Bone Hatchet [left]"`, `"Bone Hatchet [right]"`) while expansion code defines canonical names (`"Bone Hatchet"`). The system handles this via:
+
+1. **Canonical Name Resolution** (`Gear.cannonicalFor`): Strips bracket suffixes from card names. `"Bone Hatchet [left]"` becomes `"Bone Hatchet"`.
+2. **Stats Inheritance** (`Gear.getByName`): When looking up a variant, the system finds the canonical name's stats and creates a virtual gear entry that inherits from it.
+3. **Paired Weapon Bonus** (`BattleUi`): Counts weapons by canonical name. If 2+ weapons share the same canonical name and have `paired = true`, the speed bonus is applied.
+
+This pattern allows expansion data to define stats once per weapon type while supporting multiple physical card variants in the TTS template.
+
 ### Settlement Event Search
 - **Single source of truth**: The settlement event search trie is populated exclusively from the physical Settlement Events deck on the board. Expansion definitions no longer list settlement event names.
 - **Why**: keeps the UI in lockstep with the actual cards present in a campaign (including custom/remixed decks) and avoids keeping large hardcoded arrays synchronized with assets.

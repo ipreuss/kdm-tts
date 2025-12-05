@@ -206,6 +206,9 @@ return {
             { "Sunstalker Legendary AI", "AI" },
             { "Sunstalker Special AI", "AI" },
             { "Sunstalker Hit Locations", "Hit Locations" },
+
+            { "Shadow Skleaver", "Seed Patterns" },
+            { "Shadow Skleaver", "Gear" },
         },
     },
 

@@ -32,6 +32,7 @@ function TTSTests.Init()
         log:Printf("  >testmilestone - Test full milestone execution (AddCard + SpawnForSurvivor)")
         log:Printf("  >testplottwist - Test Plot Twist milestone (fightingArt + strangeResource)")
         log:Printf("  >testconsequence - Test ConsequenceApplicator operations")
+        log:Printf("  >testpatterns - Test spawning Pattern deck from archive")
     end, "Show available TTS test commands")
     
     Console.AddCommand("testall", function(args)
@@ -44,6 +45,7 @@ function TTSTests.Init()
     TTSTests.RegisterTrashRestoreTests()
     TTSTests.RegisterMilestoneTests()
     TTSTests.RegisterConsequenceApplicatorTests()
+    TTSTests.RegisterPatternTests()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -60,6 +62,7 @@ function TTSTests.RunAllTests()
         { name = "DialogFromSpec Callback Timing", fn = function(onComplete) TTSTests.TestDialogFromSpecCallbackTiming(onComplete) end },
         { name = "Atmospheric Change (Heat Wave/Lump of Atnas)", fn = function(onComplete) TTSTests.TestAtmosphericChange(onComplete) end },
         { name = "ConsequenceApplicator Operations", fn = function(onComplete) TTSTests.TestConsequenceApplicator(onComplete) end },
+        { name = "Pattern Deck Spawn", fn = function(onComplete) TTSTests.TestPatternDeckSpawn(onComplete) end },
     }
     
     local currentTest = 1
@@ -1023,6 +1026,109 @@ function TTSTests.TestConsequenceApplicator(onComplete)
                 end, 30)
             end, 30)
         end, 30)
+    end, 30)
+end
+
+---------------------------------------------------------------------------------------------------
+-- Pattern Tests
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.RegisterPatternTests()
+    Console.AddCommand("testpatterns", function(args)
+        TTSTests.TestPatternDeckSpawn()
+    end, "Test spawning Pattern deck from archive")
+    -- Note: Pattern Gear deck is built dynamically from expansion components, not from archive
+end
+
+function TTSTests.TestPatternDeckSpawn(onComplete)
+    log:Printf("=== TEST: TestPatternDeckSpawn ===")
+    log:Printf("TEST: Spawning Patterns deck from archive...")
+    
+    local deck = Archive.Take({
+        name = "Patterns",
+        type = "Patterns",
+        position = Location.Get("Patterns").center,
+        rotation = { x = 0, y = 180, z = 180 },
+    })
+    
+    if not deck then
+        log:Errorf("TEST FAILED: Could not spawn Patterns deck from archive")
+        if onComplete then onComplete(false) end
+        return
+    end
+    
+    local cardCount = 1
+    if deck.type == "Deck" then
+        cardCount = #deck.getObjects()
+    end
+    log:Printf("TEST: Patterns deck spawned with %d card(s)", cardCount)
+    
+    -- Verify position is correct (east of Seed Patterns)
+    local expectedPos = Location.Get("Patterns").center
+    local actualPos = deck.getPosition()
+    local positionCorrect = math.abs(actualPos.x - expectedPos.x) < 1 and math.abs(actualPos.z - expectedPos.z) < 1
+    
+    if positionCorrect then
+        log:Printf("TEST: Position correct (x=%.2f, z=%.2f)", actualPos.x, actualPos.z)
+    else
+        log:Errorf("TEST: Position incorrect - expected (%.2f, %.2f), got (%.2f, %.2f)", 
+            expectedPos.x, expectedPos.z, actualPos.x, actualPos.z)
+    end
+    
+    -- Cleanup: return deck to archive
+    Wait.frames(function()
+        Archive.Clean()
+        log:Printf("TEST: Cleaned up - returned deck to archive")
+        log:Printf("=== TEST: TestPatternDeckSpawn COMPLETE ===")
+        local passed = deck ~= nil and positionCorrect
+        log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+        if onComplete then onComplete(passed) end
+    end, 30)
+end
+
+function TTSTests.TestPatternGearDeckSpawn(onComplete)
+    log:Printf("=== TEST: TestPatternGearDeckSpawn ===")
+    log:Printf("TEST: Spawning Pattern Gear deck from archive...")
+    
+    local deck = Archive.Take({
+        name = "Pattern Gear",
+        type = "Gear",
+        position = Location.Get("Pattern Gear").center,
+        rotation = { x = 0, y = 180, z = 180 },
+    })
+    
+    if not deck then
+        log:Errorf("TEST FAILED: Could not spawn Pattern Gear deck from archive")
+        if onComplete then onComplete(false) end
+        return
+    end
+    
+    local cardCount = 1
+    if deck.type == "Deck" then
+        cardCount = #deck.getObjects()
+    end
+    log:Printf("TEST: Pattern Gear deck spawned with %d card(s)", cardCount)
+    
+    -- Verify position is correct (south of Seed Pattern Gear)
+    local expectedPos = Location.Get("Pattern Gear").center
+    local actualPos = deck.getPosition()
+    local positionCorrect = math.abs(actualPos.x - expectedPos.x) < 1 and math.abs(actualPos.z - expectedPos.z) < 1
+    
+    if positionCorrect then
+        log:Printf("TEST: Position correct (x=%.2f, z=%.2f)", actualPos.x, actualPos.z)
+    else
+        log:Errorf("TEST: Position incorrect - expected (%.2f, %.2f), got (%.2f, %.2f)", 
+            expectedPos.x, expectedPos.z, actualPos.x, actualPos.z)
+    end
+    
+    -- Cleanup: return deck to archive
+    Wait.frames(function()
+        Archive.Clean()
+        log:Printf("TEST: Cleaned up - returned deck to archive")
+        log:Printf("=== TEST: TestPatternGearDeckSpawn COMPLETE ===")
+        local passed = deck ~= nil and positionCorrect
+        log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+        if onComplete then onComplete(passed) end
     end, 30)
 end
 

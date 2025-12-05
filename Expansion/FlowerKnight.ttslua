@@ -75,6 +75,7 @@ return {
             { "Flower Knight Hit Locations", "Hit Locations" },
             
             { "Flower Knight Seed Patterns", "Seed Patterns" },
+            { "Flower Knight Seed Pattern Gear", "Gear" },
 
         },
     },

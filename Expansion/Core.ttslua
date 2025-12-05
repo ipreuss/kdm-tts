@@ -19,9 +19,11 @@ return {
         ["Settlement Locations"] = "Core Settlement Locations",
         ["Rare Gear"] = "Core Rare Gear",
         ["Seed Pattern Gear"] = "Core Seed Pattern Gear",
+        ["Pattern Gear"] = "Core Pattern Gear",
         ["Hunt Events"] = "Core Hunt Events",
 
         ["Seed Patterns"] = "Core Seed Patterns",
+        ["Patterns"] = "Core Patterns",
         ["Bookmarks"] = "Core Bookmarks",
     },
 
@@ -341,6 +343,11 @@ return {
         ["Bone Greaves"]          = { head = 0, arms = 0, body = 0, waist = 0, legs = 2 },
         ["Bone Helmet"]           = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
         ["Bone Armguards"]        = { head = 0, arms = 2, body = 0, waist = 0, legs = 0 },
+
+        ["Voluptuous Bodysuit"] = { head = 1, arms = 1, body = 1, waist = 1, legs = 1  },
+        ["Veteran Lantern Cuirass"] = { head = 0, arms = 0, body = 5, waist = 0, legs = 0 },
+        ["Spiral Mask"] = { head = 1, arms = 0, body = 0, waist = 0, legs = 0  },
+        ["Mage's Hood"] = { head = 1, arms = 0, body = 0, waist = 0, legs = 0 },
     },
 
     weaponStats = {
@@ -467,6 +474,10 @@ return {
         ["Acanthus Bow"]              = { speed = 3, accuracy = 8, strength = 2 },
         ["Acanthus Maul"]             = { speed = 2, accuracy = 7, strength = 3 },
         ["Acanthus Whip"]             = { speed = 2, accuracy = 7, strength = 2 },
+
+        ["Shield of Courage"] = { speed = 1, accuracy = 8, strength = 3, irreplaceable = true },
+        ["Holy Sword Whip"] = { speed = 1, accuracy = 6, strength = 9, savage = true },
+        ["First Tree Cudgel"] = { speed = 2, accuracy = 5, strength = 0 },
     },
 
     guidNames = { ["6392cb"] = "Core Archive" },
@@ -504,6 +515,7 @@ return {
             { "Starting Gear", "Gear" },
             { "Core Rare Gear", "Gear" },
             { "Core Seed Pattern Gear", "Gear" },
+            { "Core Pattern Gear", "Gear" },
             { "Promo Crafter Gear", "Gear" },
             { "Promo Gear", "Gear" },
             { "Barber Surgeon Gear", "Gear" },
@@ -622,6 +634,7 @@ return {
 
             { "Gambler's Chest Rules", "Rulebook"},
             { "Core Seed Patterns", "Seed Patterns" },
+            { "Core Patterns", "Patterns" },
 
             { "Custom Content Rules", "Rulebook" },
             { "Bone Lodge Gear", "Gear" },

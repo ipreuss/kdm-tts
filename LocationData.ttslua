@@ -29,6 +29,11 @@ local locationData = {
         size = ElementSizes.CARD,
         board = "Showdown Board",
     },
+    ["Patterns"] = {
+        center = { x = 10.032245, y = 10.741002, z = -2.020570 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
     ["Abilities"] = {
         center = { x = 9.015150, y = 10.741002, z = -0.620570 },
         size = ElementSizes.CARD,
@@ -590,6 +595,11 @@ local locationData = {
     },
     ["Seed Pattern Gear"] = {
         center = { x = 7.415189, y = 0.595169, z = 6.351118 },
+        size = ElementSizes.GEAR,
+        board = "Settlement Board",
+    },
+    ["Pattern Gear"] = {
+        center = { x = 7.415189, y = 0.595169, z = 7.551118 },
         size = ElementSizes.GEAR,
         board = "Settlement Board",
     },

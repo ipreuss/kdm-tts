@@ -405,7 +405,7 @@ function Campaign.ExportToOrb()
         ["Innovation"] = { "Innovations" },
         ["Weapon Mastery"] = { "Weapon Proficiencies" },
         ["Settlement Gear"] = { "Gear" },
-        ["Settlement Resource"] = { "Basic Resources", "Monster Resources", "Strange Resources", "Vermin", "Seed Patterns" },
+        ["Settlement Resource"] = { "Basic Resources", "Monster Resources", "Strange Resources", "Vermin", "Seed Patterns", "Patterns" },
         ["Settlement Location"] = { "Settlement Locations" },
         ["Player 1 Permanent Token"] = { "Tokens" },
         ["Player 2 Permanent Token"] = { "Tokens" },
@@ -956,6 +956,8 @@ function Campaign.Import(data)
         Campaign.SetupDeckFromExpansionComponents("Seed Pattern Gear", data, { type = "Gear" })
         Campaign.SetupDeckFromExpansionComponents("Hunt Events", data)
         Campaign.SetupDeckFromExpansionComponents("Seed Patterns", data, { type = "Seed Patterns" })
+        Campaign.SetupDeckFromExpansionComponents("Pattern Gear", data, { type = "Gear" })
+        Campaign.SetupDeckFromExpansionComponents("Patterns", data, { type = "Patterns" })
         local context = {
             cache = {},
         }

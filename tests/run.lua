@@ -31,6 +31,8 @@ local testFiles = {
     "tests.layoutmanager_test",
     "tests.consequence_applicator_test",
     "tests.strain_spawn_rewards_test",
+    "tests.expansion_data_integrity_test",
+    "tests.template_archive_integrity_test",
     "tests.acceptance.walking_skeleton_test",
     "tests.acceptance.strain_acceptance_test",
 }

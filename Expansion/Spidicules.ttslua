@@ -54,10 +54,9 @@ return {
         ["Amber Poleaxe"]      = { speed = 2, accuracy = 6, strength = 3 },
         ["Hooded Scrap Katar"] = { speed = 2, accuracy = 7, strength = 4, paired = true },
         ["Silk Whip"]          = { speed = 2, accuracy = 6, strength = 3 },
-        ["Thowing Knife"]      = { speed = 4, accuracy = 9, strength = 2 },
+        ["Throwing Knife"]      = { speed = 4, accuracy = 9, strength = 2 },
         ["Grinning Visage"]    = { speed = 2, accuracy = 7, strength = 4 },
         ["The Weaver"]         = { speed = 3, accuracy = 6, strength = 2 },
-        ["Throwing Knife"]     = { speed = 4, accuracy = 9, strength = 2 },
     },
 
     guidNames = { ["c5735b"] = "Spidicules Archive" },
