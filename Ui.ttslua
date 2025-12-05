@@ -475,7 +475,7 @@ function Ui:CreateElem3d(tag, params)
             width = math.abs(bottomRight.x - topLeft.x) * self.widthFactor,
             height = math.abs(bottomRight.y - topLeft.y) * self.heightFactor,
             scale = self.scale,
-            rotation = self.rotation,
+            rotation = params.rotation or self.rotation,
             active = params.active == nil or params.active,
         },
     }

@@ -28,32 +28,45 @@ function Settlement.Init()
 
     local width = -0.21765
     local height = 0.644982
-    local createButton = function(name, x, y, onClick)
+    local createButton = function(name, x, y, onClick, visible)
         local topLeft = { x =  x, y = y }
         local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
+        if visible then
+            ui:Panel({ id = name .. "Panel", topLeft = topLeft, bottomRight = bottomRight, color = Ui.DARK_BROWN })
+            ui:Text({
+                id = name .. "Label",
+                topLeft = topLeft,
+                bottomRight = bottomRight,
+                text = "Reset",
+                fontSize = 120,
+                alignment = "MiddleCenter",
+                color = Ui.LIGHT_BROWN,
+                rotation = "0 0 270",
+            })
+        end
         ui:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
     end
 
-    local x = 7.031489
-    local y1 = 3.920273
-    local y3 = 5.323954
-    local dy = (y3 - y1) / 2
-    local names = { "Starting Gear", "Rare Gear", "Promo Gear", "Seed Pattern Gear", "Pattern Gear" }
-    for i, name in ipairs(names) do
-        createButton("Reset "..name, x, y1 + (i - 1) * dy, function() Settlement.ResetGear(name, name) end)
+    local gearX = 7.031489
+    local gearY1 = 3.920273
+    local gearY3 = 5.323954
+    local gearDy = (gearY3 - gearY1) / 2
+    local gearNames = { "Starting Gear", "Rare Gear", "Promo Gear", "Seed Pattern Gear", "Pattern Gear" }
+    for i, name in ipairs(gearNames) do
+        createButton("Reset "..name, gearX, gearY1 + (i - 1) * gearDy, function() Settlement.ResetGear(name, name) end, true)
     end
 
-    local x1 = 5.764139
-    local x10 = -7.409930
-    local dx = (x10 - x1) / 9
-    local y1 = 1.971291
-    local y2 = 7.274027
-    local dy = y2 - y1
+    local locX1 = 5.764139
+    local locX10 = -7.409930
+    local locDx = (locX10 - locX1) / 9
+    local locY1 = 1.971291
+    local locY2 = 7.274027
+    local locDy = locY2 - locY1
     for col = 1, 10 do
         for row = 1, 2 do
             local i = (row - 1) * 10 + col
             local name = string.format("Reset Settlement Location Gear %d", i)
-            createButton(name, x1 + (col - 1) * dx, y1 + (row - 1)* dy, function() Settlement.ResetSettlementLocationGear(i) end)
+            createButton(name, locX1 + (col - 1) * locDx, locY1 + (row - 1)* locDy, function() Settlement.ResetSettlementLocationGear(i) end, false)
         end
     end
 

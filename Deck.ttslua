@@ -19,7 +19,6 @@ Deck.NEEDS_SHUFFLE = {
     ["Monster Resources"] = true,
     ["Terrain"] = true,
     ["Seed Patterns"] = true,
-    ["Patterns"] = true,
 }
 
 ---------------------------------------------------------------------------------------------------
@@ -44,17 +43,35 @@ function Deck.Init()
     local height = y1End - y1
     local y4 = 3.030348
     local dy = (y4 - y1) / 3
+
+    local function createResetButton(name, topLeft, bottomRight, onClick)
+        ui:Panel({ id = name .. "Panel", topLeft = topLeft, bottomRight = bottomRight, color = Ui.DARK_BROWN })
+        ui:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
+        ui:Text({
+            id = name .. "Label",
+            topLeft = topLeft,
+            bottomRight = bottomRight,
+            text = "Reset",
+            fontSize = 140,
+            alignment = "MiddleCenter",
+            color = Ui.LIGHT_BROWN,
+            rotation = "0 0 270",
+        })
+    end
+
     for row, decks in ipairs(deckGrid) do
         for col, deck in ipairs(decks) do
             local x = x1 + (col - 1) * dx
             local y = y1 + (row - 2) * dy
-            ui:Button({ id = deck, topLeft = { x = x, y = y }, bottomRight = { x = x + width, y = y + height }, onClick = function()
+            local topLeft = { x = x, y = y }
+            local bottomRight = { x = x + width, y = y + height }
+            createResetButton(deck, topLeft, bottomRight, function()
                 Deck.ResetDeck(deck)
-            end })
+            end)
         end
     end
 
-    --ui:ApplyToObject()
+    ui:ApplyToObject()
 end
 
 ---------------------------------------------------------------------------------------------------
