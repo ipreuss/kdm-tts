@@ -738,6 +738,161 @@ function Archive.RemoveAndDestroyCard(params)
 end
 
 ---------------------------------------------------------------------------------------------------
+-- High-level helper for transferring a card from one deck to another
+-- Used by archive modules (DisordersArchive, SevereInjuriesArchive, StrangeResourcesArchive)
+---------------------------------------------------------------------------------------------------
+
+function Archive.TransferCardBetweenDecks(params)
+    -- params:
+    --   sourceDeckName: name of source deck (e.g., "Strain Rewards")
+    --   sourceDeckType: type of source deck (e.g., "Rewards")
+    --   targetArchiveName: name of target archive (e.g., "Disorders Archive")
+    --   targetDeckLocation: location name for Deck.ResetDeck (e.g., "Disorders")
+    --   stagingPosition: position for staging decks during transfer
+    --   cardName: name of card to transfer
+    --   cardType: GMNotes type to match (e.g., "Disorders")
+    --   logMessage: message to log on success
+    --   onComplete: (optional) callback when operation completes
+    
+    assert(Check.Str(params.sourceDeckName, "sourceDeckName required"))
+    assert(Check.Str(params.targetArchiveName, "targetArchiveName required"))
+    assert(Check.Str(params.cardName, "cardName required"))
+    assert(Check.Str(params.cardType, "cardType required"))
+    
+    local stagingPos = params.stagingPosition or { x = -150, y = 15, z = 120 }
+    
+    -- Take target deck from its archive
+    local targetArchive = NamedObject.Get(params.targetArchiveName)
+    if not targetArchive then
+        log:Errorf("Archive '%s' not found.", params.targetArchiveName)
+        return false
+    end
+    
+    local targetDeck = targetArchive.takeObject({
+        position = stagingPos,
+        rotation = { x = 0, y = 180, z = 180 },
+        smooth = false,
+    })
+    if not targetDeck then
+        log:Errorf("Unable to take deck from archive '%s'.", params.targetArchiveName)
+        return false
+    end
+    
+    -- Take source deck
+    local sourceDeck = Archive.Take({
+        name = params.sourceDeckName,
+        type = params.sourceDeckType,
+        position = {
+            x = stagingPos.x + 5,
+            y = stagingPos.y,
+            z = stagingPos.z,
+        },
+        rotation = { x = 0, y = 180, z = 180 },
+    })
+    if not sourceDeck then
+        log:Errorf("Unable to take '%s' deck from archive.", params.sourceDeckName)
+        targetArchive.putObject(targetDeck)
+        Archive.Clean()
+        return false
+    end
+    
+    -- Find card in source deck
+    local cardIndex
+    for _, obj in ipairs(sourceDeck.getObjects()) do
+        if obj.name == params.cardName and obj.gm_notes == params.cardType then
+            cardIndex = obj.index
+            break
+        end
+    end
+    
+    if not cardIndex then
+        log:Errorf("Card '%s' not found in '%s' deck.", params.cardName, params.sourceDeckName)
+        targetArchive.putObject(targetDeck)
+        Archive.Clean()
+        return false
+    end
+    
+    -- Transfer the card
+    Archive.TransferCard({
+        source = sourceDeck,
+        target = targetDeck,
+        cardIndex = cardIndex,
+        archive = targetArchive,
+        deckLocation = params.targetDeckLocation,
+        logMessage = params.logMessage,
+        onComplete = params.onComplete,
+    })
+    
+    return true
+end
+
+---------------------------------------------------------------------------------------------------
+-- High-level helper for removing a card from a deck
+-- Used by archive modules (DisordersArchive, SevereInjuriesArchive, StrangeResourcesArchive)
+---------------------------------------------------------------------------------------------------
+
+function Archive.RemoveCardFromDeck(params)
+    -- params:
+    --   archiveName: name of archive containing the deck
+    --   deckLocation: location name for Deck.ResetDeck
+    --   stagingPosition: position for staging deck
+    --   cardName: name of card to remove
+    --   cardType: GMNotes type to match
+    --   logMessage: message to log on success
+    --   onComplete: (optional) callback when operation completes
+    
+    assert(Check.Str(params.archiveName, "archiveName required"))
+    assert(Check.Str(params.cardName, "cardName required"))
+    assert(Check.Str(params.cardType, "cardType required"))
+    
+    local stagingPos = params.stagingPosition or { x = -150, y = 15, z = 120 }
+    
+    -- Take deck from archive
+    local archive = NamedObject.Get(params.archiveName)
+    if not archive then
+        log:Errorf("Archive '%s' not found.", params.archiveName)
+        return false
+    end
+    
+    local deck = archive.takeObject({
+        position = stagingPos,
+        rotation = { x = 0, y = 180, z = 180 },
+        smooth = false,
+    })
+    if not deck then
+        log:Errorf("Unable to take deck from archive '%s'.", params.archiveName)
+        return false
+    end
+    
+    -- Find card in deck
+    local cardIndex
+    for _, obj in ipairs(deck.getObjects()) do
+        if obj.name == params.cardName and obj.gm_notes == params.cardType then
+            cardIndex = obj.index
+            break
+        end
+    end
+    
+    if not cardIndex then
+        archive.putObject(deck)
+        log:Debugf("%s not present in deck.", params.cardName)
+        return false
+    end
+    
+    -- Remove and destroy the card
+    Archive.RemoveAndDestroyCard({
+        deck = deck,
+        cardIndex = cardIndex,
+        archive = archive,
+        deckLocation = params.deckLocation,
+        logMessage = params.logMessage,
+        onComplete = params.onComplete,
+    })
+    
+    return true
+end
+
+---------------------------------------------------------------------------------------------------
 
 return {
     Init = Archive.Init,
@@ -752,6 +907,8 @@ return {
     CreateAllGearDeck = Archive.CreateAllGearDeck,
     TransferCard = Archive.TransferCard,
     RemoveAndDestroyCard = Archive.RemoveAndDestroyCard,
+    TransferCardBetweenDecks = Archive.TransferCardBetweenDecks,
+    RemoveCardFromDeck = Archive.RemoveCardFromDeck,
     
     -- Test seam exports
     Test_SetSpawner = Archive.Test_SetSpawner,

@@ -15,6 +15,7 @@ This backlog captures feature ideas and improvements for future consideration. I
 | 4 | Code Quality | Strain module SOLID refactoring | P2 | Done | Completed 2025-12-04; extracted `ConsequenceApplicator` module (110 lines, 10 methods). Both `Strain` and `Campaign` now delegate to it. Code duplication eliminated. |
 | 5 | Testing | Acceptance tests should exercise ExecuteConsequences/ReverseConsequences (Phase 1) | P2 | Done | Completed 2025-12-04; `startNewCampaign()` calls real `AddStrainRewards()`, `deckContains()` simplified to spy-only queries (~12 lines). All code paths now go through spies. |
 | 6 | Gear | Pattern gear implementation | P1 | New | High priority — details TBD |
+| 7 | Showdown | Button for spawning resource rewards for won showdowns | — | New | Details TBD |
 
 ## Epics
 

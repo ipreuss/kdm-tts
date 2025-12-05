@@ -1,9 +1,11 @@
 local Archive = require("Kdm/Archive")
-local NamedObject = require("Kdm/NamedObject")
-local Deck = require("Kdm/Deck")
 local StrainRewardsConstants = require("Kdm/StrainRewardsConstants")
-local log = require("Kdm/Log").ForModule("DisordersArchive")
 
+---------------------------------------------------------------------------------------------------
+-- DisordersArchive: Transfers disorder cards between Strain Rewards deck and Disorders deck
+--
+-- Note: For SPAWNING disorders from Core Disorders deck, use Archive.TakeFromDeck() directly.
+-- This module is for transferring cards that exist in the Strain Rewards deck.
 ---------------------------------------------------------------------------------------------------
 
 local DisordersArchive = {}
@@ -20,116 +22,32 @@ DisordersArchive.ARCHIVE_NAME = "Disorders Archive"
 
 ---------------------------------------------------------------------------------------------------
 
-local function takeDisordersDeck()
-    local archive = NamedObject.Get(DisordersArchive.ARCHIVE_NAME)
-    if not archive then
-        log:Errorf("Disorders archive '%s' not found.", DisordersArchive.ARCHIVE_NAME)
-        return nil, nil
-    end
-
-    local deck = archive.takeObject({
-        position = DisordersArchive.REWARD_DECK_STAGING_POSITION,
-        rotation = { x = 0, y = 180, z = 180 },
-        smooth = false,
-    })
-    if not deck then
-        log:Errorf("Unable to take Disorders deck from archive.")
-        return nil, archive
-    end
-    return deck, archive
-end
-
----------------------------------------------------------------------------------------------------
-
 function DisordersArchive.AddCard(cardName, onComplete)
-    local deck, archive = takeDisordersDeck()
-    if not deck then
-        return false
-    end
-
-    local strainDeck = Archive.Take({
-        name = DisordersArchive.REWARD_DECK_NAME,
-        type = DisordersArchive.REWARD_DECK_TYPE,
-        position = {
-            x = DisordersArchive.REWARD_DECK_STAGING_POSITION.x + 5,
-            y = DisordersArchive.REWARD_DECK_STAGING_POSITION.y,
-            z = DisordersArchive.REWARD_DECK_STAGING_POSITION.z,
-        },
-        rotation = { x = 0, y = 180, z = 180 },
-    })
-    if not strainDeck then
-        log:Errorf("Unable to take Strain Rewards deck from archive.")
-        if archive then
-            archive.putObject(deck)
-        end
-        Archive.Clean()
-        return false
-    end
-
-    local cardIndex
-    for _, obj in ipairs(strainDeck.getObjects()) do
-        if obj.name == cardName and obj.gm_notes == DisordersArchive.CARD_TYPE then
-            cardIndex = obj.index
-            break
-        end
-    end
-
-    if not cardIndex then
-        log:Errorf("Card '%s' not found in Strain Rewards deck.", cardName)
-        if archive then
-            archive.putObject(deck)
-        end
-        Archive.Clean()
-        return false
-    end
-
-    Archive.TransferCard({
-        source = strainDeck,
-        target = deck,
-        cardIndex = cardIndex,
-        archive = archive,
-        deckLocation = DisordersArchive.DECK_LOCATION,
+    return Archive.TransferCardBetweenDecks({
+        sourceDeckName = DisordersArchive.REWARD_DECK_NAME,
+        sourceDeckType = DisordersArchive.REWARD_DECK_TYPE,
+        targetArchiveName = DisordersArchive.ARCHIVE_NAME,
+        targetDeckLocation = DisordersArchive.DECK_LOCATION,
+        stagingPosition = DisordersArchive.REWARD_DECK_STAGING_POSITION,
+        cardName = cardName,
+        cardType = DisordersArchive.CARD_TYPE,
         logMessage = "Added " .. cardName .. " to the Disorders deck.",
         onComplete = onComplete,
     })
-
-    return true
 end
 
 ---------------------------------------------------------------------------------------------------
 
 function DisordersArchive.RemoveCard(cardName, onComplete)
-    local deck, archive = takeDisordersDeck()
-    if not deck then
-        return false
-    end
-
-    local removeIndex
-    for _, obj in ipairs(deck.getObjects()) do
-        if obj.name == cardName and obj.gm_notes == DisordersArchive.CARD_TYPE then
-            removeIndex = obj.index
-            break
-        end
-    end
-
-    if not removeIndex then
-        if archive then
-            archive.putObject(deck)
-        end
-        log:Debugf("%s not present in Disorders deck.", cardName)
-        return false
-    end
-
-    Archive.RemoveAndDestroyCard({
-        deck = deck,
-        cardIndex = removeIndex,
-        archive = archive,
+    return Archive.RemoveCardFromDeck({
+        archiveName = DisordersArchive.ARCHIVE_NAME,
         deckLocation = DisordersArchive.DECK_LOCATION,
+        stagingPosition = DisordersArchive.REWARD_DECK_STAGING_POSITION,
+        cardName = cardName,
+        cardType = DisordersArchive.CARD_TYPE,
         logMessage = "Removed " .. cardName .. " from the Disorders deck.",
         onComplete = onComplete,
     })
-
-    return true
 end
 
 ---------------------------------------------------------------------------------------------------

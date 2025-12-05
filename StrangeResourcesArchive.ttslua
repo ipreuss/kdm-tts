@@ -1,9 +1,11 @@
 local Archive = require("Kdm/Archive")
-local NamedObject = require("Kdm/NamedObject")
-local Deck = require("Kdm/Deck")
 local StrainRewardsConstants = require("Kdm/StrainRewardsConstants")
-local log = require("Kdm/Log").ForModule("StrangeResourcesArchive")
 
+---------------------------------------------------------------------------------------------------
+-- StrangeResourcesArchive: Transfers strange resource cards between Strain Rewards deck and Strange Resources deck
+--
+-- Note: For SPAWNING resources from Core Strange Resources deck, use Archive.TakeFromDeck() directly.
+-- This module is for transferring cards that exist in the Strain Rewards deck.
 ---------------------------------------------------------------------------------------------------
 
 local StrangeResourcesArchive = {}
@@ -20,116 +22,32 @@ StrangeResourcesArchive.ARCHIVE_NAME = "Strange Resources Archive"
 
 ---------------------------------------------------------------------------------------------------
 
-local function takeStrangeResourcesDeck()
-    local archive = NamedObject.Get(StrangeResourcesArchive.ARCHIVE_NAME)
-    if not archive then
-        log:Errorf("Strange Resources archive '%s' not found.", StrangeResourcesArchive.ARCHIVE_NAME)
-        return nil, nil
-    end
-
-    local deck = archive.takeObject({
-        position = StrangeResourcesArchive.REWARD_DECK_STAGING_POSITION,
-        rotation = { x = 0, y = 180, z = 180 },
-        smooth = false,
-    })
-    if not deck then
-        log:Errorf("Unable to take Strange Resources deck from archive.")
-        return nil, archive
-    end
-    return deck, archive
-end
-
----------------------------------------------------------------------------------------------------
-
 function StrangeResourcesArchive.AddCard(cardName, onComplete)
-    local deck, archive = takeStrangeResourcesDeck()
-    if not deck then
-        return false
-    end
-
-    local strainDeck = Archive.Take({
-        name = StrangeResourcesArchive.REWARD_DECK_NAME,
-        type = StrangeResourcesArchive.REWARD_DECK_TYPE,
-        position = {
-            x = StrangeResourcesArchive.REWARD_DECK_STAGING_POSITION.x + 5,
-            y = StrangeResourcesArchive.REWARD_DECK_STAGING_POSITION.y,
-            z = StrangeResourcesArchive.REWARD_DECK_STAGING_POSITION.z,
-        },
-        rotation = { x = 0, y = 180, z = 180 },
-    })
-    if not strainDeck then
-        log:Errorf("Unable to take Strain Rewards deck from archive.")
-        if archive then
-            archive.putObject(deck)
-        end
-        Archive.Clean()
-        return false
-    end
-
-    local cardIndex
-    for _, obj in ipairs(strainDeck.getObjects()) do
-        if obj.name == cardName and obj.gm_notes == StrangeResourcesArchive.CARD_TYPE then
-            cardIndex = obj.index
-            break
-        end
-    end
-
-    if not cardIndex then
-        log:Errorf("Card '%s' not found in Strain Rewards deck.", cardName)
-        if archive then
-            archive.putObject(deck)
-        end
-        Archive.Clean()
-        return false
-    end
-
-    Archive.TransferCard({
-        source = strainDeck,
-        target = deck,
-        cardIndex = cardIndex,
-        archive = archive,
-        deckLocation = StrangeResourcesArchive.DECK_LOCATION,
+    return Archive.TransferCardBetweenDecks({
+        sourceDeckName = StrangeResourcesArchive.REWARD_DECK_NAME,
+        sourceDeckType = StrangeResourcesArchive.REWARD_DECK_TYPE,
+        targetArchiveName = StrangeResourcesArchive.ARCHIVE_NAME,
+        targetDeckLocation = StrangeResourcesArchive.DECK_LOCATION,
+        stagingPosition = StrangeResourcesArchive.REWARD_DECK_STAGING_POSITION,
+        cardName = cardName,
+        cardType = StrangeResourcesArchive.CARD_TYPE,
         logMessage = "Added " .. cardName .. " to the Strange Resources deck.",
         onComplete = onComplete,
     })
-
-    return true
 end
 
 ---------------------------------------------------------------------------------------------------
 
 function StrangeResourcesArchive.RemoveCard(cardName, onComplete)
-    local deck, archive = takeStrangeResourcesDeck()
-    if not deck then
-        return false
-    end
-
-    local removeIndex
-    for _, obj in ipairs(deck.getObjects()) do
-        if obj.name == cardName and obj.gm_notes == StrangeResourcesArchive.CARD_TYPE then
-            removeIndex = obj.index
-            break
-        end
-    end
-
-    if not removeIndex then
-        if archive then
-            archive.putObject(deck)
-        end
-        log:Debugf("%s not present in Strange Resources deck.", cardName)
-        return false
-    end
-
-    Archive.RemoveAndDestroyCard({
-        deck = deck,
-        cardIndex = removeIndex,
-        archive = archive,
+    return Archive.RemoveCardFromDeck({
+        archiveName = StrangeResourcesArchive.ARCHIVE_NAME,
         deckLocation = StrangeResourcesArchive.DECK_LOCATION,
+        stagingPosition = StrangeResourcesArchive.REWARD_DECK_STAGING_POSITION,
+        cardName = cardName,
+        cardType = StrangeResourcesArchive.CARD_TYPE,
         logMessage = "Removed " .. cardName .. " from the Strange Resources deck.",
         onComplete = onComplete,
     })
-
-    return true
 end
 
 ---------------------------------------------------------------------------------------------------
