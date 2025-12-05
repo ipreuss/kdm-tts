@@ -63,6 +63,7 @@ function TTSTests.RunAllTests()
         { name = "Atmospheric Change (Heat Wave/Lump of Atnas)", fn = function(onComplete) TTSTests.TestAtmosphericChange(onComplete) end },
         { name = "ConsequenceApplicator Operations", fn = function(onComplete) TTSTests.TestConsequenceApplicator(onComplete) end },
         { name = "Pattern Deck Spawn", fn = function(onComplete) TTSTests.TestPatternDeckSpawn(onComplete) end },
+        { name = "Pattern Gear Deck Spawn", fn = function(onComplete) TTSTests.TestPatternGearDeckSpawn(onComplete) end },
     }
     
     local currentTest = 1
@@ -1037,7 +1038,9 @@ function TTSTests.RegisterPatternTests()
     Console.AddCommand("testpatterns", function(args)
         TTSTests.TestPatternDeckSpawn()
     end, "Test spawning Pattern deck from archive")
-    -- Note: Pattern Gear deck is built dynamically from expansion components, not from archive
+    Console.AddCommand("testpatterngear", function(args)
+        TTSTests.TestPatternGearDeckSpawn()
+    end, "Test spawning Pattern Gear deck from archive")
 end
 
 function TTSTests.TestPatternDeckSpawn(onComplete)
