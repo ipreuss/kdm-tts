@@ -361,13 +361,13 @@ Test.test("ACCEPTANCE: confirming milestone with severe injury spawns injury car
     
     local testMilestone = {
         title = "Test Injury Milestone",
-        consequences = { severeInjury = "blind" },
+        consequences = { severeInjury = "Blind" },
     }
     
     world._strainModule.Test.ExecuteConsequences(testMilestone)
     
     -- Severe injury should be spawned via Archive.Take
-    t:assertTrue(world._archiveSpy:cardSpawned("blind", "Severe Injuries"))
+    t:assertTrue(world._archiveSpy:cardSpawned("Blind", "Severe Injuries"))
     
     world:destroy()
 end)
@@ -409,5 +409,70 @@ Test.test("ACCEPTANCE: unchecking milestone with spawned card logs manual remova
     world._strainModule.Test.ReverseConsequences(testMilestone)
     
     -- Test passes if no error was thrown
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+-- REAL MILESTONE AUTO-SPAWN TESTS
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: confirming Hyper Cerebellum spawns fighting art and disorder", function(t)
+    local world = TestWorld.create()
+    
+    world:confirmMilestone("Hyper Cerebellum")
+    
+    -- Fighting art added to deck
+    t:assertTrue(world:cardSpawned("Shielderang"), 
+        "Shielderang fighting art should be spawned")
+    -- Disorder spawned (taken from existing deck)
+    t:assertTrue(world:cardSpawned("Weak Spot"), 
+        "Weak Spot disorder should be spawned")
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: confirming Surgical Sight spawns fighting art and severe injury", function(t)
+    local world = TestWorld.create()
+    
+    world:confirmMilestone("Surgical Sight")
+    
+    t:assertTrue(world:cardSpawned("Convalescer"), 
+        "Convalescer fighting art should be spawned")
+    t:assertTrue(world:cardSpawned("Blind"), 
+        "Blind severe injury should be spawned")
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: confirming Plot Twist spawns fighting art and strange resource", function(t)
+    local world = TestWorld.create()
+    
+    world:confirmMilestone("Plot Twist")
+    
+    t:assertTrue(world:cardSpawned("Story of Blood"), 
+        "Story of Blood fighting art should be spawned")
+    t:assertTrue(world:cardSpawned("Iron"), 
+        "Iron strange resource should be spawned")
+    
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: unchecking Hyper Cerebellum removes fighting art from deck", function(t)
+    local world = TestWorld.create()
+    
+    world:confirmMilestone("Hyper Cerebellum")
+    world:uncheckMilestone("Hyper Cerebellum")
+    
+    -- Fighting art removed from deck
+    t:assertFalse(world:deckContains(world:fightingArtsDeck(), "Shielderang"),
+        "Shielderang should be removed from Fighting Arts deck")
+    -- Note: Disorder removal is manual (card is handed to survivor)
+    
     world:destroy()
 end)

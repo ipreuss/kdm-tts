@@ -60,7 +60,8 @@ function ArchiveSpy:createFightingArtsArchiveStub()
         FIGHTING_ART_ARCHIVE = "Fighting Arts Archive",
         AddCard = function(cardName, onComplete)
             table.insert(spy._calls.fightingArtsAdd, { card = cardName })
-            -- Don't call onComplete - it triggers SpawnFightingArtForSurvivor which needs TTS
+            -- Call onComplete to chain spawn consequences (disorder/injury/resource)
+            if onComplete then onComplete() end
             return true
         end,
         RemoveCard = function(cardName)

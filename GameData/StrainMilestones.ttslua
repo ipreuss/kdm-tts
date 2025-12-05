@@ -94,7 +94,7 @@ local StrainMilestones = {
         rulesText = [[Permanently add the <b>Convalescer</b> fighting art to your fighting art deck. The survivor gains the <b>Convalescer</b> fighting art.]],
         consequences = {
             fightingArt = "Convalescer",
-            severeInjury = "blind",
+            severeInjury = "Blind",
             manual = {
                 "Give the spawned Convalescer card to the survivor with Ocular Parasites",
                 "Give the spawned blind injury to the survivor (head hit location)"

@@ -197,4 +197,33 @@ function TestWorld:deckContains(deck, cardName)
     return false
 end
 
+function TestWorld:cardSpawned(cardName)
+    -- Check if card was spawned via Archive.Take/TakeFromDeck
+    if self._archiveSpy:cardSpawned(cardName) then
+        return true
+    end
+    -- Check if card was added/spawned via specific archive AddCard methods
+    -- Fighting arts
+    if self._archiveSpy:fightingArtAdded(cardName) 
+       and not self._archiveSpy:fightingArtRemoved(cardName) then
+        return true
+    end
+    -- Disorders
+    if self._archiveSpy:disorderAdded(cardName) 
+       and not self._archiveSpy:disorderRemoved(cardName) then
+        return true
+    end
+    -- Severe injuries
+    if self._archiveSpy:severeInjuryAdded(cardName) 
+       and not self._archiveSpy:severeInjuryRemoved(cardName) then
+        return true
+    end
+    -- Strange resources
+    if self._archiveSpy:strangeResourceAdded(cardName) 
+       and not self._archiveSpy:strangeResourceRemoved(cardName) then
+        return true
+    end
+    return false
+end
+
 return TestWorld

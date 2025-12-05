@@ -74,7 +74,7 @@ Test.test("VERIFY: Strain Rewards deck should only contain transferable cards", 
     
     -- Verify we found the expected spawn-only cards
     t:assertNotNil(spawnOnlyCards["Weak Spot"], "Should find Weak Spot disorder in milestones")
-    t:assertNotNil(spawnOnlyCards["blind"], "Should find blind severe injury in milestones")
+    t:assertNotNil(spawnOnlyCards["Blind"], "Should find Blind severe injury in milestones")
     t:assertNotNil(spawnOnlyCards["Iron"], "Should find Iron strange resource in milestones")
 end)
 

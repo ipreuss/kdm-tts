@@ -1,7 +1,7 @@
 # Strain Milestones
 
-**Status:** ✅ Complete (13 milestones), 🚧 In Progress (14th milestone)  
-**Last Updated:** 2025-12-03
+**Status:** ✅ Complete (14 milestones)  
+**Last Updated:** 2025-12-05
 
 ## Overview
 
@@ -79,11 +79,16 @@ Strain milestones are permanent achievements that unlock rewards persisting acro
 | Add timeline event | ✅ Automated | "Acid Storm" scheduled on next lantern year |
 | Trash settlement event | ✅ Automated | "Heat Wave" moved to Trash, removed from deck |
 | Add basic resource | ✅ Automated | "Lump of Atnas" added to Basic Resources deck |
-| Survivor gains disorder | 📋 Manual | Reminder shown; player adds disorder card |
+| Spawn disorder | ✅ Automated | "Weak Spot" taken from Disorders deck, spawned for survivor |
+| Spawn severe injury | ✅ Automated | "blind" taken from Severe Injuries deck, spawned for survivor |
+| Spawn strange resource | ✅ Automated | "Iron" taken from Strange Resources deck, spawned for survivor |
 | Survivor gains proficiency | 📋 Manual | Reminder shown; player updates survivor sheet |
-| Survivor suffers injury | 📋 Manual | Reminder shown; player applies injury |
 | Survivor stat penalty | 📋 Manual | Reminder shown; player updates stats |
-| Add strange resource | 📋 Manual | Reminder shown; player adds to storage |
+
+### Card Source Distinction
+
+- **Added to deck**: Fighting arts, vermin, basic resources come from archives (not in decks by default) and are **added to decks** on confirm
+- **Spawned from deck**: Disorders, severe injuries, strange resources are **already in decks** and are **taken/spawned** on confirm (no deck modification needed)
 
 ### Trash System for Card Removal
 
@@ -127,15 +132,15 @@ Some milestones require removing cards from regular game decks (e.g., archiving 
 | 2 | Giant's Strain | Giant's Blood | — |
 | 3 | Opportunist Strain | Backstabber | -1 STR, -1 EVA (manual) |
 | 4 | Trepanning Strain | Infinite Lives | — |
-| 5 | Hyper Cerebellum | Shielderang | 3 Shield proficiency, Weak Spot disorder (manual) |
+| 5 | Hyper Cerebellum | Shielderang | 3 Shield proficiency (manual), Weak Spot disorder (auto-spawn) |
 | 6 | Marrow Transformation | Rolling Gait | — |
 | 7 | Memetic Symphony | Infernal Rhythm | — |
-| 8 | Surgical Sight | Convalescer | Blind injury (manual) |
+| 8 | Surgical Sight | Convalescer | Blind injury (auto-spawn) |
 | 9 | Ashen Claw Strain | Armored Fist | Fiddler Crab Spider (vermin) |
 | 10 | Carnage Worms | Dark Manifestation | — |
 | 11 | Material Feedback Strain | Stockist | — |
 | 12 | Sweat Stained Oath | Sword Oath | Acid Storm (timeline) |
-| 13 | Plot Twist | Story of Blood | 1 Iron (manual) |
+| 13 | Plot Twist | Story of Blood | 1 Iron (auto-spawn) |
 | 14 | Atmospheric Change | — | Archive Heat Wave (trash), Add Lump of Atnas (basic resource) |
 
 ## Acceptance Criteria
@@ -176,6 +181,10 @@ For implementation details, see:
 - `FightingArtsArchive.ttslua` — Fighting arts deck add/remove operations
 - `VerminArchive.ttslua` — Vermin deck add/remove operations
 - `BasicResourcesArchive.ttslua` — Basic resources deck add/remove operations
+- `DisordersArchive.ttslua` — Disorders deck spawn operations
+- `SevereInjuriesArchive.ttslua` — Severe injuries deck spawn operations
+- `StrangeResourcesArchive.ttslua` — Strange resources deck spawn operations
+- `ConsequenceApplicator.ttslua` — Shared consequence apply/reverse logic
 - `Trash.ttslua` — Trash system for removing cards from regular decks
 - `Campaign.ttslua` — `AddStrainRewards()` for new campaign setup
 - `ARCHITECTURE.md` — Module relationships, Trash System documentation
