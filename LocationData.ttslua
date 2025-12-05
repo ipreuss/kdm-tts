@@ -24,13 +24,27 @@ local locationData = {
         p2 = { x = 9.370266, y = 10.741003, z = -2.04 },
         board = "Showdown Board",
     },
+
+    -- Deck Grid Layout (looking at the table from above, positive X is left, positive Z is down)
+    -- Each row shares the same Z coordinate, columns share X coordinates
+    -- Column X positions: 9.015150 (right), 7.998055 (middle), 6.980959 (left)
+    -- Row Z positions: -2.020570 (top), -0.620570, 0.785908, 2.192385, 3.598863 (bottom)
+    --
+    -- Row 0 (z=-2.02): Seed Patterns | Patterns        | (unused)
+    -- Row 1 (z=-0.62): Abilities     | Fighting Arts   | Secret Fighting Arts
+    -- Row 2 (z=0.79):  Disorders     | Severe Injuries | Tactics
+    -- Row 3 (z=2.19):  Weapon Prof.  | Armor Sets      | Vermin
+    -- Row 4 (z=3.60):  Strange Res.  | Basic Resources | Monster Resources
+    --
+    -- Note: Pattern Gear is on the Settlement Board, not the Deck Grid
+
     ["Seed Patterns"] = {
         center = { x = 9.015150, y = 10.741002, z = -2.020570 },
         size = ElementSizes.CARD,
         board = "Showdown Board",
     },
     ["Patterns"] = {
-        center = { x = 10.032245, y = 10.741002, z = -2.020570 },
+        center = { x = 7.998055, y = 10.741002, z = -2.020570 },
         size = ElementSizes.CARD,
         board = "Showdown Board",
     },
