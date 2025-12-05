@@ -599,7 +599,7 @@ local locationData = {
         board = "Settlement Board",
     },
     ["Pattern Gear"] = {
-        center = { x = 7.415189, y = 0.595169, z = 7.551118 },
+        center = { x = 7.415189, y = 0.595169, z = 7.052047 },
         size = ElementSizes.GEAR,
         board = "Settlement Board",
     },

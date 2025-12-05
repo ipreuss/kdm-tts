@@ -1044,10 +1044,11 @@ function TTSTests.TestPatternDeckSpawn(onComplete)
     log:Printf("=== TEST: TestPatternDeckSpawn ===")
     log:Printf("TEST: Spawning Patterns deck from archive...")
     
+    local location = Location.Get("Patterns")
     local deck = Archive.Take({
         name = "Patterns",
         type = "Patterns",
-        position = Location.Get("Patterns").center,
+        location = location,
         rotation = { x = 0, y = 180, z = 180 },
     })
     
@@ -1064,7 +1065,7 @@ function TTSTests.TestPatternDeckSpawn(onComplete)
     log:Printf("TEST: Patterns deck spawned with %d card(s)", cardCount)
     
     -- Verify position is correct (east of Seed Patterns)
-    local expectedPos = Location.Get("Patterns").center
+    local expectedPos = location:Center()
     local actualPos = deck.getPosition()
     local positionCorrect = math.abs(actualPos.x - expectedPos.x) < 1 and math.abs(actualPos.z - expectedPos.z) < 1
     
@@ -1090,10 +1091,11 @@ function TTSTests.TestPatternGearDeckSpawn(onComplete)
     log:Printf("=== TEST: TestPatternGearDeckSpawn ===")
     log:Printf("TEST: Spawning Pattern Gear deck from archive...")
     
+    local location = Location.Get("Pattern Gear")
     local deck = Archive.Take({
         name = "Pattern Gear",
         type = "Gear",
-        position = Location.Get("Pattern Gear").center,
+        location = location,
         rotation = { x = 0, y = 180, z = 180 },
     })
     
@@ -1110,7 +1112,7 @@ function TTSTests.TestPatternGearDeckSpawn(onComplete)
     log:Printf("TEST: Pattern Gear deck spawned with %d card(s)", cardCount)
     
     -- Verify position is correct (south of Seed Pattern Gear)
-    local expectedPos = Location.Get("Pattern Gear").center
+    local expectedPos = location:Center()
     local actualPos = deck.getPosition()
     local positionCorrect = math.abs(actualPos.x - expectedPos.x) < 1 and math.abs(actualPos.z - expectedPos.z) < 1
     
