@@ -47,15 +47,24 @@ function ArchiveSpy:createArchiveStub()
             getName = function() return deckName end,
             setName = function() end,
             setGMNotes = function() end,
+            getGMNotes = function() return deckName end,
             getPosition = function() return { x = 0, y = 0, z = 0 } end,
             setPosition = function() end,
             setPositionSmooth = function() end,
             getRotation = function() return { x = 0, y = 0, z = 0 } end,
             setRotation = function() end,
             destruct = function() end,
+            destroy = function() end,
+            setLock = function() end,
+            clone = function() return createDeckStub(deckName) end,
             shuffle = function()
                 table.insert(spy._calls.deckShuffle, { name = deckName })
             end,
+            putObject = function(obj) end,
+            takeObject = function(params)
+                return createDeckStub(params and params.name or "card")
+            end,
+            getQuantity = function() return 10 end,
         }
     end
 
@@ -210,8 +219,8 @@ function ArchiveSpy:createTimelineStub(getCurrentYear)
         ScheduleEvent = function(event)
             local currentYear = getCurrentYear and getCurrentYear() or 1
             local targetYear = currentYear + (event.offset or 1)
-            table.insert(spy._calls.timelineSchedule, { 
-                event = event, 
+            table.insert(spy._calls.timelineSchedule, {
+                event = event,
                 year = targetYear,
             })
             return true
@@ -220,6 +229,175 @@ function ArchiveSpy:createTimelineStub(getCurrentYear)
             table.insert(spy._calls.timelineRemove, { name = name, type = eventType })
             return true
         end,
+        Import = function(data) end,
+        RefreshSettlementEventSearchFromDeck = function() end,
+    }
+end
+
+---------------------------------------------------------------------------------------------------
+-- Additional module stubs for Campaign.Import
+---------------------------------------------------------------------------------------------------
+
+function ArchiveSpy:createShowdownStub()
+    return {
+        Clean = function() end,
+    }
+end
+
+function ArchiveSpy:createHuntStub()
+    return {
+        Clean = function() end,
+        Import = function(data) end,
+    }
+end
+
+function ArchiveSpy:createExpansionStub()
+    return {
+        SetEnabled = function(enabledByName) end,
+        SetUnlockedMode = function(mode) end,
+        All = function() return {} end,
+    }
+end
+
+function ArchiveSpy:createRulesStub()
+    return {
+        createRulebookButtons = function() end,
+    }
+end
+
+function ArchiveSpy:createLocationStub()
+    local locationStub = {
+        Position = function() return { x = 0, y = 0, z = 0 } end,
+        Center = function() return { x = 0, y = 0, z = 0 } end,
+        BoxClean = function(options) return {} end,
+    }
+    return {
+        Get = function(name)
+            return locationStub
+        end,
+    }
+end
+
+function ArchiveSpy:createNamedObjectStub()
+    local spy = self
+    -- Create a full deck stub with all needed methods
+    local function createFullDeckStub(deckName)
+        local stub
+        stub = {
+            name = deckName,
+            type = "Deck",
+            getObjects = function() return {} end,
+            getName = function() return deckName end,
+            setName = function() end,
+            setGMNotes = function() end,
+            getGMNotes = function() return deckName end,
+            getPosition = function() return { x = 0, y = 0, z = 0 } end,
+            setPosition = function() end,
+            setPositionSmooth = function() end,
+            getRotation = function() return { x = 0, y = 0, z = 0 } end,
+            setRotation = function() end,
+            destruct = function() end,
+            destroy = function() end,
+            setLock = function() end,
+            clone = function() return createFullDeckStub(deckName) end,
+            shuffle = function()
+                table.insert(spy._calls.deckShuffle, { name = deckName })
+            end,
+            putObject = function(obj) end,
+            takeObject = function(params)
+                return createFullDeckStub(params and params.name or "card")
+            end,
+            getQuantity = function() return 10 end,
+        }
+        return stub
+    end
+
+    return {
+        Get = function(name)
+            return {
+                reset = function() end,
+                putObject = function(obj) end,
+                takeObject = function(params)
+                    -- Return full deck stub so Container can wrap it
+                    local deckName = name:gsub(" Archive$", "")
+                    return createFullDeckStub(deckName)
+                end,
+            }
+        end,
+    }
+end
+
+function ArchiveSpy:createContainerModuleStub()
+    local spy = self
+    return function(object)
+        local containerName = object and object.getName and object.getName() or "unknown"
+        return {
+            Object = function() return object end,
+            Shuffle = function()
+                table.insert(spy._calls.deckShuffle, { name = containerName })
+            end,
+            Delete = function(items) end,
+            Take = function(params)
+                return {
+                    getName = function() return params.name end,
+                    getPosition = function() return params.position or { x = 0, y = 0, z = 0 } end,
+                }
+            end,
+        }
+    end
+end
+
+function ArchiveSpy:createSurvivorStub()
+    return {
+        Import = function(data) end,
+        Survivors = function() return {} end,
+        SpawnSurvivorBox = function(survivor, location) end,
+    }
+end
+
+function ArchiveSpy:createCampaignMigrationsStub()
+    return {
+        Apply = function(data, targetVersion)
+            data.version = targetVersion
+        end,
+    }
+end
+
+function ArchiveSpy:createWaitStub()
+    return {
+        frames = function(callback, frames)
+            -- Execute callback immediately in tests
+            callback()
+        end,
+        time = function(callback, seconds)
+            callback()
+        end,
+    }
+end
+
+function ArchiveSpy:createPlayerStub()
+    return {
+        Players = function()
+            return { {}, {}, {}, {} }  -- 4 dummy players
+        end,
+    }
+end
+
+function ArchiveSpy:createTrashStubWithImport()
+    local spy = self
+    return {
+        AddCard = function(cardName, cardType, deckLocation)
+            table.insert(spy._calls.trashAdd, { card = cardName, type = cardType })
+            return true
+        end,
+        RemoveCard = function(cardName, cardType, deckLocation)
+            table.insert(spy._calls.trashRemove, { card = cardName, type = cardType })
+            return true
+        end,
+        IsInTrash = function(name, type)
+            return false
+        end,
+        Import = function(data) end,
     }
 end
 

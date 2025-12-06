@@ -7,12 +7,25 @@
 - Evaluate technical feasibility of Product Owner requests
 - Identify and document refactoring opportunities
 - Specify TTS testing requirements when design involves TTS API interactions
+- **Maintain process documentation** (`PROCESS.md`, `CLAUDE.md`, `ROLES/*.md`, `handover/QUEUE.md`)
+- **Verify test architecture** — Ensure tests follow established patterns (spy at TTS boundary, call real production code)
 
 ## What NOT to Do
 - **Don't edit implementation code or tests** (provide guidance, not code)
 - Don't override Product Owner on priorities or requirements
 - Don't perform git operations
 - Don't conduct code reviews (that's the Reviewer role)
+
+## Permitted Edits
+The Architect MAY directly edit:
+- `PROCESS.md` — Development workflow and role definitions
+- `CLAUDE.md` — Session startup and behavior configuration
+- `ROLES/*.md` — Role-specific documentation
+- `ARCHITECTURE.md` — System design documentation
+- `handover/QUEUE.md` — Handover queue management
+- ADR files — Architecture decision records
+
+These are structural/process documents, not implementation code.
 
 ## Handover Documents
 - **Input:** `handover/HANDOVER_ARCHITECT.md` (from Product Owner)

@@ -48,6 +48,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function TestWorld:_installArchiveSpies()
+    -- Archive modules (spied)
     package.loaded["Kdm/Archive"] = self._archiveSpy:createArchiveStub()
     package.loaded["Kdm/FightingArtsArchive"] = self._archiveSpy:createFightingArtsArchiveStub()
     package.loaded["Kdm/VerminArchive"] = self._archiveSpy:createVerminArchiveStub()
@@ -55,10 +56,25 @@ function TestWorld:_installArchiveSpies()
     package.loaded["Kdm/DisordersArchive"] = self._archiveSpy:createDisordersArchiveStub()
     package.loaded["Kdm/SevereInjuriesArchive"] = self._archiveSpy:createSevereInjuriesArchiveStub()
     package.loaded["Kdm/StrangeResourcesArchive"] = self._archiveSpy:createStrangeResourcesArchiveStub()
-    package.loaded["Kdm/Trash"] = self._archiveSpy:createTrashStub()
+    package.loaded["Kdm/Trash"] = self._archiveSpy:createTrashStubWithImport()
     package.loaded["Kdm/Timeline"] = self._archiveSpy:createTimelineStub(function()
         return self._currentYear
     end)
+
+    -- Additional modules needed for Campaign.Import
+    package.loaded["Kdm/Showdown"] = self._archiveSpy:createShowdownStub()
+    package.loaded["Kdm/Hunt"] = self._archiveSpy:createHuntStub()
+    package.loaded["Kdm/Expansion"] = self._archiveSpy:createExpansionStub()
+    package.loaded["Kdm/Rules"] = self._archiveSpy:createRulesStub()
+    package.loaded["Kdm/Location"] = self._archiveSpy:createLocationStub()
+    package.loaded["Kdm/Survivor"] = self._archiveSpy:createSurvivorStub()
+    package.loaded["Kdm/GameData/CampaignMigrations"] = self._archiveSpy:createCampaignMigrationsStub()
+    package.loaded["Kdm/NamedObject"] = self._archiveSpy:createNamedObjectStub()
+    package.loaded["Kdm/Util/Container"] = self._archiveSpy:createContainerModuleStub()
+    package.loaded["Kdm/Player"] = self._archiveSpy:createPlayerStub()
+
+    -- Global Wait stub for TTS async
+    Wait = self._archiveSpy:createWaitStub()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -71,7 +87,8 @@ function TestWorld:_loadModules()
     package.loaded["Kdm/ConsequenceApplicator"] = nil
     package.loaded["Kdm/Strain"] = nil
     package.loaded["Kdm/Campaign"] = nil
-    
+    package.loaded["Kdm/Deck"] = nil
+
     self._strainModule = require("Kdm/Strain")
     self._campaignModule = require("Kdm/Campaign")
 end
@@ -129,9 +146,63 @@ end
 function TestWorld:startNewCampaign()
     -- Set up Strain state so Campaign.AddStrainRewards reads correct milestones
     self._strainModule.Test.SetReachedMilestones(self._milestones)
-    
+
     -- Call REAL Campaign.AddStrainRewards (archive calls go to spies)
     self._campaignModule.AddStrainRewards()
+end
+
+function TestWorld:importCampaign(options)
+    options = options or {}
+
+    -- Default expansion with all pattern components
+    local defaultExpansions = {
+        {
+            name = "Core",
+            components = {
+                ["Fighting Arts"] = "Core Fighting Arts",
+                ["Disorders"] = "Core Disorders",
+                ["Severe Injuries"] = "Core Severe Injuries",
+                ["Tactics"] = "Core Tactics",
+                ["Abilities"] = "Core Abilities",
+                ["Secret Fighting Arts"] = "Core Secret Fighting Arts",
+                ["Weapon Proficiencies"] = "Core Weapon Proficiencies",
+                ["Armor Sets"] = "Core Armor Sets",
+                ["Vermin"] = "Core Vermin",
+                ["Strange Resources"] = "Core Strange Resources",
+                ["Basic Resources"] = "Core Basic Resources",
+                ["Terrain"] = "Core Terrain",
+                ["Rare Gear"] = "Core Rare Gear",
+                ["Seed Pattern Gear"] = "Core Seed Pattern Gear",
+                ["Hunt Events"] = "Core Hunt Events",
+                ["Seed Patterns"] = "Core Seed Patterns",
+                ["Patterns"] = "Core Patterns",
+                ["Pattern Gear"] = "Core Pattern Gear",
+                ["Settlement Events"] = "Core Settlement Events",
+                ["Innovation Archive"] = "Core Innovations",
+                ["Settlement Locations"] = "Core Settlement Locations",
+            },
+        }
+    }
+
+    -- Minimal import data that triggers deck creation
+    local importData = {
+        version = self._campaignModule._test.EXPORT_VERSION,
+        expansions = options.expansions or defaultExpansions,
+        unlockedMode = options.unlockedMode or false,
+        trash = options.trash or {},
+        objectsByLocation = options.objectsByLocation or {},
+        timeline = options.timeline or { survivalActions = {} },
+        campaign = options.campaign or { references = {}, misc = {} },
+        settlementEventsDeck = options.settlementEventsDeck or {},
+        characterDeck = options.characterDeck or {},
+        survivor = options.survivor or {},
+        hunt = options.hunt or {},
+        departingSurvivors = options.departingSurvivors or {},
+        strainMilestones = options.strainMilestones or {},
+    }
+
+    -- Call REAL Campaign.Import (archive calls go to spies)
+    self._campaignModule._test.Import(importData)
 end
 
 ---------------------------------------------------------------------------------------------------
