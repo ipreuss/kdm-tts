@@ -183,6 +183,31 @@ This helps the user immediately recognize which role they just spoke to and when
 
 Include a brief session summary before the signature with key accomplishments and any outstanding tasks.
 
+**Audio notification:** After the closing signature, execute a voice announcement with a brief status summary in German.
+
+Each role has an assigned voice:
+
+| Role | Voice | Command |
+|------|-------|---------|
+| Product Owner | Anna | `say -v Anna "..."` |
+| Architect | Markus | `say -v Markus "..."` |
+| Implementer | Viktor | `say -v Viktor "..."` |
+| Reviewer | Petra | `say -v Petra "..."` |
+| Debugger | Yannick | `say -v Yannick "..."` |
+| Tester | Audrey | `say -v Audrey "..."` |
+
+The message format is: `"<Rolle> fertig. <kurzer Status>"`
+
+Examples of dynamic status messages:
+- Product Owner: `say -v Anna "Product Owner fertig. Drei Anforderungen definiert"`
+- Architect: `say -v Markus "Architekt fertig. Design übergeben"`
+- Implementer: `say -v Viktor "Implementer fertig. Fünf Dateien geändert, alle Tests bestanden"`
+- Reviewer: `say -v Petra "Reviewer fertig. Zwei Probleme gefunden"`
+- Debugger: `say -v Yannick "Debugger fertig. Ursache identifiziert"`
+- Tester: `say -v Audrey "Tester fertig. Sechs Tests hinzugefügt, ein Fehler gefunden"`
+
+Derive the status from actual session accomplishments. Spell out numbers as German words. Avoid English loanwords (use "Fehler" not "Bug").
+
 ### Role-Specific Documentation
 
 Detailed process documentation for each role is in the `ROLES/` directory:

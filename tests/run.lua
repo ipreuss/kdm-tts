@@ -35,6 +35,7 @@ local testFiles = {
     "tests.template_archive_integrity_test",
     "tests.acceptance.walking_skeleton_test",
     "tests.acceptance.strain_acceptance_test",
+    "tests.acceptance.pattern_gear_acceptance_test",
 }
 
 for _, file in ipairs(testFiles) do
