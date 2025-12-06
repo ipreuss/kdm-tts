@@ -3,7 +3,7 @@
 This backlog captures feature ideas and improvements for future consideration. Items are added as they arise and prioritized during planning.
 
 **Owner:** Product Owner  
-**Last Updated:** 2025-12-04
+**Last Updated:** 2025-12-06
 
 ## Backlog Items
 
@@ -14,7 +14,7 @@ This backlog captures feature ideas and improvements for future consideration. I
 | 3 | Strain Milestones | Fix undo dialog text for non-fighting-art milestones | P1 | Done | Completed 2025-12-04; `BuildUndoMessage()` generates dynamic text based on actual consequences |
 | 4 | Code Quality | Strain module SOLID refactoring | P2 | Done | Completed 2025-12-04; extracted `ConsequenceApplicator` module (110 lines, 10 methods). Both `Strain` and `Campaign` now delegate to it. Code duplication eliminated. |
 | 5 | Testing | Acceptance tests should exercise ExecuteConsequences/ReverseConsequences (Phase 1) | P2 | Done | Completed 2025-12-04; `startNewCampaign()` calls real `AddStrainRewards()`, `deckContains()` simplified to spy-only queries (~12 lines). All code paths now go through spies. |
-| 6 | Gear | Pattern gear implementation | P1 | In Progress | Pattern + Pattern Gear decks, export/import, follows seed pattern structure |
+| 6 | Gear | Pattern gear implementation | P1 | Done | Completed 2025-12-06; 13 acceptance tests passing (deck creation, shuffle behavior, export/import for storage and survivor grids) |
 | 7 | Showdown | Button for spawning resource rewards for won showdowns | — | New | Details TBD |
 | 8 | Data Quality | Fix missing gear/armor/weapon items in template or expansion data | P3 | New | See [Missing Items](#missing-gear-items) below |
 
