@@ -38,3 +38,9 @@
 **When completing work from a handover:**
 1. Update QUEUE.md: change status to COMPLETED
 2. If handing off to next role, create new handover + QUEUE entry
+
+## Beads Workflow
+
+This project uses beads (`bd`) for issue tracking. The `.beads/` directory is committed directly to git.
+
+**Ignore `bd sync`** — This is a single working copy project, so sync branches are unnecessary. Just commit `.beads/` with regular git commands.
