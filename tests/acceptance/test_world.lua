@@ -309,4 +309,12 @@ function TestWorld:deckWasShuffled(deckName)
     return self._archiveSpy:deckWasShuffled(deckName)
 end
 
+---------------------------------------------------------------------------------------------------
+-- Object Spawn Verification (for import tests)
+---------------------------------------------------------------------------------------------------
+
+function TestWorld:objectWasSpawned(objectName, objectType)
+    return self._archiveSpy:objectSpawned(objectName, objectType)
+end
+
 return TestWorld

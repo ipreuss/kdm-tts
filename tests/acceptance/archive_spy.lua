@@ -27,8 +27,9 @@ function ArchiveSpy.create()
             timelineSchedule = {},
             timelineRemove = {},
             archiveTake = {},
-            deckCreated = {},    -- NEW: tracks deck creation via CreateDeckFromSources
-            deckShuffle = {},    -- NEW: tracks shuffle calls on decks
+            deckCreated = {},    -- tracks deck creation via CreateDeckFromSources
+            deckShuffle = {},    -- tracks shuffle calls on decks
+            objectsSpawned = {}, -- tracks objects spawned at locations (for import tests)
         },
     }
     setmetatable(spy, { __index = ArchiveSpy })
@@ -104,6 +105,15 @@ function ArchiveSpy:createArchiveStub()
             return { name = name, type = type, source = "Archive" }
         end,
         CreateAllGearDeck = function() end,
+        TakeObject = function(params)
+            -- Track object spawn for import testing
+            table.insert(spy._calls.objectsSpawned, {
+                name = params.name,
+                type = params.type,
+                position = params.position,
+            })
+            return createDeckStub(params.name)
+        end,
     }
 end
 
@@ -547,6 +557,17 @@ function ArchiveSpy:deckWasShuffled(deckName)
     for _, call in ipairs(self._calls.deckShuffle) do
         if call.name == deckName then
             return true
+        end
+    end
+    return false
+end
+
+function ArchiveSpy:objectSpawned(objectName, objectType)
+    for _, call in ipairs(self._calls.objectsSpawned) do
+        if call.name == objectName then
+            if objectType == nil or call.type == objectType then
+                return true
+            end
         end
     end
     return false

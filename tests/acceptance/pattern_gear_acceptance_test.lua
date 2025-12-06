@@ -111,3 +111,116 @@ Test.test("ACCEPTANCE: Pattern Gear deck is NOT shuffled during import", functio
 
     world:destroy()
 end)
+
+---------------------------------------------------------------------------------------------------
+-- ACCEPTANCE TESTS: Pattern cards in settlement storage (Export/Import)
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: pattern card in settlement storage is restored on import", function(t)
+    local world = TestWorld.create()
+
+    -- Import campaign with a Seed Pattern card in Settlement Resource storage
+    world:importCampaign({
+        objectsByLocation = {
+            ["Settlement Resource 3"] = {
+                { name = "Hollowlink Pumpkin", type = "Seed Patterns", tag = "Card" }
+            }
+        }
+    })
+
+    t:assertTrue(world:objectWasSpawned("Hollowlink Pumpkin", "Seed Patterns"),
+        "Seed Pattern card should be spawned from settlement storage")
+
+    world:destroy()
+end)
+
+Test.test("ACCEPTANCE: Patterns card in settlement storage is restored on import", function(t)
+    local world = TestWorld.create()
+
+    -- Import campaign with a Patterns card in Settlement Resource storage
+    world:importCampaign({
+        objectsByLocation = {
+            ["Settlement Resource 5"] = {
+                { name = "Voluptuous Bodysuit", type = "Patterns", tag = "Card" }
+            }
+        }
+    })
+
+    t:assertTrue(world:objectWasSpawned("Voluptuous Bodysuit", "Patterns"),
+        "Patterns card should be spawned from settlement storage")
+
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+-- ACCEPTANCE TESTS: Pattern gear in settlement storage (Export/Import)
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: pattern gear in settlement gear storage is restored on import", function(t)
+    local world = TestWorld.create()
+
+    -- Import campaign with Pattern Gear in Settlement Gear storage
+    -- Pattern Gear has type "Gear" (not "Pattern Gear")
+    world:importCampaign({
+        objectsByLocation = {
+            ["Settlement Gear 2"] = {
+                { name = "Screaming Costume", type = "Gear", tag = "Card" }
+            }
+        }
+    })
+
+    t:assertTrue(world:objectWasSpawned("Screaming Costume", "Gear"),
+        "Pattern gear should be spawned from settlement gear storage")
+
+    world:destroy()
+end)
+
+---------------------------------------------------------------------------------------------------
+-- ACCEPTANCE TESTS: Equipped pattern gear on survivors (Export/Import)
+---------------------------------------------------------------------------------------------------
+
+Test.test("ACCEPTANCE: equipped pattern gear on survivor is restored on import", function(t)
+    local world = TestWorld.create()
+
+    -- Import campaign with Pattern Gear equipped on a survivor
+    world:importCampaign({
+        objectsByLocation = {
+            ["Player 1 Gear 5"] = {
+                { name = "Brazen Bat", type = "Gear", tag = "Card" }
+            }
+        }
+    })
+
+    t:assertTrue(world:objectWasSpawned("Brazen Bat", "Gear"),
+        "Equipped pattern gear should be spawned on survivor")
+
+    world:destroy()
+end)
+
+Test.test("ACCEPTANCE: multiple pattern cards across locations are restored on import", function(t)
+    local world = TestWorld.create()
+
+    -- Import campaign with pattern cards in multiple locations
+    world:importCampaign({
+        objectsByLocation = {
+            ["Settlement Resource 1"] = {
+                { name = "Dextral Crabaxe", type = "Seed Patterns", tag = "Card" }
+            },
+            ["Settlement Gear 4"] = {
+                { name = "Sword of Doom", type = "Gear", tag = "Card" }
+            },
+            ["Player 2 Gear 3"] = {
+                { name = "Mighty Bone Axe", type = "Gear", tag = "Card" }
+            }
+        }
+    })
+
+    t:assertTrue(world:objectWasSpawned("Dextral Crabaxe", "Seed Patterns"),
+        "Seed Pattern in storage should be spawned")
+    t:assertTrue(world:objectWasSpawned("Sword of Doom", "Gear"),
+        "Pattern gear in settlement storage should be spawned")
+    t:assertTrue(world:objectWasSpawned("Mighty Bone Axe", "Gear"),
+        "Equipped pattern gear should be spawned")
+
+    world:destroy()
+end)
