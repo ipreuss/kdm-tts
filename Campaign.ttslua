@@ -955,7 +955,7 @@ function Campaign.Import(data)
         Campaign.SetupDeckFromExpansionComponents("Rare Gear", data, { type = "Gear" })
         Campaign.SetupDeckFromExpansionComponents("Seed Pattern Gear", data, { type = "Gear" })
         Campaign.SetupDeckFromExpansionComponents("Hunt Events", data)
-        Campaign.SetupDeckFromExpansionComponents("Seed Patterns", data, { type = "Seed Patterns" })
+        Campaign.SetupDeckFromExpansionComponents("Seed Patterns", data, { type = "Seed Patterns", shuffle = true })
         Campaign.SetupDeckFromExpansionComponents("Pattern Gear", data, { type = "Gear" })
         Campaign.SetupDeckFromExpansionComponents("Patterns", data, { type = "Patterns" })
         local context = {
@@ -1302,6 +1302,7 @@ return {
     AddStrainRewards = Campaign.AddStrainRewards,
     _test = {
         SetupSettlementEventsDeck = Campaign.SetupSettlementEventsDeck,
+        SetupDeckFromExpansionComponents = Campaign.SetupDeckFromExpansionComponents,
         Import = Campaign.Import,
         EXPORT_VERSION = Campaign.EXPORT_VERSION,
         BuildStrainMilestoneState = buildStrainMilestoneState,

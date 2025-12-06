@@ -222,7 +222,7 @@ Detailed process documentation for each role is in the `ROLES/` directory:
 1. **Plan** – clarify the intent of the change (behavior, data shape, UI outcome) and note which modules are involved. Update or create ADRs/notes if the change affects architecture decisions.
 2. **Specify** – write or extend the relevant test so it fails for the current implementation. If touching multiple layers, prefer starting with the highest-value test and add focused unit tests if needed.
 3. **Implement** – modify the production code in small, reviewed commits while keeping tests red/green visible. Prioritize self-explanatory code (clear names, types, constants, structure) over added documentation; only document when code cannot carry the intent alone. When fixing a bug or untested path, first add/adjust a failing test that reproduces it before changing code.
-4. **Verify** – run `lua tests/run.lua` (and any scenario scripts) until everything passes. If the change affects Tabletop Simulator behavior (especially TTS console commands, UI interactions, or Archive/deck operations), run `updateTTS.sh` and perform TTS verification—headless tests alone are insufficient for TTS-specific functionality.
+4. **Verify** – run `lua tests/run.lua` (and any scenario scripts) until everything passes. If the change affects Tabletop Simulator behavior (especially TTS console commands, UI interactions, or Archive/deck operations), run `./updateTTS.sh` and perform TTS verification—headless tests alone are insufficient for TTS-specific functionality. **Always run `./updateTTS.sh` before asking the user to test in TTS.**
 5. **Refine** – after green tests, scan for smells (brittle test setup, hidden dependencies, duplication) and introduce/refine seams or small refactors while keeping tests green; then re-verify. Apply the Boy Scout Rule: whenever you edit a file, leave it slightly better (naming, structure, guard clauses, comments, tests). If you uncover a larger refactor that is risky to tackle immediately, document it (see Architecture "Future Refactor Opportunities") so we don't lose the insight.
 
 ### Safety Net Principles
@@ -361,6 +361,8 @@ end)
 3. **TestWorld calls real mod code**, not duplicate implementations
 
 **Key principle:** TestWorld should be thin (wiring only), not reimplement business logic.
+
+**Verify exports before calling:** When writing tests that call functions via `_test` tables, always verify the function is actually exported before running the test. Check the module's `_test = { ... }` block to confirm the function is listed. Missing exports cause cryptic "attempt to index a nil value" errors at runtime.
 
 **Verification:** If breaking the mod logic doesn't fail tests, the tests are worthless. Always verify by temporarily breaking logic.
 

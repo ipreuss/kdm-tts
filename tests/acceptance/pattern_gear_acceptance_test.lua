@@ -244,17 +244,13 @@ end)
 -- Note: Deck.NEEDS_SHUFFLE includes "Seed Patterns" = true, which is used by Deck.ResetDeck,
 -- but Campaign.Import does not use this table - it uses the explicit shuffle param.
 --
--- This test documents the CURRENT behavior (not shuffled).
--- The fix should be done by the Implementer role.
-Test.test("ACCEPTANCE: Seed Patterns deck shuffle behavior (BUG: currently NOT shuffled)", function(t)
+-- This test verifies AC3: Seed Patterns deck should be shuffled
+Test.test("ACCEPTANCE: Seed Patterns deck is shuffled during Campaign.Import (AC3)", function(t)
     local spy = DeckSetupSpy.create()
     runCampaignImportWithSpy(spy)
 
     local shuffled = spy:deckShuffled("Seed Patterns")
-    -- BUG: This SHOULD be assertTrue, but current implementation doesn't shuffle
-    -- Documenting current behavior - fix requires Implementer
-    t:assertFalse(shuffled,
-        "BUG: Seed Patterns is currently NOT shuffled during Campaign.Import (should be fixed)")
+    t:assertTrue(shuffled, "Seed Patterns deck should be shuffled for random draws")
 end)
 
 ---------------------------------------------------------------------------------------------------

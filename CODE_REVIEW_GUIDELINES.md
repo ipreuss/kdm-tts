@@ -520,6 +520,17 @@ Use this checklist for every code review:
 - [ ] Are any functions doing multiple distinct things that could be separated?
 - [ ] Could responsibilities be better distributed across different classes?
 - [ ] Are there hidden responsibilities that should be extracted?
+- [ ] **File size check:** Is the file over 500 lines? Over 1000 lines is a strong SRP smell.
+
+**File Size Guidelines:**
+| Lines | Assessment |
+|-------|------------|
+| < 300 | ✅ Good - easy to navigate and understand |
+| 300-500 | ⚠️ Watch - may be approaching too many responsibilities |
+| 500-1000 | 🔶 Review - likely mixing responsibilities, consider splitting |
+| > 1000 | 🔴 Split - almost certainly violates SRP |
+
+**Example from this codebase:** `TTSTests.ttslua` (1285 lines, 30+ functions across 7 unrelated test domains) should be split into `TTSTests/*.ttslua` with one file per test domain.
 
 #### Open/Closed Principle (OCP)
 - [ ] How easy would it be to extend this code without modifying it?
@@ -635,6 +646,12 @@ These guidelines should be applied at multiple stages:
 This document should evolve based on lessons learned from future code reviews. When you discover a pattern or issue not covered here, add it to maintain a living reference of best practices.
 
 ### Recent Updates
+
+**2025-12-06: Added File Size Guidelines for SRP**
+- Added concrete line count thresholds for identifying SRP violations
+- Files over 1000 lines are almost certainly violating SRP
+- Added checklist item for file size review
+- Documented `TTSTests.ttslua` as a codebase example requiring refactoring
 
 **2025-11-27: Added Abstraction and Duplication Audit**
 - Added mandatory analysis section for every code review
