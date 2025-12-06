@@ -27,6 +27,8 @@ function ArchiveSpy.create()
             timelineSchedule = {},
             timelineRemove = {},
             archiveTake = {},
+            deckCreated = {},    -- NEW: tracks deck creation via CreateDeckFromSources
+            deckShuffle = {},    -- NEW: tracks shuffle calls on decks
         },
     }
     setmetatable(spy, { __index = ArchiveSpy })
@@ -35,10 +37,45 @@ end
 
 function ArchiveSpy:createArchiveStub()
     local spy = self
+
+    -- Create a deck stub that tracks shuffle calls
+    local function createDeckStub(deckName)
+        return {
+            name = deckName,
+            type = "Deck",
+            getObjects = function() return {} end,
+            getName = function() return deckName end,
+            setName = function() end,
+            setGMNotes = function() end,
+            getPosition = function() return { x = 0, y = 0, z = 0 } end,
+            setPosition = function() end,
+            setPositionSmooth = function() end,
+            getRotation = function() return { x = 0, y = 0, z = 0 } end,
+            setRotation = function() end,
+            destruct = function() end,
+            shuffle = function()
+                table.insert(spy._calls.deckShuffle, { name = deckName })
+            end,
+        }
+    end
+
+    -- Create a container stub that wraps deck operations
+    local function createContainerStub(deckName)
+        local deckStub = createDeckStub(deckName)
+        return {
+            Object = function() return deckStub end,
+            Shuffle = function()
+                table.insert(spy._calls.deckShuffle, { name = deckName })
+            end,
+            Delete = function() end,
+            Take = function() return {} end,
+        }
+    end
+
     return {
         Take = function(params)
             table.insert(spy._calls.archiveTake, { name = params.name, type = params.type })
-            return true
+            return createDeckStub(params.name or params.type)
         end,
         Clean = function() end,
         TakeFromDeck = function(params)
@@ -46,6 +83,18 @@ function ArchiveSpy:createArchiveStub()
             table.insert(spy._calls.archiveTake, { name = params.name, type = params.cardType, source = "deck" })
             return {}
         end,
+        CreateDeckFromSources = function(params)
+            table.insert(spy._calls.deckCreated, {
+                name = params.name,
+                type = params.type,
+                sources = params.sources,
+            })
+            return createContainerStub(params.name)
+        end,
+        ArchiveSource = function(name, type)
+            return { name = name, type = type, source = "Archive" }
+        end,
+        CreateAllGearDeck = function() end,
     }
 end
 
@@ -301,6 +350,24 @@ end
 function ArchiveSpy:cardSpawned(cardName, cardType)
     for _, call in ipairs(self._calls.archiveTake) do
         if call.name == cardName and (cardType == nil or call.type == cardType) then
+            return true
+        end
+    end
+    return false
+end
+
+function ArchiveSpy:deckCreated(deckName)
+    for _, call in ipairs(self._calls.deckCreated) do
+        if call.name == deckName then
+            return true
+        end
+    end
+    return false
+end
+
+function ArchiveSpy:deckWasShuffled(deckName)
+    for _, call in ipairs(self._calls.deckShuffle) do
+        if call.name == deckName then
             return true
         end
     end

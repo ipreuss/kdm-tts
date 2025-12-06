@@ -204,26 +204,38 @@ function TestWorld:cardSpawned(cardName)
     end
     -- Check if card was added/spawned via specific archive AddCard methods
     -- Fighting arts
-    if self._archiveSpy:fightingArtAdded(cardName) 
+    if self._archiveSpy:fightingArtAdded(cardName)
        and not self._archiveSpy:fightingArtRemoved(cardName) then
         return true
     end
     -- Disorders
-    if self._archiveSpy:disorderAdded(cardName) 
+    if self._archiveSpy:disorderAdded(cardName)
        and not self._archiveSpy:disorderRemoved(cardName) then
         return true
     end
     -- Severe injuries
-    if self._archiveSpy:severeInjuryAdded(cardName) 
+    if self._archiveSpy:severeInjuryAdded(cardName)
        and not self._archiveSpy:severeInjuryRemoved(cardName) then
         return true
     end
     -- Strange resources
-    if self._archiveSpy:strangeResourceAdded(cardName) 
+    if self._archiveSpy:strangeResourceAdded(cardName)
        and not self._archiveSpy:strangeResourceRemoved(cardName) then
         return true
     end
     return false
+end
+
+---------------------------------------------------------------------------------------------------
+-- Deck Operations (for pattern gear tests)
+---------------------------------------------------------------------------------------------------
+
+function TestWorld:deckExists(deckName)
+    return self._archiveSpy:deckCreated(deckName)
+end
+
+function TestWorld:deckWasShuffled(deckName)
+    return self._archiveSpy:deckWasShuffled(deckName)
 end
 
 return TestWorld

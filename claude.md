@@ -10,15 +10,31 @@
 **On every new session, you MUST follow this startup sequence:**
 
 1. **Read** `PROCESS.md` to understand the role-based development workflow
-2. **Ask** the user to select a role using the AskUserQuestion tool with these options:
+2. **Check** `handover/QUEUE.md` for PENDING handovers addressed to any role
+3. **Ask** the user to select a role using the AskUserQuestion tool with these options:
    - Product Owner
    - Architect
    - Implementer
    - Reviewer
    - Debugger
    - Tester
-3. **Read** the corresponding role file: `ROLES/<SELECTED_ROLE>.md`
-4. **Confirm** your role to the user and begin operating within that role's constraints
-5. **End** every session with the closing signature and voice announcement as defined in PROCESS.md
+
+   If there are PENDING handovers, mention which roles have pending work.
+4. **Read** the corresponding role file: `ROLES/<SELECTED_ROLE>.md`
+5. **If PENDING handover exists for your role:**
+   - Read the handover file
+   - Update QUEUE.md: change status from PENDING to ACKNOWLEDGED
+6. **Confirm** your role to the user and begin operating within that role's constraints
+7. **End** every session with the closing signature and voice announcement as defined in PROCESS.md
 
 **Role Boundaries:** If the user requests work outside your current role, ask for confirmation before switching roles.
+
+## Handover Queue Protocol
+
+**When creating a handover for another role:**
+1. Write the handover file (e.g., `handover/HANDOVER_TESTER.md`)
+2. Add entry to `handover/QUEUE.md` with status PENDING
+
+**When completing work from a handover:**
+1. Update QUEUE.md: change status to COMPLETED
+2. If handing off to next role, create new handover + QUEUE entry

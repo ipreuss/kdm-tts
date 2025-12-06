@@ -148,12 +148,31 @@ All role-to-role handovers are stored in the `handover/` folder:
 
 | Document | Purpose | Owner |
 |----------|---------|-------|
+| `QUEUE.md` | Central queue tracking all pending handovers | All roles |
 | `LATEST_REVIEW.md` | Most recent code review findings | Reviewer |
 | `LATEST_DEBUG.md` | Most recent debug report | Debugger |
 | `HANDOVER_ARCHITECT.md` | Requirements handoff to Architect | Product Owner |
 | `HANDOVER_IMPLEMENTER.md` | Design handoff to Implementer | Architect |
 | `HANDOVER_TESTER.md` | Acceptance criteria handoff to Tester | Product Owner |
 | `IMPLEMENTATION_STATUS.md` | Snapshot of what portions of the design/requirements have already been implemented | Implementer |
+
+### Handover Queue Workflow
+
+The `handover/QUEUE.md` file serves as a central inbox to prevent missed or stale handovers:
+
+```markdown
+| Created | From | To | File | Status |
+|---------|------|-----|------|--------|
+| 2025-12-06 17:00 | Architect | Implementer | HANDOVER_IMPLEMENTER.md | PENDING |
+```
+
+**Status values:** PENDING → ACKNOWLEDGED → COMPLETED
+
+**Workflow:**
+1. **Session start:** Check QUEUE.md for PENDING entries addressed to your role
+2. **When accepting work:** Read handover file, update status to ACKNOWLEDGED
+3. **When completing work:** Update status to COMPLETED
+4. **When handing off:** Write handover file + add new QUEUE entry with PENDING status
 
 **Guidelines:**
 - Each handover/status document is **replaced** (not appended) when a new handover occurs
