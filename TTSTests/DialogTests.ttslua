@@ -1,0 +1,91 @@
+-- TTS Dialog Tests
+-- Tests for DialogFromSpec callback timing issues
+
+local Console = require("Kdm/Console")
+local log = require("Kdm/Log").ForModule("TTSTests")
+
+---------------------------------------------------------------------------------------------------
+
+local DialogTests = {}
+
+---------------------------------------------------------------------------------------------------
+
+function DialogTests.Register()
+    Console.AddCommand("testdialogspec", function(args)
+        DialogTests.TestDialogFromSpecCallbackTiming()
+    end, "Test DialogFromSpec callback timing issue")
+end
+
+function DialogTests.TestDialogFromSpecCallbackTiming(onComplete)
+    log:Printf("=== TEST: TestDialogFromSpecCallbackTiming ===")
+    local PanelKit = require("Kdm/Ui/PanelKit")
+    local LayoutManager = require("Kdm/Ui/LayoutManager")
+
+    -- This simulates the Campaign bug:
+    -- layoutSpec callbacks reference a variable that's set AFTER DialogFromSpec returns
+
+    local lateInitializedVar = nil  -- Will be set after DialogFromSpec
+
+    local layoutSpec = LayoutManager.Specification()
+    layoutSpec:AddText({
+        id = "TestLabel",
+        text = "Test",
+        fontSize = 16,
+    })
+    layoutSpec:AddCustom({
+        height = 40,
+        render = function(context)
+            -- This callback runs INSIDE DialogFromSpec, before lateInitializedVar is set
+            log:Printf("TEST: Inside render callback, lateInitializedVar = %s", tostring(lateInitializedVar))
+            if lateInitializedVar == nil then
+                log:Printf("TEST: BUG REPRODUCED - callback runs before variable is initialized")
+                -- In the real bug, this would be: lateInitializedVar:SomeMethod() -> nil index error
+            else
+                log:Printf("TEST: Variable was initialized: %s", tostring(lateInitializedVar))
+            end
+            -- Return a dummy element
+            return context.parent:Text({
+                id = "TestDummy",
+                x = context.x,
+                y = context.y,
+                width = context.width,
+                height = context.height,
+                text = "Dummy",
+            })
+        end,
+    })
+
+    log:Printf("TEST: Calling DialogFromSpec...")
+    local ok, result = pcall(function()
+        return PanelKit.DialogFromSpec({
+            id = "TestDialog",
+            width = 300,
+            spec = layoutSpec,
+            title = "Test Dialog",
+            layout = {
+                padding = 10,
+                spacing = 10,
+                chromeOverhead = 100,
+            },
+        })
+    end)
+
+    if not ok then
+        log:Printf("TEST: DialogFromSpec threw error: %s", tostring(result))
+    else
+        log:Printf("TEST: DialogFromSpec returned successfully")
+        result.dialog:Hide()
+    end
+
+    -- This is where the variable would be set in the real code
+    lateInitializedVar = "NOW_INITIALIZED"
+    log:Printf("TEST: lateInitializedVar now set to: %s", lateInitializedVar)
+
+    log:Printf("TEST COMPLETE: The bug is that callbacks run BEFORE this line")
+
+    if onComplete then onComplete(true) end
+end
+
+---------------------------------------------------------------------------------------------------
+
+return DialogTests

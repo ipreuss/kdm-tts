@@ -1,0 +1,261 @@
+-- TTS Pattern Tests
+-- Tests for Pattern deck spawning and Seed Patterns shuffle
+
+local Console = require("Kdm/Console")
+local Location = require("Kdm/Location")
+local Archive = require("Kdm/Archive")
+local log = require("Kdm/Log").ForModule("TTSTests")
+
+---------------------------------------------------------------------------------------------------
+
+local PatternTests = {}
+
+---------------------------------------------------------------------------------------------------
+
+function PatternTests.Register()
+    Console.AddCommand("testpatterns", function(args)
+        PatternTests.TestPatternDeckSpawn()
+    end, "Test spawning Pattern deck from archive")
+    Console.AddCommand("testpatterngear", function(args)
+        PatternTests.TestPatternGearDeckSpawn()
+    end, "Test spawning Pattern Gear deck from archive")
+    Console.AddCommand("testshuffle", function(args)
+        PatternTests.TestSeedPatternsShuffle()
+    end, "Test whether Seed Patterns deck gets shuffled during campaign setup")
+end
+
+function PatternTests.TestPatternDeckSpawn(onComplete)
+    log:Printf("=== TEST: TestPatternDeckSpawn ===")
+    log:Printf("TEST: Spawning Patterns deck from archive...")
+
+    local location = Location.Get("Patterns")
+    local deck = Archive.Take({
+        name = "Patterns",
+        type = "Patterns",
+        location = location,
+        rotation = { x = 0, y = 180, z = 180 },
+    })
+
+    if not deck then
+        log:Errorf("TEST FAILED: Could not spawn Patterns deck from archive")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    local cardCount = 1
+    if deck.type == "Deck" then
+        cardCount = #deck.getObjects()
+    end
+    log:Printf("TEST: Patterns deck spawned with %d card(s)", cardCount)
+
+    -- Verify position is correct (east of Seed Patterns)
+    local expectedPos = location:Center()
+    local actualPos = deck.getPosition()
+    local positionCorrect = math.abs(actualPos.x - expectedPos.x) < 1 and math.abs(actualPos.z - expectedPos.z) < 1
+
+    if positionCorrect then
+        log:Printf("TEST: Position correct (x=%.2f, z=%.2f)", actualPos.x, actualPos.z)
+    else
+        log:Errorf("TEST: Position incorrect - expected (%.2f, %.2f), got (%.2f, %.2f)",
+            expectedPos.x, expectedPos.z, actualPos.x, actualPos.z)
+    end
+
+    -- Capture result before cleanup (deck object may be destroyed by Archive.Clean)
+    local passed = deck ~= nil and positionCorrect
+
+    -- Cleanup: return deck to archive
+    Wait.frames(function()
+        Archive.Clean()
+        log:Printf("TEST: Cleaned up - returned deck to archive")
+        log:Printf("=== TEST: TestPatternDeckSpawn COMPLETE ===")
+        log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+        if onComplete then onComplete(passed) end
+    end, 30)
+end
+
+function PatternTests.TestPatternGearDeckSpawn(onComplete)
+    log:Printf("=== TEST: TestPatternGearDeckSpawn ===")
+    log:Printf("TEST: Spawning Pattern Gear deck from archive...")
+
+    local location = Location.Get("Pattern Gear")
+    local deck = Archive.Take({
+        name = "Pattern Gear",
+        type = "Gear",
+        location = location,
+        rotation = { x = 0, y = 180, z = 180 },
+    })
+
+    if not deck then
+        log:Errorf("TEST FAILED: Could not spawn Pattern Gear deck from archive")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    local cardCount = 1
+    if deck.type == "Deck" then
+        cardCount = #deck.getObjects()
+    end
+    log:Printf("TEST: Pattern Gear deck spawned with %d card(s)", cardCount)
+
+    -- Verify position is correct (south of Seed Pattern Gear)
+    local expectedPos = location:Center()
+    local actualPos = deck.getPosition()
+    local positionCorrect = math.abs(actualPos.x - expectedPos.x) < 1 and math.abs(actualPos.z - expectedPos.z) < 1
+
+    if positionCorrect then
+        log:Printf("TEST: Position correct (x=%.2f, z=%.2f)", actualPos.x, actualPos.z)
+    else
+        log:Errorf("TEST: Position incorrect - expected (%.2f, %.2f), got (%.2f, %.2f)",
+            expectedPos.x, expectedPos.z, actualPos.x, actualPos.z)
+    end
+
+    -- Capture result before cleanup (deck object may be destroyed by Archive.Clean)
+    local passed = deck ~= nil and positionCorrect
+
+    -- Cleanup: return deck to archive
+    Wait.frames(function()
+        Archive.Clean()
+        log:Printf("TEST: Cleaned up - returned deck to archive")
+        log:Printf("=== TEST: TestPatternGearDeckSpawn COMPLETE ===")
+        log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+        if onComplete then onComplete(passed) end
+    end, 30)
+end
+
+---------------------------------------------------------------------------------------------------
+-- Shuffle Behavior Tests (TTS Integration)
+-- Note: The spy-based parameter check is in headless tests (pattern_gear_acceptance_test.lua)
+-- This test verifies actual deck composition differs between spawns (true shuffle verification)
+---------------------------------------------------------------------------------------------------
+
+function PatternTests.TestSeedPatternsShuffle(onComplete)
+    log:Printf("=== TEST: TestSeedPatternsShuffle ===")
+    log:Printf("TEST: TTS integration test - verifies deck order actually differs after shuffle")
+    log:Printf("TEST: (Headless tests verify shuffle=true is passed; this verifies TTS actually shuffles)")
+
+    local Campaign = require("Kdm/Campaign")
+    local Expansion = require("Kdm/Expansion")
+
+    local function getCardOrder(deckObj)
+        local order = {}
+        if deckObj.type == "Deck" then
+            for i, card in ipairs(deckObj.getObjects()) do
+                order[i] = card.name
+            end
+        else
+            order[1] = deckObj.getName()
+        end
+        return order
+    end
+
+    -- Build expansion data - ONLY Core to keep it simple
+    local data = { expansions = {} }
+    for _, expansion in ipairs(Expansion.All()) do
+        if expansion.name == "Core" then
+            table.insert(data.expansions, expansion)
+            break
+        end
+    end
+    log:Printf("TEST: Using only Core expansion for predictable card count")
+
+    -- Clean the spawn location first
+    local location = Location.Get("Seed Patterns")
+    local center = location:Center()
+    for _, obj in ipairs(getAllObjects()) do
+        if obj.type == "Deck" or obj.type == "Card" then
+            local pos = obj.getPosition()
+            if math.abs(pos.x - center.x) < 2 and math.abs(pos.z - center.z) < 2 then
+                obj.destruct()
+            end
+        end
+    end
+
+    -- First spawn with shuffle
+    log:Printf("TEST: First spawn (with shuffle=true)...")
+    local deck1Container = Campaign._test.SetupDeckFromExpansionComponents(
+        "Seed Patterns", data, { type = "Seed Patterns", shuffle = true }
+    )
+
+    if not deck1Container then
+        log:Errorf("TEST FAILED: First SetupDeckFromExpansionComponents returned nil")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    Wait.frames(function()
+        local deck1Obj = deck1Container:Object()
+        local order1 = getCardOrder(deck1Obj)
+        log:Printf("TEST: First spawn - deck has %d cards", #order1)
+        log:Printf("TEST: First 5 cards (spawn 1):")
+        for i = 1, math.min(5, #order1) do
+            log:Printf("  %d: %s", i, order1[i])
+        end
+
+        -- Clean up first deck and reset archive cache
+        deck1Obj.destruct()
+        Archive.Clean()
+
+        Wait.frames(function()
+            -- Second spawn with shuffle
+            log:Printf("TEST: Second spawn (with shuffle=true)...")
+            local deck2Container = Campaign._test.SetupDeckFromExpansionComponents(
+                "Seed Patterns", data, { type = "Seed Patterns", shuffle = true }
+            )
+
+            if not deck2Container then
+                log:Errorf("TEST FAILED: Second SetupDeckFromExpansionComponents returned nil")
+                Archive.Clean()
+                if onComplete then onComplete(false) end
+                return
+            end
+
+            Wait.frames(function()
+                local deck2Obj = deck2Container:Object()
+                local order2 = getCardOrder(deck2Obj)
+                log:Printf("TEST: Second spawn - deck has %d cards", #order2)
+                log:Printf("TEST: First 5 cards (spawn 2):")
+                for i = 1, math.min(5, #order2) do
+                    log:Printf("  %d: %s", i, order2[i])
+                end
+
+                -- Check card counts match
+                if #order1 ~= #order2 then
+                    log:Errorf("TEST ERROR: Card counts differ: %d vs %d", #order1, #order2)
+                    deck2Obj.destruct()
+                    Archive.Clean()
+                    if onComplete then onComplete(false) end
+                    return
+                end
+
+                -- Compare the two orders - they should differ if shuffle works
+                local sameOrder = true
+                for i = 1, #order1 do
+                    if order1[i] ~= order2[i] then
+                        sameOrder = false
+                        log:Printf("TEST: First difference at position %d: '%s' vs '%s'", i, order1[i], order2[i])
+                        break
+                    end
+                end
+
+                -- Keep deck2 as the final state (don't destroy it)
+                Archive.Clean()
+
+                log:Printf("=== TEST: TestSeedPatternsShuffle COMPLETE ===")
+                log:Printf("TEST: Seed Patterns deck left spawned at location")
+                if not sameOrder then
+                    log:Printf("TEST RESULT: PASSED - Deck orders differ (shuffle working)")
+                    if onComplete then onComplete(true) end
+                else
+                    -- Note: There's a tiny chance (~1/51!) that shuffle produces same order
+                    -- In practice this is astronomically unlikely
+                    log:Errorf("TEST RESULT: FAILED - Deck orders identical (shuffle not working or astronomically unlucky)")
+                    if onComplete then onComplete(false) end
+                end
+            end, 30)
+        end, 30)
+    end, 30)
+end
+
+---------------------------------------------------------------------------------------------------
+
+return PatternTests

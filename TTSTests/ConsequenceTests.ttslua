@@ -1,0 +1,205 @@
+-- TTS Consequence Tests
+-- Tests for ConsequenceApplicator operations
+
+local Console = require("Kdm/Console")
+local Location = require("Kdm/Location")
+local ConsequenceApplicator = require("Kdm/ConsequenceApplicator")
+local FightingArtsArchive = require("Kdm/FightingArtsArchive")
+local log = require("Kdm/Log").ForModule("TTSTests")
+
+---------------------------------------------------------------------------------------------------
+
+local ConsequenceTests = {}
+
+---------------------------------------------------------------------------------------------------
+
+function ConsequenceTests.Register()
+    Console.AddCommand("testconsequence", function(args)
+        ConsequenceTests.TestConsequenceApplicator()
+    end, "Test ConsequenceApplicator operations (apply and remove)")
+end
+
+function ConsequenceTests.TestConsequenceApplicator(onComplete)
+    log:Printf("=== TEST: TestConsequenceApplicator ===")
+    log:Printf("TEST: This tests ConsequenceApplicator operations:")
+    log:Printf("TEST:   - ApplyFightingArt / RemoveFightingArt")
+    log:Printf("TEST:   - ApplyVermin / RemoveVermin")
+    log:Printf("TEST:   - AddBasicResource / RemoveBasicResource")
+    log:Printf("TEST:   - TrashSettlementEvent / RestoreSettlementEvent")
+
+    local passed = true
+    local testCardFA = "Shielderang"
+    local testCardVermin = "Fiddler Crab Spider"
+    local testCardBasic = "Lump of Atnas"
+    local testCardEvent = "Heat Wave"
+
+    -- Get baseline counts
+    local faCountBefore = ConsequenceTests.GetFightingArtsDeckCount(testCardFA)
+    local verminCountBefore, _ = ConsequenceTests.GetVerminDeckState(testCardVermin)
+
+    log:Printf("TEST BEFORE: Fighting Arts has %d '%s'", faCountBefore, testCardFA)
+    log:Printf("TEST BEFORE: Vermin deck has %d cards", verminCountBefore)
+
+    -- Step 1: Test ApplyFightingArt
+    log:Printf("TEST: Step 1 - ApplyFightingArt('%s')...", testCardFA)
+    local faResult = ConsequenceApplicator.ApplyFightingArt(testCardFA)
+    if faResult then
+        log:Printf("TEST: ApplyFightingArt succeeded")
+    else
+        log:Errorf("TEST: ApplyFightingArt FAILED")
+        passed = false
+    end
+
+    Wait.frames(function()
+        -- Verify fighting art was added
+        local faCountAfter = ConsequenceTests.GetFightingArtsDeckCount(testCardFA)
+        if faCountAfter > faCountBefore then
+            log:Printf("TEST: Verified - Fighting Arts deck now has %d '%s'", faCountAfter, testCardFA)
+        else
+            log:Errorf("TEST: Fighting art not added to deck")
+            passed = false
+        end
+
+        -- Step 2: Test ApplyVermin
+        log:Printf("TEST: Step 2 - ApplyVermin('%s')...", testCardVermin)
+        local verminResult = ConsequenceApplicator.ApplyVermin(testCardVermin)
+        if verminResult then
+            log:Printf("TEST: ApplyVermin succeeded")
+        else
+            log:Errorf("TEST: ApplyVermin FAILED")
+            passed = false
+        end
+
+        Wait.frames(function()
+            -- Step 3: Test AddBasicResource
+            log:Printf("TEST: Step 3 - AddBasicResource('%s')...", testCardBasic)
+            local basicResult = ConsequenceApplicator.AddBasicResource(testCardBasic)
+            if basicResult then
+                log:Printf("TEST: AddBasicResource succeeded")
+            else
+                log:Errorf("TEST: AddBasicResource FAILED")
+                passed = false
+            end
+
+            Wait.frames(function()
+                -- Step 4: Test TrashSettlementEvent
+                log:Printf("TEST: Step 4 - TrashSettlementEvent('%s')...", testCardEvent)
+                local trashResult = ConsequenceApplicator.TrashSettlementEvent(testCardEvent)
+                if trashResult then
+                    log:Printf("TEST: TrashSettlementEvent succeeded")
+                else
+                    log:Errorf("TEST: TrashSettlementEvent FAILED")
+                    passed = false
+                end
+
+                Wait.frames(function()
+                    -- Now undo all operations
+                    log:Printf("TEST: Step 5 - Undoing all operations...")
+
+                    -- Restore settlement event
+                    local restoreResult = ConsequenceApplicator.RestoreSettlementEvent(testCardEvent)
+                    if restoreResult then
+                        log:Printf("TEST: RestoreSettlementEvent succeeded")
+                    else
+                        log:Errorf("TEST: RestoreSettlementEvent FAILED")
+                        passed = false
+                    end
+
+                    Wait.frames(function()
+                        -- Remove basic resource
+                        local removeBasicResult = ConsequenceApplicator.RemoveBasicResource(testCardBasic)
+                        if removeBasicResult then
+                            log:Printf("TEST: RemoveBasicResource succeeded")
+                        else
+                            log:Errorf("TEST: RemoveBasicResource FAILED")
+                            passed = false
+                        end
+
+                        Wait.frames(function()
+                            -- Remove vermin
+                            local removeVerminResult = ConsequenceApplicator.RemoveVermin(testCardVermin)
+                            if removeVerminResult then
+                                log:Printf("TEST: RemoveVermin succeeded")
+                            else
+                                log:Errorf("TEST: RemoveVermin FAILED")
+                                passed = false
+                            end
+
+                            Wait.frames(function()
+                                -- Remove fighting art
+                                local removeFAResult = ConsequenceApplicator.RemoveFightingArt(testCardFA)
+                                if removeFAResult then
+                                    log:Printf("TEST: RemoveFightingArt succeeded")
+                                else
+                                    log:Errorf("TEST: RemoveFightingArt FAILED")
+                                    passed = false
+                                end
+
+                                Wait.frames(function()
+                                    -- Final verification
+                                    local faCountFinal = ConsequenceTests.GetFightingArtsDeckCount(testCardFA)
+                                    log:Printf("TEST AFTER: Fighting Arts has %d '%s' (expected %d)", faCountFinal, testCardFA, faCountBefore)
+
+                                    log:Printf("=== TEST: TestConsequenceApplicator COMPLETE ===")
+                                    if passed then
+                                        log:Printf("TEST RESULT: PASSED - All ConsequenceApplicator operations worked")
+                                    else
+                                        log:Errorf("TEST RESULT: FAILED - Some operations failed")
+                                    end
+
+                                    if onComplete then onComplete(passed) end
+                                end, 30)
+                            end, 30)
+                        end, 30)
+                    end, 30)
+                end, 30)
+            end, 30)
+        end, 30)
+    end, 30)
+end
+
+function ConsequenceTests.GetFightingArtsDeckCount(cardName)
+    local location = Location.Get(FightingArtsArchive.FIGHTING_ART_LOCATION)
+    if not location then
+        return 0
+    end
+    local deck = location:FirstObject({ types = { FightingArtsArchive.FIGHTING_ART_TYPE } })
+    if not deck then
+        return 0
+    end
+
+    local count = 0
+    local objects = deck.getObjects and deck.getObjects() or {}
+    for _, obj in ipairs(objects) do
+        if obj.name == cardName then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+function ConsequenceTests.GetVerminDeckState(cardName)
+    local location = Location.Get("Vermin")
+    if not location then
+        return 0, 0
+    end
+    local deck = location:FirstObject({ types = { "Vermin" } })
+    local count = 0
+    local matchCount = 0
+
+    if deck then
+        local objects = deck.getObjects()
+        count = #objects
+        for _, obj in ipairs(objects) do
+            if obj.name == cardName then
+                matchCount = matchCount + 1
+            end
+        end
+    end
+
+    return count, matchCount
+end
+
+---------------------------------------------------------------------------------------------------
+
+return ConsequenceTests

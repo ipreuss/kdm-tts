@@ -1,0 +1,87 @@
+-- TTS Atmospheric Tests
+-- Tests for Atmospheric Change milestone (trash Heat Wave, add Lump of Atnas)
+
+local Console = require("Kdm/Console")
+local Trash = require("Kdm/Trash")
+local BasicResourcesArchive = require("Kdm/BasicResourcesArchive")
+local log = require("Kdm/Log").ForModule("TTSTests")
+
+---------------------------------------------------------------------------------------------------
+
+local AtmosphericTests = {}
+
+---------------------------------------------------------------------------------------------------
+
+function AtmosphericTests.Register()
+    Console.AddCommand("testatmospheric", function(args)
+        AtmosphericTests.TestAtmosphericChange()
+    end, "Test Atmospheric Change milestone (trash Heat Wave, add Lump of Atnas)")
+end
+
+function AtmosphericTests.TestAtmosphericChange(onComplete)
+    log:Printf("=== TEST: TestAtmosphericChange ===")
+    log:Printf("TEST: This tests the Atmospheric Change milestone consequences:")
+    log:Printf("TEST:   - Trash 'Heat Wave' from Settlement Events deck")
+    log:Printf("TEST:   - Add 'Lump of Atnas' to Basic Resources deck")
+
+    local passed = true
+
+    -- Step 1: Trash Heat Wave (move from Settlement Events to Trash)
+    log:Printf("TEST: Step 1 - Trashing 'Heat Wave' from Settlement Events...")
+    local trashResult = Trash.AddCard("Heat Wave", "Settlement Events", "Settlement Events")
+    if trashResult then
+        log:Printf("TEST: Successfully trashed 'Heat Wave'")
+    else
+        log:Errorf("TEST: Failed to trash 'Heat Wave' - card may not exist in Settlement Events deck")
+        passed = false
+    end
+
+    Wait.frames(function()
+        -- Step 2: Add Lump of Atnas to Basic Resources
+        log:Printf("TEST: Step 2 - Adding 'Lump of Atnas' to Basic Resources...")
+        local addResult = BasicResourcesArchive.AddCard("Lump of Atnas")
+        if addResult then
+            log:Printf("TEST: Successfully added 'Lump of Atnas' to Basic Resources")
+        else
+            log:Errorf("TEST: Failed to add 'Lump of Atnas' - card may not exist in Strain Rewards deck")
+            passed = false
+        end
+
+        Wait.frames(function()
+            -- Step 3: Undo - restore Heat Wave from Trash to Settlement Events deck
+            log:Printf("TEST: Step 3 (Undo) - Restoring 'Heat Wave' to Settlement Events...")
+            local restoreResult = Trash.RemoveCard("Heat Wave", "Settlement Events", "Settlement Events")
+            if restoreResult then
+                log:Printf("TEST: Successfully restored 'Heat Wave' to Settlement Events")
+            else
+                log:Errorf("TEST: Failed to restore 'Heat Wave' to Settlement Events")
+                passed = false
+            end
+
+            Wait.frames(function()
+                -- Step 4: Undo - remove Lump of Atnas
+                log:Printf("TEST: Step 4 (Undo) - Removing 'Lump of Atnas' from Basic Resources...")
+                local removeResult = BasicResourcesArchive.RemoveCard("Lump of Atnas")
+                if removeResult then
+                    log:Printf("TEST: Successfully removed 'Lump of Atnas'")
+                else
+                    log:Errorf("TEST: Failed to remove 'Lump of Atnas'")
+                    passed = false
+                end
+
+                log:Printf("=== TEST: TestAtmosphericChange COMPLETE ===")
+                if passed and trashResult and addResult and restoreResult and removeResult then
+                    log:Printf("TEST RESULT: PASSED - All operations succeeded")
+                else
+                    log:Errorf("TEST RESULT: FAILED - Some operations failed")
+                end
+
+                if onComplete then onComplete(passed) end
+            end, 30)
+        end, 30)
+    end, 30)
+end
+
+---------------------------------------------------------------------------------------------------
+
+return AtmosphericTests

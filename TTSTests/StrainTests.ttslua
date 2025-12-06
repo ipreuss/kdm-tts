@@ -1,0 +1,342 @@
+-- TTS Strain Tests
+-- Tests for Strain system: Fighting Arts, Vermin, Card State fallback
+
+local Console = require("Kdm/Console")
+local Location = require("Kdm/Location")
+local Archive = require("Kdm/Archive")
+local Strain = require("Kdm/Strain")
+local FightingArtsArchive = require("Kdm/FightingArtsArchive")
+local VerminArchive = require("Kdm/VerminArchive")
+local log = require("Kdm/Log").ForModule("TTSTests")
+
+---------------------------------------------------------------------------------------------------
+
+local StrainTests = {}
+
+---------------------------------------------------------------------------------------------------
+
+function StrainTests.Register()
+    Console.AddCommand("teststrain", function(args)
+        local cardName = args[2] or "Shielderang"
+        StrainTests.TestAddFightingArtToArchive(cardName)
+    end, "<cardname> - Test adding a strain fighting art to the deck")
+
+    Console.AddCommand("teststrainvermin", function(args)
+        local cardName = args[2] or "Fiddler Crab Spider"
+        StrainTests.TestAddVerminToDeck(cardName)
+    end, "<cardname> - Test adding a strain vermin card to the deck")
+
+    Console.AddCommand("testcardstate", function(args)
+        local stateId = tonumber(args[2])
+        StrainTests.TestCardStateFallback("Story of Blood", stateId)
+    end, "[stateId] - Test spawning Story of Blood after changing its state")
+end
+
+function StrainTests.TestAddFightingArtToArchive(cardName, onComplete)
+    log:Printf("=== TEST: TestAddFightingArtToArchive ===")
+    StrainTests.RunDeckExperiment(cardName, function()
+        log:Printf("TEST: AddFightingArtToArchive with card: %s", cardName)
+        local result = FightingArtsArchive.AddCard(cardName)
+        log:Printf("TEST: AddFightingArtToArchive returned: %s", tostring(result))
+        return result
+    end, {
+        deckLabel = "Fighting Arts",
+        stateFunc = StrainTests.GetFightingArtsDeckState,
+        cleanup = StrainTests.RestoreFightingArtsDeck,
+        onComplete = onComplete,
+    })
+end
+
+function StrainTests.TestAddVerminToDeck(cardName, onComplete)
+    log:Printf("=== TEST: TestAddVerminToDeck ===")
+    StrainTests.RunDeckExperiment(cardName, function()
+        log:Printf("TEST: AddVerminToDeck with card: %s", cardName)
+        local result = VerminArchive.AddCard(cardName)
+        log:Printf("TEST: AddVerminToDeck returned: %s", tostring(result))
+        return result
+    end, {
+        deckLabel = "Vermin",
+        stateFunc = StrainTests.GetVerminDeckState,
+        cleanup = StrainTests.RestoreVerminDeck,
+        onComplete = onComplete,
+    })
+end
+
+function StrainTests.TestCardStateFallback(baseName, stateId, onComplete)
+    log:Printf("=== TEST: TestCardStateFallback ===")
+    baseName = baseName or "Story of Blood"
+
+    local totalBefore, matchesBefore = StrainTests.GetStrainRewardsDeckState(baseName)
+    log:Printf("TEST BEFORE: Strain Rewards deck has %d cards, %d copies of '%s'", totalBefore, matchesBefore, baseName)
+
+    local locationName = "South of Showdown Board"
+    local location = Location.Get(locationName)
+    assert(location, string.format("TEST: Location '%s' not found", locationName))
+
+    -- Test: Spawn card with alternate state name suffix like "Story of Blood [1, 1 x]"
+    -- The fallback mechanism should strip the suffix and find the base card
+    local stateName = stateId or "1, 1 x"  -- Default to an existing state for Story of Blood
+    local testName = string.format("%s [%s]", baseName, stateName)
+    log:Printf("TEST: Attempting to spawn '%s' from archive (testing state name fallback)", testName)
+
+    log:Debugf("[DEBUG] Strain module type: %s", type(Strain))
+    log:Debugf("[DEBUG] Strain.Test exists: %s", tostring(Strain.Test ~= nil))
+    if Strain.Test then
+        log:Debugf("[DEBUG] Strain.Test._TakeRewardCard exists: %s", tostring(Strain.Test._TakeRewardCard ~= nil))
+    end
+
+    local position = location:Center()
+    position.y = position.y + 2
+    local spawnedCard
+    local ok = Strain.Test._TakeRewardCard(Strain, {
+        name = testName,
+        type = FightingArtsArchive.FIGHTING_ART_TYPE,
+        position = position,
+        rotation = { x = 0, y = 180, z = 0 },
+        spawnFunc = function(card)
+            spawnedCard = card
+        end,
+    })
+
+    if ok and spawnedCard then
+        log:Printf("TEST: Successfully spawned '%s' via fallback mechanism", testName)
+    else
+        log:Errorf("TEST: Failed to spawn '%s' - fallback mechanism failed", testName)
+    end
+
+    Wait.frames(function()
+        if spawnedCard and spawnedCard.destruct then
+            spawnedCard.destruct()
+        end
+        Archive.Clean()
+
+        Wait.frames(function()
+            local totalAfter, matchesAfter = StrainTests.GetStrainRewardsDeckState(baseName)
+            log:Printf("TEST AFTER: Strain Rewards deck has %d cards, %d copies of '%s'", totalAfter, matchesAfter, baseName)
+
+            if totalAfter ~= totalBefore then
+                log:Errorf("TEST CLEANUP WARNING: Strain Rewards deck changed from %d to %d cards. Manual verification recommended.", totalBefore, totalAfter)
+            else
+                log:Printf("TEST CLEANUP: Successfully restored Strain Rewards deck.")
+            end
+
+            if onComplete then onComplete(true) end
+        end, 20)
+    end, 10)
+end
+
+function StrainTests.RunDeckExperiment(cardName, mutateFn, options)
+    local deckLabel = options.deckLabel or "Deck"
+    local onComplete = options.onComplete
+
+    -- Check for stray cards from previous tests
+    local strayBefore = StrainTests.CountStrayCardsOnTable(cardName)
+    if strayBefore > 0 then
+        log:Errorf("TEST SETUP: Found %d stray '%s' card(s) on table before test started (leaked from previous test)", strayBefore, cardName)
+    end
+
+    local totalBefore, matchesBefore = options.stateFunc(cardName)
+    log:Printf("TEST BEFORE: %s deck has %d cards, %d copies of '%s'", deckLabel, totalBefore, matchesBefore, cardName)
+
+    local ok, err = pcall(mutateFn)
+    if not ok then
+        log:Errorf("TEST FAILED: error while executing action: %s", tostring(err))
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    Wait.frames(function()
+        local totalAfter, matchesAfter = options.stateFunc(cardName)
+        log:Printf("TEST AFTER: %s deck has %d cards, %d copies of '%s'", deckLabel, totalAfter, matchesAfter, cardName)
+
+        local delta = matchesAfter - matchesBefore
+        if delta > 0 then
+            log:Printf("TEST INFO: Detected %d new copies of '%s'. Scheduling cleanup.", delta, cardName)
+            options.cleanup(cardName, delta, matchesBefore, options.stateFunc, onComplete)
+        elseif delta == 0 then
+            log:Printf("TEST INFO: Copy count unchanged. No cleanup required.")
+            if onComplete then onComplete(true) end
+        else
+            log:Errorf("TEST WARNING: Deck has fewer copies of '%s' (%d) than baseline (%d). Manual verification recommended.", cardName, matchesAfter, matchesBefore)
+            if onComplete then onComplete(true) end
+        end
+    end, 30)
+end
+
+local function restoreDeck(cardName, copiesToRemove, targetCopies, removeFunc, deckLabel, stateFunc, onComplete)
+    local removed = 0
+
+    local function finalizeCleanup()
+        Wait.frames(function()
+            local _, matches = stateFunc(cardName)
+            if targetCopies and matches ~= targetCopies then
+                log:Errorf("TEST CLEANUP: Expected %d copies of '%s' after cleanup but found %d.", targetCopies, cardName, matches)
+            else
+                log:Printf("TEST CLEANUP: Restored %s deck to %d copies of '%s'.", deckLabel, matches, cardName)
+            end
+
+            -- Check for stray cards left on the table
+            local strayCards = StrainTests.CountStrayCardsOnTable(cardName)
+            if strayCards > 0 then
+                log:Errorf("TEST CLEANUP: Found %d stray '%s' card(s) on table (resource leak)", strayCards, cardName)
+            end
+
+            if onComplete then onComplete(true) end
+        end, 20)
+    end
+
+    local function removeNext()
+        if removed >= copiesToRemove then
+            finalizeCleanup()
+            return
+        end
+
+        local success = removeFunc(cardName)
+        if not success then
+            log:Errorf("TEST CLEANUP: Failed while removing '%s' (%d/%d). Deck may contain leftover copies.", cardName, removed + 1, copiesToRemove)
+            if onComplete then onComplete(false) end
+            return
+        end
+
+        removed = removed + 1
+        Wait.frames(removeNext, 10)
+    end
+
+    removeNext()
+end
+
+function StrainTests.RestoreFightingArtsDeck(cardName, copiesToRemove, targetCopies, stateFunc, onComplete)
+    restoreDeck(cardName, copiesToRemove, targetCopies, FightingArtsArchive.RemoveCard, "Fighting Arts", stateFunc or StrainTests.GetFightingArtsDeckState, onComplete)
+end
+
+function StrainTests.RestoreVerminDeck(cardName, copiesToRemove, targetCopies, stateFunc, onComplete)
+    restoreDeck(cardName, copiesToRemove, targetCopies, VerminArchive.RemoveCard, "Vermin", stateFunc or StrainTests.GetVerminDeckState, onComplete)
+end
+
+function StrainTests.GetFightingArtsDeckState(cardName)
+    local location = Location.Get("Fighting Arts")
+    if not location then
+        return 0, 0
+    end
+    local deck = location:FirstObject({ types = { "Fighting Arts" } })
+    local count = 0
+    local matchCount = 0
+
+    if deck then
+        local objects = deck.getObjects()
+        count = #objects
+        for _, obj in ipairs(objects) do
+            if obj.name == cardName then
+                matchCount = matchCount + 1
+            end
+        end
+    end
+
+    return count, matchCount
+end
+
+function StrainTests.GetVerminDeckState(cardName)
+    local location = Location.Get("Vermin")
+    if not location then
+        return 0, 0
+    end
+    local deck = location:FirstObject({ types = { "Vermin" } })
+    local count = 0
+    local matchCount = 0
+
+    if deck then
+        local objects = deck.getObjects()
+        count = #objects
+        for _, obj in ipairs(objects) do
+            if obj.name == cardName then
+                matchCount = matchCount + 1
+            end
+        end
+    end
+
+    return count, matchCount
+end
+
+function StrainTests.GetStrainRewardsDeckState(cardName)
+    local deckName = "Strain Rewards"
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: calling Archive.Take")
+    local deck = Archive.Take({
+        name = deckName,
+        type = "Rewards",
+        position = { x = -150, y = 60, z = 120 },
+        lenient = true,
+    })
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: Archive.Take returned deck=%s", tostring(deck))
+
+    if not deck then
+        log:Debugf("[DEBUG] GetStrainRewardsDeckState: deck is nil, returning 0,0")
+        Archive.Clean()
+        return 0, 0
+    end
+
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: deck.getObjects type=%s", type(deck.getObjects))
+    local count = 0
+    local matchCount = 0
+    local objects = deck.getObjects and deck.getObjects()
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: objects=%s", tostring(objects))
+
+    if objects then
+        count = #objects
+        for _, obj in ipairs(objects) do
+            if obj.name == cardName then
+                matchCount = matchCount + 1
+            end
+        end
+    end
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: count=%d, matchCount=%d", count, matchCount)
+
+    -- Destruct the deck (Core Archive is infinite, no need to put back)
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: destroying deck")
+    deck.destruct()
+
+    Archive.Clean()
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: Archive.Clean done")
+
+    log:Debugf("[DEBUG] GetStrainRewardsDeckState: returning count=%d, matchCount=%d", count, matchCount)
+    return count, matchCount
+end
+
+function StrainTests.CountStrayCardsOnTable(cardName)
+    local count = 0
+    for _, obj in ipairs(getAllObjects()) do
+        if obj.tag == "Card" and obj.getName() == cardName then
+            -- Skip cards that are in containers (decks, bags, etc.)
+            local container = obj.getVar("containerGUID") or obj.held_by_color
+            if not container then
+                count = count + 1
+                local pos = obj.getPosition()
+                log:Printf("Found stray '%s' at position (%.1f, %.1f, %.1f) GUID: %s", cardName, pos.x, pos.y, pos.z, obj.getGUID())
+            end
+        end
+    end
+    return count
+end
+
+function StrainTests.GetFightingArtsDeckCount(cardName)
+    local location = Location.Get(FightingArtsArchive.FIGHTING_ART_LOCATION)
+    if not location then
+        return 0
+    end
+    local deck = location:FirstObject({ types = { FightingArtsArchive.FIGHTING_ART_TYPE } })
+    if not deck then
+        return 0
+    end
+
+    local count = 0
+    local objects = deck.getObjects and deck.getObjects() or {}
+    for _, obj in ipairs(objects) do
+        if obj.name == cardName then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+---------------------------------------------------------------------------------------------------
+
+return StrainTests

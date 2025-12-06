@@ -1,0 +1,140 @@
+-- TTS Trash Tests
+-- Tests for Trash restore functionality (Heat Wave restore)
+
+local Console = require("Kdm/Console")
+local Location = require("Kdm/Location")
+local Strain = require("Kdm/Strain")
+local Trash = require("Kdm/Trash")
+local log = require("Kdm/Log").ForModule("TTSTests")
+
+---------------------------------------------------------------------------------------------------
+
+local TrashTests = {}
+
+---------------------------------------------------------------------------------------------------
+
+function TrashTests.Register()
+    Console.AddCommand("testheatwaverestore", function(args)
+        TrashTests.TestHeatWaveRestore()
+    end, "Test restoring Heat Wave from Trash back to Settlement Events deck")
+end
+
+function TrashTests.TestHeatWaveRestore()
+    log:Printf("=== TEST: TestHeatWaveRestore ===")
+    log:Printf("TEST: This tests that ReverseConsequences restores Heat Wave to Settlement Events")
+
+    local cardName = "Heat Wave"
+    local cardType = "Settlement Events"
+    local deckLocation = "Settlement Events"
+
+    -- The Atmospheric Change milestone consequence
+    local milestone = {
+        title = "Atmospheric Change",
+        consequences = {
+            trashSettlementEvent = "Heat Wave",
+            addBasicResource = "Lump of Atnas",
+        },
+    }
+
+    -- Step 1: Count Heat Wave in Settlement Events deck before
+    local countBefore = TrashTests.CountCardInDeck(cardName, cardType, deckLocation)
+    log:Printf("TEST BEFORE: Settlement Events deck has %d copies of '%s'", countBefore, cardName)
+
+    -- Step 2: Execute consequences (simulates checking the milestone)
+    log:Printf("TEST: Step 1 - Executing consequences (trashing Heat Wave)...")
+    Strain.Test.ExecuteConsequences(milestone)
+
+    Wait.frames(function()
+        -- Step 3: Verify Heat Wave is in Trash
+        local inTrash = Trash.IsInTrash(cardName, cardType)
+        if not inTrash then
+            log:Errorf("TEST SETUP FAILED: '%s' not found in Trash after ExecuteConsequences", cardName)
+            return
+        end
+        log:Printf("TEST: Verified '%s' is in Trash", cardName)
+
+        -- Step 4: Reverse consequences (simulates unchecking the milestone)
+        log:Printf("TEST: Step 2 - Reversing consequences (should restore Heat Wave)...")
+        Strain.Test.ReverseConsequences(milestone)
+
+        Wait.frames(function()
+            -- Step 5: Verify Heat Wave is back in Settlement Events deck
+            local countAfter = TrashTests.CountCardInDeck(cardName, cardType, deckLocation)
+            log:Printf("TEST AFTER: Settlement Events deck has %d copies of '%s'", countAfter, cardName)
+
+            -- Step 6: Verify Heat Wave is no longer in Trash
+            local stillInTrash = Trash.IsInTrash(cardName, cardType)
+
+            -- Step 7: Check for stray cards near the Trash (leaked objects)
+            local strayCards = TrashTests.CountStrayCardsNearTrash(cardName)
+            if strayCards > 0 then
+                log:Printf("TEST: Found %d stray '%s' card(s) near Trash", strayCards, cardName)
+            end
+
+            log:Printf("=== TEST: TestHeatWaveRestore COMPLETE ===")
+            if countAfter >= countBefore and not stillInTrash and strayCards == 0 then
+                log:Printf("TEST RESULT: PASSED - Heat Wave restored to Settlement Events deck")
+            else
+                log:Errorf("TEST RESULT: FAILED - Heat Wave not properly restored")
+                if countAfter < countBefore then
+                    log:Errorf("  - Card count decreased from %d to %d", countBefore, countAfter)
+                end
+                if stillInTrash then
+                    log:Errorf("  - Card still in Trash")
+                end
+                if strayCards > 0 then
+                    log:Errorf("  - %d stray card(s) left near Trash (resource leak)", strayCards)
+                end
+            end
+        end, 30)
+    end, 30)
+end
+
+function TrashTests.CountCardInDeck(cardName, cardType, deckLocation)
+    local location = Location.Get(deckLocation)
+    if not location then
+        return 0
+    end
+    local deck = location:FirstObject({ types = { cardType } })
+    if not deck then
+        return 0
+    end
+
+    local count = 0
+    local objects = deck.getObjects and deck.getObjects() or {}
+    for _, obj in ipairs(objects) do
+        if obj.name == cardName then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+function TrashTests.CountStrayCardsNearTrash(cardName)
+    local NamedObject = require("Kdm/NamedObject")
+    local trash = NamedObject.Get("Trash")
+    if not trash then
+        return 0
+    end
+
+    local trashPos = trash.getPosition()
+    local hits = Physics.cast({
+        origin = { x = trashPos.x, y = trashPos.y + 5, z = trashPos.z },
+        direction = { x = 0, y = -1, z = 0 },
+        type = 3,  -- box cast
+        size = { x = 10, y = 10, z = 10 },
+    })
+
+    local count = 0
+    for _, hit in ipairs(hits) do
+        local obj = hit.hit_object
+        if obj and obj.tag == "Card" and obj.getName() == cardName then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+---------------------------------------------------------------------------------------------------
+
+return TrashTests
