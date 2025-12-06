@@ -211,7 +211,14 @@ Derive the status from actual session accomplishments. Spell out numbers as Germ
 ### Role-Specific Documentation
 
 Detailed process documentation for each role is in the `ROLES/` directory:
-- `ROLES/DEBUGGER.md` - Debugging patterns, logging, handover format, role boundaries
+- `ROLES/PRODUCT_OWNER.md` - Requirements, user stories, acceptance criteria
+- `ROLES/ARCHITECT.md` - System design, patterns, technical feasibility
+- `ROLES/IMPLEMENTER.md` - Coding workflow, patterns, review responses
+- `ROLES/REVIEWER.md` - Code review process, checklists, handover format
+- `ROLES/DEBUGGER.md` - Debugging patterns, logging, root cause analysis
+- `ROLES/TESTER.md` - Acceptance testing, TestWorld usage, TTS console tests
+
+**Note:** Role files are the authoritative source for role-specific details. The role summaries in this document provide an overview; consult the role files for complete guidance.
 
 ---
 

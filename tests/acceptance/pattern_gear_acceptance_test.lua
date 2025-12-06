@@ -47,9 +47,11 @@ function DeckSetupSpy:deckSpawned(deckName)
 end
 
 function DeckSetupSpy:deckShuffled(deckName)
+    -- Check if deck will be shuffled either via explicit param OR via Deck.NEEDS_SHUFFLE
+    local Deck = require("Kdm/Deck")
     for _, call in ipairs(self._calls) do
         if call.name == deckName then
-            return call.params.shuffle == true
+            return call.params.shuffle == true or Deck.NEEDS_SHUFFLE[deckName] == true
         end
     end
     return nil  -- Deck not found
@@ -236,13 +238,9 @@ Test.test("ACCEPTANCE: Patterns deck is NOT shuffled", function(t)
         "Patterns deck should NOT be shuffled (users search for specific cards)")
 end)
 
--- BUG DISCOVERED: Seed Patterns is NOT shuffled during Campaign.Import
--- The code at Campaign.ttslua:958 calls:
---   Campaign.SetupDeckFromExpansionComponents("Seed Patterns", data, { type = "Seed Patterns" })
--- But it should include { shuffle = true } like other shuffled decks.
---
--- Note: Deck.NEEDS_SHUFFLE includes "Seed Patterns" = true, which is used by Deck.ResetDeck,
--- but Campaign.Import does not use this table - it uses the explicit shuffle param.
+-- Seed Patterns is in Deck.NEEDS_SHUFFLE, so SetupDeckFromExpansionComponents will shuffle it
+-- automatically without needing an explicit shuffle=true parameter.
+-- This is the single source of truth for which decks need shuffling.
 --
 -- This test verifies AC3: Seed Patterns deck should be shuffled
 Test.test("ACCEPTANCE: Seed Patterns deck is shuffled during Campaign.Import (AC3)", function(t)

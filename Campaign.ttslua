@@ -928,18 +928,19 @@ function Campaign.Import(data)
     Trash.Import(data.trash)
     Wait.frames(function() -- must wait for items to enter trash can
         Campaign.SetupDeckFromExpansionComponents("Abilities", data)
-        Campaign.SetupDeckFromExpansionComponents("Fighting Arts", data, { shuffle = true })
+        Campaign.SetupDeckFromExpansionComponents("Fighting Arts", data)
         Campaign.SetupDeckFromExpansionComponents("Secret Fighting Arts", data)
-        Campaign.SetupDeckFromExpansionComponents("Disorders", data, { shuffle = true })
+        Campaign.SetupDeckFromExpansionComponents("Disorders", data)
         Campaign.SetupDeckFromExpansionComponents("Severe Injuries", data)
-        Campaign.SetupDeckFromExpansionComponents("Tactics", data, { shuffle = true })
+        Campaign.SetupDeckFromExpansionComponents("Tactics", data)
         Campaign.SetupDeckFromExpansionComponents("Weapon Proficiencies", data)
         Campaign.SetupDeckFromExpansionComponents("Armor Sets", data)
-        Campaign.SetupDeckFromExpansionComponents("Vermin", data, { shuffle = true })
+        Campaign.SetupDeckFromExpansionComponents("Vermin", data)
         Campaign.SetupDeckFromExpansionComponents("Strange Resources", data)
-        Campaign.SetupDeckFromExpansionComponents("Basic Resources", data, { shuffle = true })
-        Campaign.SetupDeckFromExpansionComponents("Terrain", data, { shuffle = true })
+        Campaign.SetupDeckFromExpansionComponents("Basic Resources", data)
+        Campaign.SetupDeckFromExpansionComponents("Terrain", data)
         Campaign.AddStrainRewards()
+        -- Note: Settlement Events not in Deck.NEEDS_SHUFFLE, but we shuffle it anyway
         local settlementEventsDeck = Campaign.SetupDeckFromExpansionComponents("Settlement Events", data,
             { shuffle = true })
         assert(settlementEventsDeck, "settlementEventsDeck is nil")
@@ -955,7 +956,7 @@ function Campaign.Import(data)
         Campaign.SetupDeckFromExpansionComponents("Rare Gear", data, { type = "Gear" })
         Campaign.SetupDeckFromExpansionComponents("Seed Pattern Gear", data, { type = "Gear" })
         Campaign.SetupDeckFromExpansionComponents("Hunt Events", data)
-        Campaign.SetupDeckFromExpansionComponents("Seed Patterns", data, { type = "Seed Patterns", shuffle = true })
+        Campaign.SetupDeckFromExpansionComponents("Seed Patterns", data, { type = "Seed Patterns" })
         Campaign.SetupDeckFromExpansionComponents("Pattern Gear", data, { type = "Gear" })
         Campaign.SetupDeckFromExpansionComponents("Patterns", data, { type = "Patterns" })
         local context = {
@@ -1110,7 +1111,9 @@ function Campaign.SetupDeckFromExpansionComponents(name, data, params)
         }))
     end
 
-    if params.shuffle then
+    -- Shuffle if explicitly requested OR if Deck.NEEDS_SHUFFLE says so (single source of truth)
+    local shouldShuffle = params.shuffle or Deck.NEEDS_SHUFFLE[name]
+    if shouldShuffle then
         deckContainer:Shuffle()
     end
 
