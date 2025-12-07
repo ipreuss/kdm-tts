@@ -70,6 +70,20 @@ local function getAllExpansions()
     return expansions
 end
 
+-- Check if a base name has bracket variants in template
+-- e.g., "Bone Hatchet" matches if "Bone Hatchet [left]" or "Bone Hatchet [right]" exist
+local function hasBracketVariant(baseName, nicknames)
+    -- Escape special pattern characters in base name
+    local escaped = baseName:gsub("([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1")
+    local pattern = "^" .. escaped .. " %[.+%]$"
+    for nickname in pairs(nicknames) do
+        if nickname:match(pattern) then
+            return true
+        end
+    end
+    return false
+end
+
 ---------------------------------------------------------------------------------------------------
 -- Tests
 ---------------------------------------------------------------------------------------------------
@@ -248,16 +262,21 @@ Test.test("All weaponStats items exist in template", function(t)
     local expansions = getAllExpansions()
     local missing = {}
     
-    -- Paired weapons tracked in kdm-rbl.3
+    -- Aya's is incomplete name (should be "Aya's Spear" or "Aya's Sword") - separate issue
     local knownMissing = {
         ["Aya's"] = true,
-        ["Bone Hatchet"] = true,
-        ["Tempered Axe"] = true,
     }
-    
+
     for _, expansion in ipairs(expansions) do
-        for name, _ in pairs(expansion.weaponStats or {}) do
-            if not nicknames[name] and not knownMissing[name] then
+        for name, stats in pairs(expansion.weaponStats or {}) do
+            local found = nicknames[name]
+
+            -- For paired weapons, also accept bracket variants
+            if not found and stats.paired then
+                found = hasBracketVariant(name, nicknames)
+            end
+
+            if not found and not knownMissing[name] then
                 table.insert(missing, string.format("Weapon '%s' in '%s'", name, expansion.name))
             end
         end
