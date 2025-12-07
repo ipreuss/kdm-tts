@@ -12,6 +12,7 @@
 - Don't perform git operations
 - Don't test implementation details or impossible user actions
 - Tests must be written from user's perspective
+- **Don't close beads** — When testing is complete, create a handover to Product Owner (features/bugs) or Architect (technical tasks) for closure
 
 ## Permitted Code Changes
 - Files in `tests/acceptance/` directory

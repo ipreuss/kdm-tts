@@ -264,7 +264,6 @@ return {
         ["Speaker Mask"] = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
         ["Tabard"] = { head = 0, arms = 0, body = 1, waist = 0, legs = 0 },
         ["White Dragon Gauntlets"] = { head = 0, arms = 12, body = 0, waist = 0, legs = 0 },
-        ["Vagabond Armor"]   = { head = 1, arms = 1, body = 1, waist = 1, legs = 1, modifier = true },
 
         ["Forsaker Mask"] = { head = 2, arms = 0, body = 0, waist = 0, legs = 0, irreplaceable = true },
 
@@ -323,7 +322,6 @@ return {
         ["Sighing Sarong"] = { head = 0, arms = 0, body = 0, waist = 2, legs = 2 },
         ["Sprinter Helm"] = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
         ["Sunlantern Mask"] = { head = 4, arms = 0, body = 0, waist = 0, legs = 0 },
-        ["White Sunlion Mask"] = { head = 1, arms = 0, body = 0, waist = 0, legs = 0 },
         ["Soldier Lantern Cuirass"] = { head = 0, arms = 0, body = 5, waist = 0, legs = 0},
 
         ["Lantern Mantle"]         = { head = 0, arms = 0, body = 2, waist = 0, legs = 0, irreplaceable = true},

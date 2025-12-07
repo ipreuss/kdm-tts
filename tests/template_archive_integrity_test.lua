@@ -207,10 +207,10 @@ Test.test("All gearStats items exist in template", function(t)
     end
 end)
 
--- TODO: Re-enable these tests once missing items are resolved (see docs/BACKLOG.md#missing-gear-items)
+-- TODO: Re-enable these tests once missing items are resolved
 -- Currently skipped because there are known data inconsistencies that need manual review:
--- - Armor: Vagabond Armor, White Sunlion Mask, CE masks, Flower Knight Costume
--- - Weapons: Aya's (incomplete), paired weapons (Bone Hatchet, Tempered Axe), Thunder Maul (CE only)
+-- - Armor: Vagabond Armor, White Sunlion Mask, Flower Knight Costume
+-- - Weapons: Aya's (incomplete), paired weapons (Bone Hatchet, Tempered Axe), Thunder Maul (Core, not in template)
 
 Test.test("All armorStats items exist in template", function(t)
     local nicknames = loadTemplateNicknames()
@@ -222,16 +222,7 @@ Test.test("All armorStats items exist in template", function(t)
     local expansions = getAllExpansions()
     local missing = {}
     
-    -- Known missing items documented in docs/BACKLOG.md#missing-gear-items
     local knownMissing = {
-        ["Vagabond Armor"] = true,
-        ["White Sunlion Mask"] = true,
-        ["God Mask (CE)"] = true,
-        ["Phoenix Mask (CE)"] = true,
-        ["White Lion Mask (CE)"] = true,
-        ["Antelope Mask (CE)"] = true,
-        ["Man Mask (CE)"] = true,
-        ["Flower Knight Costume"] = true,
     }
     
     for _, expansion in ipairs(expansions) do
@@ -258,6 +249,7 @@ Test.test("All weaponStats items exist in template", function(t)
     local missing = {}
     
     -- Known missing items documented in docs/BACKLOG.md#missing-gear-items
+    -- Thunder Maul is in Core (not CE) but missing from template
     local knownMissing = {
         ["Aya's"] = true,
         ["Bone Hatchet"] = true,

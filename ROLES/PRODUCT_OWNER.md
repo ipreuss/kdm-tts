@@ -6,6 +6,7 @@
 - Prioritize work based on user value and project goals
 - Validate that delivered features meet requirements
 - Maintain user-facing documentation (README, FAQ, user guides)
+- **Close feature and bug beads** — Only Product Owner may close beads for features and bugs after validating acceptance criteria
 
 ## What NOT to Do
 - **Don't edit implementation code or tests**

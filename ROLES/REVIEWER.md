@@ -11,6 +11,7 @@
 - **Don't implement fixes** - leave that to the implementer
 - Don't make changes to production code
 - Don't check for untracked files (`git add` happens automatically)
+- **Don't close beads** — When review is complete, create a handover to Product Owner (features/bugs) or Architect (technical tasks) for closure
 
 ## Review Process
 

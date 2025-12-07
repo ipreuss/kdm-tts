@@ -15,6 +15,7 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 - Prioritize work based on user value and project goals
 - Validate that delivered features meet requirements
 - Maintain user-facing documentation (README, FAQ, user guides)
+- **Close feature and bug beads** after validating acceptance criteria are met
 
 **Constraints:**
 - Do not edit implementation code or tests
@@ -32,6 +33,7 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 - Evaluate technical feasibility of Product Owner requests
 - Identify and document refactoring opportunities
 - **Specify TTS testing requirements** when design involves TTS API interactions
+- **Close technical task beads** after validating design compliance
 
 **Constraints:**
 - Do not edit implementation code or tests (provide guidance, not code)
@@ -54,6 +56,7 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 - Do not perform git operations
 - Do not override Architect on design decisions
 - Do not change requirements (escalate to Product Owner)
+- Do not close beads (handover to Product Owner or Architect for closure)
 
 ### Reviewer
 **Focus:** Quality assurance through code review.
@@ -68,6 +71,7 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 - Do not edit implementation code or tests
 - Do not perform git operations
 - Do not change requirements or architecture
+- Do not close beads (handover to Product Owner or Architect for closure)
 
 ### Debugger
 **Focus:** Systematic problem diagnosis and root cause analysis.
@@ -89,6 +93,7 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 - Do not perform git operations
 - Do not change requirements or architecture
 - Must provide evidence for conclusions (log output, code references)
+- Do not close beads (handover to Product Owner or Architect for closure)
 
 ### Tester
 **Focus:** Acceptance testing from the user's perspective.
@@ -110,6 +115,7 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 - Do not perform git operations
 - Do not test implementation details or impossible user actions
 - Tests must be written from user's perspective (see guidelines)
+- Do not close beads (handover to Product Owner or Architect for closure)
 
 **Key Principle:** Ask "What can a user do? What do they see?" — not "How does the code work?"
 
@@ -178,6 +184,24 @@ The `handover/QUEUE.md` file serves as a central inbox to prevent missed or stal
 - Each handover/status document is **replaced** (not appended) when a new handover occurs
 - Include context, requirements/design, open questions, and relevant files
 - The receiving role should read the handover/status documents before starting work. When implementation spans multiple PRs/sprints, update `handover/IMPLEMENTATION_STATUS.md` so future implementers can see exactly what has already landed and what remains.
+
+### Bead Closure Authority
+
+**Only two roles may close beads:**
+
+| Role | May Close | Rationale |
+|------|-----------|-----------|
+| **Product Owner** | Feature beads, bug beads | Validates user-facing requirements are met |
+| **Architect** | Technical task beads | Validates technical quality and design compliance |
+
+**All other roles** (Implementer, Reviewer, Debugger, Tester) must **not** close beads directly. When work is complete:
+
+1. Create a handover to the appropriate authority:
+   - Features/bugs → handover to **Product Owner**
+   - Technical tasks → handover to **Architect**
+2. The receiving role reviews and closes the bead if acceptance criteria are met
+
+This ensures proper validation before marking work as done.
 
 ### Role Boundaries
 

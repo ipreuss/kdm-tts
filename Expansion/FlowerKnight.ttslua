@@ -30,7 +30,7 @@ return {
     },
 
     armorStats = {
-        ["Flower Knight Costume"] = { head = 1, arms = 1, body = 1, waist = 1, legs = 1 },
+        ["Flower Costume"] = { head = 1, arms = 1, body = 1, waist = 1, legs = 1 },
         ["Flower Knight Helm"] = { head = 3, arms = 0, body = 0, waist = 0, legs = 0 },
     },
 

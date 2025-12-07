@@ -161,6 +161,14 @@ This pattern allows expansion data to define stats once per weapon type while su
 - **Archive** indexes infinite bags/decks so scripts can spawn resources by logical key instead of GUIDs. It merges base data with any expansion overrides and exposes helpers to pull cards into temporary containers and combine them back into decks (`Archive.ttslua:13-90`).
 - **Expansion** loads every data-only module under `Expansion/`, keeps track of which ones are enabled, and exposes convenience filters for "enabled only" lists (`Expansion.ttslua:1-87`). Campaign configuration later consumes that data.
 
+### Expansion Content Organization
+
+Expansion files (`Expansion/*.ttslua`) define gear stats, archive mappings, and other data for each major expansion. **Promo content and White Box items** are bundled into the most appropriate major expansion rather than having their own expansion files.
+
+**Principle:** Only add stats for cards that exist in the TTS template. If a card isn't in the template, don't add stats for it — this avoids configuration drift and lookup errors.
+
+**Future direction:** When Campaigns of Death is published, we plan to migrate from the current expansion-based system to a **node system** that better represents the actual content dependencies and unlock conditions.
+
 ### Deck Lifecycle Pattern
 
 Many card decks (Fighting Arts, Disorders, etc.) follow a three-stage lifecycle:

@@ -9,6 +9,7 @@
 - Specify TTS testing requirements when design involves TTS API interactions
 - **Maintain process documentation** (`PROCESS.md`, `CLAUDE.md`, `ROLES/*.md`, `handover/QUEUE.md`)
 - **Verify test architecture** — Ensure tests follow established patterns (spy at TTS boundary, call real production code)
+- **Close technical task beads** — Only Architect may close beads for technical tasks (refactoring, infrastructure, tooling)
 
 ## What NOT to Do
 - **Don't edit implementation code or tests** (provide guidance, not code)

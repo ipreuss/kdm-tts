@@ -12,6 +12,7 @@
 - Don't perform git operations
 - Don't override Architect on design decisions
 - Don't change requirements (escalate to Product Owner)
+- **Don't close beads** — When work is complete, create a handover to Product Owner (features/bugs) or Architect (technical tasks) for closure
 
 ## Handover Documents
 - **Input:** `handover/HANDOVER_IMPLEMENTER.md` (from Architect)

@@ -10,6 +10,7 @@
 - **Don't implement fixes** - leave that to the implementer
 - Don't make assumptions without verifying with logs
 - Don't modify production logic (only add logging)
+- **Don't close beads** — When diagnosis is complete, create a handover to Product Owner (features/bugs) or Architect (technical tasks) for closure
 
 ## Interpreting Log Output
 
