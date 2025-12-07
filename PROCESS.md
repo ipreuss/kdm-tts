@@ -201,6 +201,12 @@ The `handover/QUEUE.md` file serves as a central inbox to prevent missed or stal
    - Technical tasks → handover to **Architect**
 2. The receiving role reviews and closes the bead if acceptance criteria are met
 
+**Closure requirements:**
+- Beads may only be closed if adequate test coverage exists
+- Before closing, verify: "What tests prove this works? Would a regression be caught?"
+- If no tests exist, either add them or document why testing is not applicable
+- For data/configuration changes, integrity tests may serve as acceptance tests
+
 This ensures proper validation before marking work as done.
 
 ### Role Boundaries
