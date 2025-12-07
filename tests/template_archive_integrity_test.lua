@@ -248,13 +248,11 @@ Test.test("All weaponStats items exist in template", function(t)
     local expansions = getAllExpansions()
     local missing = {}
     
-    -- Known missing items documented in docs/BACKLOG.md#missing-gear-items
-    -- Thunder Maul is in Core (not CE) but missing from template
+    -- Paired weapons tracked in kdm-rbl.3
     local knownMissing = {
         ["Aya's"] = true,
         ["Bone Hatchet"] = true,
         ["Tempered Axe"] = true,
-        ["Thunder Maul"] = true,
     }
     
     for _, expansion in ipairs(expansions) do
