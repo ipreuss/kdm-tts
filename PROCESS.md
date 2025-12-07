@@ -148,6 +148,26 @@ Product Owner          Architect              Implementer           Reviewer    
 **Architect handover must specify TTS testing needs:**
 When the design involves new TTS API interactions (archive operations, deck manipulation, object spawning, UI rendering), the Architect's handover must explicitly request TTS console tests in addition to headless tests. Headless tests verify business logic but cannot catch subtle TTS API issues (timing, callbacks, object state). The implementer is responsible for adding the specified TTS tests.
 
+### Debugging Procedure
+
+All coding roles (Implementer, Debugger, Tester) must follow this procedure when encountering a bug or unexpected behavior:
+
+1. **Analyze the code** — Understand the relevant code paths and state
+2. **Create hypotheses** — List one or more possible causes
+3. **Select main hypothesis** — Choose the most likely cause to investigate first
+4. **Write a failing test** — Preferably headless; this proves the bug exists and prevents regression
+5. **Make the test pass** — Fix the underlying issue
+6. **Verify the fix** — Confirm the original problem is resolved
+
+**When encountering unexpected impediments** (hypothesis proves wrong, fix doesn't work, new symptoms appear):
+- Stop and reassess
+- Test hypotheses systematically using:
+  - Automated tests (preferred)
+  - Debug logging (when tests aren't practical)
+- Update your hypothesis list and repeat from step 3
+
+This ensures bugs are fixed methodically with test coverage, not through trial-and-error.
+
 ### Handover Documents
 
 All role-to-role handovers are stored in the `handover/` folder:
@@ -169,7 +189,7 @@ The `handover/QUEUE.md` file serves as a central inbox to prevent missed or stal
 ```markdown
 | Created | From | To | File | Status |
 |---------|------|-----|------|--------|
-| 2025-12-06 17:00 | Architect | Implementer | HANDOVER_IMPLEMENTER.md | PENDING |
+| 2025-12-06 17:00 | Architect | Implementer | HANDOVER_ARCHITECT_IMPLEMENTER.md | PENDING |
 ```
 
 **Status values:** PENDING → ACKNOWLEDGED → COMPLETED
@@ -219,7 +239,7 @@ This prevents accidental role violations and keeps the separation of concerns ex
 
 ### Session Closing Signature
 
-**At the end of every conversation**, provide a clear closing signature to indicate which role was active and when:
+**Whenever you need user input** — end of session, questions, design decisions, or waiting for next steps — provide a clear closing signature to indicate which role was active and when:
 
 ```
 **═══════════════════════════════════════**

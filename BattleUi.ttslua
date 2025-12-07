@@ -189,6 +189,7 @@ function BattleUi.CalcWeapons(player, survivor)
     local hiddenWeapons = BattleUi.hiddenWeaponsBySurvivor[survivor] or {}
     local weaponsAndModifiers = {}
     local weaponCounts = {}
+    local pairingCounts = {}  -- counts by pairingGroup for cross-name pairing
     for _, weaponAndModifiers in pairs(player:WeaponsAndModifiers()) do
         local weapon = weaponAndModifiers.weapon
         if not hiddenWeapons[weapon.canonicalName] then
@@ -196,6 +197,10 @@ function BattleUi.CalcWeapons(player, survivor)
             weaponCounts[weapon.canonicalName] = count + 1
             if count == 0 then
                 table.insert(weaponsAndModifiers, weaponAndModifiers)
+            end
+            -- Track pairingGroup separately for cross-name pairs (e.g., Aya's Spear + Aya's Sword)
+            if weapon.stats.pairingGroup then
+                pairingCounts[weapon.stats.pairingGroup] = (pairingCounts[weapon.stats.pairingGroup] or 0) + 1
             end
         end
     end
@@ -227,8 +232,15 @@ function BattleUi.CalcWeapons(player, survivor)
             crit = 'X'
         end
 
-        if weapon.stats.paired and weaponCounts[weapon.canonicalName] > 1 then
-            speed = speed + weapon.stats.speed
+        if weapon.stats.paired then
+            -- Check both same-name pairing and cross-name pairingGroup
+            local isPaired = weaponCounts[weapon.canonicalName] > 1
+            if not isPaired and weapon.stats.pairingGroup then
+                isPaired = (pairingCounts[weapon.stats.pairingGroup] or 0) > 1
+            end
+            if isPaired then
+                speed = speed + weapon.stats.speed
+            end
         end
         if weapon.stats.slow and (weaponAndModifiers.modifiers["frenzy"] or 0) == 0 then
             speed = 1
@@ -409,4 +421,8 @@ return {
     Init = BattleUi.Init,
     PostInit = BattleUi.PostInit,
     Save = BattleUi.Save,
+    -- Test interface
+    Test = {
+        CalcWeapons = BattleUi.CalcWeapons,
+    },
 }

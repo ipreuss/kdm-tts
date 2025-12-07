@@ -10,6 +10,7 @@
 --   MilestoneTests.ttslua   - Milestone execution (AddCard + SpawnForSurvivor)
 --   ConsequenceTests.ttslua - ConsequenceApplicator operations
 --   PatternTests.ttslua     - Pattern deck spawning, Seed Patterns shuffle
+--   BattleTests.ttslua      - Weapon pairing (Aya's weapons, Bone Hatchet)
 
 local Console = require("Kdm/Console")
 local log = require("Kdm/Log").ForModule("TTSTests")
@@ -22,6 +23,7 @@ local TrashTests = require("Kdm/TTSTests/TrashTests")
 local MilestoneTests = require("Kdm/TTSTests/MilestoneTests")
 local ConsequenceTests = require("Kdm/TTSTests/ConsequenceTests")
 local PatternTests = require("Kdm/TTSTests/PatternTests")
+local BattleTests = require("Kdm/TTSTests/BattleTests")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -45,6 +47,9 @@ function TTSTests.Init()
         log:Printf("  >testpatterns - Test spawning Pattern deck from archive")
         log:Printf("  >testpatterngear - Test spawning Pattern Gear deck from archive")
         log:Printf("  >testshuffle - Test whether Seed Patterns deck gets shuffled")
+        log:Printf("  >testayaspairing - Test Aya's Spear + Sword cross-name pairing")
+        log:Printf("  >testayasseparate - Test Aya's weapons display as 2 separate lines")
+        log:Printf("  >testbonehatchet - Test Bone Hatchet same-name pairing (1 merged line)")
     end, "Show available TTS test commands")
 
     Console.AddCommand("testall", function(args)
@@ -59,6 +64,7 @@ function TTSTests.Init()
     MilestoneTests.Register()
     ConsequenceTests.Register()
     PatternTests.Register()
+    BattleTests.Register()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -77,6 +83,9 @@ function TTSTests.RunAllTests()
         { name = "ConsequenceApplicator Operations", fn = function(onComplete) ConsequenceTests.TestConsequenceApplicator(onComplete) end },
         { name = "Pattern Deck Spawn", fn = function(onComplete) PatternTests.TestPatternDeckSpawn(onComplete) end },
         { name = "Pattern Gear Deck Spawn", fn = function(onComplete) PatternTests.TestPatternGearDeckSpawn(onComplete) end },
+        { name = "Aya's Weapon Pairing (cross-name)", fn = function(onComplete) BattleTests.TestAyasWeaponPairing(onComplete) end },
+        { name = "Aya's Weapons Separate Lines", fn = function(onComplete) BattleTests.TestAyasWeaponsSeparateLines(onComplete) end },
+        { name = "Bone Hatchet Pairing (same-name)", fn = function(onComplete) BattleTests.TestBoneHatchetPairing(onComplete) end },
     }
 
     local currentTest = 1

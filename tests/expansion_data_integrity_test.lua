@@ -221,6 +221,45 @@ Test.test("Archive entries have no duplicates within expansion", function(t)
     end
 end)
 
+Test.test("Weapons with pairingGroup must have paired=true", function(t)
+    local errors = {}
+    for _, expansion in ipairs(getAllExpansions()) do
+        for name, stats in pairs(expansion.weaponStats or {}) do
+            if stats.pairingGroup and not stats.paired then
+                table.insert(errors, string.format(
+                    "Weapon '%s' in '%s' has pairingGroup but not paired=true",
+                    name, expansion.name))
+            end
+        end
+    end
+    t:assertEqual(#errors, 0, table.concat(errors, "; "))
+end)
+
+Test.test("PairingGroup weapons have at least 2 members", function(t)
+    -- Collect all pairingGroups and count members
+    local pairingGroups = {}
+    for _, expansion in ipairs(getAllExpansions()) do
+        for name, stats in pairs(expansion.weaponStats or {}) do
+            if stats.pairingGroup then
+                if not pairingGroups[stats.pairingGroup] then
+                    pairingGroups[stats.pairingGroup] = {}
+                end
+                table.insert(pairingGroups[stats.pairingGroup], name)
+            end
+        end
+    end
+
+    local errors = {}
+    for group, members in pairs(pairingGroups) do
+        if #members < 2 then
+            table.insert(errors, string.format(
+                "PairingGroup '%s' has only %d member(s): %s",
+                group, #members, table.concat(members, ", ")))
+        end
+    end
+    t:assertEqual(#errors, 0, table.concat(errors, "; "))
+end)
+
 -- Summary test that reports statistics
 Test.test("Expansion data summary", function(t)
     local totalArmor = 0

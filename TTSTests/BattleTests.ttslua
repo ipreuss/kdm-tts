@@ -1,0 +1,428 @@
+-- TTS Battle UI Tests
+-- Tests for weapon pairing behavior in BattleUi
+
+local Archive = require("Kdm/Archive")
+local Console = require("Kdm/Console")
+local Location = require("Kdm/Location")
+local log = require("Kdm/Log").ForModule("TTSTests")
+local Player = require("Kdm/Player")
+local Survivor = require("Kdm/Survivor")
+
+---------------------------------------------------------------------------------------------------
+
+local BattleTests = {}
+
+-- Track test-created survivor sheet for cleanup
+BattleTests.testSurvivorSheet = nil
+BattleTests.testSurvivor = nil
+
+---------------------------------------------------------------------------------------------------
+
+function BattleTests.Register()
+    Console.AddCommand("testayaspairing", function(args)
+        BattleTests.TestAyasWeaponPairing()
+    end, "Test Aya's Spear + Sword cross-name pairing bonus")
+
+    Console.AddCommand("testayasseparate", function(args)
+        BattleTests.TestAyasWeaponsSeparateLines()
+    end, "Test Aya's weapons display as separate lines")
+
+    Console.AddCommand("testbonehatchet", function(args)
+        BattleTests.TestBoneHatchetPairing()
+    end, "Test Bone Hatchet same-name pairing (merge into 1 line)")
+end
+
+---------------------------------------------------------------------------------------------------
+-- Helper: Clean gear from player board
+---------------------------------------------------------------------------------------------------
+
+local function cleanPlayerGear(playerOrdinal)
+    local playerPrefix = "Player " .. playerOrdinal
+    for i = 1, 9 do
+        local location = Location.Get(playerPrefix .. " Gear " .. i)
+        for _, obj in ipairs(location:AllObjects()) do
+            if obj.tag == "Card" or obj.tag == "Deck" then
+                obj.destruct()
+            end
+        end
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+-- Helper: Spawn gear card to player gear slot
+---------------------------------------------------------------------------------------------------
+
+local function spawnGearToSlot(gearName, playerOrdinal, slotNumber, callback)
+    local playerPrefix = "Player " .. playerOrdinal
+    local location = Location.Get(playerPrefix .. " Gear " .. slotNumber)
+
+    Archive.Take({
+        name = gearName,
+        type = "Gear",
+        archive = "All Gear Archive",  -- Explicitly use All Gear Archive for promo cards
+        location = location,
+        rotation = { x = 0, y = 180, z = 0 },
+        spawnFunc = callback,
+    })
+end
+
+---------------------------------------------------------------------------------------------------
+-- Helper: Ensure player has a survivor sheet, creating one if needed
+---------------------------------------------------------------------------------------------------
+
+local function ensureSurvivorSheet(player, callback)
+    if player:SurvivorSheet() then
+        log:Printf("TEST: Player already has survivor sheet linked")
+        callback(player, false) -- false = didn't create new one
+        return
+    end
+
+    log:Printf("TEST: No survivor sheet linked, creating test survivor...")
+
+    -- Create a test survivor (use lowercase "male" to match Names.Gender.male)
+    local survivor = Survivor.CreateSurvivor("male")
+    survivor:SetName("Test Survivor")
+    BattleTests.testSurvivor = survivor
+
+    -- Spawn survivor sheet from archive
+    local playerPrefix = "Player " .. player:Ordinal()
+    Archive.Take({
+        name = "Survivor Sheet",
+        type = "Survivor Sheet",
+        location = playerPrefix .. " Survivor Sheet",
+        height = 0,
+        rotation = { x = 0, y = 180, z = 0 },
+        spawnFunc = function(survivorSheetObject)
+            -- Wait a frame for TTS to register the object properly
+            Wait.frames(function()
+                log:Printf("TEST: Survivor sheet spawned, linking to player...")
+                survivorSheetObject.setLock(true)
+
+                -- Create survivor sheet and link to player
+                local survivorSheet = Survivor.CreateSurvivorSheet(survivor, survivorSheetObject)
+                BattleTests.testSurvivorSheet = survivorSheet
+
+                -- Link to player (instance method)
+                player:LinkSurvivorSheet(survivorSheet)
+
+                log:Printf("TEST: Test survivor '%s' linked to Player %d", survivor:NameOrUnnamed(), player:Ordinal())
+                callback(player, true) -- true = created new one
+            end, 1)
+        end,
+    })
+end
+
+---------------------------------------------------------------------------------------------------
+-- Helper: Clean up test survivor if we created one
+---------------------------------------------------------------------------------------------------
+
+local function cleanupTestSurvivor(player, createdNew)
+    if not createdNew then
+        return
+    end
+
+    log:Printf("TEST: Cleaning up test survivor...")
+
+    -- Unlink survivor sheet from player
+    if player:SurvivorSheet() then
+        player:UnlinkSurvivorSheet()
+    end
+
+    -- Destroy survivor sheet object
+    if BattleTests.testSurvivorSheet then
+        local obj = BattleTests.testSurvivorSheet:Object()
+        if obj then
+            obj.destruct()
+        end
+        BattleTests.testSurvivorSheet = nil
+    end
+
+    BattleTests.testSurvivor = nil
+end
+
+---------------------------------------------------------------------------------------------------
+-- Helper: Get BattleUi weapon results for a player
+---------------------------------------------------------------------------------------------------
+
+local function getWeaponResults(player)
+    local survivorSheet = player:SurvivorSheet()
+    if not survivorSheet then
+        return nil, "No survivor sheet linked to player"
+    end
+
+    local survivor = survivorSheet:Survivor()
+
+    -- Force gear update to detect spawned cards
+    player:UpdateGear()
+
+    -- Use BattleUi test interface to calculate weapons
+    local BattleUi = require("Kdm/BattleUi")
+    return BattleUi.Test.CalcWeapons(player, survivor)
+end
+
+---------------------------------------------------------------------------------------------------
+-- Test 1: Aya's Spear + Sword cross-name pairing
+---------------------------------------------------------------------------------------------------
+
+function BattleTests.TestAyasWeaponPairing(onComplete)
+    log:Printf("=== TEST: TestAyasWeaponPairing ===")
+    log:Printf("TEST: Verifying cross-name pairing via pairingGroup")
+
+    local playerOrdinal = 1
+    local players = Player.Players()
+    local player = players[playerOrdinal]
+
+    if not player then
+        log:Errorf("TEST FAILED: Player 1 not found")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    -- Ensure player has a survivor sheet
+    ensureSurvivorSheet(player, function(player, createdNew)
+        -- Clean existing gear
+        cleanPlayerGear(playerOrdinal)
+
+        -- Spawn Aya's Spear to slot 1
+        log:Printf("TEST: Spawning Aya's Spear to slot 1...")
+        spawnGearToSlot("Aya's Spear", playerOrdinal, 1, function(spear)
+            log:Printf("TEST: Aya's Spear spawned")
+
+            -- Spawn Aya's Sword to slot 2
+            log:Printf("TEST: Spawning Aya's Sword to slot 2...")
+            spawnGearToSlot("Aya's Sword", playerOrdinal, 2, function(sword)
+                log:Printf("TEST: Aya's Sword spawned")
+
+                -- Wait for physics to settle
+                Wait.frames(function()
+                    local results, err = getWeaponResults(player)
+
+                    if err then
+                        log:Errorf("TEST FAILED: %s", err)
+                        cleanPlayerGear(playerOrdinal)
+                        cleanupTestSurvivor(player, createdNew)
+                        Archive.Clean()
+                        if onComplete then onComplete(false) end
+                        return
+                    end
+
+                    -- Aya's weapons: base speed 2, paired should double to 4
+                    local passed = true
+                    local foundSpear = false
+                    local foundSword = false
+
+                    for _, weapon in ipairs(results) do
+                        log:Printf("TEST: Found weapon '%s' with speed %d", weapon.name, weapon.speed)
+                        if weapon.name == "Aya's Spear" then
+                            foundSpear = true
+                            if weapon.speed ~= 4 then
+                                log:Errorf("TEST: Aya's Spear speed should be 4 (paired), got %d", weapon.speed)
+                                passed = false
+                            else
+                                log:Printf("TEST: Aya's Spear has correct paired speed (4)")
+                            end
+                        elseif weapon.name == "Aya's Sword" then
+                            foundSword = true
+                            if weapon.speed ~= 4 then
+                                log:Errorf("TEST: Aya's Sword speed should be 4 (paired), got %d", weapon.speed)
+                                passed = false
+                            else
+                                log:Printf("TEST: Aya's Sword has correct paired speed (4)")
+                            end
+                        end
+                    end
+
+                    if not foundSpear then
+                        log:Errorf("TEST: Aya's Spear not found in results")
+                        passed = false
+                    end
+                    if not foundSword then
+                        log:Errorf("TEST: Aya's Sword not found in results")
+                        passed = false
+                    end
+
+                    -- Cleanup
+                    cleanPlayerGear(playerOrdinal)
+                    cleanupTestSurvivor(player, createdNew)
+                    Archive.Clean()
+
+                    log:Printf("=== TEST: TestAyasWeaponPairing COMPLETE ===")
+                    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+                    if onComplete then onComplete(passed) end
+                end, 30)
+            end)
+        end)
+    end)
+end
+
+---------------------------------------------------------------------------------------------------
+-- Test 2: Aya's weapons display as separate lines (2 entries)
+---------------------------------------------------------------------------------------------------
+
+function BattleTests.TestAyasWeaponsSeparateLines(onComplete)
+    log:Printf("=== TEST: TestAyasWeaponsSeparateLines ===")
+    log:Printf("TEST: Verifying cross-name pairs display as separate lines")
+
+    local playerOrdinal = 1
+    local players = Player.Players()
+    local player = players[playerOrdinal]
+
+    if not player then
+        log:Errorf("TEST FAILED: Player 1 not found")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    -- Ensure player has a survivor sheet
+    ensureSurvivorSheet(player, function(player, createdNew)
+        -- Clean existing gear
+        cleanPlayerGear(playerOrdinal)
+
+        -- Spawn Aya's Spear to slot 1
+        log:Printf("TEST: Spawning Aya's Spear to slot 1...")
+        spawnGearToSlot("Aya's Spear", playerOrdinal, 1, function(spear)
+            log:Printf("TEST: Aya's Spear spawned")
+
+            -- Spawn Aya's Sword to slot 2
+            log:Printf("TEST: Spawning Aya's Sword to slot 2...")
+            spawnGearToSlot("Aya's Sword", playerOrdinal, 2, function(sword)
+                log:Printf("TEST: Aya's Sword spawned")
+
+                -- Wait for physics to settle
+                Wait.frames(function()
+                    local results, err = getWeaponResults(player)
+
+                    if err then
+                        log:Errorf("TEST FAILED: %s", err)
+                        cleanPlayerGear(playerOrdinal)
+                        cleanupTestSurvivor(player, createdNew)
+                        Archive.Clean()
+                        if onComplete then onComplete(false) end
+                        return
+                    end
+
+                    -- Count Aya's weapons (Fist & Tooth is always present, so ignore it)
+                    local ayasWeaponCount = 0
+                    for _, weapon in ipairs(results) do
+                        if weapon.name == "Aya's Spear" or weapon.name == "Aya's Sword" then
+                            ayasWeaponCount = ayasWeaponCount + 1
+                            log:Printf("TEST: Found Aya's weapon '%s'", weapon.name)
+                        end
+                    end
+                    log:Printf("TEST: Found %d Aya's weapon entries", ayasWeaponCount)
+
+                    -- Should have 2 separate entries for cross-name pair (not merged like same-name pairs)
+                    local passed = (ayasWeaponCount == 2)
+                    if not passed then
+                        log:Errorf("TEST: Expected 2 Aya's weapon entries, got %d", ayasWeaponCount)
+                    else
+                        log:Printf("TEST: Correct - 2 separate entries for cross-name pair")
+                    end
+
+                    -- Cleanup
+                    cleanPlayerGear(playerOrdinal)
+                    cleanupTestSurvivor(player, createdNew)
+                    Archive.Clean()
+
+                    log:Printf("=== TEST: TestAyasWeaponsSeparateLines COMPLETE ===")
+                    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+                    if onComplete then onComplete(passed) end
+                end, 30)
+            end)
+        end)
+    end)
+end
+
+---------------------------------------------------------------------------------------------------
+-- Test 3: Bone Hatchet same-name pairing (merge into 1 line)
+---------------------------------------------------------------------------------------------------
+
+function BattleTests.TestBoneHatchetPairing(onComplete)
+    log:Printf("=== TEST: TestBoneHatchetPairing ===")
+    log:Printf("TEST: Verifying same-name pairing merges into 1 entry")
+
+    local playerOrdinal = 1
+    local players = Player.Players()
+    local player = players[playerOrdinal]
+
+    if not player then
+        log:Errorf("TEST FAILED: Player 1 not found")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    -- Ensure player has a survivor sheet
+    ensureSurvivorSheet(player, function(player, createdNew)
+        -- Clean existing gear
+        cleanPlayerGear(playerOrdinal)
+
+        -- Spawn two Bone Hatchets (left and right variants in archive)
+        log:Printf("TEST: Spawning Bone Hatchet [left] to slot 1...")
+        spawnGearToSlot("Bone Hatchet [left]", playerOrdinal, 1, function(hatchet1)
+            log:Printf("TEST: First Bone Hatchet spawned")
+
+            log:Printf("TEST: Spawning Bone Hatchet [right] to slot 2...")
+            spawnGearToSlot("Bone Hatchet [right]", playerOrdinal, 2, function(hatchet2)
+                log:Printf("TEST: Second Bone Hatchet spawned")
+
+                -- Wait for physics to settle
+                Wait.frames(function()
+                    local results, err = getWeaponResults(player)
+
+                    if err then
+                        log:Errorf("TEST FAILED: %s", err)
+                        cleanPlayerGear(playerOrdinal)
+                        cleanupTestSurvivor(player, createdNew)
+                        Archive.Clean()
+                        if onComplete then onComplete(false) end
+                        return
+                    end
+
+                    -- Find Bone Hatchet in results (Fist & Tooth is also present)
+                    local hatchetEntry = nil
+                    local hatchetCount = 0
+                    for _, weapon in ipairs(results) do
+                        log:Printf("TEST: Found weapon '%s' with speed %d", weapon.name, weapon.speed)
+                        if weapon.name == "Bone Hatchet" then
+                            hatchetEntry = weapon
+                            hatchetCount = hatchetCount + 1
+                        end
+                    end
+
+                    local passed = true
+
+                    -- Should have exactly 1 merged entry for Bone Hatchet
+                    if hatchetCount ~= 1 then
+                        log:Errorf("TEST: Expected 1 merged Bone Hatchet entry, got %d", hatchetCount)
+                        passed = false
+                    else
+                        log:Printf("TEST: Correct - 1 merged entry for same-name pair")
+                    end
+
+                    -- Check speed is doubled (base 1 -> paired 2)
+                    if hatchetEntry then
+                        if hatchetEntry.speed ~= 2 then
+                            log:Errorf("TEST: Bone Hatchet speed should be 2 (paired), got %d", hatchetEntry.speed)
+                            passed = false
+                        else
+                            log:Printf("TEST: Bone Hatchet has correct paired speed (2)")
+                        end
+                    end
+
+                    -- Cleanup
+                    cleanPlayerGear(playerOrdinal)
+                    cleanupTestSurvivor(player, createdNew)
+                    Archive.Clean()
+
+                    log:Printf("=== TEST: TestBoneHatchetPairing COMPLETE ===")
+                    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+                    if onComplete then onComplete(passed) end
+                end, 30)
+            end)
+        end)
+    end)
+end
+
+---------------------------------------------------------------------------------------------------
+
+return BattleTests

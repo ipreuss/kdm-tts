@@ -8,7 +8,7 @@
 - Validate that acceptance criteria are testable
 
 ## What NOT to Do
-- **Don't edit implementation code or unit tests**
+- **Don't change production logic** — no behavioral changes to implementation code
 - Don't perform git operations
 - Don't test implementation details or impossible user actions
 - Tests must be written from user's perspective
@@ -18,7 +18,8 @@
 - Files in `tests/acceptance/` directory
 - TestWorld and TTSEnvironment infrastructure
 - Acceptance testing documentation
-- TTS console tests in `TTSTests.ttslua`
+- TTS console tests in `TTSTests/` directory
+- **Test interfaces in production code** — Adding exports/seams for testing (e.g., `Module.Test.Foo = Foo`) is allowed, as long as production logic is unchanged
 
 ## Handover Documents
 - **Input:** `handover/HANDOVER_TESTER.md` (from Product Owner)
