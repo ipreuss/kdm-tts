@@ -148,6 +148,49 @@ Product Owner          Architect              Implementer           Reviewer    
 **Architect handover must specify TTS testing needs:**
 When the design involves new TTS API interactions (archive operations, deck manipulation, object spawning, UI rendering), the Architect's handover must explicitly request TTS console tests in addition to headless tests. Headless tests verify business logic but cannot catch subtle TTS API issues (timing, callbacks, object state). The implementer is responsible for adding the specified TTS tests.
 
+### Process Change Broadcasts
+
+When any role updates PROCESS.md, they must broadcast the change to all other roles:
+
+1. Create a new handover file (never modify existing handovers)
+2. Add PENDING entries to QUEUE.md for all roles
+3. Content should include:
+   - What changed
+   - Why it changed
+   - Any immediate actions required
+
+Roles receiving a process handover should:
+1. Read and acknowledge the change
+2. Mark the handover as COMPLETED
+3. Apply the new process immediately
+
+This ensures all roles stay synchronized on process changes, even mid-session.
+
+### Handover File Management
+
+**Never modify an existing handover file.** Always create a new one. Use naming convention:
+
+```
+HANDOVER_<FROM>_<TO>_<SEQUENCE>.md
+```
+
+Examples:
+- `HANDOVER_ARCHITECT_IMPLEMENTER_001.md`
+- `HANDOVER_ARCHITECT_IMPLEMENTER_002.md`
+- `HANDOVER_PROCESS_001.md` (for broadcasts to all roles)
+
+**Cleanup:** When a new backlog item is started, clean up the handover folder by removing old completed handovers. This keeps the folder manageable and prevents confusion.
+
+### Screenshot Processing
+
+When reading screenshots, convert to JPEG before processing to avoid hitting size limits:
+
+```bash
+sips -s format jpeg screenshot.png --out screenshot.jpg
+```
+
+This reduces file size significantly and prevents context overflow when analyzing images.
+
 ### Debugging Procedure
 
 All coding roles (Implementer, Debugger, Tester) must follow this procedure when encountering a bug or unexpected behavior:
@@ -231,11 +274,26 @@ This ensures proper validation before marking work as done.
 
 ### Role Boundaries
 
-When the user requests an action outside the current role's responsibilities, **ask for confirmation before proceeding**. For example:
-- If acting as Reviewer and asked to debug: "That sounds like Debugger work. Should I switch to the Debugger role?"
-- If acting as Debugger and asked to fix code: "Fixing code is Implementer work. Should I switch roles, or would you like me to document the fix in the handover for the Implementer?"
+**CRITICAL: Never switch roles within a session.**
 
-This prevents accidental role violations and keeps the separation of concerns explicit.
+Each session operates as exactly one role from start to finish. If you encounter work that belongs to a different role:
+
+1. **Stop** — Do not perform the work
+2. **Point it out** — Explain which role should handle it
+3. **Create a handover** — Document the task for the appropriate role
+4. **Leave it** — Do not attempt to "help" by doing the other role's work
+
+**Examples:**
+- If acting as Architect and implementation is needed: "This requires code changes, which is Implementer work. I'll create a handover for the Implementer."
+- If acting as Implementer and a bug is found: "This is a bug that needs investigation. I'll document it for the Debugger role."
+- If a handover addressed to another role is found: "This handover is for the Implementer, not the Architect. It should be processed in a separate Implementer session."
+
+**Never:**
+- Process handovers addressed to other roles
+- "Quickly" do another role's work to save time
+- Switch roles mid-session, even if asked
+
+This strict separation ensures proper oversight, prevents mistakes, and maintains clear accountability.
 
 ### Session Closing Signature
 
