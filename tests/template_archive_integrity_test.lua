@@ -221,10 +221,8 @@ Test.test("All gearStats items exist in template", function(t)
     end
 end)
 
--- TODO: Re-enable these tests once missing items are resolved
--- Currently skipped because there are known data inconsistencies that need manual review:
--- - Armor: Vagabond Armor, White Sunlion Mask, Flower Knight Costume
--- - Weapons: Aya's (incomplete), paired weapons (Bone Hatchet, Tempered Axe), Thunder Maul (Core, not in template)
+-- Note: Paired weapons (Bone Hatchet, Tempered Axe, Aya's) are validated
+-- via hasBracketVariant() which checks for [variant] suffixes in template.
 
 Test.test("All armorStats items exist in template", function(t)
     local nicknames = loadTemplateNicknames()
@@ -262,9 +260,8 @@ Test.test("All weaponStats items exist in template", function(t)
     local expansions = getAllExpansions()
     local missing = {}
     
-    -- Aya's is incomplete name (should be "Aya's Spear" or "Aya's Sword") - separate issue
+    -- All paired weapons now handled via hasBracketVariant()
     local knownMissing = {
-        ["Aya's"] = true,
     }
 
     for _, expansion in ipairs(expansions) do
