@@ -512,6 +512,15 @@ end
 
 **Why this matters:** Client code accessing unexported fields/functions only fails at TTS runtime (5-10 minute debug cycles). Headless integration tests catch these in seconds. This is the Implementer's responsibility, not the Tester's.
 
+### Data Integration Tests
+- [ ] **Does feature integrate with expansion data?** If yes, verify:
+- [ ] At least one test uses real expansion data via `require("Kdm/Expansion/...")`
+- [ ] Tests would fail if expansion data had typos (e.g., "Elder Cat Tooth" vs "Elder Cat Teeth")
+- [ ] Mock data is only used where appropriate (TTS objects, timing, etc.)
+- [ ] **Mutation test:** Would a typo in Core.ttslua cause this test to fail?
+
+**Why this matters:** Mock-data tests give false confidence. They pass when data is correct but integration is broken. Real-data tests catch: typos in expansion files, missing data fields, incorrect data wiring.
+
 ### Consistency
 - [ ] Are new constants used everywhere (no remaining literals)?
 - [ ] Are patterns applied consistently across the codebase?
@@ -714,6 +723,13 @@ These guidelines should be applied at multiple stages:
 This document should evolve based on lessons learned from future code reviews. When you discover a pattern or issue not covered here, add it to maintain a living reference of best practices.
 
 ### Recent Updates
+
+**2025-12-09: Added Data Integration Tests Checklist**
+- Added checklist for features integrating with expansion data
+- Tests must use real expansion data, not mocks, for data integration features
+- Added "mutation test" question: Would a typo in Core.ttslua fail this test?
+- Distinguishes when mock data is appropriate vs not appropriate
+- Addresses root cause from kdm-w1k.2 retrospective (mock-data tests passed but didn't verify real integration)
 
 **2025-12-07: Added Cross-Module Integration Test Review**
 - Added checklist for verifying cross-module integration tests exist

@@ -167,6 +167,45 @@ When handing off UI features to Product Owner, include evidence that the UI rend
 
 ---
 
+## Real Data vs Mock Data
+
+**Mock data is appropriate for:**
+- TTS objects and APIs (no real game engine in tests)
+- External dependencies (network, file I/O)
+- Timing and async behavior
+- Unit tests testing isolated logic
+
+**Mock data is NOT appropriate for:**
+- Business data the feature must correctly process
+- Expansion data integration (card names, deck contents, resource types)
+- Cross-module data wiring
+- Acceptance tests that claim to verify "feature X works"
+
+**Mutation test:** For data integration features, ask: "If I introduce a typo in the expansion data (e.g., 'Elder Cat Tooth' instead of 'Elder Cat Teeth'), would this test fail?" If no, the test isn't verifying what it claims.
+
+### E2E Testing Requirement for Data Integration
+
+**Features that integrate with expansion data require at least one test using real expansion files.**
+
+```lua
+-- ❌ BAD: Mock data - won't catch typos in Core.ttslua
+modules.Showdown.level = { resources = { strange = "Elder Cat Teeth" } }
+local result = ResourceRewards.GetStrangeResource()
+t:assertEqual(result, "Elder Cat Teeth")  -- Passes even if Core.ttslua is wrong
+
+-- ✅ GOOD: Real data - will fail if Core.ttslua has typos
+require("Kdm/Expansion/Core")  -- Load real expansion data
+Showdown.Setup("White Lion", "Level 3")  -- Uses real data
+local result = ResourceRewards.GetStrangeResource()
+t:assertEqual(result, "Elder Cat Teeth")  -- Fails if Core.ttslua is wrong
+```
+
+**Tester checklist for data integration features:**
+- [ ] At least one headless test loads real expansion data via `require("Kdm/Expansion/...")`
+- [ ] Tests would fail if expansion data had typos
+
+---
+
 ## TTSSpawner Test Seam Pattern
 
 **Problem:** Missing module exports cause runtime nil errors that are expensive to debug (require TTS launch, 5-10 minute debug cycles).
