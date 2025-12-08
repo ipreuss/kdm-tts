@@ -1,0 +1,311 @@
+-- TTS Resource Rewards Integration Tests
+-- Tests that exercise REAL code paths, not just data validation
+--
+-- Bead: kdm-w1k
+--
+-- IMPORTANT: These tests call actual entry points (Showdown.Setup) and verify
+-- user-visible outcomes (button visibility, resource spawning). This catches
+-- integration bugs that data-only tests miss.
+
+local Console = require("Kdm/Console")
+local Container = require("Kdm/Util/Container")
+local EventManager = require("Kdm/Util/EventManager")
+local Location = require("Kdm/Location")
+local log = require("Kdm/Log").ForModule("TTSTests")
+local ResourceRewards = require("Kdm/ResourceRewards")
+local Showdown = require("Kdm/Showdown")
+
+---------------------------------------------------------------------------------------------------
+
+local ResourceRewardsTests = {}
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.Register()
+    Console.AddCommand("testrewardsbutton", function(args)
+        ResourceRewardsTests.TestButtonAppearsOnShowdown()
+    end, "Test rewards button appears when showdown starts with White Lion")
+
+    Console.AddCommand("testrewardshidden", function(args)
+        ResourceRewardsTests.TestButtonHiddenNoResources()
+    end, "Test rewards button hidden when monster has no resources")
+
+    Console.AddCommand("testrewardsspawn", function(args)
+        ResourceRewardsTests.TestResourcesDataIntegrity()
+    end, "Test resource data integrity for White Lion levels")
+
+    Console.AddCommand("testrewardsexisting", function(args)
+        ResourceRewardsTests.TestDrawsFromExistingDecks()
+    end, "Test that rewards draw from existing decks (not archive)")
+end
+
+---------------------------------------------------------------------------------------------------
+-- INTEGRATION TEST: Calls Showdown.Setup() and verifies button visibility
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestButtonAppearsOnShowdown(onComplete)
+    log:Printf("=== TEST: TestButtonAppearsOnShowdown (Integration) ===")
+    log:Printf("TEST: Starting White Lion Level 1 showdown via Showdown.Setup()...")
+
+    -- REAL ENTRY POINT: This triggers the full showdown setup flow
+    -- including EventManager.ON_SHOWDOWN_STARTED which ResourceRewards listens to
+    Showdown.Setup("White Lion", "Level 1")
+
+    -- Wait for async operations to complete
+    -- Showdown.Setup triggers many async operations; 120 frames is typically enough
+    Wait.frames(function()
+        log:Printf("TEST: Checking button visibility after showdown setup...")
+
+        -- VERIFY USER-VISIBLE OUTCOME: Is the button actually visible?
+        local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+
+        if buttonVisible then
+            log:Printf("TEST: Rewards button IS visible")
+            log:Printf("=== TEST: TestButtonAppearsOnShowdown COMPLETE ===")
+            log:Printf("TEST RESULT: PASSED")
+            if onComplete then onComplete(true) end
+        else
+            log:Errorf("TEST: Rewards button is NOT visible!")
+            log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
+            log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
+            log:Printf("=== TEST: TestButtonAppearsOnShowdown COMPLETE ===")
+            log:Printf("TEST RESULT: FAILED")
+            if onComplete then onComplete(false) end
+        end
+    end, 120)
+end
+
+---------------------------------------------------------------------------------------------------
+-- INTEGRATION TEST: Verifies button hidden for monster without resource rewards
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestButtonHiddenNoResources(onComplete)
+    log:Printf("=== TEST: TestButtonHiddenNoResources (Integration) ===")
+    log:Printf("TEST: Starting White Lion Prologue showdown (no resources)...")
+
+    -- Prologue has no resource rewards defined
+    Showdown.Setup("White Lion", "Prologue")
+
+    Wait.frames(function()
+        log:Printf("TEST: Checking button visibility after Prologue setup...")
+
+        local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+
+        if not buttonVisible then
+            log:Printf("TEST: Rewards button correctly hidden for Prologue")
+            log:Printf("=== TEST: TestButtonHiddenNoResources COMPLETE ===")
+            log:Printf("TEST RESULT: PASSED")
+            if onComplete then onComplete(true) end
+        else
+            log:Errorf("TEST: Rewards button should be hidden for Prologue!")
+            log:Printf("=== TEST: TestButtonHiddenNoResources COMPLETE ===")
+            log:Printf("TEST RESULT: FAILED")
+            if onComplete then onComplete(false) end
+        end
+    end, 120)
+end
+
+---------------------------------------------------------------------------------------------------
+-- DATA VALIDATION: Verifies resource data structure (supplements integration tests)
+---------------------------------------------------------------------------------------------------
+
+local function findLevelByName(monster, levelName)
+    for _, level in ipairs(monster.levels) do
+        if level.name == levelName then
+            return level
+        end
+    end
+    return nil
+end
+
+function ResourceRewardsTests.TestResourcesDataIntegrity(onComplete)
+    log:Printf("=== TEST: TestResourcesDataIntegrity ===")
+    log:Printf("TEST: Verifying White Lion resource data structure...")
+
+    local monster = Showdown.Test.MonsterByName("White Lion")
+    if not monster then
+        log:Errorf("TEST FAILED: Could not find White Lion monster")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    local passed = true
+    local expectedResources = {
+        { levelName = "Level 1", basic = 4, monster = 4 },
+        { levelName = "Level 2", basic = 4, monster = 6 },
+        { levelName = "Level 3", basic = 4, monster = 8 },
+    }
+
+    for _, expected in ipairs(expectedResources) do
+        local level = findLevelByName(monster, expected.levelName)
+        if not level then
+            log:Errorf("TEST: White Lion %s not found", expected.levelName)
+            passed = false
+        else
+            local rewards = level.showdown and level.showdown.resources
+            if not rewards then
+                log:Errorf("TEST: %s has no resources data", expected.levelName)
+                passed = false
+            else
+                local levelPassed = true
+                if rewards.basic ~= expected.basic then
+                    log:Errorf("TEST: %s expected %d basic, got %d",
+                        expected.levelName, expected.basic, rewards.basic or 0)
+                    levelPassed = false
+                end
+                if rewards.monster ~= expected.monster then
+                    log:Errorf("TEST: %s expected %d monster, got %d",
+                        expected.levelName, expected.monster, rewards.monster or 0)
+                    levelPassed = false
+                end
+                if levelPassed then
+                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d)",
+                        expected.levelName, rewards.basic, rewards.monster)
+                else
+                    passed = false
+                end
+            end
+        end
+    end
+
+    -- Also verify Location exists
+    local location = Location.Get("Resource Rewards")
+    if not location then
+        log:Errorf("TEST: Resource Rewards location not found")
+        passed = false
+    else
+        local center = location:Center()
+        log:Printf("TEST: Resource Rewards location at (%.2f, %.2f, %.2f)",
+            center.x, center.y, center.z)
+    end
+
+    log:Printf("=== TEST: TestResourcesDataIntegrity COMPLETE ===")
+    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+    if onComplete then onComplete(passed) end
+end
+
+---------------------------------------------------------------------------------------------------
+-- INTEGRATION TEST: Verifies rewards draw from existing decks, not archive
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestDrawsFromExistingDecks(onComplete)
+    log:Printf("=== TEST: TestDrawsFromExistingDecks ===")
+    log:Printf("TEST: This test verifies that ResourceRewards draws from the existing")
+    log:Printf("TEST: decks on the showdown board, not fresh decks from the archive.")
+    log:Printf("TEST: This ensures events that take resources during showdown reduce rewards.")
+
+    -- Step 1: Start showdown to spawn decks
+    log:Printf("TEST: Step 1 - Starting White Lion Level 1 showdown...")
+    Showdown.Setup("White Lion", "Level 1")
+
+    Wait.frames(function()
+        -- Step 2: Find the Basic Resources deck and count cards
+        log:Printf("TEST: Step 2 - Locating Basic Resources deck...")
+        local basicLocation = Location.Get("Basic Resources")
+        local basicDeckObj = basicLocation:FirstObject({ types = { "Basic Resources" } })
+
+        if not basicDeckObj then
+            log:Errorf("TEST FAILED: No Basic Resources deck found after showdown setup")
+            if onComplete then onComplete(false) end
+            return
+        end
+
+        local initialCount
+        if Container.TAGS[basicDeckObj.tag] then
+            initialCount = #basicDeckObj.getObjects()
+        else
+            initialCount = 1  -- Single card, not a deck
+        end
+        log:Printf("TEST: Basic Resources deck has %d cards", initialCount)
+
+        -- Step 3: Remove one card from the deck (simulating an event)
+        log:Printf("TEST: Step 3 - Removing one card (simulating in-showdown event)...")
+        local container = Container(basicDeckObj)
+        local removedCard = container:Take({
+            position = { x = -20, y = 5, z = 0 }  -- Move it away
+        })
+
+        if not removedCard then
+            log:Errorf("TEST FAILED: Could not take card from Basic Resources deck")
+            if onComplete then onComplete(false) end
+            return
+        end
+        log:Printf("TEST: Removed card: %s", removedCard.getName())
+
+        Wait.frames(function()
+            -- Step 4: Count cards in deck after removal
+            local afterRemovalCount
+            local deckAfterRemoval = basicLocation:FirstObject({ types = { "Basic Resources" } })
+            if deckAfterRemoval then
+                if Container.TAGS[deckAfterRemoval.tag] then
+                    afterRemovalCount = #deckAfterRemoval.getObjects()
+                else
+                    afterRemovalCount = 1
+                end
+            else
+                afterRemovalCount = 0
+            end
+            log:Printf("TEST: Deck now has %d cards (was %d)", afterRemovalCount, initialCount)
+
+            -- Step 5: Count objects at Resource Rewards location BEFORE spawning
+            local rewardsLocation = Location.Get("Resource Rewards")
+            local beforeSpawnObjects = rewardsLocation:AllObjects()
+            local beforeSpawnCount = #beforeSpawnObjects
+            log:Printf("TEST: Resource Rewards location has %d objects before spawn", beforeSpawnCount)
+
+            -- Step 6: Trigger the rewards spawn
+            log:Printf("TEST: Step 4 - Triggering ResourceRewards.SpawnRewards()...")
+            ResourceRewards.Test.SpawnRewards()
+
+            Wait.frames(function()
+                -- Step 7: Count spawned resources
+                local afterSpawnObjects = rewardsLocation:AllObjects()
+                local afterSpawnCount = #afterSpawnObjects
+                local spawnedCount = afterSpawnCount - beforeSpawnCount
+                log:Printf("TEST: Resource Rewards location has %d objects after spawn", afterSpawnCount)
+                log:Printf("TEST: Spawned %d new objects", spawnedCount)
+
+                -- Step 8: Count remaining cards in deck
+                local deckAfterSpawn = basicLocation:FirstObject({ types = { "Basic Resources" } })
+                local finalDeckCount
+                if deckAfterSpawn then
+                    if Container.TAGS[deckAfterSpawn.tag] then
+                        finalDeckCount = #deckAfterSpawn.getObjects()
+                    else
+                        finalDeckCount = 1
+                    end
+                else
+                    finalDeckCount = 0
+                end
+                log:Printf("TEST: Basic Resources deck now has %d cards", finalDeckCount)
+
+                -- Verify: Cards should have been drawn from the EXISTING deck
+                -- If it spawned a fresh deck from archive, the original deck would be unchanged
+                local cardsDrawnFromDeck = afterRemovalCount - finalDeckCount
+                log:Printf("TEST: Cards drawn from existing deck: %d", cardsDrawnFromDeck)
+
+                local passed = true
+                if cardsDrawnFromDeck <= 0 then
+                    log:Errorf("TEST FAILED: No cards were drawn from the existing deck!")
+                    log:Errorf("TEST: This suggests rewards spawned a NEW deck from archive")
+                    passed = false
+                else
+                    log:Printf("TEST PASSED: Rewards correctly drew %d cards from existing deck", cardsDrawnFromDeck)
+                end
+
+                -- Cleanup: Delete the removed card
+                if removedCard then
+                    removedCard.destruct()
+                end
+
+                log:Printf("=== TEST: TestDrawsFromExistingDecks COMPLETE ===")
+                log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+                if onComplete then onComplete(passed) end
+            end, 60)  -- Wait for spawn to complete
+        end, 10)  -- Wait for card removal
+    end, 60)  -- Wait for showdown setup
+end
+
+---------------------------------------------------------------------------------------------------
+
+return ResourceRewardsTests

@@ -113,7 +113,13 @@ local locationData = {
         size = ElementSizes.CARD,
         board = "Showdown Board",
     },
-
+    ["Resource Rewards"] = {
+        -- Left of Settlement Board (board x range is -8.09 to 8.08, y ~0.6)
+        -- x = -10 places it clearly to the left of settlement board
+        -- y = 2 ensures cards spawn above the table surface and fall down
+        center = { x = -10, y = 2, z = 0 },
+        size = { x = 4, y = 1, z = 10 },
+    },
     -----------------------------------------------------------------------------------------------
 
     ["Terrain Board"] = {

@@ -36,6 +36,42 @@ function Console.Init()
             Console.Printf("%s %s", name, command.description)
         end
     end, "Shows all commands")
+
+    Console.AddCommand("showpos", function(args)
+        -- Get all players and collect selected objects
+        local selected = {}
+        for _, player in ipairs(Player.getPlayers()) do
+            for _, obj in ipairs(player.getSelectedObjects()) do
+                selected[obj.getGUID()] = obj  -- Use table to dedupe
+            end
+        end
+
+        -- Convert to array
+        local objects = {}
+        for _, obj in pairs(selected) do
+            table.insert(objects, obj)
+        end
+
+        if #objects == 0 then
+            Console.Printf("No object selected. Select an object first.")
+            Console.Printf("TTS coords: +X=left, +Z=down, Y=height")
+            return
+        end
+
+        Console.Printf("TTS coords: +X=left, +Z=down, Y=height")
+        for _, obj in ipairs(objects) do
+            local pos = obj.getPosition()
+            local bounds = obj.getBounds()
+            Console.Printf("[%s] %s", obj.getGUID(), obj.getName())
+            Console.Printf("  Position: x=%.2f, y=%.2f, z=%.2f", pos.x, pos.y, pos.z)
+            Console.Printf("  Size: x=%.2f, y=%.2f, z=%.2f", bounds.size.x, bounds.size.y, bounds.size.z)
+            -- Also output to log for chat_copy support (uses TTS global log function)
+            log(Util.SafeFormat("[Console] [%s] %s | pos: x=%.2f, y=%.2f, z=%.2f | size: x=%.2f, y=%.2f, z=%.2f",
+                obj.getGUID(), obj.getName(),
+                pos.x, pos.y, pos.z,
+                bounds.size.x, bounds.size.y, bounds.size.z))
+        end
+    end, "Shows position and size of selected object(s)")
 end
 
 ---------------------------------------------------------------------------------------------------

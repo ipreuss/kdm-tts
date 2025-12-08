@@ -1771,6 +1771,7 @@ return {
                         advanced = 3,
                         movement = 6,
                         toughness = 8,
+                        resources = { basic = 4, monster = 4 },
                     },
                 },
                 {
@@ -1787,6 +1788,7 @@ return {
                         toughness = 10,
                         speed = 1,
                         damage = 1,
+                        resources = { basic = 4, monster = 6 },
                     },
                 },
                 {
@@ -1807,6 +1809,7 @@ return {
                         damage = 2,
                         accuracy = 2,
                         luck = 1,
+                        resources = { basic = 4, monster = 8 },
                     },
                 },
                 {

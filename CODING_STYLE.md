@@ -165,6 +165,21 @@ end
 - Require modules via stable paths (`require("Kdm/Gear")`) and avoid circular dependencies; introduce intermediate abstractions if needed.
 - Group related files under folders (e.g., `Expansion/`) and prefer `init`/`Init` entry points for bootstrap code.
 
+### Module Export Pattern
+**Always return the module table directly:**
+```lua
+local Module = {}
+function Module.Foo() ... end
+return Module  -- ✅ Correct
+```
+
+**Do NOT use explicit export tables:**
+```lua
+return { Foo = Module.Foo }  -- ❌ Avoid
+```
+
+Dynamic field assignments (`Module.field = value`) only work with direct returns. Explicit exports cause "forgotten export" bugs where cross-module state is invisible. See ARCHITECTURE.md for full rationale.
+
 ## Comments and External Notes
 - Comment “why”, not “what”. Reference rules or page numbers when logic encodes official KDM behavior.
 - For runbooks, editor workflows, or onboarding notes, prefer Markdown files under the repository root. Link between docs when useful.
@@ -173,6 +188,19 @@ end
 - Add or update tests for any behavioral change, even if the original code lacked coverage.
 - Lean on deterministic tests when possible; wrap TTS interactions in adapters that can be mocked.
 - Document how to run tests (commands, scripts) inside README sections if they change.
+
+### Cross-Module Integration Tests (Mandatory)
+When your code calls functions from another module, you **must** write a headless integration test that exercises that call path:
+
+```lua
+-- Module A (your code) calls Module B
+-- You MUST have a test that runs: A → B (real code, not stubs)
+-- Module C (B's dependency) may be stubbed if needed
+```
+
+**Why:** Client code accessing unexported fields/functions only fails at TTS runtime, which is expensive to debug. Headless tests catch these in seconds.
+
+**Implementer responsibility:** Write integration tests for cross-module calls before handover. "Tester will add tests" is not acceptable — these are implementation-level tests.
 
 ## Workflow Expectations
 See `PROCESS.md` for the full change-management loop (test-first, safety net, PR checklist). Highlights:

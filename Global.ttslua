@@ -20,6 +20,7 @@ local MilestoneBoard = require("Kdm/MilestoneBoard")
 local Monster = require("Kdm/Monster")
 local NamedObject = require("Kdm/NamedObject")
 local Player = require("Kdm/Player")
+local ResourceRewards = require("Kdm/ResourceRewards")
 local Rules = require("Kdm/Rules")
 local Settlement = require("Kdm/Settlement")
 local Showdown = require("Kdm/Showdown")
@@ -96,6 +97,8 @@ function onLoad(saveJson)
     --
     MilestoneBoard.Init()
     --
+    ResourceRewards.Init()
+    --
     TTSTests.Init()
     -- mad sketchy that initialization order for MessageBox doesn't match include order, but this must be *after* all 2d UIs since we want this to display *over*
     -- all other 2d UIs, and 2d UI display order is solely based on the order of the XML elements (last is on top of everything else)
@@ -111,6 +114,7 @@ function onLoad(saveJson)
         Player.PostInit()
         Timeline.PostInit()
         BattleUi.PostInit()
+        ResourceRewards.PostInit()
         initialized = true
     end, 20)
 end

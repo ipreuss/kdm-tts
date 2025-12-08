@@ -18,6 +18,48 @@ This document captures the current architecture, major systems, and design conve
 | Events | `EventManager` wraps TTS globals to provide pub/sub hooks plus synthetic events (`Util/EventManager.ttslua:7-70`). |
 | Tooling | `updateTTS.sh` backs up the current save, bundles scripts, compresses them, and injects them into the save (`updateTTS.sh:1-57`). |
 
+## Coordinate System
+
+TTS uses a **left-handed coordinate system** when viewed from above:
+
+```
+        -Z (away from you)
+           ↑
+           |
++X ←——————+——————→ -X
+(left)     |        (right)
+           ↓
+        +Z (toward you)
+
+Y = height above table (positive = up)
+```
+
+**Key points:**
+- **Positive X goes LEFT** (counterintuitive!)
+- **Positive Z goes DOWN** (toward you)
+- **Y = 0** is below the table surface; typical spawn height is Y = 1-2
+
+**Reference positions (world coordinates):**
+
+| Location | Center X | Center Z | Notes |
+|----------|----------|----------|-------|
+| Table center | 0 | 0 | Origin |
+| Settlement Board | 0 | 0 | Centered at origin |
+| Showdown Board | 0 | ~0.7 | Slightly south of center |
+| Hunt Board | 0 | ~-50 | Far north |
+| Rulebooks | ~15 | 0 | East of settlement |
+| Resource Rewards spawn | -10 | 0 | West of settlement |
+
+**Common Y values:**
+- Table surface: ~0.6
+- Card spawn height: 1-2
+- Showdown board surface: ~10.74
+
+**Tips:**
+- Use `>showpos` command to get coordinates of selected objects
+- Use `>showloc <name>` to highlight a named location
+- LocationData.ttslua contains all defined locations with coordinates
+
 ## Lifecycle At A Glance
 `Global.onLoad` is the single boot script and is responsible for both dependency ordering and state hydration (`Global.ttslua:51-109`).
 
@@ -149,6 +191,37 @@ This pattern allows expansion data to define stats once per weapon type while su
 - **Flow**: `Timeline.RefreshSettlementEventSearchFromDeck()` inspects the deck (via `Container(deck):Objects()`), filters to cards whose `gm_notes` equals `"Settlement Events"`, derives a sorted name list, and feeds it into `Timeline.RebuildSearchTrie()`.
 - **Implications**: campaign import/export and deck setup must keep the Settlement Events deck accurate, because any edits (e.g., trashing cards) immediately affect the search UI.
 
+## Module Export Pattern
+
+**Standard: Return the module table directly (`return Module`)**
+
+All modules should use this pattern:
+```lua
+local Module = {}
+
+function Module.Foo() ... end
+Module.state = nil
+
+return Module  -- ✅ Standard pattern
+```
+
+**Do NOT use explicit export tables:**
+```lua
+return {           -- ❌ Avoid this pattern
+    Foo = Module.Foo,
+}
+```
+
+**Rationale:**
+- Dynamic field assignments (`Module.field = value`) are automatically visible to other modules
+- Eliminates "forgotten export" bugs where internal state isn't accessible
+- Simpler, less error-prone
+- A bug caused by mixed patterns cost 4 debug cycles (see `HANDOVER_DEBUGGER_ARCHITECT_MIXED_EXPORT_PATTERN.md`)
+
+**Migration status:** ~48 modules still use explicit exports; ~32 use the standard pattern. Migration is tracked in bead kdm-0e0.
+
+**Note:** This is a single-team mod, not a public library. The encapsulation benefit of explicit exports doesn't justify the bug risk.
+
 ## Infrastructure Highlights
 - **EventManager** intercepts TTS global callbacks (e.g., `onObjectDrop`) and fans them out to registered handlers while preserving original return values (`Util/EventManager.ttslua:25-56`). Synthetic enumerations (like `ON_PLAYER_SURVIVOR_LINKED`) let modules broadcast high-level intents without relying on raw TTS callbacks.
 - **Logging & debugging** use the module-scoped logger (`Log.ttslua:1-108`). Enabling debug output per module is done through the chat console (`>debug <module> on`).
@@ -257,6 +330,7 @@ Players sometimes need to permanently remove cards from decks (e.g., archiving a
 
 ### Encounters And Rules
 - `Hunt`, `Showdown`, and `Monster` manage their respective decks, setup flows, and UI. Monsters broadcast stat changes that systems like `BattleUi` listen to via `EventManager.ON_MONSTER_STAT_CHANGED` (`BattleUi.ttslua:142-165`).
+- `ResourceRewards` provides a button (on Rules Navigation Board, far right) to spawn post-showdown resource rewards. **Design decision**: It draws from the *existing* Basic/Monster Resources decks on the showdown board rather than spawning fresh decks from the archive. This ensures that if events during the showdown allowed players to take resources early, those cards are no longer available as rewards.
 - `Rules`, `Bookmarks`, `Archive`, `Deck`, and `Gear/Weapon/Armor` modules encapsulate searchable datasets and spawn automation for all cards and components used during settlement and battles.
 - `Terrain`, `LocationGrid`, `MilestoneBoard`, and `Settlement` provide board-specific helpers (snap points, overlays, milestone shortcuts). They primarily build UI via the shared DSL and manipulate NamedObject-managed assets.
 
@@ -282,7 +356,7 @@ Synthetic events are defined centrally and should be preferred to ad-hoc cross-m
 | `ON_PLAYER_SURVIVOR_LINKED` / `UNLINKED` | `Player` when survivor sheets are attached/detached | `BattleUi`, `Survivor`, other UIs. |
 | `ON_SURVIVOR_STAT_CHANGED` | `Survivor` when a stat or checkbox changes | `BattleUi`, `Player`, automation that depends on stats. |
 | `ON_MONSTER_STAT_CHANGED` | `Monster` | Battle UI, showdown overlays. |
-| `ON_SHOWDOWN_STARTED/ENDED` | `Showdown` | `BattleUi`, `GlobalUi`, timeline hints. |
+| `ON_SHOWDOWN_STARTED/ENDED` | `Showdown` | `BattleUi`, `GlobalUi`, `ResourceRewards`, timeline hints. |
 | `ON_PLAYER_COLOR_CHANGED` | `Player` (refresh timer) | `BattleUi` color dots, board markers. |
 
 When extending the game flow, prefer emitting a new event constant in `EventManager` so you keep coupling loose.

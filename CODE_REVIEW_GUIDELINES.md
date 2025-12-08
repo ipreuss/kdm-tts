@@ -439,6 +439,40 @@ Use this checklist for every code review:
 
 ### Phase 2: Functional Review
 
+### TTS Test Review
+When reviewing TTS tests (`TTSTests.ttslua`, `TTSTests/*.ttslua`), verify that tests exercise real code paths, not just data validation:
+
+- [ ] **Entry Point:** Does the test call the real public API, not just test helpers?
+- [ ] **Event Flow:** If the feature uses events, does the test trigger them naturally (via source action), not manually fire them?
+- [ ] **Outcome Verification:** Does the test verify user-visible results (UI state, spawned objects), not just internal state?
+- [ ] **Mutation Test:** Would breaking the feature's code cause this test to fail?
+
+**Anti-pattern (data validation masquerading as integration test):**
+```lua
+-- ❌ Weak: Only validates data exists - never tests actual feature
+local monster = Showdown.Test.MonsterByName("White Lion")
+local level = findLevelByName(monster, "Level 1")
+local rewards = level.showdown.resources
+if rewards.basic == 4 and rewards.monster == 4 then
+    log:Printf("TEST RESULT: PASSED")
+end
+-- Problem: Test passes even if button never appears because setup code is broken
+```
+
+**Proper integration test:**
+```lua
+-- ✅ Strong: Calls real entry point, events fire naturally, verifies user-visible outcome
+Showdown.Setup("White Lion", "Level 1")  -- Real API, events fire naturally
+Wait.condition(function()
+    return ResourceRewards.IsButtonVisible()  -- User-visible outcome
+end)
+if ResourceRewards.IsButtonVisible() then
+    log:Printf("TEST RESULT: PASSED")
+end
+```
+
+**Why this matters:** Data validation tests give false confidence. They pass when data is correct but integration is broken. Real integration tests catch: event handlers not registered, module state not set before events, async timing issues, UI not updated after operations.
+
 ### Bug Prevention
 - [ ] Are there regression tests for any bugs that were fixed?
 - [ ] Do tests cover the bug scenario explicitly?
@@ -470,6 +504,14 @@ Use this checklist for every code review:
 - [ ] Are edge cases covered?
 - [ ] Are callers of changed APIs tested?
 
+### Cross-Module Integration Tests
+- [ ] **Does new/changed code call functions from other modules?** If yes, verify:
+- [ ] Integration test exists that exercises the real call path (A → B)
+- [ ] The immediate dependency (B) is not stubbed — only deeper dependencies (C) may be mocked
+- [ ] Test would fail if the called function were removed from B's exports
+
+**Why this matters:** Client code accessing unexported fields/functions only fails at TTS runtime (5-10 minute debug cycles). Headless integration tests catch these in seconds. This is the Implementer's responsibility, not the Tester's.
+
 ### Consistency
 - [ ] Are new constants used everywhere (no remaining literals)?
 - [ ] Are patterns applied consistently across the codebase?
@@ -480,6 +522,32 @@ Use this checklist for every code review:
 - [ ] Are assumptions validated with assertions?
 - [ ] Will code break if implementation details change?
 - [ ] Are tests coupled to implementation or behavior?
+
+### Guard Clause Overuse
+- [ ] Are guard clauses used only for **realistic** cases, not defensive programming?
+- [ ] Does each early return have a plausible scenario where it triggers?
+- [ ] Are nil checks justified by actual nil-producing code paths?
+
+**Anti-pattern:** Adding `if x == nil then return end` "just in case" when `x` can never be nil in practice. This clutters code and hides real bugs.
+
+**Good guard clause:** Validates user input, external API responses, or optional parameters.
+**Bad guard clause:** Checks internal state that the code structure already guarantees.
+
+**Example:**
+```lua
+-- BAD: Defensive programming - caller always provides valid deck
+function processDeck(deck)
+    if deck == nil then return end  -- When would this happen?
+    if deck.cards == nil then return end  -- Structure guarantees this
+    ...
+end
+
+-- GOOD: Guard for realistic case
+function processDeck(deck)
+    if #deck.cards == 0 then return end  -- Empty deck is valid but nothing to do
+    ...
+end
+```
 
 ### Polymorphism
 - [ ] Are type-based conditionals avoided in favor of polymorphism?
@@ -646,6 +714,27 @@ These guidelines should be applied at multiple stages:
 This document should evolve based on lessons learned from future code reviews. When you discover a pattern or issue not covered here, add it to maintain a living reference of best practices.
 
 ### Recent Updates
+
+**2025-12-07: Added Cross-Module Integration Test Review**
+- Added checklist for verifying cross-module integration tests exist
+- When code calls another module, integration test must exercise real call path
+- Immediate dependency must not be stubbed (only deeper dependencies may be mocked)
+- Test must fail if called function removed from exports
+- Implementer responsibility, not Tester's
+
+**2025-12-07: Added TTS Test Review Guidelines**
+- Added checklist for reviewing TTS integration tests
+- Tests must call real public APIs, not just test helpers
+- Tests must let events fire naturally, not manually fire them
+- Tests must verify user-visible outcomes (UI state, spawned objects)
+- Tests must fail when the feature's code is broken (mutation test)
+- Added anti-pattern example showing data validation masquerading as integration test
+- Added proper integration test example
+
+**2025-12-07: Added Guard Clause Overuse Check**
+- Guard clauses should only be used for realistic cases, not defensive programming
+- Added checklist items and examples distinguishing good vs bad guard clauses
+- Anti-pattern: nil checks for values that can never be nil
 
 **2025-12-06: Added File Size Guidelines for SRP**
 - Added concrete line count thresholds for identifying SRP violations

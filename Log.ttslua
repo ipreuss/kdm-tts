@@ -32,11 +32,12 @@ Log.DEBUG_MODULES = {
     --["TTSTests"] = true,
     --["Showdown"] = true,
     --["Strain"] = true,
+    --["ResourceRewards"] = true,
     --["Survivor"] = true,
     --["VerminArchive"] = true,  -- RESOLVED: Custom Card dialog bug caused by CardCustom objects (2025-12-03)
     --["Timeline"] = true,
     --["Trash"] = true,
-    --["Ui"] = true,
+    --["Ui"] = true,  -- DEBUGGING: UI cache bug (2025-12-07) - disabled, too verbose
     --["Weapon"] = true,
     --["FightingArtsArchive"] = true,  -- RESOLVED: putObject copies cards, need destruct after (2025-12-03)
 }

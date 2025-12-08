@@ -551,7 +551,6 @@ function Ui:SetAttribute(attribute, type, value, nilAllowed)
     else
         assert(Check.Type(value, type, "%s: %s %s", id, attribute, type))
     end
-    log:Debugf("Setting %s %s to %s", id, attribute, tostring(value))
     self.attributes[attribute] = value
     self.object.UI.setAttribute(id, attribute, value)
 end
@@ -588,7 +587,6 @@ function Ui:SetHeight(height) self:SetAttribute("height", "number", height) end
 function Ui:SetText(text)
     local id = self.attributes.id
     text = (text ~= nil) and tostring(text) or ""   -- nil will not actually clear the text
-    log:Debugf("Setting %s text to '%s'", id, text)
     self.attributes.text = text
     self.object.UI.setAttribute(id, "text", self.attributes.text)
     self.object.UI.setAttribute(id, "color", self.attributes.color)
@@ -610,7 +608,6 @@ function Ui:Check(checked)
         self.attributes.image = self.uncheckedImage
         self.attributes.colors = self.uncheckedColors
     end
-    log:Debugf("Setting %s image to %s, colors to %s", self.attributes.id, self.attributes.image, self.attributes.colors)
     self.object.UI.setAttribute(self.attributes.id, "image", self.attributes.image)
     self.object.UI.setAttribute(self.attributes.id, "colors", self.attributes.colors)
     self.object.UI.setAttribute(self.attributes.id, "textColor", self.attributes.textColor)
@@ -623,7 +620,6 @@ function Ui:SelectOptionButton()
         else
             option.attributes.colors = self.group.unselectedColors
         end
-        log:Debugf("Setting %s colors to %s and textColor to %s", option.attributes.id, option.attributes.colors, option.attributes.textColor)
         option.object.UI.setAttribute(option.attributes.id, "colors", option.attributes.colors)
         option.object.UI.setAttribute(option.attributes.id, "textColor", option.attributes.textColor)
     end
@@ -638,7 +634,6 @@ function Ui:SelectOptionCheckBox()
             option.attributes.image = self.group.uncheckedImage
             option.attributes.colors = self.group.uncheckedColors
         end
-        log:Debugf("Setting %s image to %s and colors to %s", option.attributes.id, option.attributes.image,  option.attributes.colors)
         option.object.UI.setAttribute(option.attributes.id, "image", option.attributes.image)
         option.object.UI.setAttribute(option.attributes.id, "colors", option.attributes.colors)
     end

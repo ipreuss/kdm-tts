@@ -18,6 +18,7 @@
    - Reviewer
    - Debugger
    - Tester
+   - Team Coach
 
    If there are PENDING handovers, mention which roles have pending work.
 4. **Read** the corresponding role file: `ROLES/<SELECTED_ROLE>.md`

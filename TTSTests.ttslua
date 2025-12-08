@@ -11,6 +11,7 @@
 --   ConsequenceTests.ttslua - ConsequenceApplicator operations
 --   PatternTests.ttslua     - Pattern deck spawning, Seed Patterns shuffle
 --   BattleTests.ttslua      - Weapon pairing (Aya's weapons, Bone Hatchet)
+--   ResourceRewardsTests.ttslua - Resource rewards button and spawning
 
 local Console = require("Kdm/Console")
 local log = require("Kdm/Log").ForModule("TTSTests")
@@ -24,6 +25,7 @@ local MilestoneTests = require("Kdm/TTSTests/MilestoneTests")
 local ConsequenceTests = require("Kdm/TTSTests/ConsequenceTests")
 local PatternTests = require("Kdm/TTSTests/PatternTests")
 local BattleTests = require("Kdm/TTSTests/BattleTests")
+local ResourceRewardsTests = require("Kdm/TTSTests/ResourceRewardsTests")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -35,6 +37,7 @@ function TTSTests.Init()
     Console.AddCommand("testhelp", function(args)
         log:Printf("Available TTS tests:")
         log:Printf("  >testall - Run all TTS tests")
+        log:Printf("  >testfocus - Run tests for current bead only (fast)")
         log:Printf("  >teststrain [cardname] - Test adding a strain fighting art to the deck")
         log:Printf("  >teststrainvermin [cardname] - Test adding a strain vermin card to the deck")
         log:Printf("  >testdialogspec - Test DialogFromSpec callback timing issue")
@@ -50,11 +53,18 @@ function TTSTests.Init()
         log:Printf("  >testayaspairing - Test Aya's Spear + Sword cross-name pairing")
         log:Printf("  >testayasseparate - Test Aya's weapons display as 2 separate lines")
         log:Printf("  >testbonehatchet - Test Bone Hatchet same-name pairing (1 merged line)")
+        log:Printf("  >testrewardsbutton - Test rewards button appears on showdown")
+        log:Printf("  >testrewardshidden - Test rewards button hidden when no resources")
+        log:Printf("  >testrewardsspawn - Test correct resources spawned")
     end, "Show available TTS test commands")
 
     Console.AddCommand("testall", function(args)
         TTSTests.RunAllTests()
     end, "Run all TTS tests")
+
+    Console.AddCommand("testfocus", function(args)
+        TTSTests.RunFocusedTests()
+    end, "Run only tests for current bead (fast)")
 
     -- Register all test module commands
     StrainTests.Register()
@@ -65,7 +75,39 @@ function TTSTests.Init()
     ConsequenceTests.Register()
     PatternTests.Register()
     BattleTests.Register()
+    ResourceRewardsTests.Register()
 end
+
+---------------------------------------------------------------------------------------------------
+-- Test Registry with Bead Tags
+-- Update FOCUS_BEAD when switching to a new backlog item
+---------------------------------------------------------------------------------------------------
+
+local FOCUS_BEAD = "kdm-w1k"  -- Current backlog item - UPDATE THIS
+
+local ALL_TESTS = {
+    -- Strain tests (no specific bead - regression)
+    { name = "Add Fighting Art (Shielderang)", fn = function(onComplete) StrainTests.TestAddFightingArtToArchive("Shielderang", onComplete) end },
+    { name = "Add Vermin (Fiddler Crab Spider)", fn = function(onComplete) StrainTests.TestAddVerminToDeck("Fiddler Crab Spider", onComplete) end },
+    { name = "Card State Fallback (Story of Blood)", fn = function(onComplete) StrainTests.TestCardStateFallback("Story of Blood", nil, onComplete) end },
+    -- Dialog tests (no specific bead - regression)
+    { name = "DialogFromSpec Callback Timing", fn = function(onComplete) DialogTests.TestDialogFromSpecCallbackTiming(onComplete) end },
+    -- Atmospheric tests (no specific bead - regression)
+    { name = "Atmospheric Change (Heat Wave/Lump of Atnas)", fn = function(onComplete) AtmosphericTests.TestAtmosphericChange(onComplete) end },
+    -- Consequence tests (no specific bead - regression)
+    { name = "ConsequenceApplicator Operations", fn = function(onComplete) ConsequenceTests.TestConsequenceApplicator(onComplete) end },
+    -- Pattern tests (no specific bead - regression)
+    { name = "Pattern Deck Spawn", fn = function(onComplete) PatternTests.TestPatternDeckSpawn(onComplete) end },
+    { name = "Pattern Gear Deck Spawn", fn = function(onComplete) PatternTests.TestPatternGearDeckSpawn(onComplete) end },
+    -- Battle/Weapon pairing tests (kdm-rbl)
+    { name = "Aya's Weapon Pairing (cross-name)", bead = "kdm-rbl", fn = function(onComplete) BattleTests.TestAyasWeaponPairing(onComplete) end },
+    { name = "Aya's Weapons Separate Lines", bead = "kdm-rbl", fn = function(onComplete) BattleTests.TestAyasWeaponsSeparateLines(onComplete) end },
+    { name = "Bone Hatchet Pairing (same-name)", bead = "kdm-rbl", fn = function(onComplete) BattleTests.TestBoneHatchetPairing(onComplete) end },
+    -- Resource Rewards integration tests (kdm-w1k)
+    { name = "Resource Rewards Button Visible", bead = "kdm-w1k", fn = function(onComplete) ResourceRewardsTests.TestButtonAppearsOnShowdown(onComplete) end },
+    { name = "Resource Rewards Button Hidden", bead = "kdm-w1k", fn = function(onComplete) ResourceRewardsTests.TestButtonHiddenNoResources(onComplete) end },
+    { name = "Resource Rewards Data Integrity", bead = "kdm-w1k", fn = function(onComplete) ResourceRewardsTests.TestResourcesDataIntegrity(onComplete) end },
+}
 
 ---------------------------------------------------------------------------------------------------
 -- Run All Tests
@@ -73,20 +115,37 @@ end
 
 function TTSTests.RunAllTests()
     log:Printf("=== RUNNING ALL TTS TESTS ===")
+    TTSTests.RunTests(ALL_TESTS)
+end
 
-    local tests = {
-        { name = "Add Fighting Art (Shielderang)", fn = function(onComplete) StrainTests.TestAddFightingArtToArchive("Shielderang", onComplete) end },
-        { name = "Add Vermin (Fiddler Crab Spider)", fn = function(onComplete) StrainTests.TestAddVerminToDeck("Fiddler Crab Spider", onComplete) end },
-        { name = "Card State Fallback (Story of Blood)", fn = function(onComplete) StrainTests.TestCardStateFallback("Story of Blood", nil, onComplete) end },
-        { name = "DialogFromSpec Callback Timing", fn = function(onComplete) DialogTests.TestDialogFromSpecCallbackTiming(onComplete) end },
-        { name = "Atmospheric Change (Heat Wave/Lump of Atnas)", fn = function(onComplete) AtmosphericTests.TestAtmosphericChange(onComplete) end },
-        { name = "ConsequenceApplicator Operations", fn = function(onComplete) ConsequenceTests.TestConsequenceApplicator(onComplete) end },
-        { name = "Pattern Deck Spawn", fn = function(onComplete) PatternTests.TestPatternDeckSpawn(onComplete) end },
-        { name = "Pattern Gear Deck Spawn", fn = function(onComplete) PatternTests.TestPatternGearDeckSpawn(onComplete) end },
-        { name = "Aya's Weapon Pairing (cross-name)", fn = function(onComplete) BattleTests.TestAyasWeaponPairing(onComplete) end },
-        { name = "Aya's Weapons Separate Lines", fn = function(onComplete) BattleTests.TestAyasWeaponsSeparateLines(onComplete) end },
-        { name = "Bone Hatchet Pairing (same-name)", fn = function(onComplete) BattleTests.TestBoneHatchetPairing(onComplete) end },
-    }
+---------------------------------------------------------------------------------------------------
+-- Run Focused Tests (current bead only)
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.RunFocusedTests()
+    log:Printf("=== RUNNING FOCUSED TESTS FOR %s ===", FOCUS_BEAD)
+
+    local focusedTests = {}
+    for _, test in ipairs(ALL_TESTS) do
+        if test.bead == FOCUS_BEAD then
+            table.insert(focusedTests, test)
+        end
+    end
+
+    if #focusedTests == 0 then
+        log:Printf("No tests tagged with bead '%s'", FOCUS_BEAD)
+        log:Printf("Update FOCUS_BEAD in TTSTests.ttslua or tag tests with this bead")
+        return
+    end
+
+    TTSTests.RunTests(focusedTests)
+end
+
+---------------------------------------------------------------------------------------------------
+-- Generic Test Runner
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.RunTests(tests)
 
     local currentTest = 1
     local totalTests = #tests

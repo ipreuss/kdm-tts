@@ -676,6 +676,8 @@ function Showdown.Setup(monsterOrName, levelOrName)
         Survivor.ClearSkipNextHunt()
     end
     Showdown.settingUp = false
+    Showdown.monster = monster
+    Showdown.level = level
     Wait.frames(function() log:Printf("Showdown ready. Adjust your survivor/terrain placement and prepare for death.") end, 120)
 
     --Location.Get("(11.5, 8.5)"):LookAt({ distance = 90 })
@@ -840,12 +842,10 @@ function Showdown.OnObjectDrop(_, object)
 end
 
 ---------------------------------------------------------------------------------------------------
-return {
 
-    Init = Showdown.Init,
-    Setup = Showdown.Setup,
-    ShowUi = Showdown.ShowUi,
-    HideUi = Showdown.HideUi,
-    IsUiOpen = Showdown.IsUiOpen,
-    Clean = Showdown.Clean,
+-- Test interface (kept for backward compatibility)
+Showdown.Test = {
+    MonsterByName = Showdown.MonsterByNameForShowdown,
 }
+
+return Showdown

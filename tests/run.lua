@@ -37,6 +37,10 @@ local testFiles = {
     "tests.acceptance.strain_acceptance_test",
     "tests.acceptance.pattern_gear_acceptance_test",
     "tests.acceptance.weapon_pairing_acceptance_test",
+    "tests.ui_create3d_cache_test",
+    "tests.showdown_module_export_test",
+    "tests.showdown_resourcerewards_integration_test",
+    "tests.showdown_setup_integration_test",
 }
 
 for _, file in ipairs(testFiles) do

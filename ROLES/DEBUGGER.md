@@ -5,12 +5,27 @@
 - Identify root causes of bugs
 - Document findings in handover files
 - Write tests that reproduce bugs (should FAIL before fix, PASS after)
+- **Run `./updateTTS.sh`** to deploy debug logging and collect console output
 
 ## What NOT to Do
-- **Don't implement fixes** - leave that to the implementer
+- **Don't implement fixes** - leave that to the Implementer (adding styling, changing coordinates, fixing logic)
 - Don't make assumptions without verifying with logs
 - Don't modify production logic (only add logging)
 - **Don't close beads** — When diagnosis is complete, create a handover to Product Owner (features/bugs) or Architect (technical tasks) for closure
+
+## Permitted Operations
+
+### Allowed
+- Add `log:Debugf(...)` statements
+- Enable modules in `Log.DEBUG_MODULES`
+- Run `./updateTTS.sh` to deploy changes and get console output
+- Ask user to reproduce issue and provide logs
+- Write regression tests that reproduce bugs
+
+### Not Allowed
+- Implement bug fixes (change logic, add parameters, fix coordinates)
+- Change non-logging production code
+- Close beads
 
 ## Interpreting Log Output
 
@@ -209,6 +224,54 @@ The TTS save file (`template_workshop.json`) contains all object data and can be
   }
   ```
 - **Prevention:** Write integration tests, not export-checking tests (see below)
+
+### UI setAttribute After ApplyToObject
+- **Problem:** Calling `Show()`/`Hide()` immediately after `ApplyToObject()` causes `Object reference not set to an instance of an object`
+- **Symptom:** Unity NullReferenceException when calling `self.object.UI.setAttribute(id, ...)`
+- **Root cause:** TTS hasn't finished processing the XML from `setXmlTable()` when `setAttribute()` is called. The element doesn't exist in TTS's internal state yet.
+- **Solution:** Set initial visibility via `active` param instead of calling `Hide()` in Init:
+  ```lua
+  -- WRONG: Timing issue
+  local button = ui:Button({id = "Foo", ...})
+  ui:ApplyToObject()
+  button:Hide()  -- FAILS - element doesn't exist yet
+
+  -- CORRECT: Set initial state in params
+  local button = ui:Button({id = "Foo", ..., active = false})
+  ui:ApplyToObject()
+  -- Button starts hidden, no Hide() call needed
+  ```
+- **When Show/Hide is safe:** After `PostInit()` or inside event handlers (UI has been processed by then)
+
+### Module Export vs Internal Table
+- **Problem:** `Module.field = value` assignments are not visible to other modules via `require()`
+- **Symptom:** Other modules read `nil` for fields that were definitely assigned
+- **Root cause:** When a module uses `return {...}` with explicit exports, dynamic assignments go to the **internal** `local Module = {}` table, not the **exported** table:
+  ```lua
+  local Module = {}  -- Internal table
+
+  function Module.DoThing()
+      Module.state = "done"  -- Assigns to INTERNAL table
+  end
+
+  return {
+      DoThing = Module.DoThing,
+      -- state is NOT exported!
+  }
+  ```
+- **Solution 1:** Return the internal table directly:
+  ```lua
+  return Module  -- Now Module.state is visible to other modules
+  ```
+- **Solution 2:** Use getter functions:
+  ```lua
+  function Module.GetState() return Module.state end
+  return {
+      DoThing = Module.DoThing,
+      GetState = Module.GetState,
+  }
+  ```
+- **Prevention:** Check if the module uses `return {...}` pattern before adding dynamic field assignments that other modules need to access
 
 ## Writing TTS Console Tests
 

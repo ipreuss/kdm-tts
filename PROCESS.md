@@ -40,6 +40,7 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 - Do not override Product Owner on priorities or requirements
 - Do not perform git operations
 - Do not conduct code reviews (that's the Reviewer role)
+- Do not change process documentation (escalate to Team Coach)
 
 ### Implementer
 **Focus:** Writing code that fulfills requirements within architectural guidelines.
@@ -119,6 +120,31 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 
 **Key Principle:** Ask "What can a user do? What do they see?" — not "How does the code work?"
 
+### Team Coach
+**Focus:** Process improvement and team workflow optimization.
+
+**Responsibilities:**
+- Maintain and improve development process (`PROCESS.md`)
+- Define and refine role definitions (`ROLES/*.md`)
+- Update AI behavior configuration (`CLAUDE.md`)
+- Manage handover queue structure
+- Identify process bottlenecks and improvement opportunities
+- Communicate process changes to all roles
+
+**Permitted edits:**
+- `PROCESS.md` — Development workflow and role definitions
+- `CLAUDE.md` — Session startup and behavior configuration
+- `ROLES/*.md` — Role-specific documentation
+- `handover/QUEUE.md` — Structure and format
+
+**Constraints:**
+- Do not edit implementation code or tests
+- Do not make architectural decisions (escalate to Architect)
+- Do not perform git operations
+- Do not close beads (handover to Product Owner or Architect for closure)
+
+**Key Principle:** Facilitate and improve how the team works, not what they build.
+
 ### Role Workflow
 
 ```
@@ -168,23 +194,47 @@ This ensures all roles stay synchronized on process changes, even mid-session.
 
 ### Handover File Management
 
-**Never modify an existing handover file.** Always create a new one. Use naming convention:
+**Never modify an existing handover file**, even if it's still PENDING. This avoids race conditions where a role reads partial content during an edit. Always create a new versioned file and mark the old one as SUPERSEDED.
+
+Use naming convention:
 
 ```
-HANDOVER_<FROM>_<TO>_<SEQUENCE>.md
+HANDOVER_<FROM>_<TO>_<SHORT_DESCRIPTION>.md
 ```
 
 Examples:
-- `HANDOVER_ARCHITECT_IMPLEMENTER_001.md`
-- `HANDOVER_ARCHITECT_IMPLEMENTER_002.md`
-- `HANDOVER_PROCESS_001.md` (for broadcasts to all roles)
+- `HANDOVER_ARCHITECT_IMPLEMENTER_AYAS_PAIRING.md`
+- `HANDOVER_PO_TESTER_WEAPON_TESTS.md`
+- `HANDOVER_PROCESS_SCREENSHOT_RULES.md` (for broadcasts to all roles)
+
+Keep the description short (1-3 words, use underscores). This makes handovers easier to find and understand without opening them.
 
 **Cleanup:** When a new backlog item is started, clean up the handover folder by removing old completed handovers. This keeps the folder manageable and prevents confusion.
 
+### Bead Creation Guidelines
+
+**Break features into sub-beads when:**
+- It has distinct implementation phases (proof of concept → full implementation)
+- It has independent sub-features that can be tested separately
+- It will take more than one session to complete
+
+**Create new beads for deferred work:**
+When you discover a task that should be done but isn't part of the current scope, create a bead for it immediately rather than leaving a TODO comment or mental note. This ensures nothing falls through the cracks and makes the backlog visible.
+
+Examples:
+- "This would be cleaner with a refactor, but not now" → create bead
+- "Edge case X should be handled eventually" → create bead
+- "Documentation needs updating after this lands" → create bead
+
 ### Screenshot Processing
 
-When reading screenshots, convert to JPEG before processing to avoid hitting size limits:
+Use the `screenshot` skill (`.claude/skills/screenshot.md`) for analyzing screenshots. The skill:
 
+1. Finds the newest screenshot on Desktop (or uses a specified path)
+2. Checks file size — if > 15 MB, converts to JPEG automatically
+3. Reads and analyzes the image
+
+**Manual conversion** (if not using the skill):
 ```bash
 sips -s format jpeg screenshot.png --out screenshot.jpg
 ```
@@ -322,6 +372,7 @@ Each role has an assigned voice:
 | Reviewer | Petra | `say -v Petra "..."` |
 | Debugger | Yannick | `say -v Yannick "..."` |
 | Tester | Audrey | `say -v Audrey "..."` |
+| Team Coach | Thomas | `say -v Thomas "..."` |
 
 The message format is: `"<Rolle> fertig. <kurzer Status>"`
 
@@ -332,6 +383,7 @@ Examples of dynamic status messages:
 - Reviewer: `say -v Petra "Reviewer fertig. Zwei Probleme gefunden"`
 - Debugger: `say -v Yannick "Debugger fertig. Ursache identifiziert"`
 - Tester: `say -v Audrey "Tester fertig. Sechs Tests hinzugefügt, ein Fehler gefunden"`
+- Team Coach: `say -v Thomas "Team Coach fertig. Neue Rolle eingeführt"`
 
 Derive the status from actual session accomplishments. Spell out numbers as German words. Avoid English loanwords (use "Fehler" not "Bug").
 
@@ -344,6 +396,7 @@ Detailed process documentation for each role is in the `ROLES/` directory:
 - `ROLES/REVIEWER.md` - Code review process, checklists, handover format
 - `ROLES/DEBUGGER.md` - Debugging patterns, logging, root cause analysis
 - `ROLES/TESTER.md` - Acceptance testing, TestWorld usage, TTS console tests
+- `ROLES/TEAM_COACH.md` - Process improvement, workflow optimization
 
 **Note:** Role files are the authoritative source for role-specific details. The role summaries in this document provide an overview; consult the role files for complete guidance.
 
@@ -404,7 +457,7 @@ We aim for **outstanding test quality** — investment in tests saves significan
 | **Unit Tests** | Test pure business logic in isolation | `tests/framework.lua`, stubs | ~2 seconds |
 | **Integration Tests** | Verify cross-module interactions | TTSSpawner seam, module stubs | ~2 seconds |
 | **Acceptance Tests** | Verify user-visible behavior end-to-end | `TestWorld`, `ArchiveSpy` | ~2 seconds |
-| **TTS Console Tests** | Verify TTS environment interactions | `>teststrain`, `>testatmospheric` | ~1 min each |
+| **TTS Console Tests** | Verify TTS environment interactions | `>testall`, `>testfocus` | ~1 min each |
 
 ### Test Principles
 
@@ -421,9 +474,22 @@ We aim for **outstanding test quality** — investment in tests saves significan
 - **Test helpers should be simple** — Complex helpers indicate design issues
 - **`deckContains()` should be <15 lines** with no edge-case handling
 
-### Integration Tests Over Export Lists
+### Cross-Module Integration Tests
 
-**Principle:** Tests should **execute real call paths** through modules, not check that every function exists.
+**Principle:** When code in module A calls module B, there **must** be a headless integration test that exercises that call path. The test must actually execute the code path, not just check exports exist.
+
+**Why this matters:** A recurring bug pattern is client code accessing fields/functions that aren't exported by other modules. These bugs only surface at TTS runtime, where they're expensive to debug (5-10 minute cycles). Headless integration tests catch them in seconds.
+
+**Rule:** When implementing or changing code that calls another module:
+1. Identify the cross-module boundary (A calls B)
+2. Write/update a headless test that exercises A's code path through B
+3. Modules further down the chain (B calls C) may be mocked if needed
+4. The immediate dependency (B) must be the real module, not a stub
+
+**Example:** Module A (Strain) calls Module B (Archive) which calls Module C (TTSSpawner):
+- Test must use real Strain and real Archive
+- TTSSpawner may be stubbed (it's the TTS boundary)
+- This catches: missing exports in Archive, wrong function signatures, nil access errors
 
 #### ❌ Avoid: Export-Checking Tests
 ```lua
@@ -441,7 +507,7 @@ end)
 Test.test("Strain->Archive card spawning integration", function(t)
     setupMinimalTTSStubs()
     local Strain = require("Kdm/Strain")
-    
+
     -- ACTUALLY CALL Strain, which calls Archive internally
     local ok = Strain.Test._TakeRewardCard(Strain, {
         name = "Test Card",
@@ -451,10 +517,34 @@ Test.test("Strain->Archive card spawning integration", function(t)
             t:assertNotNil(card)
         end
     })
-    
+
     t:assertTrue(ok, "Integration should succeed")
 end)
 ```
+
+**Implementer responsibility:** When adding code that calls another module, the implementer must add an integration test covering that call path before handover. "Tester will add tests" is not acceptable for cross-module integration — these are implementation-level tests, not acceptance tests.
+
+### TTS Console Test Commands
+
+TTS tests are slower than headless tests, so two commands are available:
+
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `>testall` | Run all TTS tests (~13 tests) | Before closing a bead, after major changes |
+| `>testfocus` | Run only tests for current bead | During active development |
+
+**Focused testing workflow:**
+1. When starting work on a bead, update `FOCUS_BEAD` in `TTSTests.ttslua:86`
+2. Use `>testfocus` during development for fast feedback (~2 tests vs ~13)
+3. Run `>testall` before marking work complete
+
+**Tagging tests with beads:**
+```lua
+-- In ALL_TESTS table:
+{ name = "Test Name", bead = "kdm-xxx", fn = function(onComplete) ... end },
+```
+
+Tests without a `bead` field are regression tests (run with `>testall` only). Tests tagged with a bead run when that bead matches `FOCUS_BEAD`.
 
 ### When to Use Stubs vs Real Modules
 
