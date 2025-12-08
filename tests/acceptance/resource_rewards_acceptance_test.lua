@@ -626,3 +626,104 @@ Test.test("ACCEPTANCE: Resources spawn to grid layout positions", function(t)
         end
     end
 end)
+
+---------------------------------------------------------------------------------------------------
+-- E2E TEST: Real expansion data integration
+---------------------------------------------------------------------------------------------------
+
+-- Helper to find monster in expansion data
+local function findMonsterInExpansion(expansion, monsterName)
+    for _, monster in ipairs(expansion.monsters or {}) do
+        if monster.name == monsterName then
+            return monster
+        end
+    end
+    return nil
+end
+
+-- Helper to find level in monster data
+local function findLevelInMonster(monster, levelName)
+    for _, level in ipairs(monster.levels or {}) do
+        if level.name == levelName then
+            return level
+        end
+    end
+    return nil
+end
+
+Test.test("E2E: White Lion Level 3 has strange resources in real expansion data", function(t)
+    -- Load REAL Core expansion data directly
+    local Core = require("Kdm/Expansion/Core")
+    t:assertNotNil(Core, "Core expansion should load")
+    t:assertNotNil(Core.monsters, "Core should have monsters")
+
+    -- Find White Lion in expansion data
+    local whiteLion = findMonsterInExpansion(Core, "White Lion")
+    t:assertNotNil(whiteLion, "White Lion should exist in Core expansion")
+
+    -- Find Level 3
+    local level3 = findLevelInMonster(whiteLion, "Level 3")
+    t:assertNotNil(level3, "White Lion Level 3 should exist")
+
+    -- Verify strange resources field exists
+    local resources = level3.showdown and level3.showdown.resources
+    t:assertNotNil(resources, "Level 3 should have resources")
+    t:assertNotNil(resources.strange, "Level 3 should have strange resources field")
+    t:assertEqual("table", type(resources.strange), "strange should be a table")
+    t:assertTrue(#resources.strange > 0, "strange should not be empty")
+
+    -- Verify "Elder Cat Teeth" is in the list
+    local hasElderCatTeeth = false
+    for _, name in ipairs(resources.strange) do
+        if name == "Elder Cat Teeth" then
+            hasElderCatTeeth = true
+            break
+        end
+    end
+    t:assertTrue(hasElderCatTeeth, "strange resources should include 'Elder Cat Teeth'")
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("E2E: ResourceRewards spawns strange resources using real expansion data", function(t)
+    local modules = loadResourceRewardsModule()
+
+    -- Setup mock decks at locations (TTS dependency)
+    modules.Location._test.setDeck("Basic Resources", { name = "Basic Resources" })
+    modules.Location._test.setDeck("Monster Resources", { name = "Monster Resources" })
+
+    -- Reset call tracking
+    modules.Container._test.reset()
+    modules.Archive._test.reset()
+
+    -- Load REAL Core expansion data directly
+    local Core = require("Kdm/Expansion/Core")
+    local whiteLion = findMonsterInExpansion(Core, "White Lion")
+    local level3 = findLevelInMonster(whiteLion, "Level 3")
+
+    -- Set Showdown state using REAL data (not mock)
+    modules.Showdown.monster = whiteLion
+    modules.Showdown.level = level3
+
+    -- Fire event to trigger ResourceRewards
+    modules.EventManager.FireEvent(modules.EventManager.ON_SHOWDOWN_STARTED)
+
+    -- Spawn resources using real data
+    modules.ResourceRewards.Test.SpawnRewards()
+
+    -- Verify Archive.TakeFromDeck was called for "Elder Cat Teeth"
+    local archiveCalls = modules.Archive._test.getCalls()
+    t:assertTrue(#archiveCalls >= 1, "Should call Archive.TakeFromDeck for strange resources")
+
+    -- Find the Elder Cat Teeth call
+    local elderCatTeethCall = nil
+    for _, call in ipairs(archiveCalls) do
+        if call.name == "Elder Cat Teeth" then
+            elderCatTeethCall = call
+            break
+        end
+    end
+
+    t:assertNotNil(elderCatTeethCall, "Should spawn 'Elder Cat Teeth' from archive")
+    t:assertEqual("Strange Resources", elderCatTeethCall.deckName, "Should use Strange Resources deck")
+end)
