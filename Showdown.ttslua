@@ -121,6 +121,7 @@ function Showdown.InitUi()
         itemHeight = 30,
         fontSize = 16,
         textAlignment = "MiddleLeft",
+        maxItems = Showdown.MAX_MONSTER_LEVEL_COUNT,  -- Pre-create buttons to avoid dynamic creation bug
         onSelect = function(level)
             if level then
                 log:Debugf("Selected %s, %s", Showdown.monster.name, level.name)
@@ -245,7 +246,6 @@ function Showdown.SelectMonster(option)
     option:Select()
 
     Showdown.level = monster.levels[1]
-    log:Debugf("End of SelectMonster")
 end
 
 -------------------------------------------------------------------------------------------------

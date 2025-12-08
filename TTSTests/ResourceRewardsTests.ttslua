@@ -37,6 +37,10 @@ function ResourceRewardsTests.Register()
     Console.AddCommand("testrewardsexisting", function(args)
         ResourceRewardsTests.TestDrawsFromExistingDecks()
     end, "Test that rewards draw from existing decks (not archive)")
+
+    Console.AddCommand("testrewardsstrange", function(args)
+        ResourceRewardsTests.TestStrangeResourcesSpawn()
+    end, "Test strange resources spawn from archive (White Lion L3)")
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -51,8 +55,8 @@ function ResourceRewardsTests.TestButtonAppearsOnShowdown(onComplete)
     -- including EventManager.ON_SHOWDOWN_STARTED which ResourceRewards listens to
     Showdown.Setup("White Lion", "Level 1")
 
-    -- Wait for async operations to complete
-    -- Showdown.Setup triggers many async operations; 120 frames is typically enough
+    -- Wait for ON_SHOWDOWN_STARTED event to fire (happens early in setup)
+    -- Button visibility is determined by event, not full board setup
     Wait.frames(function()
         log:Printf("TEST: Checking button visibility after showdown setup...")
 
@@ -72,7 +76,7 @@ function ResourceRewardsTests.TestButtonAppearsOnShowdown(onComplete)
             log:Printf("TEST RESULT: FAILED")
             if onComplete then onComplete(false) end
         end
-    end, 120)
+    end, 30)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -102,7 +106,7 @@ function ResourceRewardsTests.TestButtonHiddenNoResources(onComplete)
             log:Printf("TEST RESULT: FAILED")
             if onComplete then onComplete(false) end
         end
-    end, 120)
+    end, 30)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -304,6 +308,85 @@ function ResourceRewardsTests.TestDrawsFromExistingDecks(onComplete)
             end, 60)  -- Wait for spawn to complete
         end, 10)  -- Wait for card removal
     end, 60)  -- Wait for showdown setup
+end
+
+---------------------------------------------------------------------------------------------------
+-- INTEGRATION TEST: Strange resources spawn from archive (behavioral)
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestStrangeResourcesSpawn(onComplete)
+    log:Printf("=== TEST: TestStrangeResourcesSpawn (Behavioral) ===")
+    log:Printf("TEST: Starting White Lion Level 3 showdown (has strange resources)...")
+
+    -- White Lion Level 3 has: basic = 4, monster = 8, strange = { "Elder Cat Teeth" }
+    Showdown.Setup("White Lion", "Level 3")
+
+    Wait.frames(function()
+        -- Check that Elder Cat Teeth does NOT exist on the table before spawn
+        log:Printf("TEST: Checking 'Elder Cat Teeth' does NOT exist before spawn...")
+        local beforeFound = false
+        for _, obj in ipairs(getObjects()) do
+            if obj.getName() == "Elder Cat Teeth" then
+                beforeFound = true
+                break
+            end
+        end
+
+        if beforeFound then
+            log:Printf("TEST: Warning - 'Elder Cat Teeth' already exists on table (previous test residue?)")
+        else
+            log:Printf("TEST: Confirmed - 'Elder Cat Teeth' not on table before spawn")
+        end
+
+        -- Trigger the rewards spawn (user action)
+        log:Printf("TEST: Triggering ResourceRewards.SpawnRewards() (simulates button click)...")
+        ResourceRewards.Test.SpawnRewards()
+
+        Wait.frames(function()
+            log:Printf("TEST: Searching entire table for 'Elder Cat Teeth'...")
+
+            -- Search ALL objects on table for Elder Cat Teeth
+            local foundElderCatTeeth = false
+            local elderCatTeethPos = nil
+            local elderCatTeethObj = nil
+            for _, obj in ipairs(getObjects()) do
+                if obj.getName() == "Elder Cat Teeth" then
+                    foundElderCatTeeth = true
+                    elderCatTeethPos = obj.getPosition()
+                    elderCatTeethObj = obj
+                    break
+                end
+            end
+
+            local passed = true
+
+            if foundElderCatTeeth then
+                log:Printf("TEST: Found 'Elder Cat Teeth' on table at (%.1f, %.1f, %.1f)",
+                    elderCatTeethPos.x, elderCatTeethPos.y, elderCatTeethPos.z)
+            else
+                log:Errorf("TEST: 'Elder Cat Teeth' NOT found anywhere on table!")
+                passed = false
+            end
+
+            -- Cleanup: delete spawned resources (cards near spawn position x~50-58)
+            log:Printf("TEST: Cleaning up spawned resources...")
+            local cleanedCount = 0
+            for _, obj in ipairs(getObjects()) do
+                local pos = obj.getPosition()
+                -- Spawn grid is at x=50.60 to ~58, z=-13.88 to ~-26
+                if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
+                    obj.destruct()
+                    cleanedCount = cleanedCount + 1
+                end
+            end
+            log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+
+            log:Printf("=== TEST: TestStrangeResourcesSpawn COMPLETE ===")
+            log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+
+            if onComplete then onComplete(passed) end
+        end, 60)  -- Wait for spawn to complete
+    end, 30)  -- Wait for showdown event
 end
 
 ---------------------------------------------------------------------------------------------------

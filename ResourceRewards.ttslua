@@ -1,3 +1,4 @@
+local Archive = require("Kdm/Archive")
 local Container = require("Kdm/Util/Container")
 local EventManager = require("Kdm/Util/EventManager")
 local Location = require("Kdm/Location")
@@ -150,10 +151,11 @@ function ResourceRewards.SpawnRewards()
         return
     end
 
-    log:Printf("Spawning resources for %s %s: %d basic, %d monster",
+    log:Printf("Spawning resources for %s %s: %d basic, %d monster, %d strange",
         monster.name, level.name,
         rewards.basic or 0,
-        rewards.monster or 0)
+        rewards.monster or 0,
+        rewards.strange and #rewards.strange or 0)
 
     -- Use existing decks from the showdown board, not new ones from archive.
     -- Reason: During showdown, events may let players take resources early,
@@ -222,6 +224,21 @@ function ResourceRewards.SpawnRewards()
             end
         else
             log:Debugf("No Monster Resources deck found at showdown board location")
+        end
+    end
+
+    -- Draw strange resources from archive (named, guaranteed cards)
+    if rewards.strange and #rewards.strange > 0 then
+        for _, cardName in ipairs(rewards.strange) do
+            local cardPos = getCardPosition(cardIndex)
+            Archive.TakeFromDeck({
+                deckName = "Strange Resources",
+                deckType = "Strange Resources",
+                name = cardName,
+                cardType = "Strange Resources",
+                position = cardPos,
+            })
+            cardIndex = cardIndex + 1
         end
     end
 

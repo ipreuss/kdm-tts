@@ -1,302 +1,73 @@
 # Development Process
 
-This document defines the default workflow for making changes to the KDM TTS mod. It complements `CODING_STYLE.md` by focusing on *how* we work rather than the syntax or design details.
+This document defines the default workflow for making changes to the KDM TTS mod. It complements:
+- `CODING_STYLE.md` — Code conventions and syntax
+- `TESTING.md` — Test strategy, patterns, and guidelines
+- `ROLES/*.md` — Detailed role definitions
+
+---
 
 ## Roles
 
 Each AI chat session operates in exactly one role. Roles have distinct responsibilities and constraints to maintain separation of concerns.
 
-### Product Owner
-**Focus:** The "what" and "why"—requirements, priorities, and user value.
-
-**Responsibilities:**
-- Gather and clarify requirements from stakeholders
-- Write user stories and acceptance criteria
-- Prioritize work based on user value and project goals
-- Validate that delivered features meet requirements
-- Maintain user-facing documentation (README, FAQ, user guides)
-- **Close feature and bug beads** after validating acceptance criteria are met
-
-**Constraints:**
-- Do not edit implementation code or tests
-- Do not make architectural decisions (escalate to Architect)
-- Do not perform git operations
-- Do not override Architect on technical feasibility
-
-### Architect
-**Focus:** The "how" at a structural level—system design, patterns, and technical boundaries.
-
-**Responsibilities:**
-- Design system structure and module boundaries
-- Write and maintain ADRs and `ARCHITECTURE.md`
-- Define patterns and abstractions for Implementers to follow
-- Evaluate technical feasibility of Product Owner requests
-- Identify and document refactoring opportunities
-- **Specify TTS testing requirements** when design involves TTS API interactions
-- **Close technical task beads** after validating design compliance
-
-**Constraints:**
-- Do not edit implementation code or tests (provide guidance, not code)
-- Do not override Product Owner on priorities or requirements
-- Do not perform git operations
-- Do not conduct code reviews (that's the Reviewer role)
-- Do not change process documentation (escalate to Team Coach)
-
-### Implementer
-**Focus:** Writing code that fulfills requirements within architectural guidelines.
-
-**Responsibilities:**
-- Write and modify implementation code and tests
-- Follow patterns established by Architect
-- Research existing code before implementing new features
-- Produce implementation plans and get confirmation before coding
-- Apply guidance from `handover/LATEST_REVIEW.md`
-
-**Constraints:**
-- Do not edit `handover/LATEST_REVIEW.md` or review process docs
-- Do not perform git operations
-- Do not override Architect on design decisions
-- Do not change requirements (escalate to Product Owner)
-- Do not close beads (handover to Product Owner or Architect for closure)
-
-### Reviewer
-**Focus:** Quality assurance through code review.
-
-**Responsibilities:**
-- Review code changes for correctness, style, and maintainability
-- Author and maintain `handover/LATEST_REVIEW.md`
-- Update review process documentation
-- Follow checklist in `CODE_REVIEW_GUIDELINES.md`
-
-**Constraints:**
-- Do not edit implementation code or tests
-- Do not perform git operations
-- Do not change requirements or architecture
-- Do not close beads (handover to Product Owner or Architect for closure)
-
-### Debugger
-**Focus:** Systematic problem diagnosis and root cause analysis.
-
-**Responsibilities:**
-- Investigate runtime errors and unexpected behavior
-- Trace execution paths to identify root causes
-- Document findings with confidence levels and evidence
-- Suggest solutions ranked by effort and risk
-- Author and maintain debug reports in `handover/LATEST_DEBUG.md`
-
-**Permitted code changes (debugging only):**
-- Add `log:Debugf(...)` statements to trace execution
-- Write regression tests that reproduce the bug
-- No other code modifications allowed
-
-**Constraints:**
-- Do not fix the bug (only diagnose and suggest fixes)
-- Do not perform git operations
-- Do not change requirements or architecture
-- Must provide evidence for conclusions (log output, code references)
-- Do not close beads (handover to Product Owner or Architect for closure)
-
-### Tester
-**Focus:** Acceptance testing from the user's perspective.
-
-**Responsibilities:**
-- Write acceptance tests that verify user-visible behavior
-- Maintain TestWorld facade and acceptance test infrastructure
-- Author and maintain `docs/ACCEPTANCE_TESTING_GUIDELINES.md`
-- Ensure tests use domain language, not implementation details
-- Validate that acceptance criteria are testable
-
-**Permitted code changes:**
-- Files in `tests/acceptance/` directory
-- TestWorld and TTSEnvironment infrastructure
-- Acceptance testing documentation
-
-**Constraints:**
-- Do not edit implementation code or unit tests
-- Do not perform git operations
-- Do not test implementation details or impossible user actions
-- Tests must be written from user's perspective (see guidelines)
-- Do not close beads (handover to Product Owner or Architect for closure)
-
-**Key Principle:** Ask "What can a user do? What do they see?" — not "How does the code work?"
-
-### Team Coach
-**Focus:** Process improvement and team workflow optimization.
-
-**Responsibilities:**
-- Maintain and improve development process (`PROCESS.md`)
-- Define and refine role definitions (`ROLES/*.md`)
-- Update AI behavior configuration (`CLAUDE.md`)
-- Manage handover queue structure
-- Identify process bottlenecks and improvement opportunities
-- Communicate process changes to all roles
-
-**Permitted edits:**
-- `PROCESS.md` — Development workflow and role definitions
-- `CLAUDE.md` — Session startup and behavior configuration
-- `ROLES/*.md` — Role-specific documentation
-- `handover/QUEUE.md` — Structure and format
-
-**Constraints:**
-- Do not edit implementation code or tests
-- Do not make architectural decisions (escalate to Architect)
-- Do not perform git operations
-- Do not close beads (handover to Product Owner or Architect for closure)
-
-**Key Principle:** Facilitate and improve how the team works, not what they build.
+**Role documentation:** See `ROLES/<ROLE>.md` for detailed responsibilities, constraints, and workflows:
+- `ROLES/PRODUCT_OWNER.md` — Requirements, user stories, acceptance criteria
+- `ROLES/ARCHITECT.md` — System design, patterns, technical feasibility
+- `ROLES/IMPLEMENTER.md` — Coding workflow, patterns, review responses
+- `ROLES/REVIEWER.md` — Code review process, checklists, handover format
+- `ROLES/DEBUGGER.md` — Debugging patterns, logging, root cause analysis
+- `ROLES/TESTER.md` — Acceptance testing, TestWorld usage, TTS console tests
+- `ROLES/TEAM_COACH.md` — Process improvement, workflow optimization
 
 ### Role Workflow
 
+**Code change flow:**
 ```
-Product Owner          Architect              Implementer           Reviewer            Tester
-     │                     │                       │                    │                  │
-     │  requirements       │                       │                    │                  │
-     ├────────────────────►│                       │                    │                  │
-     │                     │  technical design     │                    │                  │
-     │                     ├──────────────────────►│                    │                  │
-     │                     │                       │  implementation    │                  │
-     │                     │                       ├───────────────────►│                  │
-     │                     │                       │                    │                  │
-     │  acceptance criteria│                       │                    │                  │
-     ├─────────────────────┼───────────────────────┼────────────────────┼─────────────────►│
-     │                     │                       │                    │                  │
-     │◄────────────────────┼───────────────────────┼────────────────────┼──────────────────┤
-     │                     │       feedback loop (iterate as needed)                       │
+PO ─requirements─► Architect ─design─► Implementer ─code─► Reviewer ─reviewed─► Tester
+                                                                                   │
+PO ─acceptance criteria───────────────────────────────────────────────────────────►│
+                                                                                   │
+                        ◄──────────────────── acceptance tests ───────────────────┘
+                        │
+                    Reviewer ─reviewed─► Architect ─design ok─► PO (validation)
 ```
 
+**All code goes through Reviewer** — including acceptance tests written by Tester.
+**Architect verifies design compliance** — before PO validates requirements are met.
+
 **Handoff points:**
-1. Product Owner validates requirements → Architect designs solution
-2. Architect provides design → Implementer codes
-3. Implementer completes changes → Reviewer checks
-4. Product Owner provides acceptance criteria → Tester writes acceptance tests
-5. Reviewer/Tester findings may loop back to any prior role
+1. Product Owner defines requirements → Architect designs solution
+2. Architect provides design → Implementer writes code + implementation tests
+3. Implementer completes changes → Reviewer reviews code and tests
+4. Reviewer approves → Tester writes acceptance tests
+5. Tester completes acceptance tests → Reviewer reviews acceptance tests
+6. Reviewer approves → Architect verifies design compliance
+7. Architect approves → Product Owner validates feature is complete
+8. Findings at any stage may loop back to prior roles
+
+**Reviewer is the default:**
+All code goes through Reviewer — both implementation code (from Implementer) and acceptance tests (from Tester). Even small changes are easy to review and often surface code smells or test quality issues. The cost of a quick review is low; the cost of accumulated technical debt or bad test patterns is high.
+
+**Skip Reviewer only for:**
+- Documentation-only changes (no code)
+- Pure data/configuration changes with integrity tests
+
+When skipping review, explicitly note why in the handover.
 
 **Architect handover must specify TTS testing needs:**
 When the design involves new TTS API interactions (archive operations, deck manipulation, object spawning, UI rendering), the Architect's handover must explicitly request TTS console tests in addition to headless tests. Headless tests verify business logic but cannot catch subtle TTS API issues (timing, callbacks, object state). The implementer is responsible for adding the specified TTS tests.
 
-### Process Change Broadcasts
-
-When any role updates PROCESS.md, they must broadcast the change to all other roles:
-
-1. Create a new handover file (never modify existing handovers)
-2. Add PENDING entries to QUEUE.md for all roles
-3. Content should include:
-   - What changed
-   - Why it changed
-   - Any immediate actions required
-
-Roles receiving a process handover should:
-1. Read and acknowledge the change
-2. Mark the handover as COMPLETED
-3. Apply the new process immediately
-
-This ensures all roles stay synchronized on process changes, even mid-session.
-
-### Handover File Management
-
-**Never modify an existing handover file**, even if it's still PENDING. This avoids race conditions where a role reads partial content during an edit. Always create a new versioned file and mark the old one as SUPERSEDED.
-
-Use naming convention:
-
+**Architect handover checklist for UI features:**
 ```
-HANDOVER_<FROM>_<TO>_<SHORT_DESCRIPTION>.md
+## TTS Testing Requirements
+- [ ] Headless tests sufficient (no UI/visual elements)
+- [ ] TTS console tests required for: [list specific behaviors]
+- [ ] Spawn coordinates specified: [exact position or reference]
+- [ ] Copy styling from: [existing UI element to use as template]
 ```
 
-Examples:
-- `HANDOVER_ARCHITECT_IMPLEMENTER_AYAS_PAIRING.md`
-- `HANDOVER_PO_TESTER_WEAPON_TESTS.md`
-- `HANDOVER_PROCESS_SCREENSHOT_RULES.md` (for broadcasts to all roles)
-
-Keep the description short (1-3 words, use underscores). This makes handovers easier to find and understand without opening them.
-
-**Cleanup:** When a new backlog item is started, clean up the handover folder by removing old completed handovers. This keeps the folder manageable and prevents confusion.
-
-### Bead Creation Guidelines
-
-**Break features into sub-beads when:**
-- It has distinct implementation phases (proof of concept → full implementation)
-- It has independent sub-features that can be tested separately
-- It will take more than one session to complete
-
-**Create new beads for deferred work:**
-When you discover a task that should be done but isn't part of the current scope, create a bead for it immediately rather than leaving a TODO comment or mental note. This ensures nothing falls through the cracks and makes the backlog visible.
-
-Examples:
-- "This would be cleaner with a refactor, but not now" → create bead
-- "Edge case X should be handled eventually" → create bead
-- "Documentation needs updating after this lands" → create bead
-
-### Screenshot Processing
-
-Use the `screenshot` skill (`.claude/skills/screenshot.md`) for analyzing screenshots. The skill:
-
-1. Finds the newest screenshot on Desktop (or uses a specified path)
-2. Checks file size — if > 15 MB, converts to JPEG automatically
-3. Reads and analyzes the image
-
-**Manual conversion** (if not using the skill):
-```bash
-sips -s format jpeg screenshot.png --out screenshot.jpg
-```
-
-This reduces file size significantly and prevents context overflow when analyzing images.
-
-### Debugging Procedure
-
-All coding roles (Implementer, Debugger, Tester) must follow this procedure when encountering a bug or unexpected behavior:
-
-1. **Analyze the code** — Understand the relevant code paths and state
-2. **Create hypotheses** — List one or more possible causes
-3. **Select main hypothesis** — Choose the most likely cause to investigate first
-4. **Write a failing test** — Preferably headless; this proves the bug exists and prevents regression
-5. **Make the test pass** — Fix the underlying issue
-6. **Verify the fix** — Confirm the original problem is resolved
-
-**When encountering unexpected impediments** (hypothesis proves wrong, fix doesn't work, new symptoms appear):
-- Stop and reassess
-- Test hypotheses systematically using:
-  - Automated tests (preferred)
-  - Debug logging (when tests aren't practical)
-- Update your hypothesis list and repeat from step 3
-
-This ensures bugs are fixed methodically with test coverage, not through trial-and-error.
-
-### Handover Documents
-
-All role-to-role handovers are stored in the `handover/` folder:
-
-| Document | Purpose | Owner |
-|----------|---------|-------|
-| `QUEUE.md` | Central queue tracking all pending handovers | All roles |
-| `LATEST_REVIEW.md` | Most recent code review findings | Reviewer |
-| `LATEST_DEBUG.md` | Most recent debug report | Debugger |
-| `HANDOVER_ARCHITECT.md` | Requirements handoff to Architect | Product Owner |
-| `HANDOVER_IMPLEMENTER.md` | Design handoff to Implementer | Architect |
-| `HANDOVER_TESTER.md` | Acceptance criteria handoff to Tester | Product Owner |
-| `IMPLEMENTATION_STATUS.md` | Snapshot of what portions of the design/requirements have already been implemented | Implementer |
-
-### Handover Queue Workflow
-
-The `handover/QUEUE.md` file serves as a central inbox to prevent missed or stale handovers:
-
-```markdown
-| Created | From | To | File | Status |
-|---------|------|-----|------|--------|
-| 2025-12-06 17:00 | Architect | Implementer | HANDOVER_ARCHITECT_IMPLEMENTER.md | PENDING |
-```
-
-**Status values:** PENDING → ACKNOWLEDGED → COMPLETED
-
-**Workflow:**
-1. **Session start:** Check QUEUE.md for PENDING entries addressed to your role
-2. **When accepting work:** Read handover file, update status to ACKNOWLEDGED
-3. **When completing work:** Update status to COMPLETED
-4. **When handing off:** Write handover file + add new QUEUE entry with PENDING status
-
-**Guidelines:**
-- Each handover/status document is **replaced** (not appended) when a new handover occurs
-- Include context, requirements/design, open questions, and relevant files
-- The receiving role should read the handover/status documents before starting work. When implementation spans multiple PRs/sprints, update `handover/IMPLEMENTATION_STATUS.md` so future implementers can see exactly what has already landed and what remains.
+This forces explicit consideration of TTS-specific requirements upfront, preventing bugs that only surface at runtime.
 
 ### Bead Closure Authority
 
@@ -345,6 +116,127 @@ Each session operates as exactly one role from start to finish. If you encounter
 
 This strict separation ensures proper oversight, prevents mistakes, and maintains clear accountability.
 
+---
+
+## Handover System
+
+### Handover Documents
+
+All role-to-role handovers are stored in the `handover/` folder:
+
+| Document | Purpose | Owner |
+|----------|---------|-------|
+| `QUEUE.md` | Central queue tracking all pending handovers | All roles |
+| `LATEST_REVIEW.md` | Most recent code review findings | Reviewer |
+| `LATEST_DEBUG.md` | Most recent debug report | Debugger |
+
+Task-specific handovers use descriptive names following this convention:
+```
+HANDOVER_<FROM>_<TO>_<SHORT_DESCRIPTION>.md
+```
+
+Examples:
+- `HANDOVER_ARCHITECT_IMPLEMENTER_RESOURCE_REWARDS.md`
+- `HANDOVER_TESTER_DEBUGGER_ONLOAD_ERROR.md`
+- `HANDOVER_PROCESS_TEAM_COACH_ROLE.md` (broadcast to all roles)
+
+### Handover Queue Workflow
+
+The `handover/QUEUE.md` file serves as a central inbox to prevent missed or stale handovers:
+
+```markdown
+| Created | From | To | File | Status |
+|---------|------|-----|------|--------|
+| 2025-12-06 17:00 | Architect | Implementer | HANDOVER_ARCHITECT_IMPLEMENTER.md | PENDING |
+```
+
+**Status values:** PENDING → ACKNOWLEDGED → COMPLETED
+
+**Workflow:**
+1. **Session start:** Check QUEUE.md for PENDING entries addressed to your role
+2. **When accepting work:** Read handover file, update status to ACKNOWLEDGED
+3. **When completing work:** Update status to COMPLETED
+4. **When handing off:** Write handover file + add new QUEUE entry with PENDING status
+
+**Guidelines:**
+- Each handover/status document is **replaced** (not appended) when a new handover occurs
+- Include context, requirements/design, open questions, and relevant files
+- The receiving role should read the handover/status documents before starting work. When implementation spans multiple PRs/sprints, update `handover/IMPLEMENTATION_STATUS.md` so future implementers can see exactly what has already landed and what remains.
+
+### Handover File Management
+
+**Never modify an existing handover file**, even if it's still PENDING. This avoids race conditions where a role reads partial content during an edit. Always create a new versioned file and mark the old one as SUPERSEDED.
+
+Keep descriptions short (1-3 words, use underscores). This makes handovers easier to find and understand without opening them.
+
+**Cleanup:** When a new top-level bead is started, clean up the handover folder by removing old completed handovers. This keeps the folder manageable and prevents confusion.
+
+### Process Change Broadcasts
+
+When any role updates PROCESS.md, they must broadcast the change to all other roles:
+
+1. Create a new handover file (never modify existing handovers)
+2. Add PENDING entries to QUEUE.md for all roles
+3. Content should include:
+   - What changed
+   - Why it changed
+   - Any immediate actions required
+
+Roles receiving a process handover should:
+1. Read and acknowledge the change
+2. Mark the handover as COMPLETED
+3. Apply the new process immediately
+
+This ensures all roles stay synchronized on process changes, even mid-session.
+
+### Feature Retrospectives
+
+**When Product Owner closes a feature bead**, they should create a handover to Team Coach requesting a retrospective if:
+- The feature took multiple sessions across multiple roles
+- Unexpected blockers or bugs were encountered
+- The implementation deviated significantly from the original design
+- Any role reported friction or process issues during development
+
+**Retrospective process:**
+1. Product Owner creates `HANDOVER_PO_TEAMCOACH_RETRO_<FEATURE>.md` with:
+   - Feature summary and timeline
+   - Roles involved
+   - Notable issues encountered
+2. Team Coach facilitates by creating retrospective handovers to each involved role asking:
+   - What went well?
+   - What was frustrating or slow?
+   - What would you do differently?
+3. Team Coach collects responses and identifies actionable process improvements
+4. Improvements are documented and broadcast via normal process change mechanism
+
+**Skip retrospective for:**
+- Small bug fixes or trivial features
+- Features completed smoothly in 1-2 sessions
+- Pure technical tasks with no process friction
+
+---
+
+## Bead Guidelines
+
+### Bead Creation Guidelines
+
+**Break features into sub-beads when:**
+- It has distinct implementation phases (proof of concept → full implementation)
+- It has independent sub-features that can be tested separately
+- It will take more than one session to complete
+
+**Create new beads for deferred work:**
+When you discover a task that should be done but isn't part of the current scope, create a bead for it immediately rather than leaving a TODO comment or mental note. This ensures nothing falls through the cracks and makes the backlog visible.
+
+Examples:
+- "This would be cleaner with a refactor, but not now" → create bead
+- "Edge case X should be handled eventually" → create bead
+- "Documentation needs updating after this lands" → create bead
+
+---
+
+## Session Closing
+
 ### Session Closing Signature
 
 **Whenever you need user input** — end of session, questions, design decisions, or waiting for next steps — provide a clear closing signature to indicate which role was active and when:
@@ -372,7 +264,7 @@ Each role has an assigned voice:
 | Reviewer | Petra | `say -v Petra "..."` |
 | Debugger | Yannick | `say -v Yannick "..."` |
 | Tester | Audrey | `say -v Audrey "..."` |
-| Team Coach | Thomas | `say -v Thomas "..."` |
+| Team Coach | Xander | `say -v Xander "..."` |
 
 The message format is: `"<Rolle> fertig. <kurzer Status>"`
 
@@ -383,22 +275,9 @@ Examples of dynamic status messages:
 - Reviewer: `say -v Petra "Reviewer fertig. Zwei Probleme gefunden"`
 - Debugger: `say -v Yannick "Debugger fertig. Ursache identifiziert"`
 - Tester: `say -v Audrey "Tester fertig. Sechs Tests hinzugefügt, ein Fehler gefunden"`
-- Team Coach: `say -v Thomas "Team Coach fertig. Neue Rolle eingeführt"`
+- Team Coach: `say -v Xander "Team Coach fertig. Neue Rolle eingeführt"`
 
 Derive the status from actual session accomplishments. Spell out numbers as German words. Avoid English loanwords (use "Fehler" not "Bug").
-
-### Role-Specific Documentation
-
-Detailed process documentation for each role is in the `ROLES/` directory:
-- `ROLES/PRODUCT_OWNER.md` - Requirements, user stories, acceptance criteria
-- `ROLES/ARCHITECT.md` - System design, patterns, technical feasibility
-- `ROLES/IMPLEMENTER.md` - Coding workflow, patterns, review responses
-- `ROLES/REVIEWER.md` - Code review process, checklists, handover format
-- `ROLES/DEBUGGER.md` - Debugging patterns, logging, root cause analysis
-- `ROLES/TESTER.md` - Acceptance testing, TestWorld usage, TTS console tests
-- `ROLES/TEAM_COACH.md` - Process improvement, workflow optimization
-
-**Note:** Role files are the authoritative source for role-specific details. The role summaries in this document provide an overview; consult the role files for complete guidance.
 
 ---
 
@@ -444,153 +323,40 @@ Detailed process documentation for each role is in the `ROLES/` directory:
 - **Use shared UI palette and components** – all dialogs and panels should rely on the palette constants defined in `Ui.ttslua` (for example, `Ui.CLASSIC_BACKGROUND`, `Ui.CLASSIC_HEADER`, `Ui.CLASSIC_SHADOW`, and `Ui.CLASSIC_BORDER`) and the reusable PanelKit helpers (such as `PanelKit.ClassicDialog`).
 - **Respect defaults unless intentionally deviating** – when any shared component (UI or otherwise) exposes a default behavior, consume it rather than overriding it by habit.
 
----
+### Screenshot Processing
 
-## Test Strategy
+Use the `screenshot` skill (`.claude/skills/screenshot.md`) for analyzing screenshots. The skill:
 
-### Test Hierarchy
+1. Finds the newest screenshot on Desktop (or uses a specified path)
+2. Checks file size — if > 5 MB, converts to JPEG automatically
+3. Reads and analyzes the image
 
-We aim for **outstanding test quality** — investment in tests saves significant debugging time.
-
-| Layer | Purpose | Tools | Speed |
-|-------|---------|-------|-------|
-| **Unit Tests** | Test pure business logic in isolation | `tests/framework.lua`, stubs | ~2 seconds |
-| **Integration Tests** | Verify cross-module interactions | TTSSpawner seam, module stubs | ~2 seconds |
-| **Acceptance Tests** | Verify user-visible behavior end-to-end | `TestWorld`, `ArchiveSpy` | ~2 seconds |
-| **TTS Console Tests** | Verify TTS environment interactions | `>testall`, `>testfocus` | ~1 min each |
-
-### Test Principles
-
-1. **Headless tests strongly preferred** — Run in seconds, catch bugs before TTS launch
-2. **TTS console tests when headless impossible** — Automated `>teststrain` style tests over manual verification
-3. **Manual testing strongly discouraged** — Only when automated TTS tests are also impossible
-4. **Tests must exercise real production code** — Never reimplement business logic in test helpers
-5. **Spy pattern over manual state** — Intercept and verify calls, don't track state manually
-6. **All code paths through spies** — Consistent verification across all test scenarios
-
-### Test Quality Bar
-
-- **Breaking production code must fail tests** — Verify by temporarily breaking code
-- **Test helpers should be simple** — Complex helpers indicate design issues
-- **`deckContains()` should be <15 lines** with no edge-case handling
-
-### Cross-Module Integration Tests
-
-**Principle:** When code in module A calls module B, there **must** be a headless integration test that exercises that call path. The test must actually execute the code path, not just check exports exist.
-
-**Why this matters:** A recurring bug pattern is client code accessing fields/functions that aren't exported by other modules. These bugs only surface at TTS runtime, where they're expensive to debug (5-10 minute cycles). Headless integration tests catch them in seconds.
-
-**Rule:** When implementing or changing code that calls another module:
-1. Identify the cross-module boundary (A calls B)
-2. Write/update a headless test that exercises A's code path through B
-3. Modules further down the chain (B calls C) may be mocked if needed
-4. The immediate dependency (B) must be the real module, not a stub
-
-**Example:** Module A (Strain) calls Module B (Archive) which calls Module C (TTSSpawner):
-- Test must use real Strain and real Archive
-- TTSSpawner may be stubbed (it's the TTS boundary)
-- This catches: missing exports in Archive, wrong function signatures, nil access errors
-
-#### ❌ Avoid: Export-Checking Tests
-```lua
--- BAD: Brittle, reactive, no real value
-Test.test("Module exports all functions", function(t)
-    local Module = require("Module")
-    t:assertNotNil(Module.FunctionA)  -- Just checks it exists
-    t:assertNotNil(Module.FunctionB)  -- Doesn't verify it works
-end)
+**Manual conversion** (if not using the skill):
+```bash
+sips -s format jpeg screenshot.png --out screenshot.jpg
 ```
 
-#### ✅ Prefer: True Integration Tests
-```lua
--- GOOD: Actually executes the integration
-Test.test("Strain->Archive card spawning integration", function(t)
-    setupMinimalTTSStubs()
-    local Strain = require("Kdm/Strain")
+This reduces file size significantly and prevents context overflow when analyzing images.
 
-    -- ACTUALLY CALL Strain, which calls Archive internally
-    local ok = Strain.Test._TakeRewardCard(Strain, {
-        name = "Test Card",
-        type = "Fighting Arts",
-        position = { x = 0, y = 0, z = 0 },
-        spawnFunc = function(card)
-            t:assertNotNil(card)
-        end
-    })
+### Debugging Procedure
 
-    t:assertTrue(ok, "Integration should succeed")
-end)
-```
+All coding roles (Implementer, Debugger, Tester) must follow this procedure when encountering a bug or unexpected behavior:
 
-**Implementer responsibility:** When adding code that calls another module, the implementer must add an integration test covering that call path before handover. "Tester will add tests" is not acceptable for cross-module integration — these are implementation-level tests, not acceptance tests.
+1. **Analyze the code** — Understand the relevant code paths and state
+2. **Create hypotheses** — List one or more possible causes
+3. **Select main hypothesis** — Choose the most likely cause to investigate first
+4. **Write a failing test** — Preferably headless; this proves the bug exists and prevents regression
+5. **Make the test pass** — Fix the underlying issue
+6. **Verify the fix** — Confirm the original problem is resolved
 
-### TTS Console Test Commands
+**When encountering unexpected impediments** (hypothesis proves wrong, fix doesn't work, new symptoms appear):
+- Stop and reassess
+- Test hypotheses systematically using:
+  - Automated tests (preferred)
+  - Debug logging (when tests aren't practical)
+- Update your hypothesis list and repeat from step 3
 
-TTS tests are slower than headless tests, so two commands are available:
-
-| Command | Purpose | When to Use |
-|---------|---------|-------------|
-| `>testall` | Run all TTS tests (~13 tests) | Before closing a bead, after major changes |
-| `>testfocus` | Run only tests for current bead | During active development |
-
-**Focused testing workflow:**
-1. When starting work on a bead, update `FOCUS_BEAD` in `TTSTests.ttslua:86`
-2. Use `>testfocus` during development for fast feedback (~2 tests vs ~13)
-3. Run `>testall` before marking work complete
-
-**Tagging tests with beads:**
-```lua
--- In ALL_TESTS table:
-{ name = "Test Name", bead = "kdm-xxx", fn = function(onComplete) ... end },
-```
-
-Tests without a `bead` field are regression tests (run with `>testall` only). Tests tagged with a bead run when that bead matches `FOCUS_BEAD`.
-
-### When to Use Stubs vs Real Modules
-
-**Stub environment dependencies:**
-- TTS objects and APIs (no real game engine in tests)
-- File I/O, network calls
-- Time-dependent behavior
-- Complex UI rendering
-
-**Use real modules for integration:**
-- Business logic calling business logic
-- Data transformations
-- Module coordination and orchestration
-
-**Critical rule:** Don't stub a module just to avoid "function not exported" errors - that defeats the purpose of the test.
-
-### TTSSpawner Test Seam Pattern
-
-**Problem:** Missing module exports cause runtime nil errors that are expensive to debug (require TTS launch, 5-10 minute debug cycles).
-
-**Solution:** For modules with TTS API dependencies, use the TTSSpawner pattern:
-
-1. **Extract TTS calls** into `Util/TTSSpawner.ttslua`
-2. **Add test seam** to module: `Module._spawner` field with `Test_SetSpawner()` / `Test_ResetSpawner()`
-3. **Write integration tests** that verify exports exist by exercising real call paths
-
-**Current implementations:** See `Archive.ttslua`, `Util/TTSSpawner.ttslua`, `tests/stubs/tts_spawner_stub.lua`
-
-### TTS Adapter Pattern for Acceptance Tests
-
-**Problem:** Acceptance tests that reimplement business logic test the test code, not the mod.
-
-**Solution:** Extract pure business logic from TTS-dependent modules and call real mod code from acceptance tests.
-
-**Pattern:**
-1. **Extract pure logic** into testable functions (e.g., `Campaign.CalculateStrainRewards`)
-2. **Expose via `_test` table** for acceptance test access
-3. **TestWorld calls real mod code**, not duplicate implementations
-
-**Key principle:** TestWorld should be thin (wiring only), not reimplement business logic.
-
-**Verify exports before calling:** When writing tests that call functions via `_test` tables, always verify the function is actually exported before running the test. Check the module's `_test = { ... }` block to confirm the function is listed. Missing exports cause cryptic "attempt to index a nil value" errors at runtime.
-
-**Verification:** If breaking the mod logic doesn't fail tests, the tests are worthless. Always verify by temporarily breaking logic.
-
-**Current implementations:** See `Campaign.ttslua`, `tests/acceptance/test_world.lua`, `Util/TTSAdapter.lua`
+This ensures bugs are fixed methodically with test coverage, not through trial-and-error.
 
 ---
 

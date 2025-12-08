@@ -512,11 +512,28 @@ function PanelKit.OptionList(params)
         width = params.itemWidth or contentWidth,
     }
 
+    -- Pre-create buttons if maxItems is specified to avoid dynamic creation issues
+    -- (TTS doesn't render dynamically created UI elements after initial ApplyToObject)
+    local maxItems = params.maxItems or 0
+    for i = 1, maxItems do
+        local y = -(i - 1) * itemHeight
+        list.buttons[i] = group:OptionButton({
+            x = 0,
+            y = y,
+            width = list.width,
+            height = itemHeight,
+            text = "",
+            optionValue = nil,
+            active = false,  -- Start hidden
+        })
+    end
+
     function list:SetOptions(options)
         local y = 0
         for i, option in ipairs(options) do
             local button = self.buttons[i]
             if not button then
+                -- Dynamic button creation (fallback if maxItems wasn't set high enough)
                 button = self.group:OptionButton({
                     x = 0,
                     y = y,
@@ -602,6 +619,7 @@ function PanelKit.ScrollSelector(params)
         itemHeight = params.itemHeight,
         fontSize = params.fontSize,
         textAlignment = params.textAlignment,
+        maxItems = params.maxItems,  -- Pass through for pre-creation
         onClick = function(option)
             if option then
                 if option.Select then

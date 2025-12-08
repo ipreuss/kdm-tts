@@ -1809,7 +1809,7 @@ return {
                         damage = 2,
                         accuracy = 2,
                         luck = 1,
-                        resources = { basic = 4, monster = 8 },
+                        resources = { basic = 4, monster = 8, strange = { "Elder Cat Teeth" } },
                     },
                 },
                 {

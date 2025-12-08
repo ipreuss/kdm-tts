@@ -14,13 +14,13 @@ ls -lt /Users/ilja/Desktop/*.png /Users/ilja/Desktop/*.jpg /Users/ilja/Desktop/*
 
 ### Step 2: Check File Size
 
-Before reading, check if the file is larger than 15 MB:
+Before reading, check if the file is larger than 5 MB:
 
 ```bash
 stat -f%z "/path/to/screenshot.png"
 ```
 
-If size > 15000000 bytes (15 MB), proceed to Step 3. Otherwise, skip to Step 4.
+If size > 5000000 bytes (5 MB), proceed to Step 3. Otherwise, skip to Step 4.
 
 ### Step 3: Convert to JPEG (if needed)
 
@@ -51,5 +51,5 @@ Use the Read tool to view the image file. Claude can analyze images directly.
 
 - macOS screenshots are typically saved to Desktop as PNG
 - JPEG conversion significantly reduces file size (often 10x) with minimal quality loss
-- The 15 MB threshold prevents context overflow when reading large images
+- The 5 MB threshold prevents context overflow when reading large images
 - Always report which file you're analyzing to the user
