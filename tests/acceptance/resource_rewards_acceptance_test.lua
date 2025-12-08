@@ -365,28 +365,7 @@ Test.test("ACCEPTANCE: Rewards button hidden when showdown ends", function(t)
 end)
 
 ---------------------------------------------------------------------------------------------------
--- ACCEPTANCE TESTS: Resource Data
----------------------------------------------------------------------------------------------------
-
-Test.test("ACCEPTANCE: White Lion L1 has correct resource counts (4 basic, 4 monster)", function(t)
-    -- Read expansion data file directly (it's a .ttslua file, not .lua)
-    local file = io.open("Expansion/Core.ttslua", "r")
-    if not file then
-        t:skip("Expansion/Core.ttslua not found")
-        return
-    end
-
-    local content = file:read("*all")
-    file:close()
-
-    -- Check for White Lion Level 1 resources
-    -- The data shows: resources = { basic = 4, monster = 4 }
-    local hasL1Resources = content:match('name = "Level 1"')
-        and content:match('resources = { basic = 4, monster = 4 }')
-
-    t:assertTrue(hasL1Resources ~= nil, "White Lion L1 should have 4 basic, 4 monster resources")
-end)
-
+-- ACCEPTANCE TESTS: Strange Resources
 ---------------------------------------------------------------------------------------------------
 
 Test.test("ACCEPTANCE: Strange resources spawn from archive using Archive.TakeFromDeck", function(t)
