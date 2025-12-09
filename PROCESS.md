@@ -46,8 +46,50 @@ PO ─acceptance criteria──────────────────�
 7. Architect approves → Product Owner validates feature is complete
 8. Findings at any stage may loop back to prior roles
 
+### Bug Fast Path (Tester → Implementer)
+
+For simple bugs, Tester may skip the Debugger role and hand directly to Implementer.
+
+**Fast path criteria (ALL must be met):**
+- [ ] Root cause identified with specific file:line
+- [ ] Fix is < 10 lines
+- [ ] Single module affected (no cross-module impact)
+- [ ] Tester confidence > 90%
+
+**Fast path handover must include:**
+- Diagnosis rationale (why Tester is confident)
+- Specific file and line numbers
+- Suggested fix (before/after code snippet)
+
+**When criteria not met:** Use standard Debugger path.
+
+**Safeguard:** Implementer may escalate to Debugger if diagnosis is unclear or fix is more complex than expected.
+
+**Middle ground — Debugger subagent:**
+When Tester is uncertain about root cause but doesn't want full handover:
+- Use `debugger` subagent for in-session diagnosis
+- Subagent analyzes and recommends: fast path, standard path, or needs more investigation
+- Available to both Tester and Implementer
+
+```
+Bug complexity spectrum:
+
+Trivial (obvious fix)     → Tester → Implementer (fast path)
+Needs diagnosis           → Tester → debugger subagent → Implementer
+Complex/cross-module      → Tester → Debugger role (full handover)
+```
+
 **Reviewer is the default:**
 All code goes through Reviewer — both implementation code (from Implementer) and acceptance tests (from Tester). Even small changes are easy to review and often surface code smells or test quality issues. The cost of a quick review is low; the cost of accumulated technical debt or bad test patterns is high.
+
+**Two review modes:**
+1. **External Reviewer role** — Separate session, full handover workflow (default for large changes)
+2. **Code-reviewer subagent** — In-session review via `.claude/agents/code-reviewer.md` (for quick reviews)
+
+The subagent approach reduces handover overhead while maintaining quality gates. Use it when:
+- Changes are contained and straightforward
+- Quick feedback loop is valuable
+- Full external review would slow progress unnecessarily
 
 **Skip Reviewer only for:**
 - Documentation-only changes (no code)
@@ -92,6 +134,38 @@ This forces explicit consideration of TTS-specific requirements upfront, prevent
 - For data/configuration changes, integrity tests may serve as acceptance tests
 
 This ensures proper validation before marking work as done.
+
+### Lightweight Workflow for Pure Refactoring
+
+For behavior-preserving refactoring tasks, a streamlined workflow reduces handover overhead.
+
+**Standard workflow:**
+```
+PO → Architect → Implementer → Reviewer → Tester → Reviewer → Architect → PO
+```
+
+**Lightweight refactoring workflow:**
+```
+PO (scope approval) → Architect → Implementer (with subagent review) → Tester → Architect (closure)
+```
+
+**Criteria for lightweight workflow (ALL must be met):**
+- [ ] PO approved as "pure refactoring" upfront
+- [ ] No new user-facing functionality
+- [ ] No changed function signatures
+- [ ] Existing test coverage for affected code
+- [ ] code-reviewer subagent used during implementation
+
+**Escalation triggers (switch to standard workflow):**
+- Scope extends beyond original refactoring
+- Tester finds behavioral bug (not just regression)
+- Implementer or Tester has doubts about change scope
+
+**Key differences from standard workflow:**
+- PO approves scope upfront but skips final review
+- External Reviewer skipped (code-reviewer subagent used instead)
+- Architect closes technical task bead (not PO)
+- Tester verifies no regressions, hands back to Architect
 
 ### Role Boundaries
 
@@ -169,6 +243,17 @@ The `handover/QUEUE.md` file serves as a central inbox to prevent missed or stal
 
 Keep descriptions short (1-3 words, use underscores). This makes handovers easier to find and understand without opening them.
 
+### Handover Summary Requirement
+
+**After creating a handover, summarize it in your response** before the session closing signature. This allows the user to see the handover contents without needing to open the file.
+
+Include:
+- Recipient role and file name
+- Key points from the handover (2-5 bullet points)
+- Any action items or decisions needed
+
+This is especially important for broadcast handovers to multiple roles.
+
 **Cleanup:** When a new top-level bead is started, clean up the handover folder by removing old completed handovers. This keeps the folder manageable and prevents confusion.
 
 ### Process Change Broadcasts
@@ -197,22 +282,69 @@ This ensures all roles stay synchronized on process changes, even mid-session.
 - The implementation deviated significantly from the original design
 - Any role reported friction or process issues during development
 
-**Retrospective process:**
-1. Product Owner creates `HANDOVER_PO_TEAMCOACH_RETRO_<FEATURE>.md` with:
-   - Feature summary and timeline
-   - Roles involved
-   - Notable issues encountered
-2. Team Coach facilitates by creating retrospective handovers to each involved role asking:
-   - What went well?
-   - What was frustrating or slow?
-   - What would you do differently?
-3. Team Coach collects responses and identifies actionable process improvements
-4. Improvements are documented and broadcast via normal process change mechanism
-
 **Skip retrospective for:**
 - Small bug fixes or trivial features
 - Features completed smoothly in 1-2 sessions
 - Pure technical tasks with no process friction
+
+---
+
+### Retrospective Formats
+
+**Choose format based on task complexity:**
+
+| Format | Use When | Rounds |
+|--------|----------|--------|
+| **Standard** | Large features, 5+ handovers, significant issues | 3 rounds |
+| **Light** | Small tasks, technical debt, minor friction | 2 rounds |
+
+---
+
+#### Standard Retrospective (3 rounds)
+
+**Round 1 — Gather Experiences:**
+Team Coach sends to all involved roles:
+- What happened from your perspective?
+- What went well? What was frustrating?
+- Anything surprising?
+
+**Round 2 — Prioritize + Propose:**
+Team Coach summarizes Round 1, then:
+- Lists themes with vote counts
+- Proposes 1-3 concrete process changes
+- Asks for Support/Oppose/Modify feedback
+
+**Round 3 — Finalize + Implement:**
+Team Coach:
+- Incorporates feedback into final proposals
+- Implements approved changes
+- Broadcasts summary to all roles
+
+**Time-box:** Max 2 hours elapsed or 6 total handovers per role.
+
+---
+
+#### Light Retrospective (2 rounds)
+
+**Round 1 — Pre-seeded Proposal:**
+Team Coach proposes topics + changes based on handover history:
+- "Based on the workflow, I propose: [changes]"
+- Asks for yes/no/modify feedback
+
+**Round 2 — Implement:**
+Team Coach implements approved changes and broadcasts summary.
+
+**Time-box:** Max 1 hour elapsed or 2 handovers per role.
+
+---
+
+#### Retrospective Handover Format
+
+Product Owner creates `HANDOVER_PO_TEAMCOACH_RETRO_<FEATURE>.md` with:
+- Feature summary and bead ID
+- Roles involved
+- Notable issues encountered
+- Suggested retrospective format (Standard/Light)
 
 ---
 
@@ -312,6 +444,23 @@ Derive the status from actual session accomplishments. Spell out numbers as Germ
 - **Fail fast and meaningfully** – every subsystem must validate its inputs and surface actionable errors as close to the source as possible. Guard clauses and descriptive log messages are preferred over silent fallbacks.
 - **Keep exported interfaces lean** – don't expose new parameters, flags, or configuration points unless client code demonstrably needs them.
 
+### Value Extraction Checklist
+
+When extracting hardcoded values from existing code (refactoring, creating utilities):
+
+**Architect handover:**
+- Mark which values need verification: "Values require verification: GRID.width, GRID.x1End (from Rules.ttslua:95-97)"
+- Include source file and line numbers for extracted constants
+
+**Implementer:**
+- For coordinate/dimension/position values, create absolute-value tests
+- Assert actual values (e.g., `width = 1.06 +/- 0.01`), not just consistency
+- Document source: "x1End = 6.705129 (from Rules.ttslua:95)"
+
+**Scope:** Apply to visual/positioning values. Skip for trivial extractions (strings, booleans).
+
+**Why this matters:** Copy-paste extraction of coordinate values can introduce subtle bugs (e.g., using Y coordinate for width). Absolute-value tests catch these immediately.
+
 ### Debugging Guidelines
 
 - **Debug runtime errors systematically** – when an error occurs at runtime (especially unexpected nil errors), verify your assumptions about why and where the error happens before fixing it. The preferred approach is to implement at least one regression test that reproduces the error.
@@ -325,18 +474,31 @@ Derive the status from actual session accomplishments. Spell out numbers as Germ
 
 ### Screenshot Processing
 
-Use the `screenshot` skill (`.claude/skills/screenshot.md`) for analyzing screenshots. The skill:
+Use the `screenshot-analyzer` subagent for analyzing screenshots:
 
 1. Finds the newest screenshot on Desktop (or uses a specified path)
 2. Checks file size — if > 5 MB, converts to JPEG automatically
-3. Reads and analyzes the image
+3. Reads and analyzes the image with comprehensive descriptions
 
-**Manual conversion** (if not using the skill):
+**Manual conversion** (if needed):
 ```bash
 sips -s format jpeg screenshot.png --out screenshot.jpg
 ```
 
 This reduces file size significantly and prevents context overflow when analyzing images.
+
+### Available Subagents
+
+Subagents provide specialized capabilities within a session. See `.claude/agents/` for full documentation.
+
+| Subagent | Purpose | Model |
+|----------|---------|-------|
+| `code-reviewer` | Review code at milestones, before handover, or when stuck | opus |
+| `debugger` | Diagnose bugs without full Debugger handover (for Tester and Implementer) | sonnet |
+| `screenshot-analyzer` | Analyze screenshots with auto file discovery and size optimization | sonnet |
+| `subagent-creator` | Create new custom subagents following best practices | sonnet |
+| `beads-backlog-manager` | Query and manage the beads issue tracking system | haiku |
+| `handover-manager` | Create handovers, update queue, cleanup completed entries | haiku |
 
 ### Debugging Procedure
 

@@ -6,6 +6,7 @@ local Expansion = require("Kdm/Expansion")
 local Location = require("Kdm/Location")
 local log = require("Kdm/Log").ForModule("Rules")
 local NamedObject = require("Kdm/NamedObject")
+local RulesNavButtonKit = require("Kdm/Util/RulesNavButtonKit")
 local Trie = require("Kdm/Util/Trie")
 local Ui = require("Kdm/Ui")
 local Util = require("Kdm/Util/Util")
@@ -91,39 +92,25 @@ function Rules.Init()
     ui:ApplyToObject()
 end
 
-local x1 = 7.762758
-local x1End = 6.705129
-local width = x1End - x1
-local x13 = -6.702875
-local dx = (x13 - x1) / 12
-
-local y1 = -0.401185
-local y1End = 0.047924
-local height = y1End - y1
-local y2 = 0.392804
-local dy = y2 - y1
-
 function Rules.createButton(name, col, row, onClick)
-    local topLeft = { x =  x1 + ((col - 1) * dx), y = y1 + ((row - 1) * dy) }
-    local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
-    Rules.navUi:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
+    RulesNavButtonKit.CreateButton({
+        ui = Rules.navUi,
+        id = name,
+        col = col,
+        row = row,
+        onClick = onClick,
+    })
 end
 
 function Rules.createRuleBookButton(name, labelText, col, onClick)
-    local topLeft = { x =  x1 + ((col - 1) * dx), y = y1 }
-    local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
-    Rules.navUi:Panel({ id = name .. "panel", topLeft = topLeft, bottomRight = bottomRight, color = Ui.DARK_BROWN })
-    Rules.navUi:Button({ id = name, topLeft = topLeft, bottomRight = bottomRight, onClick = onClick })
     labelText = string.gsub(labelText, " ", "\n", 1)
-    Rules.navUi:Text({
-        id = name .. "label",
-        topLeft = topLeft,
-        bottomRight = bottomRight,
-        text = labelText,
-        fontSize = 150,
-        alignment =
-        "MiddleCenter",
-        color = Ui.LIGHT_BROWN
+    RulesNavButtonKit.CreateStyledButton({
+        ui = Rules.navUi,
+        id = name,
+        col = col,
+        row = 1,  -- Rulebook buttons are always row 1
+        label = labelText,
+        onClick = onClick,
     })
     Rules.navUi:ApplyToObject()
 end

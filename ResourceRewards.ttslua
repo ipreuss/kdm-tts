@@ -5,6 +5,7 @@ local Location = require("Kdm/Location")
 local log = require("Kdm/Log").ForModule("ResourceRewards")
 local MessageBox = require("Kdm/MessageBox")
 local NamedObject = require("Kdm/NamedObject")
+local RulesNavButtonKit = require("Kdm/Util/RulesNavButtonKit")
 local Showdown = require("Kdm/Showdown")
 local Ui = require("Kdm/Ui")
 
@@ -21,60 +22,21 @@ local hasSpawnedThisShowdown = false
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewards.Init()
-    -- Create button on Rules Navigation Board (far right, row 2)
-    -- Using same coordinate system as Rules.ttslua:
-    -- x1=7.76 (right/col 1) to x13=-6.70 (left/col 13), dx=(x13-x1)/12
-    -- y1=-0.40 (row 1), y2=0.39 (row 2), height=0.45
     ui = Ui.Create3d("ResourceRewards", NamedObject.Get("Rules Navigation Board"), 0.11)
 
-    -- Position: Far right of Rules Navigation Board, row 2
-    -- Using Rules.ttslua grid system:
-    -- x1=7.76 (col 1, far LEFT) to x13=-6.70 (col 13, far RIGHT)
-    -- Rulebooks are cols 1-5 (left), Back/Prev/Next are cols 6-8 (middle)
-    -- So col 13 = far right
-    local x1 = 7.762758
-    local x13 = -6.702875
-    local dx = (x13 - x1) / 12
-    local width = -1.057629  -- Same as Rules buttons
-    local y1 = -0.401185
-    local height = 0.449109
-    local dy = 0.793989
-
-    local col = 13  -- Far right (col 13 = lowest x value = right side of board)
-    local row = 2   -- Row 2 (same as Back/Prev/Next)
-    local topLeft = { x = x1 + ((col - 1) * dx), y = y1 + ((row - 1) * dy) }
-    local bottomRight = { x = topLeft.x + width, y = topLeft.y + height }
-
-    -- Panel background (same style as Rules buttons)
-    rewardsPanel = ui:Panel({
-        id = "SpawnRewardsPanel",
-        topLeft = topLeft,
-        bottomRight = bottomRight,
-        color = Ui.DARK_BROWN,
-        active = false,
-    })
-
-    -- Text label (same style as Rules buttons)
-    rewardsLabel = ui:Text({
-        id = "SpawnRewardsLabel",
-        topLeft = topLeft,
-        bottomRight = bottomRight,
-        text = "Rewards",
-        fontSize = 150,
-        alignment = "MiddleCenter",
-        color = Ui.LIGHT_BROWN,
-        active = false,
-    })
-
-    -- Invisible clickable button
-    rewardsButton = ui:Button({
+    local elements = RulesNavButtonKit.CreateStyledButton({
+        ui = ui,
         id = "SpawnRewards",
-        topLeft = topLeft,
-        bottomRight = bottomRight,
-        colors = Ui.INVISIBLE_COLORS,
+        col = 13,
+        row = 2,
+        label = "Rewards",
         onClick = function() ResourceRewards.OnClick() end,
         active = false,
     })
+
+    rewardsPanel = elements.panel
+    rewardsLabel = elements.text
+    rewardsButton = elements.button
 
     ui:ApplyToObject()
 end

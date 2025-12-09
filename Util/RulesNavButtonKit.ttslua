@@ -1,0 +1,104 @@
+---------------------------------------------------------------------------------------------------
+-- RulesNavButtonKit
+--
+-- Utility for creating buttons on the Rules Navigation Board.
+-- Encapsulates the grid coordinate system so callers can specify column/row numbers.
+--
+-- Grid layout:
+-- - 13 columns (col 1 = far left, col 13 = far right)
+-- - 2 rows (row 1 = top, row 2 = bottom)
+-- - Rulebooks occupy cols 1-5, Back/Prev/Next are cols 6-8
+--
+-- Test scope: Unit tests may mock ui parameter; E2E tests use real Ui.Create3d().
+---------------------------------------------------------------------------------------------------
+
+local Ui = require("Kdm/Ui")
+
+local RulesNavButtonKit = {}
+
+-- Grid constants for Rules Navigation Board
+-- Source: Rules.ttslua
+local GRID = {
+    x1 = 7.762758,           -- Column 1 left edge
+    x1End = 6.705129,        -- Column 1 right edge
+    x13 = -6.702875,         -- Column 13 left edge
+    y1 = -0.401185,          -- Row 1 top
+    y1End = 0.047924,        -- Row 1 bottom
+    y2 = 0.392804,           -- Row 2 top
+}
+
+GRID.dx = (GRID.x13 - GRID.x1) / 12
+GRID.width = GRID.x1End - GRID.x1
+GRID.height = GRID.y1End - GRID.y1
+GRID.dy = GRID.y2 - GRID.y1
+
+-- Styling constants
+local BUTTON_FONT_SIZE = 150
+
+---------------------------------------------------------------------------------------------------
+
+function RulesNavButtonKit.GetPosition(col, row)
+    return {
+        topLeft = {
+            x = GRID.x1 + ((col - 1) * GRID.dx),
+            y = GRID.y1 + ((row - 1) * GRID.dy),
+        },
+        bottomRight = {
+            x = GRID.x1 + ((col - 1) * GRID.dx) + GRID.width,
+            y = GRID.y1 + ((row - 1) * GRID.dy) + GRID.height,
+        },
+    }
+end
+
+---------------------------------------------------------------------------------------------------
+
+function RulesNavButtonKit.CreateButton(params)
+    local pos = RulesNavButtonKit.GetPosition(params.col, params.row)
+    return params.ui:Button({
+        id = params.id,
+        topLeft = pos.topLeft,
+        bottomRight = pos.bottomRight,
+        onClick = params.onClick,
+    })
+end
+
+---------------------------------------------------------------------------------------------------
+
+function RulesNavButtonKit.CreateStyledButton(params)
+    local pos = RulesNavButtonKit.GetPosition(params.col, params.row)
+    local active = params.active ~= false
+
+    local panel = params.ui:Panel({
+        id = params.id .. "Panel",
+        topLeft = pos.topLeft,
+        bottomRight = pos.bottomRight,
+        color = Ui.DARK_BROWN,
+        active = active,
+    })
+
+    local text = params.ui:Text({
+        id = params.id .. "Label",
+        topLeft = pos.topLeft,
+        bottomRight = pos.bottomRight,
+        text = params.label or "",
+        fontSize = BUTTON_FONT_SIZE,
+        alignment = "MiddleCenter",
+        color = Ui.LIGHT_BROWN,
+        active = active,
+    })
+
+    local button = params.ui:Button({
+        id = params.id,
+        topLeft = pos.topLeft,
+        bottomRight = pos.bottomRight,
+        colors = Ui.INVISIBLE_COLORS,
+        onClick = params.onClick,
+        active = active,
+    })
+
+    return { panel = panel, text = text, button = button }
+end
+
+---------------------------------------------------------------------------------------------------
+
+return RulesNavButtonKit

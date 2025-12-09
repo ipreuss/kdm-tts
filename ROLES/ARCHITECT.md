@@ -67,6 +67,24 @@ When design involves TTS API interactions, explicitly specify:
 - Which can be tested headless
 - Test patterns to follow
 
+## Lightweight Refactoring Workflow
+
+For pure refactoring tasks, a streamlined workflow applies:
+
+```
+PO (scope approval) → Architect → Implementer (with subagent review) → Tester → Architect (closure)
+```
+
+**Architect responsibilities in lightweight workflow:**
+1. Receive scope approval from PO (confirm "pure refactoring")
+2. Design and hand to Implementer (same as standard)
+3. Receive verification from Tester
+4. **Close the technical task bead** (Architect, not PO)
+
+**Escalation:** If Tester finds behavioral bugs (not just regressions) or scope creeps, escalate to standard workflow.
+
+See PROCESS.md "Lightweight Workflow for Pure Refactoring" for full criteria.
+
 ## Key Principles
 - **Guidance over code** - Describe what to build, not how to type it
 - **Patterns over prescriptions** - Point to existing examples

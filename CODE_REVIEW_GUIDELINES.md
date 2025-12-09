@@ -503,6 +503,12 @@ end
 - [ ] Are all code paths tested?
 - [ ] Are edge cases covered?
 - [ ] Are callers of changed APIs tested?
+- [ ] **For new test files:** Is the file registered in tests/run.lua?
+
+### Value Extraction (Refactoring)
+- [ ] **For value extraction refactors:** Did you verify extracted constants against their source file (not just tests)?
+- [ ] **For coordinate/dimension values:** Do tests assert absolute values (e.g., `width = 1.06`), not just consistency?
+- [ ] **Are source locations documented?** (e.g., "x1End = 6.705129 (from Rules.ttslua:95)")
 
 ### Cross-Module Integration Tests
 - [ ] **Does new/changed code call functions from other modules?** If yes, verify:
@@ -723,6 +729,14 @@ These guidelines should be applied at multiple stages:
 This document should evolve based on lessons learned from future code reviews. When you discover a pattern or issue not covered here, add it to maintain a living reference of best practices.
 
 ### Recent Updates
+
+**2025-12-09: Added Value Extraction Checklist and Test Registration Check**
+- Added "Value Extraction (Refactoring)" section to review checklist
+- Reviewer must verify extracted constants match source file
+- Coordinate/dimension values require absolute-value tests (not just consistency)
+- Source locations should be documented in code
+- Added test file registration check: new test files must be in tests/run.lua
+- Addresses root causes from kdm-w1k.4 retrospective (button width bug, unregistered tests)
 
 **2025-12-09: Added Data Integration Tests Checklist**
 - Added checklist for features integrating with expansion data

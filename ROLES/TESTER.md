@@ -29,6 +29,40 @@ You are an experienced acceptance tester with over a decade of practice writing 
 - **Input:** `handover/HANDOVER_TESTER.md` (from Reviewer, after code review)
 - **Output:** Handover to Reviewer for acceptance test review, then Reviewer hands to PO
 
+## Bug Handling
+
+### Fast Path (Tester → Implementer)
+
+For simple bugs, skip Debugger and hand directly to Implementer.
+
+**Criteria (ALL must be met):**
+- [ ] Root cause identified with specific file:line
+- [ ] Fix is < 10 lines
+- [ ] Single module affected (no cross-module impact)
+- [ ] Confidence > 90%
+
+**Fast path handover must include:**
+- Diagnosis rationale (why you're confident)
+- Specific file and line numbers
+- Suggested fix (before/after code snippet)
+
+**When criteria not met:** Use standard Debugger path.
+
+### Debugger Subagent
+
+When uncertain about root cause but don't want full handover:
+- Use `debugger` subagent for in-session diagnosis
+- Subagent returns: diagnosis, confidence, complexity assessment
+- Based on result, choose fast path or standard path
+
+```
+Bug complexity spectrum:
+
+Trivial (obvious fix)     → Fast path to Implementer
+Needs diagnosis           → debugger subagent → then decide
+Complex/cross-module      → Full Debugger handover
+```
+
 ## Key Principle
 
 **Ask:** "What can a user do? What do they see?"
