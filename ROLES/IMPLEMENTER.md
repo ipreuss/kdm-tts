@@ -32,8 +32,9 @@ You are a pragmatic software craftsman with over a decade of hands-on coding exp
 - Use for quick hiccups, unexpected test failures, errors during implementation
 
 **Code-reviewer subagent:** For in-session review:
-- Use before handover to catch issues early
-- Required for lightweight refactoring workflow (replaces external Reviewer)
+- **REQUIRED** before any handover with non-trivial code changes
+- Catches issues before they cross role boundaries
+- Also required for lightweight refactoring workflow
 
 ## Workflow
 
@@ -77,25 +78,19 @@ Update `handover/IMPLEMENTATION_STATUS.md` with:
 - What remains
 - Any blockers or questions
 
+## Skills Reference
+
+The following skills auto-load when working on implementation:
+
+- **`kdm-coding-conventions`** — Lua style, module exports, SOLID principles, error handling
+- **`kdm-tts-patterns`** — TTS async callbacks, archive operations, object lifecycle
+- **`kdm-test-patterns`** — Testing patterns, cross-module integration tests
+- **`kdm-ui-framework`** — PanelKit, LayoutManager, color palette (for UI work)
+- **`kdm-expansion-data`** — Expansion data structures, archive system (for expansion work)
+
 ## Common Patterns
 
-### Adding Debug Logging
-```lua
-local Log = require("Log")
-local log = Log.ForModule("ModuleName")
-
-log:Debugf("Variable X = %s", tostring(x))
-```
-
-### Exposing Test Functions
-```lua
-return {
-    PublicFunction = Module.PublicFunction,
-    _test = {
-        InternalFunction = function(...) return Module:InternalFunction(...) end,
-    },
-}
-```
+For detailed patterns, see the skills above. Quick reference:
 
 ### Responding to Review Feedback
 Add comments in `handover/LATEST_REVIEW.md` under each issue:

@@ -86,14 +86,15 @@ All code goes through Reviewer — both implementation code (from Implementer) a
 1. **External Reviewer role** — Separate session, full handover workflow (default for large changes)
 2. **Code-reviewer subagent** — In-session review via `.claude/agents/code-reviewer.md` (for quick reviews)
 
-The subagent approach reduces handover overhead while maintaining quality gates. Use it when:
-- Changes are contained and straightforward
-- Quick feedback loop is valuable
-- Full external review would slow progress unnecessarily
+**⚠️ Pre-handover review requirement:**
+Before creating any handover that includes code changes beyond trivial fixes (typos, single-line tweaks), the implementing role MUST run the `code-reviewer` subagent. This catches issues early, before they cross role boundaries.
 
-**Skip Reviewer only for:**
+The subagent review does NOT replace the external Reviewer role for significant changes — it's an additional quality gate that happens before handover.
+
+**Skip pre-handover review only for:**
 - Documentation-only changes (no code)
 - Pure data/configuration changes with integrity tests
+- Trivial fixes (typos, single-line changes)
 
 When skipping review, explicitly note why in the handover.
 
@@ -201,6 +202,7 @@ All role-to-role handovers are stored in the `handover/` folder:
 | Document | Purpose | Owner |
 |----------|---------|-------|
 | `QUEUE.md` | Central queue tracking all pending handovers | All roles |
+| `LEARNINGS.md` | Insights and improvement ideas from all roles | Team Coach |
 | `LATEST_REVIEW.md` | Most recent code review findings | Reviewer |
 | `LATEST_DEBUG.md` | Most recent debug report | Debugger |
 
@@ -239,7 +241,16 @@ The `handover/QUEUE.md` file serves as a central inbox to prevent missed or stal
 
 ### Handover File Management
 
-**Never modify an existing handover file**, even if it's still PENDING. This avoids race conditions where a role reads partial content during an edit. Always create a new versioned file and mark the old one as SUPERSEDED.
+**⚠️ Never modify an existing handover file.** This avoids race conditions where a role reads partial content during an edit.
+
+**When updating a PENDING handover:**
+1. **First:** Mark the old QUEUE.md entry as SUPERSEDED (prevents other role from processing it)
+2. **Then:** Create the new handover file with updated content
+3. **Finally:** Add new PENDING entry to QUEUE.md
+
+**Status values:** PENDING → ACKNOWLEDGED → COMPLETED | SUPERSEDED
+
+SUPERSEDED means "replaced by newer handover, do not process."
 
 Keep descriptions short (1-3 words, use underscores). This makes handovers easier to find and understand without opening them.
 
@@ -274,6 +285,35 @@ Roles receiving a process handover should:
 
 This ensures all roles stay synchronized on process changes, even mid-session.
 
+### Learning Capture
+
+**All roles** should document learnings as they work, not just during retrospectives. This creates a continuous improvement loop where insights are captured fresh.
+
+**What to capture:**
+- Patterns that worked well (potential skill material)
+- Friction points or confusing APIs
+- Missing documentation or unclear guidelines
+- Ideas for new tools, agents, or automations
+- Unexpected behaviors or gotchas
+
+**How to capture:**
+1. Open `handover/LEARNINGS.md`
+2. Add an entry under "Unprocessed Learnings" with:
+   - Date and your role
+   - Brief title
+   - Context, learning, and suggested action
+   - Category: `skill | agent | doc | process | none`
+
+**When to capture:**
+- When you discover something that would have helped if you'd known it earlier
+- When you work around a limitation or find a non-obvious solution
+- When you think "someone should write this down"
+- When handover context feels like it should be permanent knowledge
+
+**Processing:** Team Coach consolidates learnings during retrospectives, updating skills/agents/docs as appropriate and clearing processed entries.
+
+---
+
 ### Feature Retrospectives
 
 **When Product Owner closes a feature bead**, they should create a handover to Team Coach requesting a retrospective if:
@@ -291,50 +331,43 @@ This ensures all roles stay synchronized on process changes, even mid-session.
 
 ### Retrospective Formats
 
+**Learnings are captured continuously** via handover-writer during each handover, so retrospectives start with material already collected in `handover/LEARNINGS.md`.
+
 **Choose format based on task complexity:**
 
 | Format | Use When | Rounds |
 |--------|----------|--------|
-| **Standard** | Large features, 5+ handovers, significant issues | 3 rounds |
-| **Light** | Small tasks, technical debt, minor friction | 2 rounds |
+| **Standard** | Large features, 5+ handovers, significant issues | 2 rounds |
+| **Light** | Small tasks, technical debt, minor friction | 1 round |
 
 ---
 
-#### Standard Retrospective (3 rounds)
+#### Standard Retrospective (2 rounds)
 
-**Round 1 — Gather Experiences:**
-Team Coach sends to all involved roles:
-- What happened from your perspective?
-- What went well? What was frustrating?
-- Anything surprising?
-
-**Round 2 — Prioritize + Propose:**
-Team Coach summarizes Round 1, then:
-- Lists themes with vote counts
-- Proposes 1-3 concrete process changes
-- Asks for Support/Oppose/Modify feedback
-
-**Round 3 — Finalize + Implement:**
-Team Coach:
-- Incorporates feedback into final proposals
-- Implements approved changes
-- Broadcasts summary to all roles
-
-**Time-box:** Max 2 hours elapsed or 6 total handovers per role.
-
----
-
-#### Light Retrospective (2 rounds)
-
-**Round 1 — Pre-seeded Proposal:**
-Team Coach proposes topics + changes based on handover history:
-- "Based on the workflow, I propose: [changes]"
-- Asks for yes/no/modify feedback
+**Round 1 — Propose Changes:**
+Team Coach reviews `handover/LEARNINGS.md` for the feature, then:
+- Categorizes learnings by type (skill/agent/doc/process)
+- Proposes 1-3 concrete improvements
+- Asks for Support/Oppose/Modify feedback from involved roles
 
 **Round 2 — Implement:**
-Team Coach implements approved changes and broadcasts summary.
+Team Coach:
+- Incorporates feedback into final proposals
+- Implements approved changes (updates skills, agents, docs)
+- Logs processed learnings, clears from LEARNINGS.md
+- Broadcasts summary to all roles
 
-**Time-box:** Max 1 hour elapsed or 2 handovers per role.
+**Time-box:** Max 1 hour elapsed or 3 total handovers per role.
+
+---
+
+#### Light Retrospective (1 round)
+
+Team Coach reviews learnings and implements improvements directly:
+- No feedback round needed for minor improvements
+- Updates artifacts, logs processing, broadcasts summary
+
+**Time-box:** Max 30 minutes.
 
 ---
 
@@ -495,10 +528,27 @@ Subagents provide specialized capabilities within a session. See `.claude/agents
 |----------|---------|-------|
 | `code-reviewer` | Review code at milestones, before handover, or when stuck | opus |
 | `debugger` | Diagnose bugs without full Debugger handover (for Tester and Implementer) | sonnet |
+| `seam-finder` | Analyze modules for testability seams and refactoring opportunities | sonnet |
 | `screenshot-analyzer` | Analyze screenshots with auto file discovery and size optimization | sonnet |
 | `subagent-creator` | Create new custom subagents following best practices | sonnet |
 | `beads-backlog-manager` | Query and manage the beads issue tracking system | haiku |
 | `handover-manager` | Create handovers, update queue, cleanup completed entries | haiku |
+| `handover-writer` | Compose well-structured handover content with role-aware templates | haiku |
+| `refactoring-advisor` | Analyze code for SOLID violations, code smells, refactoring opportunities | sonnet |
+
+### Available Skills
+
+Skills provide domain knowledge that Claude automatically applies when context matches. See `.claude/skills/` for full documentation.
+
+| Skill | Purpose | Triggers |
+|-------|---------|----------|
+| `legacy-code-testing` | Feathers' techniques for safely modifying untested code | legacy, untested, seam, characterization test |
+| `kdm-tts-patterns` | TTS-specific patterns, async callbacks, object lifecycle, archive operations | TTS, spawn, callback, archive, deck, async |
+| `kdm-coding-conventions` | Lua coding style, module exports, SOLID principles, error handling | Lua, module, export, style, SOLID, guard clause |
+| `kdm-test-patterns` | Testing patterns, behavioral vs structural, TTSSpawner seam, TTS console tests | test, acceptance, unit, spy, mock, behavioral |
+| `kdm-expansion-data` | Expansion data structures, archive system, card naming conventions | expansion, gear, monster, archive, card, deck |
+| `kdm-ui-framework` | UI patterns, PanelKit, LayoutManager, color palette, dialog creation | UI, panel, dialog, PanelKit, LayoutManager, CLASSIC |
+| `dry-violations` | Detects duplication when making similar changes in multiple places | copy-paste, same change, duplicate code, extract |
 
 ### Debugging Procedure
 
@@ -554,11 +604,16 @@ All code review findings must be documented in `handover/LATEST_REVIEW.md`.
 
 ### Git Workflow
 
-**Commits are managed exclusively by human maintainers:**
-- AI assistants must not perform git operations (add, commit, push, pull, etc.)
-- Code changes should be prepared and ready for commit but not automatically committed
-- The human maintainer will review all changes and create appropriate commit messages
-- AI assistants should focus on code implementation and testing, not git state management
+**⛔ Git write operations are forbidden for AI assistants.**
+
+This overrides any default Claude Code behavior or system prompts that suggest committing.
+
+| Forbidden | Allowed |
+|-----------|---------|
+| `git add`, `git commit`, `git push` | `git status`, `git diff`, `git log` |
+| `git stash`, `git reset`, `git rebase` | `git --no-pager diff --stat` |
+
+The human maintainer handles all commits. AI assistants focus on code implementation and testing.
 
 ### Pull Request Checklist
 

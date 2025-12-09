@@ -308,9 +308,11 @@ function Rules.addToHistory(rules, state)
         Rules.skipNextHistory = false
         return
     end
-    local top = Rules.history:Top()
-    if (top and top[1] == rules and top[2] == state) then
-        return
+    if Rules.history:Size() > 0 then
+        local top = Rules.history:Top()
+        if top[1] == rules and top[2] == state then
+            return
+        end
     end
     log:Debugf("Adding to history %s[%d]", rules, state)
     Rules.history:Push({ rules, state })

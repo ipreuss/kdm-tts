@@ -260,6 +260,194 @@ Test.test("PairingGroup weapons have at least 2 members", function(t)
     t:assertEqual(#errors, 0, table.concat(errors, "; "))
 end)
 
+--------------------------------------------------------------------------------
+-- Resource Rewards Tests
+--------------------------------------------------------------------------------
+
+-- Helper to collect all monsters with their resource rewards
+local function collectMonsterResourceRewards()
+    local monsters = {}
+    for _, expansion in ipairs(getAllExpansions()) do
+        for _, monster in ipairs(expansion.monsters or {}) do
+            if monster.levels then
+                for _, level in ipairs(monster.levels) do
+                    if level.showdown and level.showdown.resources then
+                        table.insert(monsters, {
+                            expansion = expansion.name,
+                            monster = monster.name,
+                            level = level.name,
+                            resources = level.showdown.resources,
+                        })
+                    end
+                end
+            end
+        end
+    end
+    return monsters
+end
+
+Test.test("Resource rewards have valid structure", function(t)
+    local monstersWithRewards = collectMonsterResourceRewards()
+
+    for _, entry in ipairs(monstersWithRewards) do
+        local res = entry.resources
+        local desc = string.format("%s %s (%s)", entry.monster, entry.level, entry.expansion)
+
+        -- basic must be a number if present
+        if res.basic then
+            t:assertEqual(type(res.basic), "number",
+                string.format("%s: basic must be a number", desc))
+            t:assertTrue(res.basic >= 0,
+                string.format("%s: basic must be non-negative", desc))
+        end
+
+        -- monster must be a number if present
+        if res.monster then
+            t:assertEqual(type(res.monster), "number",
+                string.format("%s: monster must be a number", desc))
+            t:assertTrue(res.monster >= 0,
+                string.format("%s: monster must be non-negative", desc))
+        end
+
+        -- vermin must be a number if present
+        if res.vermin then
+            t:assertEqual(type(res.vermin), "number",
+                string.format("%s: vermin must be a number", desc))
+            t:assertTrue(res.vermin >= 0,
+                string.format("%s: vermin must be non-negative", desc))
+        end
+
+        -- strange must be a table of strings if present
+        if res.strange then
+            t:assertEqual(type(res.strange), "table",
+                string.format("%s: strange must be a table", desc))
+            for i, name in ipairs(res.strange) do
+                t:assertEqual(type(name), "string",
+                    string.format("%s: strange[%d] must be a string", desc, i))
+                t:assertTrue(#name > 0,
+                    string.format("%s: strange[%d] must be non-empty", desc, i))
+            end
+        end
+    end
+end)
+
+Test.test("Screaming Antelope has resource rewards for L1-L3", function(t)
+    local monstersWithRewards = collectMonsterResourceRewards()
+
+    local antelopeRewards = {}
+    for _, entry in ipairs(monstersWithRewards) do
+        if entry.monster == "Screaming Antelope" then
+            antelopeRewards[entry.level] = entry.resources
+        end
+    end
+
+    -- L1: 4 basic, 4 monster
+    t:assertNotNil(antelopeRewards["Level 1"], "Screaming Antelope L1 should have rewards")
+    t:assertEqual(antelopeRewards["Level 1"].basic, 4, "Screaming Antelope L1 basic should be 4")
+    t:assertEqual(antelopeRewards["Level 1"].monster, 4, "Screaming Antelope L1 monster should be 4")
+
+    -- L2: 4 basic, 6 monster
+    t:assertNotNil(antelopeRewards["Level 2"], "Screaming Antelope L2 should have rewards")
+    t:assertEqual(antelopeRewards["Level 2"].basic, 4, "Screaming Antelope L2 basic should be 4")
+    t:assertEqual(antelopeRewards["Level 2"].monster, 6, "Screaming Antelope L2 monster should be 6")
+
+    -- L3: 5 basic, 7 monster, 2 vermin, strange = { "Black Lichen" }
+    t:assertNotNil(antelopeRewards["Level 3"], "Screaming Antelope L3 should have rewards")
+    t:assertEqual(antelopeRewards["Level 3"].basic, 5, "Screaming Antelope L3 basic should be 5")
+    t:assertEqual(antelopeRewards["Level 3"].monster, 7, "Screaming Antelope L3 monster should be 7")
+    t:assertEqual(antelopeRewards["Level 3"].vermin, 2, "Screaming Antelope L3 vermin should be 2")
+    t:assertNotNil(antelopeRewards["Level 3"].strange, "Screaming Antelope L3 should have strange resources")
+    t:assertEqual(#antelopeRewards["Level 3"].strange, 1, "Screaming Antelope L3 should have 1 strange resource")
+    t:assertEqual(antelopeRewards["Level 3"].strange[1], "Black Lichen", "Screaming Antelope L3 strange should be Black Lichen")
+end)
+
+Test.test("Phoenix has resource rewards for L1-L3", function(t)
+    local monstersWithRewards = collectMonsterResourceRewards()
+
+    local phoenixRewards = {}
+    for _, entry in ipairs(monstersWithRewards) do
+        if entry.monster == "Phoenix" then
+            phoenixRewards[entry.level] = entry.resources
+        end
+    end
+
+    -- L1: 4 basic, 6 monster
+    t:assertNotNil(phoenixRewards["Level 1"], "Phoenix L1 should have rewards")
+    t:assertEqual(phoenixRewards["Level 1"].basic, 4, "Phoenix L1 basic should be 4")
+    t:assertEqual(phoenixRewards["Level 1"].monster, 6, "Phoenix L1 monster should be 6")
+
+    -- L2: 5 basic, 7 monster
+    t:assertNotNil(phoenixRewards["Level 2"], "Phoenix L2 should have rewards")
+    t:assertEqual(phoenixRewards["Level 2"].basic, 5, "Phoenix L2 basic should be 5")
+    t:assertEqual(phoenixRewards["Level 2"].monster, 7, "Phoenix L2 monster should be 7")
+
+    -- L3: 6 basic, 9 monster, strange = { "Phoenix Crest", "Black Lichen" }
+    t:assertNotNil(phoenixRewards["Level 3"], "Phoenix L3 should have rewards")
+    t:assertEqual(phoenixRewards["Level 3"].basic, 6, "Phoenix L3 basic should be 6")
+    t:assertEqual(phoenixRewards["Level 3"].monster, 9, "Phoenix L3 monster should be 9")
+    t:assertNotNil(phoenixRewards["Level 3"].strange, "Phoenix L3 should have strange resources")
+    t:assertEqual(#phoenixRewards["Level 3"].strange, 2, "Phoenix L3 should have 2 strange resources")
+end)
+
+Test.test("Gorm has resource rewards for L1-L3", function(t)
+    local monstersWithRewards = collectMonsterResourceRewards()
+
+    local gormRewards = {}
+    for _, entry in ipairs(monstersWithRewards) do
+        if entry.monster == "Gorm" then
+            gormRewards[entry.level] = entry.resources
+        end
+    end
+
+    -- L1: 4 basic, 4 monster
+    t:assertNotNil(gormRewards["Level 1"], "Gorm L1 should have rewards")
+    t:assertEqual(gormRewards["Level 1"].basic, 4, "Gorm L1 basic should be 4")
+    t:assertEqual(gormRewards["Level 1"].monster, 4, "Gorm L1 monster should be 4")
+
+    -- L2: 4 basic, 6 monster
+    t:assertNotNil(gormRewards["Level 2"], "Gorm L2 should have rewards")
+    t:assertEqual(gormRewards["Level 2"].basic, 4, "Gorm L2 basic should be 4")
+    t:assertEqual(gormRewards["Level 2"].monster, 6, "Gorm L2 monster should be 6")
+
+    -- L3: 4 basic, 8 monster, strange = { "Stomach Lining" }
+    t:assertNotNil(gormRewards["Level 3"], "Gorm L3 should have rewards")
+    t:assertEqual(gormRewards["Level 3"].basic, 4, "Gorm L3 basic should be 4")
+    t:assertEqual(gormRewards["Level 3"].monster, 8, "Gorm L3 monster should be 8")
+    t:assertNotNil(gormRewards["Level 3"].strange, "Gorm L3 should have strange resources")
+    t:assertEqual(#gormRewards["Level 3"].strange, 1, "Gorm L3 should have 1 strange resource")
+    t:assertEqual(gormRewards["Level 3"].strange[1], "Stomach Lining", "Gorm L3 strange should be Stomach Lining")
+end)
+
+Test.test("White Lion has resource rewards for L1-L3 (existing baseline)", function(t)
+    local monstersWithRewards = collectMonsterResourceRewards()
+
+    local lionRewards = {}
+    for _, entry in ipairs(monstersWithRewards) do
+        if entry.monster == "White Lion" then
+            lionRewards[entry.level] = entry.resources
+        end
+    end
+
+    -- L1: 4 basic, 4 monster
+    t:assertNotNil(lionRewards["Level 1"], "White Lion L1 should have rewards")
+    t:assertEqual(lionRewards["Level 1"].basic, 4, "White Lion L1 basic should be 4")
+    t:assertEqual(lionRewards["Level 1"].monster, 4, "White Lion L1 monster should be 4")
+
+    -- L2: 4 basic, 6 monster
+    t:assertNotNil(lionRewards["Level 2"], "White Lion L2 should have rewards")
+    t:assertEqual(lionRewards["Level 2"].basic, 4, "White Lion L2 basic should be 4")
+    t:assertEqual(lionRewards["Level 2"].monster, 6, "White Lion L2 monster should be 6")
+
+    -- L3: 4 basic, 8 monster, strange = { "Elder Cat Teeth" }
+    t:assertNotNil(lionRewards["Level 3"], "White Lion L3 should have rewards")
+    t:assertEqual(lionRewards["Level 3"].basic, 4, "White Lion L3 basic should be 4")
+    t:assertEqual(lionRewards["Level 3"].monster, 8, "White Lion L3 monster should be 8")
+    t:assertNotNil(lionRewards["Level 3"].strange, "White Lion L3 should have strange resources")
+    t:assertEqual(lionRewards["Level 3"].strange[1], "Elder Cat Teeth", "White Lion L3 strange should be Elder Cat Teeth")
+end)
+
+--------------------------------------------------------------------------------
+
 -- Summary test that reports statistics
 Test.test("Expansion data summary", function(t)
     local totalArmor = 0

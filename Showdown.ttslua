@@ -304,11 +304,12 @@ function Showdown.Setup(monsterOrName, levelOrName)
 
     Showdown.settingUp = true
 
-    -----------------------------------------------------------------------------------------------
-    -- Rules
+    local success, err = pcall(function()
+        -----------------------------------------------------------------------------------------------
+        -- Rules
 
-    local rules = showdownSetup.rules or monster.rules
-    Rules.SpawnRules(rules[1], rules[2])
+        local rules = showdownSetup.rules or monster.rules
+        Rules.SpawnRules(rules[1], rules[2])
 
     -----------------------------------------------------------------------------------------------
     -- Resources
@@ -671,18 +672,28 @@ function Showdown.Setup(monsterOrName, levelOrName)
 
     -----------------------------------------------------------------------------------------------
 
-    Archive.Clean()
-    if monster.nemesis then
-        Survivor.ClearSkipNextHunt()
+        Archive.Clean()
+        if monster.nemesis then
+            Survivor.ClearSkipNextHunt()
+        end
+        Showdown.monster = monster
+        Showdown.level = level
+        Wait.frames(function() log:Printf("Showdown ready. Adjust your survivor/terrain placement and prepare for death.") end, 120)
+
+        --Location.Get("(11.5, 8.5)"):LookAt({ distance = 90 })
+
+        EventManager.FireEvent(EventManager.ON_SHOWDOWN_STARTED)
+    end)
+
+    Showdown.settingUp = false  -- ALWAYS reset, even on error
+
+    if not success then
+        log:Errorf("Showdown setup failed: %s", tostring(err))
+        Archive.Clean()  -- Cleanup any partial spawns
+        return false
     end
-    Showdown.settingUp = false
-    Showdown.monster = monster
-    Showdown.level = level
-    Wait.frames(function() log:Printf("Showdown ready. Adjust your survivor/terrain placement and prepare for death.") end, 120)
 
-    --Location.Get("(11.5, 8.5)"):LookAt({ distance = 90 })
-
-    EventManager.FireEvent(EventManager.ON_SHOWDOWN_STARTED)
+    return true
 end
 
 ---------------------------------------------------------------------------------------------------

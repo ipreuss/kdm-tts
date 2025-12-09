@@ -41,6 +41,45 @@ function ResourceRewardsTests.Register()
     Console.AddCommand("testrewardsstrange", function(args)
         ResourceRewardsTests.TestStrangeResourcesSpawn()
     end, "Test strange resources spawn from archive (White Lion L3)")
+
+    -- Screaming Antelope tests
+    Console.AddCommand("testantelopebutton", function(args)
+        ResourceRewardsTests.TestScreamingAntelopeButtonAppears()
+    end, "Test rewards button appears for Screaming Antelope L1")
+
+    Console.AddCommand("testantelopedata", function(args)
+        ResourceRewardsTests.TestScreamingAntelopeDataIntegrity()
+    end, "Test Screaming Antelope resource data for all levels")
+
+    Console.AddCommand("testantelopevermin", function(args)
+        ResourceRewardsTests.TestScreamingAntelopeVerminSpawn()
+    end, "Test Screaming Antelope L3 spawns vermin resources")
+
+    -- Phoenix tests
+    Console.AddCommand("testphoenixbutton", function(args)
+        ResourceRewardsTests.TestPhoenixButtonAppears()
+    end, "Test rewards button appears for Phoenix L1")
+
+    Console.AddCommand("testphoenixdata", function(args)
+        ResourceRewardsTests.TestPhoenixDataIntegrity()
+    end, "Test Phoenix resource data for all levels")
+
+    Console.AddCommand("testphoenixstrange", function(args)
+        ResourceRewardsTests.TestPhoenixStrangeResourcesSpawn()
+    end, "Test Phoenix L3 spawns Phoenix Crest and Black Lichen")
+
+    -- Gorm tests
+    Console.AddCommand("testgormbutton", function(args)
+        ResourceRewardsTests.TestGormButtonAppears()
+    end, "Test rewards button appears for Gorm L1")
+
+    Console.AddCommand("testgormdata", function(args)
+        ResourceRewardsTests.TestGormDataIntegrity()
+    end, "Test Gorm resource data for all levels")
+
+    Console.AddCommand("testgormstrange", function(args)
+        ResourceRewardsTests.TestGormStrangeResourcesSpawn()
+    end, "Test Gorm L3 spawns Stomach Lining")
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -49,34 +88,42 @@ end
 
 function ResourceRewardsTests.TestButtonAppearsOnShowdown(onComplete)
     log:Printf("=== TEST: TestButtonAppearsOnShowdown (Integration) ===")
-    log:Printf("TEST: Starting White Lion Level 1 showdown via Showdown.Setup()...")
 
-    -- REAL ENTRY POINT: This triggers the full showdown setup flow
-    -- including EventManager.ON_SHOWDOWN_STARTED which ResourceRewards listens to
-    Showdown.Setup("White Lion", "Level 1")
+    -- Ensure clean state before starting
+    Showdown.Clean()
 
-    -- Wait for ON_SHOWDOWN_STARTED event to fire (happens early in setup)
-    -- Button visibility is determined by event, not full board setup
     Wait.frames(function()
-        log:Printf("TEST: Checking button visibility after showdown setup...")
+        log:Printf("TEST: Starting White Lion Level 1 showdown via Showdown.Setup()...")
 
-        -- VERIFY USER-VISIBLE OUTCOME: Is the button actually visible?
-        local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+        -- REAL ENTRY POINT: This triggers the full showdown setup flow
+        -- including EventManager.ON_SHOWDOWN_STARTED which ResourceRewards listens to
+        Showdown.Setup("White Lion", "Level 1")
 
-        if buttonVisible then
-            log:Printf("TEST: Rewards button IS visible")
-            log:Printf("=== TEST: TestButtonAppearsOnShowdown COMPLETE ===")
-            log:Printf("TEST RESULT: PASSED")
-            if onComplete then onComplete(true) end
-        else
-            log:Errorf("TEST: Rewards button is NOT visible!")
-            log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
-            log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
-            log:Printf("=== TEST: TestButtonAppearsOnShowdown COMPLETE ===")
-            log:Printf("TEST RESULT: FAILED")
-            if onComplete then onComplete(false) end
-        end
-    end, 30)
+        -- Wait for ON_SHOWDOWN_STARTED event to fire (happens early in setup)
+        -- Button visibility is determined by event, not full board setup
+        Wait.frames(function()
+            log:Printf("TEST: Checking button visibility after showdown setup...")
+
+            -- VERIFY USER-VISIBLE OUTCOME: Is the button actually visible?
+            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+
+            if buttonVisible then
+                log:Printf("TEST: Rewards button IS visible")
+                log:Printf("=== TEST: TestButtonAppearsOnShowdown COMPLETE ===")
+                log:Printf("TEST RESULT: PASSED")
+                Showdown.Clean()
+                if onComplete then onComplete(true) end
+            else
+                log:Errorf("TEST: Rewards button is NOT visible!")
+                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
+                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
+                log:Printf("=== TEST: TestButtonAppearsOnShowdown COMPLETE ===")
+                log:Printf("TEST RESULT: FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(false) end
+            end
+        end, 60)
+    end, 10)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -85,28 +132,36 @@ end
 
 function ResourceRewardsTests.TestButtonHiddenNoResources(onComplete)
     log:Printf("=== TEST: TestButtonHiddenNoResources (Integration) ===")
-    log:Printf("TEST: Starting White Lion Prologue showdown (no resources)...")
 
-    -- Prologue has no resource rewards defined
-    Showdown.Setup("White Lion", "Prologue")
+    -- Ensure clean state before starting
+    Showdown.Clean()
 
     Wait.frames(function()
-        log:Printf("TEST: Checking button visibility after Prologue setup...")
+        log:Printf("TEST: Starting White Lion Prologue showdown (no resources)...")
 
-        local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+        -- Prologue has no resource rewards defined
+        Showdown.Setup("White Lion", "Prologue")
 
-        if not buttonVisible then
-            log:Printf("TEST: Rewards button correctly hidden for Prologue")
-            log:Printf("=== TEST: TestButtonHiddenNoResources COMPLETE ===")
-            log:Printf("TEST RESULT: PASSED")
-            if onComplete then onComplete(true) end
-        else
-            log:Errorf("TEST: Rewards button should be hidden for Prologue!")
-            log:Printf("=== TEST: TestButtonHiddenNoResources COMPLETE ===")
-            log:Printf("TEST RESULT: FAILED")
-            if onComplete then onComplete(false) end
-        end
-    end, 30)
+        Wait.frames(function()
+            log:Printf("TEST: Checking button visibility after Prologue setup...")
+
+            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+
+            if not buttonVisible then
+                log:Printf("TEST: Rewards button correctly hidden for Prologue")
+                log:Printf("=== TEST: TestButtonHiddenNoResources COMPLETE ===")
+                log:Printf("TEST RESULT: PASSED")
+                Showdown.Clean()
+                if onComplete then onComplete(true) end
+            else
+                log:Errorf("TEST: Rewards button should be hidden for Prologue!")
+                log:Printf("=== TEST: TestButtonHiddenNoResources COMPLETE ===")
+                log:Printf("TEST RESULT: FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(false) end
+            end
+        end, 60)
+    end, 10)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -198,11 +253,15 @@ function ResourceRewardsTests.TestDrawsFromExistingDecks(onComplete)
     log:Printf("TEST: decks on the showdown board, not fresh decks from the archive.")
     log:Printf("TEST: This ensures events that take resources during showdown reduce rewards.")
 
-    -- Step 1: Start showdown to spawn decks
-    log:Printf("TEST: Step 1 - Starting White Lion Level 1 showdown...")
-    Showdown.Setup("White Lion", "Level 1")
+    -- Ensure clean state before starting
+    Showdown.Clean()
 
     Wait.frames(function()
+        -- Step 1: Start showdown to spawn decks
+        log:Printf("TEST: Step 1 - Starting White Lion Level 1 showdown...")
+        Showdown.Setup("White Lion", "Level 1")
+
+        Wait.frames(function()
         -- Step 2: Find the Basic Resources deck and count cards
         log:Printf("TEST: Step 2 - Locating Basic Resources deck...")
         local basicLocation = Location.Get("Basic Resources")
@@ -304,10 +363,12 @@ function ResourceRewardsTests.TestDrawsFromExistingDecks(onComplete)
 
                 log:Printf("=== TEST: TestDrawsFromExistingDecks COMPLETE ===")
                 log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+                Showdown.Clean()
                 if onComplete then onComplete(passed) end
             end, 60)  -- Wait for spawn to complete
         end, 10)  -- Wait for card removal
-    end, 60)  -- Wait for showdown setup
+        end, 60)  -- Wait for showdown setup
+    end, 10)  -- Wait for cleanup
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -316,13 +377,18 @@ end
 
 function ResourceRewardsTests.TestStrangeResourcesSpawn(onComplete)
     log:Printf("=== TEST: TestStrangeResourcesSpawn (Behavioral) ===")
-    log:Printf("TEST: Starting White Lion Level 3 showdown (has strange resources)...")
 
-    -- White Lion Level 3 has: basic = 4, monster = 8, strange = { "Elder Cat Teeth" }
-    Showdown.Setup("White Lion", "Level 3")
+    -- Ensure clean state before starting
+    Showdown.Clean()
 
     Wait.frames(function()
-        -- Check that Elder Cat Teeth does NOT exist on the table before spawn
+        log:Printf("TEST: Starting White Lion Level 3 showdown (has strange resources)...")
+
+        -- White Lion Level 3 has: basic = 4, monster = 8, strange = { "Elder Cat Teeth" }
+        Showdown.Setup("White Lion", "Level 3")
+
+        Wait.frames(function()
+            -- Check that Elder Cat Teeth does NOT exist on the table before spawn
         log:Printf("TEST: Checking 'Elder Cat Teeth' does NOT exist before spawn...")
         local beforeFound = false
         for _, obj in ipairs(getObjects()) do
@@ -383,10 +449,591 @@ function ResourceRewardsTests.TestStrangeResourcesSpawn(onComplete)
 
             log:Printf("=== TEST: TestStrangeResourcesSpawn COMPLETE ===")
             log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
-
+            Showdown.Clean()
             if onComplete then onComplete(passed) end
-        end, 60)  -- Wait for spawn to complete
-    end, 30)  -- Wait for showdown event
+            end, 60)  -- Wait for spawn to complete
+        end, 30)  -- Wait for showdown event
+    end, 10)  -- Wait for cleanup
+end
+
+---------------------------------------------------------------------------------------------------
+-- SCREAMING ANTELOPE TESTS
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestScreamingAntelopeButtonAppears(onComplete)
+    log:Printf("=== TEST: TestScreamingAntelopeButtonAppears (Integration) ===")
+
+    -- Ensure clean state before starting
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting Screaming Antelope Level 1 showdown via Showdown.Setup()...")
+
+        Showdown.Setup("Screaming Antelope", "Level 1")
+
+        Wait.frames(function()
+            log:Printf("TEST: Checking button visibility after showdown setup...")
+
+            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+
+            if buttonVisible then
+                log:Printf("TEST: Rewards button IS visible for Screaming Antelope L1")
+                log:Printf("=== TEST: TestScreamingAntelopeButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: PASSED")
+                Showdown.Clean()
+                if onComplete then onComplete(true) end
+            else
+                log:Errorf("TEST: Rewards button is NOT visible!")
+                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
+                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
+                log:Printf("=== TEST: TestScreamingAntelopeButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(false) end
+            end
+        end, 60)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestScreamingAntelopeDataIntegrity(onComplete)
+    log:Printf("=== TEST: TestScreamingAntelopeDataIntegrity ===")
+    log:Printf("TEST: Verifying Screaming Antelope resource data structure...")
+
+    local monster = Showdown.Test.MonsterByName("Screaming Antelope")
+    if not monster then
+        log:Errorf("TEST FAILED: Could not find Screaming Antelope monster")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    local passed = true
+    local expectedResources = {
+        { levelName = "Level 1", basic = 4, monster = 4 },
+        { levelName = "Level 2", basic = 4, monster = 6 },
+        { levelName = "Level 3", basic = 5, monster = 7, vermin = 2, strange = { "Black Lichen" } },
+    }
+
+    for _, expected in ipairs(expectedResources) do
+        local level = findLevelByName(monster, expected.levelName)
+        if not level then
+            log:Errorf("TEST: Screaming Antelope %s not found", expected.levelName)
+            passed = false
+        else
+            local rewards = level.showdown and level.showdown.resources
+            if not rewards then
+                log:Errorf("TEST: %s has no resources data", expected.levelName)
+                passed = false
+            else
+                local levelPassed = true
+                if rewards.basic ~= expected.basic then
+                    log:Errorf("TEST: %s expected %d basic, got %d",
+                        expected.levelName, expected.basic, rewards.basic or 0)
+                    levelPassed = false
+                end
+                if rewards.monster ~= expected.monster then
+                    log:Errorf("TEST: %s expected %d monster, got %d",
+                        expected.levelName, expected.monster, rewards.monster or 0)
+                    levelPassed = false
+                end
+                if expected.vermin and rewards.vermin ~= expected.vermin then
+                    log:Errorf("TEST: %s expected %d vermin, got %d",
+                        expected.levelName, expected.vermin, rewards.vermin or 0)
+                    levelPassed = false
+                end
+                if expected.strange then
+                    if not rewards.strange or #rewards.strange ~= #expected.strange then
+                        log:Errorf("TEST: %s expected %d strange resources, got %d",
+                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
+                        levelPassed = false
+                    else
+                        for i, expectedName in ipairs(expected.strange) do
+                            if rewards.strange[i] ~= expectedName then
+                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
+                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
+                                levelPassed = false
+                            end
+                        end
+                    end
+                end
+                if levelPassed then
+                    local verminStr = expected.vermin and string.format(", vermin=%d", rewards.vermin) or ""
+                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
+                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s%s)",
+                        expected.levelName, rewards.basic, rewards.monster, verminStr, strangeStr)
+                else
+                    passed = false
+                end
+            end
+        end
+    end
+
+    log:Printf("=== TEST: TestScreamingAntelopeDataIntegrity COMPLETE ===")
+    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+    if onComplete then onComplete(passed) end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestScreamingAntelopeVerminSpawn(onComplete)
+    log:Printf("=== TEST: TestScreamingAntelopeVerminSpawn (Behavioral) ===")
+
+    -- Ensure clean state before starting
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting Screaming Antelope Level 3 showdown (has vermin resources)...")
+
+        -- Screaming Antelope Level 3 has: basic = 5, monster = 7, vermin = 2, strange = { "Black Lichen" }
+        Showdown.Setup("Screaming Antelope", "Level 3")
+
+        Wait.frames(function()
+            -- Count vermin cards before spawn (should be in Vermin deck on showdown board)
+            log:Printf("TEST: Locating Vermin deck on showdown board...")
+            local verminLocation = Location.Get("Vermin")
+            local verminDeckObj = verminLocation:FirstObject({ types = { "Vermin" } })
+
+        local initialVerminCount = 0
+        if verminDeckObj then
+            if Container.TAGS[verminDeckObj.tag] then
+                initialVerminCount = #verminDeckObj.getObjects()
+            else
+                initialVerminCount = 1
+            end
+        end
+        log:Printf("TEST: Vermin deck has %d cards before spawn", initialVerminCount)
+
+        -- Trigger the rewards spawn
+        log:Printf("TEST: Triggering ResourceRewards.SpawnRewards()...")
+        ResourceRewards.Test.SpawnRewards()
+
+        Wait.frames(function()
+            -- Count vermin cards after spawn
+            local verminDeckAfter = verminLocation:FirstObject({ types = { "Vermin" } })
+            local finalVerminCount = 0
+            if verminDeckAfter then
+                if Container.TAGS[verminDeckAfter.tag] then
+                    finalVerminCount = #verminDeckAfter.getObjects()
+                else
+                    finalVerminCount = 1
+                end
+            end
+
+            local verminDrawn = initialVerminCount - finalVerminCount
+            log:Printf("TEST: Vermin deck now has %d cards (drew %d)", finalVerminCount, verminDrawn)
+
+            local passed = true
+            if verminDrawn < 2 then
+                log:Errorf("TEST FAILED: Expected to draw 2 vermin, but only drew %d", verminDrawn)
+                passed = false
+            else
+                log:Printf("TEST PASSED: Correctly drew %d vermin resources from deck", verminDrawn)
+            end
+
+            -- Cleanup spawned resources
+            log:Printf("TEST: Cleaning up spawned resources...")
+            local cleanedCount = 0
+            for _, obj in ipairs(getObjects()) do
+                local pos = obj.getPosition()
+                if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
+                    obj.destruct()
+                    cleanedCount = cleanedCount + 1
+                end
+            end
+            log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+
+            log:Printf("=== TEST: TestScreamingAntelopeVerminSpawn COMPLETE ===")
+            log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+            Showdown.Clean()
+            if onComplete then onComplete(passed) end
+            end, 60)
+        end, 60)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+-- PHOENIX TESTS
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestPhoenixButtonAppears(onComplete)
+    log:Printf("=== TEST: TestPhoenixButtonAppears (Integration) ===")
+
+    -- Ensure clean state before starting
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting Phoenix Level 1 showdown via Showdown.Setup()...")
+
+        Showdown.Setup("Phoenix", "Level 1")
+
+        Wait.frames(function()
+            log:Printf("TEST: Checking button visibility after showdown setup...")
+
+            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+
+            if buttonVisible then
+                log:Printf("TEST: Rewards button IS visible for Phoenix L1")
+                log:Printf("=== TEST: TestPhoenixButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: PASSED")
+                Showdown.Clean()
+                if onComplete then onComplete(true) end
+            else
+                log:Errorf("TEST: Rewards button is NOT visible!")
+                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
+                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
+                log:Printf("=== TEST: TestPhoenixButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(false) end
+            end
+        end, 60)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestPhoenixDataIntegrity(onComplete)
+    log:Printf("=== TEST: TestPhoenixDataIntegrity ===")
+    log:Printf("TEST: Verifying Phoenix resource data structure...")
+
+    local monster = Showdown.Test.MonsterByName("Phoenix")
+    if not monster then
+        log:Errorf("TEST FAILED: Could not find Phoenix monster")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    local passed = true
+    local expectedResources = {
+        { levelName = "Level 1", basic = 4, monster = 6 },
+        { levelName = "Level 2", basic = 5, monster = 7 },
+        { levelName = "Level 3", basic = 6, monster = 9, strange = { "Phoenix Crest", "Black Lichen" } },
+    }
+
+    for _, expected in ipairs(expectedResources) do
+        local level = findLevelByName(monster, expected.levelName)
+        if not level then
+            log:Errorf("TEST: Phoenix %s not found", expected.levelName)
+            passed = false
+        else
+            local rewards = level.showdown and level.showdown.resources
+            if not rewards then
+                log:Errorf("TEST: %s has no resources data", expected.levelName)
+                passed = false
+            else
+                local levelPassed = true
+                if rewards.basic ~= expected.basic then
+                    log:Errorf("TEST: %s expected %d basic, got %d",
+                        expected.levelName, expected.basic, rewards.basic or 0)
+                    levelPassed = false
+                end
+                if rewards.monster ~= expected.monster then
+                    log:Errorf("TEST: %s expected %d monster, got %d",
+                        expected.levelName, expected.monster, rewards.monster or 0)
+                    levelPassed = false
+                end
+                if expected.strange then
+                    if not rewards.strange or #rewards.strange ~= #expected.strange then
+                        log:Errorf("TEST: %s expected %d strange resources, got %d",
+                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
+                        levelPassed = false
+                    else
+                        for i, expectedName in ipairs(expected.strange) do
+                            if rewards.strange[i] ~= expectedName then
+                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
+                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
+                                levelPassed = false
+                            end
+                        end
+                    end
+                end
+                if levelPassed then
+                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
+                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s)",
+                        expected.levelName, rewards.basic, rewards.monster, strangeStr)
+                else
+                    passed = false
+                end
+            end
+        end
+    end
+
+    log:Printf("=== TEST: TestPhoenixDataIntegrity COMPLETE ===")
+    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+    if onComplete then onComplete(passed) end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestPhoenixStrangeResourcesSpawn(onComplete)
+    log:Printf("=== TEST: TestPhoenixStrangeResourcesSpawn (Behavioral) ===")
+
+    -- Ensure clean state before starting
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting Phoenix Level 3 showdown (has 2 strange resources)...")
+
+        -- Phoenix Level 3 has: basic = 6, monster = 9, strange = { "Phoenix Crest", "Black Lichen" }
+        Showdown.Setup("Phoenix", "Level 3")
+
+        Wait.frames(function()
+            -- Check that target strange resources do NOT exist on table before spawn
+        log:Printf("TEST: Checking strange resources do NOT exist before spawn...")
+        local phoenixCrestBefore = false
+        local blackLichenBefore = false
+        for _, obj in ipairs(getObjects()) do
+            local name = obj.getName()
+            if name == "Phoenix Crest" then phoenixCrestBefore = true end
+            if name == "Black Lichen" then blackLichenBefore = true end
+        end
+
+        if phoenixCrestBefore or blackLichenBefore then
+            log:Printf("TEST: Warning - Strange resources already on table (previous test residue?)")
+        else
+            log:Printf("TEST: Confirmed - Strange resources not on table before spawn")
+        end
+
+        -- Trigger the rewards spawn
+        log:Printf("TEST: Triggering ResourceRewards.SpawnRewards()...")
+        ResourceRewards.Test.SpawnRewards()
+
+        Wait.frames(function()
+            log:Printf("TEST: Searching table for Phoenix Crest and Black Lichen...")
+
+            local foundPhoenixCrest = false
+            local foundBlackLichen = false
+            for _, obj in ipairs(getObjects()) do
+                local name = obj.getName()
+                if name == "Phoenix Crest" then
+                    foundPhoenixCrest = true
+                    local pos = obj.getPosition()
+                    log:Printf("TEST: Found 'Phoenix Crest' at (%.1f, %.1f, %.1f)", pos.x, pos.y, pos.z)
+                end
+                if name == "Black Lichen" then
+                    foundBlackLichen = true
+                    local pos = obj.getPosition()
+                    log:Printf("TEST: Found 'Black Lichen' at (%.1f, %.1f, %.1f)", pos.x, pos.y, pos.z)
+                end
+            end
+
+            local passed = true
+            if not foundPhoenixCrest then
+                log:Errorf("TEST: 'Phoenix Crest' NOT found on table!")
+                passed = false
+            end
+            if not foundBlackLichen then
+                log:Errorf("TEST: 'Black Lichen' NOT found on table!")
+                passed = false
+            end
+
+            -- Cleanup spawned resources
+            log:Printf("TEST: Cleaning up spawned resources...")
+            local cleanedCount = 0
+            for _, obj in ipairs(getObjects()) do
+                local pos = obj.getPosition()
+                if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
+                    obj.destruct()
+                    cleanedCount = cleanedCount + 1
+                end
+            end
+            log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+
+            log:Printf("=== TEST: TestPhoenixStrangeResourcesSpawn COMPLETE ===")
+            log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+            Showdown.Clean()
+            if onComplete then onComplete(passed) end
+            end, 60)
+        end, 30)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+-- GORM TESTS
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestGormButtonAppears(onComplete)
+    log:Printf("=== TEST: TestGormButtonAppears (Integration) ===")
+
+    -- Ensure clean state before starting
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting Gorm Level 1 showdown via Showdown.Setup()...")
+
+        Showdown.Setup("Gorm", "Level 1")
+
+        Wait.frames(function()
+            log:Printf("TEST: Checking button visibility after showdown setup...")
+
+            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+
+            if buttonVisible then
+                log:Printf("TEST: Rewards button IS visible for Gorm L1")
+                log:Printf("=== TEST: TestGormButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: PASSED")
+                Showdown.Clean()
+                if onComplete then onComplete(true) end
+            else
+                log:Errorf("TEST: Rewards button is NOT visible!")
+                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
+                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
+                log:Printf("=== TEST: TestGormButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(false) end
+            end
+        end, 60)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestGormDataIntegrity(onComplete)
+    log:Printf("=== TEST: TestGormDataIntegrity ===")
+    log:Printf("TEST: Verifying Gorm resource data structure...")
+
+    local monster = Showdown.Test.MonsterByName("Gorm")
+    if not monster then
+        log:Errorf("TEST FAILED: Could not find Gorm monster")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    local passed = true
+    local expectedResources = {
+        { levelName = "Level 1", basic = 4, monster = 4 },
+        { levelName = "Level 2", basic = 4, monster = 6 },
+        { levelName = "Level 3", basic = 4, monster = 8, strange = { "Stomach Lining" } },
+    }
+
+    for _, expected in ipairs(expectedResources) do
+        local level = findLevelByName(monster, expected.levelName)
+        if not level then
+            log:Errorf("TEST: Gorm %s not found", expected.levelName)
+            passed = false
+        else
+            local rewards = level.showdown and level.showdown.resources
+            if not rewards then
+                log:Errorf("TEST: %s has no resources data", expected.levelName)
+                passed = false
+            else
+                local levelPassed = true
+                if rewards.basic ~= expected.basic then
+                    log:Errorf("TEST: %s expected %d basic, got %d",
+                        expected.levelName, expected.basic, rewards.basic or 0)
+                    levelPassed = false
+                end
+                if rewards.monster ~= expected.monster then
+                    log:Errorf("TEST: %s expected %d monster, got %d",
+                        expected.levelName, expected.monster, rewards.monster or 0)
+                    levelPassed = false
+                end
+                if expected.strange then
+                    if not rewards.strange or #rewards.strange ~= #expected.strange then
+                        log:Errorf("TEST: %s expected %d strange resources, got %d",
+                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
+                        levelPassed = false
+                    else
+                        for i, expectedName in ipairs(expected.strange) do
+                            if rewards.strange[i] ~= expectedName then
+                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
+                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
+                                levelPassed = false
+                            end
+                        end
+                    end
+                end
+                if levelPassed then
+                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
+                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s)",
+                        expected.levelName, rewards.basic, rewards.monster, strangeStr)
+                else
+                    passed = false
+                end
+            end
+        end
+    end
+
+    log:Printf("=== TEST: TestGormDataIntegrity COMPLETE ===")
+    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+    if onComplete then onComplete(passed) end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestGormStrangeResourcesSpawn(onComplete)
+    log:Printf("=== TEST: TestGormStrangeResourcesSpawn (Behavioral) ===")
+
+    -- Ensure clean state before starting
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting Gorm Level 3 showdown (has Stomach Lining)...")
+
+        -- Gorm Level 3 has: basic = 4, monster = 8, strange = { "Stomach Lining" }
+        Showdown.Setup("Gorm", "Level 3")
+
+        Wait.frames(function()
+            -- Check that Stomach Lining does NOT exist on table before spawn
+        log:Printf("TEST: Checking 'Stomach Lining' does NOT exist before spawn...")
+        local beforeFound = false
+        for _, obj in ipairs(getObjects()) do
+            if obj.getName() == "Stomach Lining" then
+                beforeFound = true
+                break
+            end
+        end
+
+        if beforeFound then
+            log:Printf("TEST: Warning - 'Stomach Lining' already exists on table (previous test residue?)")
+        else
+            log:Printf("TEST: Confirmed - 'Stomach Lining' not on table before spawn")
+        end
+
+        -- Trigger the rewards spawn
+        log:Printf("TEST: Triggering ResourceRewards.SpawnRewards()...")
+        ResourceRewards.Test.SpawnRewards()
+
+        Wait.frames(function()
+            log:Printf("TEST: Searching table for 'Stomach Lining'...")
+
+            local foundStomachLining = false
+            for _, obj in ipairs(getObjects()) do
+                if obj.getName() == "Stomach Lining" then
+                    foundStomachLining = true
+                    local pos = obj.getPosition()
+                    log:Printf("TEST: Found 'Stomach Lining' at (%.1f, %.1f, %.1f)", pos.x, pos.y, pos.z)
+                    break
+                end
+            end
+
+            local passed = true
+            if not foundStomachLining then
+                log:Errorf("TEST: 'Stomach Lining' NOT found on table!")
+                passed = false
+            end
+
+            -- Cleanup spawned resources
+            log:Printf("TEST: Cleaning up spawned resources...")
+            local cleanedCount = 0
+            for _, obj in ipairs(getObjects()) do
+                local pos = obj.getPosition()
+                if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
+                    obj.destruct()
+                    cleanedCount = cleanedCount + 1
+                end
+            end
+            log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+
+            log:Printf("=== TEST: TestGormStrangeResourcesSpawn COMPLETE ===")
+            log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+            Showdown.Clean()
+            if onComplete then onComplete(passed) end
+            end, 60)
+        end, 30)
+    end, 10)
 end
 
 ---------------------------------------------------------------------------------------------------

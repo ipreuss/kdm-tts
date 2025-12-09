@@ -1,0 +1,902 @@
+
+▗ ▗   ▖ ▖  Claude Code v2.0.62
+           Opus 4.5 · Claude Max
+  ▘▘ ▝▝    ~/Documents/GitHub/kdm
+
+> /clear 
+  ⎿  (no content)
+
+> your are the team coach 
+
+⏺ I'll read the PROCESS.md and the Team Coach role file to understand my
+  responsibilities.
+
+⏺ Read(PROCESS.md)
+  ⎿  Read 577 lines
+
+⏺ Read(ROLES/TEAM_COACH.md)
+  ⎿  Read 75 lines
+
+⏺ Read(handover/QUEUE.md)
+  ⎿  Read 46 lines
+
+⏺ Team Coach Role Active
+
+  I've read the process documentation and queue. Current status:
+
+  Queue Summary:
+  - 1 PENDING handover: Tester → Reviewer (Resource Rewards Expansion) — not
+   my concern
+  - 1 ACKNOWLEDGED: Implementer → Tester (Resource Rewards Expansion)
+  - 2 COMPLETED entries
+
+  No handovers pending for Team Coach.
+
+  How can I help today?
+
+  As Team Coach, I can assist with:
+  - Process improvements — Reviewing workflow friction, optimizing handover
+  patterns
+  - Role definitions — Updating or clarifying ROLES/*.md
+  - Retrospectives — Facilitating feedback sessions after feature completion
+  - Documentation — Updating PROCESS.md, CLAUDE.md, or handover queue
+  structure
+  - Cross-role coordination — Helping resolve process blockers or conflicts
+
+  What would you like to work on?
+
+> research use of skills versus agents in claude code. look through our 
+existing agents. Should any of those rather be skills? 
+
+⏺ I'll research the difference between skills and agents in Claude Code,
+  then review our existing agents to see if any should be converted to
+  skills.
+
+⏺ claude-code-guide(Research skills vs agents)
+  ⎿  Done (4 tool uses · 32.7k tokens · 27s)                               
+
+⏺ Search(pattern: ".claude/agents/*.md")
+  ⎿  Found 7 files (ctrl+o to expand)
+
+⏺ Now let me read all the existing agents to understand what they do:
+
+⏺ Read(.claude/agents/beads-backlog-manager.md)
+  ⎿  Read 180 lines
+
+⏺ Read(.claude/agents/code-reviewer.md)
+  ⎿  Read 200 lines
+
+⏺ Read(.claude/agents/screenshot-analyzer.md)
+  ⎿  Read 181 lines
+
+⏺ Read(.claude/agents/handover-manager.md)
+  ⎿  Read 186 lines
+
+⏺ Read(.claude/agents/debugger.md)
+  ⎿  Read 177 lines
+
+⏺ Read(.claude/agents/subagent-creator.md)
+  ⎿  Read 361 lines
+
+⏺ Read(.claude/agents/skill-manager.md)
+  ⎿  Read 366 lines
+
+⏺ Now I have a complete picture. Let me analyze our agents against the
+  skill/agent distinction and provide my assessment.
+
+  ---
+  Analysis: Skills vs Agents
+
+  Key Distinctions
+
+  | Aspect     | Skills                                           | Agents
+                                          |
+  |------------|--------------------------------------------------|---------
+  ----------------------------------------|
+  | Invocation | Automatic (model discovers based on context)     |
+  Delegated (Claude explicitly invokes)           |
+  | Context    | Loaded into main conversation                    | Separate
+   isolated context                       |
+  | Purpose    | Domain expertise, reference material, procedures | Complex
+  multi-step tasks, specialized reasoning |
+  | Structure  | Directory with SKILL.md + resources              | Single
+  markdown file with system prompt         |
+  | Best for   | "How to do X" knowledge                          | "Do X
+  for me" delegation                        |
+
+  Assessment of Current Agents
+
+  | Agent                 | Current Model | Should Be Skill? | Confidence |
+  Rationale
+        |
+  |-----------------------|---------------|------------------|------------|-
+  --------------------------------------------------------------------------
+  ------|
+  | code-reviewer         | opus          | No - Stay Agent  | 95%        |
+  Complex multi-step reasoning, needs isolated context, returns structured
+  report |
+  | debugger              | sonnet        | No - Stay Agent  | 90%        |
+  Complex diagnostic reasoning, generates hypotheses, needs fresh
+  perspective     |
+  | screenshot-analyzer   | sonnet        | No - Stay Agent  | 85%        |
+  Multi-step workflow (discover → convert → analyze), uses Bash
+        |
+  | handover-manager      | haiku         | Maybe Skill      | 60%        |
+  Mostly procedural file operations, could be "handover knowledge"
+        |
+  | beads-backlog-manager | haiku         | Maybe Skill      | 55%        |
+  Mostly CLI wrapper around bd commands, procedural
+        |
+  | subagent-creator      | sonnet        | No - Stay Agent  | 95%        |
+  Creates artifacts, needs write access, complex reasoning
+        |
+  | skill-manager         | sonnet        | No - Stay Agent  | 95%        |
+  Creates artifacts, needs write access, complex reasoning
+        |
+
+  Detailed Recommendations
+
+  1. Keep as Agents (Clear Cases)
+
+  code-reviewer, debugger, subagent-creator, skill-manager
+  - These involve complex reasoning that benefits from isolated context
+  - They produce substantial outputs (review reports, diagnoses, new files)
+  - The "fresh perspective" of a separate context is valuable
+  - They're delegated tasks ("review this code") not knowledge ("how to
+  review")
+
+  screenshot-analyzer
+  - Has a multi-step workflow with file discovery and conversion
+  - Could theoretically be a skill, but the Bash commands for file discovery
+   work better in agent context
+
+  2. Consider Converting to Skills (Borderline Cases)
+
+  handover-manager — Borderline (60% confidence it could be a skill)
+
+  Arguments for Skill:
+  - The knowledge of "how to create a handover" is procedural
+  - Could be automatic — Claude discovers when handover is mentioned
+  - Most of the value is the template format, not complex reasoning
+
+  Arguments against:
+  - It writes files (skills typically don't)
+  - The isolated context prevents queue state from cluttering main
+  conversation
+  - Model-invoked could trigger too often
+
+  Recommendation: Keep as agent, but monitor. If handover creation becomes
+  routine and predictable, consider a skill for the format/knowledge with
+  manual file creation.
+
+  beads-backlog-manager — Borderline (55% confidence it could be a skill)
+
+  Arguments for Skill:
+  - Mostly a wrapper around bd CLI commands
+  - The knowledge ("how to use bd") is procedural
+  - Could auto-activate when user mentions "backlog", "bead", "task"
+
+  Arguments against:
+  - It runs Bash commands (skills can do this with allowed-tools: Bash)
+  - Isolated context is useful for long query results
+  - Agent model (haiku) is already very cheap
+
+  Recommendation: Keep as agent for now. The isolation is valuable for
+  keeping query output from polluting main context.
+
+  ---
+  Summary
+
+  No changes recommended at this time. All current agents are correctly
+  categorized:
+
+  1. Complex reasoning tasks (code-reviewer, debugger) → Agents
+  2. Artifact creation (subagent-creator, skill-manager) → Agents
+  3. Workflow with file discovery (screenshot-analyzer) → Agent
+  4. Procedural file operations (handover-manager, beads-backlog-manager) →
+  Agents (borderline, but isolation is valuable)
+
+  When to Consider Skills
+
+  Create a skill when you have:
+  - Recurring domain knowledge ("our API patterns", "TTS coordinate
+  conventions")
+  - Reference material (documentation Claude should access automatically)
+  - Procedural guidance that should enhance main conversation, not be
+  delegated
+
+  Potential Future Skills for This Project
+
+  | Skill Idea         | Purpose
+         |
+  |--------------------|----------------------------------------------------
+  -------|
+  | kdm-tts-patterns   | Common TTS patterns, coordinate systems, object
+  lifecycle |
+  | kdm-coding-style   | Auto-load CODING_STYLE.md when writing Lua
+         |
+  | kdm-expansion-data | Knowledge about expansion data structures
+         |
+
+  These would be knowledge enhancement, not task delegation.
+
+  ---
+  ═══════════════════════════════════════
+  ║        TEAM COACH ROLE END          ║
+  ║        2025-12-09 12:45 UTC         ║
+  ═══════════════════════════════════════
+
+⏺ Bash(say -v Xander "Team Coach fertig. Sieben Agenten analysiert, alle bleiben
+       Agenten. Keine Umwandlung zu Skills nötig.")
+  ⎿  (No content)
+
+> go through our process, architecture and role documentation and find 
+potential where new skills and/or agents would be beneficial 
+
+⏺ I'll systematically review the process, architecture, and role
+  documentation to identify opportunities for new skills or agents.
+
+⏺ Read(ARCHITECTURE.md)
+  ⎿  Read 466 lines
+
+⏺ Read(CODING_STYLE.md)
+  ⎿  Read 242 lines
+
+⏺ Read(TESTING.md)
+  ⎿  Read 241 lines
+
+⏺ Read(CODE_REVIEW_GUIDELINES.md)
+  ⎿  Read 833 lines
+
+⏺ Search(pattern: "ROLES/*.md")
+  ⎿  Found 7 files (ctrl+o to expand)
+
+⏺ Let me read the role files and look for additional documentation:
+
+⏺ Read(ROLES/PRODUCT_OWNER.md)
+  ⎿  Read 58 lines
+
+⏺ Read(ROLES/ARCHITECT.md)
+  ⎿  Read 95 lines
+
+⏺ Read(ROLES/IMPLEMENTER.md)
+  ⎿  Read 110 lines
+
+⏺ Read(ROLES/REVIEWER.md)
+  ⎿  Read 147 lines
+
+⏺ Read(ROLES/TESTER.md)
+  ⎿  Read 206 lines
+
+⏺ Read(ROLES/DEBUGGER.md)
+  ⎿  Read 481 lines
+
+⏺ Search(pattern: "docs/*.md")
+  ⎿  Found 7 files (ctrl+o to expand)
+
+⏺ Let me read the additional documentation to complete my research:
+
+⏺ Read(docs/TTS_PATTERNS.md)
+  ⎿  Read 270 lines
+
+⏺ Read(docs/ACCEPTANCE_TESTING_GUIDELINES.md)
+  ⎿  Read 269 lines
+
+⏺ Now I have a comprehensive view of the documentation. Let me synthesize my
+   findings into opportunities for new skills and agents.
+
+  ---
+  Analysis: Opportunities for New Skills and Agents
+
+  After reviewing all process, architecture, and role documentation, I've
+  identified several opportunities organized by type.
+
+  ---
+  Recommended New Skills
+
+  Skills are ideal for domain knowledge that Claude should automatically 
+  apply when context matches.
+
+  1. kdm-tts-patterns (High Priority)
+
+  Trigger terms: TTS, Tabletop Simulator, spawn, callback, object, archive,
+  deck, async
+
+  Content sources:
+  - docs/TTS_PATTERNS.md (270 lines of TTS-specific gotchas)
+  - ARCHITECTURE.md coordinate system, lifecycle
+  - ROLES/DEBUGGER.md common TTS debugging patterns
+
+  Why skill: This knowledge should automatically activate when any role
+  works with TTS code. Currently scattered across multiple docs that roles
+  must remember to read.
+
+  Example auto-activations:
+  - Implementer writing spawn code → knows about async callbacks
+  - Debugger seeing <Unknown Error> → knows it means destroyed object
+  - Any role doing deck operations → knows putObject copies, not moves
+
+  ---
+  2. kdm-coding-conventions (High Priority)
+
+  Trigger terms: Lua, module, export, function, pattern, code, implement
+
+  Content sources:
+  - CODING_STYLE.md (242 lines)
+  - ARCHITECTURE.md module export pattern section
+  - CODE_REVIEW_GUIDELINES.md key patterns (polymorphism, guard clauses)
+
+  Why skill: Implementer and Reviewer constantly need this. Currently they
+  must manually read CODING_STYLE.md. A skill auto-loads when
+  writing/reviewing Lua code.
+
+  Key content:
+  - Module export pattern (return Module not return {...})
+  - Fail-fast philosophy
+  - Error handling patterns
+  - SOLID violations to avoid
+
+  ---
+  3. kdm-test-patterns (Medium Priority)
+
+  Trigger terms: test, testing, acceptance, unit, integration, spy, mock,
+  stub
+
+  Content sources:
+  - TESTING.md (241 lines)
+  - docs/ACCEPTANCE_TESTING_GUIDELINES.md (269 lines)
+  - CODE_REVIEW_GUIDELINES.md test quality sections
+
+  Why skill: Tester, Implementer, and Reviewer all need testing knowledge.
+  Auto-activates when writing or reviewing tests.
+
+  Key content:
+  - Behavioral vs structural tests
+  - Real data vs mock data decisions
+  - TTSSpawner test seam pattern
+  - TTS console test patterns
+
+  ---
+  4. kdm-expansion-data (Medium Priority)
+
+  Trigger terms: expansion, gear, monster, resource, archive, Core, Gorm,
+  Dragon King
+
+  Content sources:
+  - ARCHITECTURE.md expansion content organization
+  - Expansion data structure conventions
+  - Archive system patterns
+
+  Why skill: When working with expansion data, Claude should know the
+  conventions automatically. Prevents "card not found" bugs from data
+  mismatches.
+
+  ---
+  5. kdm-ui-framework (Medium Priority)
+
+  Trigger terms: UI, panel, dialog, button, layout, PanelKit, LayoutManager
+
+  Content sources:
+  - ARCHITECTURE.md UI Framework section
+  - Color palette constants
+  - Layout system patterns (pre-calculation, two-stage)
+
+  Why skill: Implementer working on UI needs these patterns. Currently
+  requires reading ARCHITECTURE.md sections manually.
+
+  ---
+  Recommended New Agents
+
+  Agents are ideal for delegated tasks that need isolated context and 
+  specialized reasoning.
+
+  1. test-runner (High Priority)
+
+  Purpose: Run and analyze test results, suggest fixes for failures
+
+  When to use:
+  - After code changes, before handover
+  - When tests fail unexpectedly
+  - To verify test coverage
+
+  Why agent:
+  - Needs to run lua tests/run.lua via Bash
+  - Needs isolated context to analyze potentially long test output
+  - Can provide structured pass/fail summary
+
+  Model: haiku (fast, low-cost for routine checks)
+
+  Tools: Bash, Read, Grep
+
+  ---
+  2. handover-writer (Medium Priority) - Enhancement to handover-manager
+
+  Current gap: handover-manager handles file mechanics but doesn't help
+  compose handover content.
+
+  Enhancement: Add a specialized mode or separate agent that:
+  - Reads the role documentation for sender AND receiver
+  - Asks clarifying questions about what to include
+  - Generates well-structured handover content
+
+  Why useful: Handovers currently vary in quality. A specialized agent
+  ensures completeness.
+
+  ---
+  3. refactoring-advisor (Medium Priority)
+
+  Purpose: Analyze code for refactoring opportunities per SOLID principles
+  and CODE_REVIEW_GUIDELINES
+
+  When to use:
+  - Before major changes to existing code
+  - When Architect is designing around legacy code
+  - When Reviewer finds code smells
+
+  Why agent:
+  - Needs to read multiple related files
+  - Apply complex analysis (SRP violations, file size, export patterns)
+  - Generate structured recommendations
+
+  Model: sonnet (needs good reasoning)
+
+  Tools: Glob, Grep, Read
+
+  ---
+  4. expansion-validator (Low Priority)
+
+  Purpose: Validate expansion data integrity
+
+  When to use:
+  - After adding new expansion content
+  - Before releases
+  - When "card not found" errors occur
+
+  What it does:
+  - Checks card names match save file
+  - Validates archive references
+  - Ensures gear stats exist for all TTS cards
+
+  Why agent:
+  - Needs to parse JSON (save file)
+  - Cross-reference multiple data sources
+  - Generate structured report
+
+  ---
+  Summary Table
+
+  | Name                   | Type  | Priority | Primary Roles
+    | Rationale                                |
+  |------------------------|-------|----------|-----------------------------
+  --|------------------------------------------|
+  | kdm-tts-patterns       | Skill | High     | All coding roles
+    | TTS gotchas should auto-load             |
+  | kdm-coding-conventions | Skill | High     | Implementer, Reviewer
+    | Style guide should auto-load when coding |
+  | test-runner            | Agent | High     | Implementer, Tester
+    | Routine test execution needs isolation   |
+  | kdm-test-patterns      | Skill | Medium   | Tester, Implementer,
+  Reviewer | Testing knowledge should auto-load       |
+  | kdm-expansion-data     | Skill | Medium   | Implementer, Architect
+    | Expansion conventions should auto-load   |
+  | kdm-ui-framework       | Skill | Medium   | Implementer
+    | UI patterns should auto-load             |
+  | refactoring-advisor    | Agent | Medium   | Architect, Reviewer
+    | Complex analysis benefits from isolation |
+  | handover-writer        | Agent | Medium   | All roles
+    | Better handover quality                  |
+  | expansion-validator    | Agent | Low      | Tester, Architect
+    | Data validation is occasional need       |
+
+  ---
+  Implementation Recommendation
+
+  Start with the two high-priority skills:
+  1. kdm-tts-patterns — consolidates critical TTS knowledge
+  2. kdm-coding-conventions — consolidates style/pattern guidance
+
+  These provide the most value for least effort. Skills are lighter than
+  agents and immediately useful across all coding roles.
+
+  Then add the test-runner agent — routine test execution is a clear task
+  delegation use case.
+
+  Want me to create any of these? I can start with the high-priority items.
+
+  ---
+  ═══════════════════════════════════════
+  ║        TEAM COACH ROLE END          ║
+  ║        2025-12-09 13:15 UTC         ║
+  ═══════════════════════════════════════
+
+⏺ Bash(say -v Xander "Team Coach fertig. Neun Verbesserungsmöglichkeiten
+      identifiziert. Fünf Skills und vier Agenten vorgeschlagen.")
+  ⎿  (No content)
+
+> what about a "testing legacy code" skill? ala "working effectively with 
+legacy code"? 
+
+⏺ Excellent idea! That book (Michael Feathers) is explicitly referenced in
+  several role personas. Let me analyze how this would work as a skill.
+
+  ---
+  Proposed Skill: legacy-code-testing
+
+  Why This Fits as a Skill
+
+  The personas for Architect, Implementer, and Debugger all reference
+  Michael Feathers' techniques:
+
+  Architect persona: "You have worked extensively with legacy codebases and 
+  know the techniques from Michael Feathers' writings—characterization 
+  tests, seams, and incremental refactoring."
+
+  Implementer persona: "You have navigated legacy systems using Michael 
+  Feathers' techniques: finding seams, writing characterization tests, and 
+  making changes in small, safe steps."
+
+  Debugger persona: "Michael Feathers' work on legacy code shaped your 
+  approach: you treat unfamiliar systems with respect, adding 
+  characterization tests and careful instrumentation before making changes."
+
+  This knowledge should auto-activate when:
+  - Working with code that lacks tests
+  - Needing to make changes safely to untested code
+  - Adding test coverage to existing functionality
+
+  ---
+  Skill Content Outline
+
+  ---
+  name: legacy-code-testing
+  description: Techniques for safely modifying untested code. Use when
+  working with code that lacks tests, adding coverage to existing
+  functionality, or making changes to unfamiliar systems. Triggers on terms
+  like "legacy", "no tests", "untested", "characterization", "seam",
+  "refactor safely".
+  ---
+
+  Core Techniques to Include:
+
+  1. Characterization Tests
+
+  - Purpose: Document current behavior before changing it
+  - Pattern: "What does this code actually do?" not "What should it do?"
+  - Write tests that pass with current behavior, even if behavior seems
+  wrong
+
+  2. Seams
+
+  - Preprocessing seams (not applicable in Lua)
+  - Link seams — replace modules at require time
+  - Object seams — dependency injection, test doubles
+  - This project's pattern: Module._test.SetSpawner() (TTSSpawner pattern)
+
+  3. Sprout Method/Class
+
+  - Add new behavior in new, tested code
+  - Call from legacy code with minimal changes
+  - Gradually migrate behavior out of legacy
+
+  4. Wrap Method
+
+  - Preserve existing method, wrap with new behavior
+  - Original method becomes private/internal
+  - New wrapper is the public interface
+
+  5. Break Dependencies
+
+  - Identify dependencies that make testing hard
+  - Extract interfaces/seams
+  - This project's patterns:
+    - Archive.Test_SetSpawner() — TTS spawning seam
+    - ui_stubs.lua — UI dependency replacement
+    - tts_spawner_stub.lua — TTS API stub
+
+  6. The Legacy Code Change Algorithm
+
+  1. Identify change points
+  2. Find test points
+  3. Break dependencies
+  4. Write tests
+  5. Make changes and refactor
+
+  ---
+  Reference Files to Include
+
+  The skill could reference existing project patterns:
+
+  ## Project-Specific Seams
+
+  ### TTSSpawner Pattern
+  See `Util/TTSSpawner.ttslua` and `Archive.Test_SetSpawner()`:
+  - Extracts TTS spawn calls into injectable dependency
+  - Tests use stub spawner, production uses real TTS
+
+  ### UI Stubs
+  See `tests/stubs/ui_stubs.lua`:
+  - Replaces TTS UI with test doubles
+  - Allows headless testing of UI-dependent code
+
+  ### Module Stubbing
+  Pattern in `tests/acceptance/tts_environment.lua`:
+  - Replace `package.loaded["Kdm/Module"]` before requiring dependent code
+  - Allows isolation of specific modules
+
+  ---
+  Trigger Scenarios
+
+  The skill would auto-activate when Claude encounters:
+
+  | Scenario                         | Trigger Terms
+  |
+  |----------------------------------|--------------------------------------
+  |
+  | "This code has no tests"         | no tests, untested, missing coverage
+  |
+  | "I need to change this safely"   | change safely, refactor, legacy
+  |
+  | "How do I test this function?"   | characterization, document behavior
+  |
+  | "The dependency is hard to mock" | seam, break dependency, inject
+  |
+  | "I can't test this without TTS"  | headless, stub, test double
+  |
+
+  ---
+  Comparison: Skill vs Agent
+
+  | Aspect     | As Skill                        | As Agent
+                |
+  |------------|---------------------------------|--------------------------
+  --------------|
+  | Invocation | Auto when context matches       | Explicit delegation
+                |
+  | Output     | Knowledge enhances current work | Separate analysis/plan
+                |
+  | Best for   | "How do I approach this?"       | "Analyze this codebase
+  and find seams" |
+
+  Recommendation: Start as a skill (knowledge that enhances work), but
+  consider a complementary seam-finder agent that could analyze a module and
+   identify specific seam opportunities.
+
+  ---
+  Implementation Priority
+
+  I'd bump this to High Priority alongside kdm-tts-patterns and
+  kdm-coding-conventions because:
+
+  1. Explicitly in role personas — The book is mentioned 3 times
+  2. Addresses real pain — ARCHITECTURE.md lists refactoring opportunities
+  and SOLID violations
+  3. Saves time — Prevents "how do I test this?" questions that slow down
+  Implementer/Tester
+  4. Project-specific patterns exist — TTSSpawner, ui_stubs are already
+  documented but scattered
+
+  ---
+  Revised Priority List
+
+  | Name                   | Type  | Priority | Rationale
+          |
+  |------------------------|-------|----------|-----------------------------
+  --------|
+  | kdm-tts-patterns       | Skill | High     | TTS gotchas auto-load
+          |
+  | kdm-coding-conventions | Skill | High     | Style guide auto-load
+          |
+  | legacy-code-testing    | Skill | High     | Feathers techniques +
+  project seams |
+  | test-runner            | Agent | High     | Routine test execution
+          |
+  | kdm-test-patterns      | Skill | Medium   | Testing knowledge
+          |
+  | ...                    | ...   | ...      | ...
+          |
+
+  ---
+  Want me to create this skill? I can draft the full SKILL.md with:
+  - Feathers' core techniques
+  - Project-specific seam patterns (TTSSpawner, ui_stubs)
+  - Examples from the codebase
+  - Integration with existing test infrastructure
+
+> oh, the seam-finder agent I like to, especially for 
+context-management-reasons. also high priority for our code base 
+
+⏺ Good call. The seam-finder agent makes a lot of sense — it does focused
+  analysis that benefits from isolated context, and returns actionable
+  recommendations. Let me draft both.
+
+⏺ Bash(mkdir -p
+      /Users/ilja/Documents/GitHub/kdm/.claude/skills/legacy-code-testing)
+  ⎿  (No content)
+  ⎿  Interrupted · What should Claude do instead?
+
+> are you not using the skill agent? 
+
+⏺ You're right — I should use the skill-manager agent to create the skill
+  and subagent-creator agent for the agent. That's what they're designed
+  for.
+
+⏺ 2 agents finished (ctrl+o to expand)
+   ├─ skill-manager (Create legacy-code-testing skill) · 0 tool uses
+   │  ⎿  Done
+   └─ subagent-creator (Create seam-finder agent) · 10 tool uses · 32.3k tokens
+      ⎿  Done
+
+⏺ The skill-manager agent isn't in the system's available agents list (it's
+  a project-local agent). Let me create the skill directly, and then update
+  the todo:
+
+⏺ Write(.claude/skills/legacy-code-testing/SKILL.md)
+  ⎿  Wrote 308 lines to .claude/skills/legacy-code-testing/SKILL.md        
+     ---
+     name: legacy-code-testing
+     description: Techniques for safely modifying untested code, based on
+     "Working Effectively with Legacy Code" by Michael Feathers. Use when
+     working with code that lacks tests, adding coverage to existing
+     functionality, refactoring safely, or breaking dependencies for
+     testability. Triggers on terms like legacy, untested, no tests,
+     characterization test, seam, break dependency, refactor safely, sprout
+     method, wrap method.
+     ---
+     # Legacy Code Testing Techniques
+     Patterns for safely modifying code that lacks adequate test coverage,
+     adapted from Michael Feathers' "Working Effectively with Legacy Code"
+     for this Lua/TTS codebase.
+     ## The Legacy Code Dilemma
+
+     … +298 lines (ctrl+o to expand)
+
+⏺ Let me read the seam-finder agent that was created and then update
+  PROCESS.md:
+
+⏺ Read(.claude/agents/seam-finder.md)
+  ⎿  Read 283 lines
+
+⏺ The seam-finder agent looks good. Now let me update PROCESS.md to
+  reference the new skill and agent:
+
+⏺ Read(PROCESS.md)
+  ⎿  Read 30 lines
+
+⏺ Update(PROCESS.md)
+  ⎿  Updated PROCESS.md with 9 additions                                 
+       495    |----------|---------|-------|
+       496    | `code-reviewer` | Review code at milestones, before 
+             handover, or when stuck | opus |
+       497    | `debugger` | Diagnose bugs without full Debugger handover
+              (for Tester and Implementer) | sonnet |
+       498 +  | `seam-finder` | Analyze modules for testability seams and
+           +  refactoring opportunities | sonnet |
+       499    | `screenshot-analyzer` | Analyze screenshots with auto 
+             file discovery and size optimization | sonnet |
+       500    | `subagent-creator` | Create new custom subagents 
+             following best practices | sonnet |
+       501    | `beads-backlog-manager` | Query and manage the beads 
+             issue tracking system | haiku |
+       502    | `handover-manager` | Create handovers, update queue, 
+             cleanup completed entries | haiku |
+       503    
+       504 +  ### Available Skills
+       505 +  
+       506 +  Skills provide domain knowledge that Claude automatically 
+           + applies when context matches. See `.claude/skills/` for full
+           +  documentation.
+       507 +  
+       508 +  | Skill | Purpose | Triggers |
+       509 +  |-------|---------|----------|
+       510 +  | `legacy-code-testing` | Feathers' techniques for safely 
+           + modifying untested code | legacy, untested, seam, 
+           + characterization test |
+       511 +  
+       512    ### Debugging Procedure
+       513    
+       514    All coding roles (Implementer, Debugger, Tester) must 
+             follow this procedure when encountering a bug or unexpected 
+             behavior:
+
+⏺ Both are created. Let me provide a summary:
+
+  ---
+  Summary: Created Skill + Agent
+
+  1. legacy-code-testing Skill
+
+  Location: .claude/skills/legacy-code-testing/SKILL.md
+
+  Content:
+  - Characterization tests pattern
+  - Seam types (link seams, object seams)
+  - Sprout Method and Wrap Method patterns
+  - Extract and Override pattern
+  - Legacy Code Change Algorithm
+  - Project-specific seams: TTSSpawner, ui_stubs, _test tables,
+  package.loaded stubbing
+
+  Auto-triggers: legacy, untested, no tests, characterization test, seam,
+  break dependency, refactor safely, sprout method, wrap method
+
+  2. seam-finder Agent
+
+  Location: .claude/agents/seam-finder.md
+
+  What it does:
+  1. Reads target module
+  2. Identifies dependencies by type (TTS Objects, TTS APIs, Module calls,
+  Async, Global)
+  3. Finds hard-to-test functions
+  4. Recommends specific seams with before/after code
+  5. Prioritizes by impact/effort/risk
+  6. Provides testing strategy roadmap
+
+  When to use:
+  - "We need to add tests to ResourceRewards.ttslua but it's tightly
+  coupled"
+  - "What's the best way to test the Hunt module?"
+  - "I can't test this function because it calls Archive.Take"
+  - After reviewer identifies testability issues
+
+  Model: sonnet (good code analysis)
+
+  3. PROCESS.md Updated
+
+  Added both to the Available Subagents/Skills tables so all roles know they
+   exist.
+
+  ---
+  Complementary usage:
+  - Skill auto-activates to provide knowledge ("here's how seams work")
+  - Agent is invoked for specific analysis ("analyze this module and tell me
+   exactly where to add seams")
+
+  ---
+  ═══════════════════════════════════════
+  ║        TEAM COACH ROLE END          ║
+  ║        2025-12-09 13:35 UTC         ║
+  ═══════════════════════════════════════
+
+⏺ Bash(say -v Xander "Team Coach fertig. Ein Skill und ein Agent erstellt.
+      Legacy Code Testing Skill und Seam Finder Agent.")
+  ⎿  (No content)
+
+> create the other high priority items 
+
+⏺ Bash(mkdir -p /Users/ilja/Documents/GitHub/kdm/.claude/skills/kdm-tts-patterns
+       /Users/ilja/Documents/GitHub/kdm/.claude/skills/kdm-coding-conventions)
+  ⎿  Interrupted · What should Claude do instead?
+
+> again, you should use the agents 
+
+⏺ You're right — I should use the subagent-creator for the agents and check
+  if there's a way to create skills via agents. Let me launch these in
+  parallel:
+
+⏺ 3 subagent-creator agents finished (ctrl+o to expand)
+   ├─ Create kdm-tts-patterns skill · 8 tool uses · 34.9k tokens
+   │  ⎿  Done
+   ├─ Create kdm-coding-conventions skill · 7 tool uses · 35.7k tokens
+   │  ⎿  Done
+   └─ Create test-runner agent · 6 tool uses · 16.7k tokens
+      ⎿  Done
+
+> are you using the agent creator for skills, instead of the skill agent? 
+
+⏺ You're right — I should use the skill-manager agent for skills, not
+  subagent-creator. Let me check what's actually available:
+
+⏺ Search(pattern: ".claude/agents/*.md")
+  ⎿  Found 9 files (ctrl+o to expand)
+
+⏺ The skill-manager.md exists as a project agent. But earlier when I tried
+  to use it, the system said it wasn't in the available agent types. Let me
+  read it and understand the issue:
+
+⏺ Read(.claude/agents/skill-manager.md)
+  ⎿  Read 366 lines
+  ⎿  Interrupted · What should Claude do instead?
+
+
+

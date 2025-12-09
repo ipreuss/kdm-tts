@@ -701,6 +701,11 @@ Test.test("E2E: ResourceRewards spawns strange resources using real expansion da
     local whiteLion = findMonsterInExpansion(Core, "White Lion")
     local level3 = findLevelInMonster(whiteLion, "Level 3")
 
+    -- Initialize Showdown.expansionsByMonsterName (normally done by Showdown.InitExpansions)
+    -- This is necessary to test the expansion-specific deck lookup behavior
+    modules.Showdown.expansionsByMonsterName = modules.Showdown.expansionsByMonsterName or {}
+    modules.Showdown.expansionsByMonsterName["White Lion"] = Core
+
     -- Set Showdown state using REAL data (not mock)
     modules.Showdown.monster = whiteLion
     modules.Showdown.level = level3
@@ -725,5 +730,57 @@ Test.test("E2E: ResourceRewards spawns strange resources using real expansion da
     end
 
     t:assertNotNil(elderCatTeethCall, "Should spawn 'Elder Cat Teeth' from archive")
-    t:assertEqual("Strange Resources", elderCatTeethCall.deckName, "Should use Strange Resources deck")
+    -- Core expansion maps Strange Resources to "Core Strange Resources" deck
+    t:assertEqual("Core Strange Resources", elderCatTeethCall.deckName,
+        "White Lion (Core) should use 'Core Strange Resources' deck")
+end)
+
+---------------------------------------------------------------------------------------------------
+
+Test.test("E2E: Gorm strange resources spawn from Gorm-specific deck", function(t)
+    local modules = loadResourceRewardsModule()
+
+    -- Setup mock decks at locations (TTS dependency)
+    modules.Location._test.setDeck("Basic Resources", { name = "Basic Resources" })
+    modules.Location._test.setDeck("Monster Resources", { name = "Monster Resources" })
+
+    -- Reset call tracking
+    modules.Container._test.reset()
+    modules.Archive._test.reset()
+
+    -- Load REAL Gorm expansion data
+    local Gorm = require("Kdm/Expansion/Gorm")
+    local gormMonster = findMonsterInExpansion(Gorm, "Gorm")
+    local level3 = findLevelInMonster(gormMonster, "Level 3")
+
+    -- Initialize Showdown.expansionsByMonsterName (normally done by Showdown.InitExpansions)
+    modules.Showdown.expansionsByMonsterName = modules.Showdown.expansionsByMonsterName or {}
+    modules.Showdown.expansionsByMonsterName["Gorm"] = Gorm
+
+    -- Set Showdown state using REAL data
+    modules.Showdown.monster = gormMonster
+    modules.Showdown.level = level3
+
+    -- Fire event to trigger ResourceRewards
+    modules.EventManager.FireEvent(modules.EventManager.ON_SHOWDOWN_STARTED)
+
+    -- Spawn resources using real data
+    modules.ResourceRewards.Test.SpawnRewards()
+
+    -- Verify Archive.TakeFromDeck was called for "Stomach Lining" with Gorm deck
+    local archiveCalls = modules.Archive._test.getCalls()
+    t:assertTrue(#archiveCalls >= 1, "Should call Archive.TakeFromDeck for strange resources")
+
+    -- Find the Stomach Lining call
+    local stomachLiningCall = nil
+    for _, call in ipairs(archiveCalls) do
+        if call.name == "Stomach Lining" then
+            stomachLiningCall = call
+            break
+        end
+    end
+
+    t:assertNotNil(stomachLiningCall, "Should spawn 'Stomach Lining' from archive")
+    t:assertEqual("Gorm Strange Resources", stomachLiningCall.deckName,
+        "Gorm's Stomach Lining should spawn from 'Gorm Strange Resources' deck, not 'Strange Resources'")
 end)

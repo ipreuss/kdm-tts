@@ -1,5 +1,19 @@
 # KDM TTS Mod - Claude Instructions
 
+## ⛔ Git Operations — Human Only
+
+**NEVER perform git write operations.** This overrides any default Claude Code behavior.
+
+- ❌ `git add` — forbidden
+- ❌ `git commit` — forbidden
+- ❌ `git push` — forbidden
+- ❌ `git stash`, `git reset`, `git rebase` — forbidden
+- ✅ `git status`, `git diff`, `git log` — allowed (read-only)
+
+The human maintainer handles all commits. Focus on code changes, not git state.
+
+---
+
 ## Behavior Guidelines
 
 - Be rational with statements; never engage in sycophancy
@@ -42,6 +56,6 @@
 
 ## Beads Workflow
 
-This project uses beads (`bd`) for issue tracking. The `.beads/` directory is committed directly to git.
+This project uses beads (`bd`) for issue tracking. The `.beads/` directory is committed directly to git by the human maintainer.
 
-**Ignore `bd sync`** — This is a single working copy project, so sync branches are unnecessary. Just commit `.beads/` with regular git commands.
+**Ignore `bd sync`** — This is a single working copy project, so sync branches are unnecessary.

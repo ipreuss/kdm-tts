@@ -80,88 +80,16 @@ Key points:
 
 ## UI Framework
 
-The mod includes a custom UI framework built on top of TTS's XML UI system:
+For comprehensive UI patterns, see the **`kdm-ui-framework`** skill (auto-loads when working with UI code).
 
-- **PanelKit**: Core dialog and panel creation utilities
-- **LayoutManager**: Handles positioning and sizing of UI elements
-- **ClassicDialog**: Standardized dialog chrome with KDM styling
+The skill covers:
+- PanelKit (Dialog, ClassicDialog, ScrollArea, OptionList)
+- LayoutManager two-stage layout system
+- Color palette constants (LIGHT_BROWN, DARK_BROWN, etc.)
+- ResetButton and other standard components
+- Common patterns with code examples
 
-### UI Color Palette
-
-Standard colors are defined in `Ui.ttslua` and should be used consistently:
-
-| Constant | Value | Usage |
-|----------|-------|-------|
-| `Ui.LIGHT_BROWN` | `#bbb4a1` | Text on dark backgrounds, button labels |
-| `Ui.MID_BROWN` | `#7f7059` | Secondary backgrounds |
-| `Ui.DARK_BROWN` | `#453824` | Primary button/panel backgrounds |
-| `Ui.LIGHT_RED` | `#E96C6C` | Warning/error highlights |
-| `Ui.DARK_RED` | `#831010` | Critical warnings |
-| `Ui.LIGHT_GREEN` | `#90ee90` | Success/positive highlights |
-
-### Standard UI Components
-
-**ResetButton** (`Ui:ResetButton`) - Used for deck/gear reset buttons on boards:
-```lua
-ui:ResetButton({
-    id = "MyButton",
-    topLeft = { x = 1.0, y = 2.0 },
-    bottomRight = { x = 1.5, y = 3.0 },
-    onClick = function() ... end,
-    text = "Reset",      -- optional, defaults to "Reset"
-    fontSize = 120,      -- optional, defaults to 120
-    rotation = "0 0 270" -- optional, for vertical text
-})
-```
-
-Creates a Panel (DARK_BROWN) + Button (invisible click area) + Text (LIGHT_BROWN).
-
-**Rotation Values** for 3D UI elements:
-- `"0 0 180"` - Default (text reads normally when viewed from default camera)
-- `"0 0 270"` - Rotated 90° counterclockwise (vertical text, reads bottom-to-top)
-
-### Layout System Design
-
-The UI framework uses a two-stage approach to handle TTS's constraint that dialog dimensions cannot be changed after creation:
-
-#### Stage 1: Pre-calculation
-```lua
--- Build a reusable specification and calculate required space
-local spec = LayoutManager.Specification()
-spec:AddTitle({ height = 35 })
-spec:AddSection({ labelHeight = 30, contentHeight = 60 })
-spec:AddButtonRow({ height = 45 })
-
-local dialogHeight = spec:CalculateDialogHeight({
-    padding = 15,
-    spacing = 12,
-})
-```
-
-#### Stage 2: Dialog Creation
-```lua
--- Create dialog with pre-calculated size
-local dialog = PanelKit.Dialog({ width = 650, height = dialogHeight })
-
--- Build layout with the same specification (and optional callbacks)
-local layout = PanelKit.VerticalLayout({ parent = dialog })
-spec:Render(layout)
-```
-
-#### Critical Measurements
-- **TTS Overhead**: 195px additional space needed beyond content
-  - Includes dialog chrome, internal margins, safe positioning
-  - Measured empirically: content=355px + overhead=195px = total=550px
-- **Element Heights**: Title=35px, Section=25px(label)+content, Button=45px, Spacing=configurable
-- **Validation**: Use `layout:GetUsedHeight()` to verify calculations match reality
-
-#### Implementation Lessons
-
-**Fail Fast vs Defensive Programming**: The codebase uses fail-fast error handling rather than silent fallbacks. For example, missing function calls throw errors immediately rather than being caught with existence checks like `if Player and Player.getPlayers then`. This makes debugging easier by surfacing issues at their source.
-
-**Type Safety in Calculations**: Layout calculations must use proper numeric types. If "attempt to perform arithmetic on table value" errors occur, this indicates a logic error where a table is being passed instead of a number. Such errors should be debugged and fixed at their source rather than masked with `tonumber()` conversions, which would obscure the root cause and likely produce incorrect results.
-
-**Sequential Dependencies**: Pre-calculation must happen before any UI creation since TTS dialog dimensions are immutable. The LayoutManager.CalculateLayoutHeight() simulates the actual layout process to determine space requirements.
+**Key files:** `Ui.ttslua`, `Kdm/Ui/PanelKit.ttslua`, `Kdm/Ui/LayoutManager.ttslua`
 
 ## Module Map
 | Category | Modules | Responsibilities |
@@ -459,7 +387,8 @@ When touching any of these areas, try to land at least one of the above improvem
 
 ## Related Documentation
 
-- **[docs/TTS_PATTERNS.md](docs/TTS_PATTERNS.md)** — TTS-specific implementation patterns, debugging approaches, and gotchas
-- **[docs/TESTING.md](docs/TESTING.md)** — Testing infrastructure, integration test strategy, and test seam patterns
+- **`kdm-tts-patterns` skill** — TTS-specific patterns, async callbacks, archive operations, debugging
+- **`kdm-coding-conventions` skill** — Lua coding style, SOLID principles, error handling
+- **`TESTING.md`** — Test commands, file structure, registration
 
 Keep this document close when planning future work; updating it when adding a new subsystem pays for itself the next time you (or someone else) needs to understand how the mod hangs together.

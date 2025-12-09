@@ -38,6 +38,9 @@ The full Debugger role is for **complex bugs** that require dedicated investigat
 - Ask user to reproduce issue and provide logs
 - Write regression tests that reproduce bugs
 
+### Pre-Handover Review
+When handing over with regression tests, run `code-reviewer` subagent on your test code before creating the handover.
+
 ### Not Allowed
 - Implement bug fixes (change logic, add parameters, fix coordinates)
 - Change non-logging production code
@@ -89,86 +92,20 @@ log:Debugf("Variable X = %s", tostring(x))
 log:Debugf("Function exists: %s", tostring(SomeModule.SomeFunction ~= nil))
 ```
 
-## Common TTS Debugging Patterns
+## TTS-Specific Debugging
 
-### Module Export Issues ("attempt to call a nil value")
-When a function exists but calling it throws "attempt to call a nil value":
-1. **Check the module's return statement** - Lua modules must explicitly export functions in their `return { ... }` table
-2. Debug pattern: `log:Debugf("Module.Function: %s", tostring(Module.Function))` - if this prints `nil`, the function isn't exported
-3. **Root cause:** Missing function in the return statement at the end of the module file
+For comprehensive TTS debugging patterns, see the **`kdm-tts-patterns`** skill (auto-loads when debugging TTS code).
 
-### Async Callback Timing Issues
-When callbacks reference variables that are nil:
-1. **Check if variables are initialized before `DialogFromSpec` or similar calls** - callbacks may execute during construction, not after
-2. The pattern `local result = DialogFromSpec(...); result.someField = value` fails if callbacks inside the spec reference `result.someField`
-3. **Root cause:** Variables must be initialized BEFORE passing them to constructors
+The skill covers:
+- Module export issues ("attempt to call a nil value")
+- Async callback timing problems
+- Deck/archive operations and resource leaks
+- CardCustom vs Card object issues
+- Archive.Clean() concurrent operation hazards
+- Binary search debugging technique
+- Save file inspection patterns
 
-### Deck/Archive Operations
-When cards aren't appearing in decks after `putObject`:
-1. **Check `archive.reset()` is called before `archive.putObject()`** - archives only accept objects when empty
-2. **Check `Deck.ResetDeck()` is called after modifying archive** - the board deck is a copy; modifying the archive doesn't update it
-3. Debug pattern: Log card counts before/after each operation to trace where cards are lost
-
-### Resource Leaks in Archive Operations
-When subsequent Archive.Take() calls fail after initial success:
-1. **Check if `deck.destruct()` and `Archive.Clean()` are called** after extracting items from spawned decks
-2. **Pattern:** Functions that call `Archive.Take()` must clean up:
-   ```lua
-   local deck = Archive.Take({...})
-   -- Extract what you need
-   local card = container:Take({...})
-   -- MUST cleanup before returning
-   deck.destruct()
-   Archive.Clean()
-   ```
-3. **Root cause:** Leaving spawned deck objects or containers cached causes:
-   - Subsequent calls find empty cached containers instead of spawning fresh ones
-   - Objects spawn at same location forming decks, making individual `destruct()` calls fail
-4. **Debug pattern:** Check if `Archive.containers` cache is cleared between operations
-
-### Location/Position Issues
-When objects spawn in wrong locations:
-1. **Use `showlocations` console command** to visualize named locations
-2. Check if the location name is correct and exists in `LocationData.ttslua`
-3. Verify the location coordinates match expectations
-
-### CardCustom vs Card Objects
-When TTS opens an unexpected "Custom Card" dialog during deck operations:
-1. **Root cause:** The card being manipulated is a `CardCustom` object (single custom card) instead of a `Card` object (from a card sheet)
-2. **Symptom:** Empty "Custom Card" import dialog appears when calling `deck.putObject(card)`
-3. **How to identify:** Inspect the card in the save file JSON:
-   - Problem: `"Name": "CardCustom"`, `"NumWidth": 1`, `"NumHeight": 1`
-   - Correct: `"Name": "Card"`, `"NumWidth": 7`, `"NumHeight": 3` (or similar sheet dimensions)
-4. **Fix:** Convert affected cards from `CardCustom` to `Card` type in the save file
-5. **Prevention:** Always use card sheets for cards that will be programmatically moved between decks
-
-### Binary Search Debugging for TTS Issues
-When you can't see debug logs during test execution (e.g., TTS console limitations):
-1. **Comment out sections of code** to isolate which operation causes the issue
-2. **Test incrementally:** If removing code X makes the bug disappear, the bug is in X
-3. **Example isolation sequence:**
-   ```lua
-   -- Test 1: Comment out everything after Archive.Take -> bug disappears?
-   -- Test 2: Comment out just putObject -> bug disappears?
-   -- Test 3: Comment out just shuffle -> bug disappears?
-   ```
-4. This approach found the `CardCustom` bug in ~5 iterations
-
-### Save File Inspection
-The TTS save file (`template_workshop.json`) contains all object data and can be inspected:
-1. **Use Python/jq to query the JSON** for specific objects by GUID or name
-2. **Compare working vs broken objects** to find property differences
-3. **Key properties to check:**
-   - `Name`: Object type (`Card`, `CardCustom`, `Deck`, etc.)
-   - `CustomDeck`: Card image sheet definitions with `FaceURL`, `BackURL`, `NumWidth`, `NumHeight`
-   - `ContainedObjects`: Items inside decks/bags
-4. **Example query pattern:**
-   ```python
-   # Find object by name
-   find_all(data, lambda o: o.get('Nickname') == 'CardName')
-   # Compare CustomDeck properties
-   card.get('CustomDeck', {}).get('1234', {}).get('NumWidth')
-   ```
+For coding conventions and error handling patterns, see **`kdm-coding-conventions`** skill.
 
 ## Debugging Workflow
 
@@ -209,172 +146,23 @@ The TTS save file (`template_workshop.json`) contains all object data and can be
 - Ensure tests cover the fixed scenario
 - Update handover documentation with lessons learned
 
-## Common Pitfalls and Solutions
+## Common Pitfalls
 
-### TTS Object Lifecycle Issues
-- **Problem:** Calling methods on destroyed objects causes `<Unknown Error>`
-- **Solution:** Always check object validity before calling methods, especially in async callbacks
-- **Example:** After `baseCard.setState()`, the original object reference may be invalid
+The **`kdm-tts-patterns`** skill covers common pitfalls in detail. Key ones for debugging:
 
-### Deck Formation at Same Position
-- **Problem:** Spawning multiple cards at same location creates a deck; can't `destruct()` individual cards
-- **Solution:** Either spawn at different positions, or destroy first card before spawning second
-- **Debug tip:** If cleanup fails silently, check if objects have auto-grouped into a deck
-
-### Physics.cast Returning Destroyed Objects
-- **Problem:** `Physics.cast()` may return references to recently destroyed objects
-- **Solution:** Add nil checks: `if obj and obj.getName then ...`
-- **Better solution:** Use `assert(obj, "message")` to fail loudly and reveal timing issues
-
-### Missing Module Exports
-- **Problem:** Functions exist in module but aren't exported in return statement → "attempt to call a nil value"
-- **Symptom:** Debug logs show function exists internally but calling code gets nil
-- **Solution:** Add function to module's return table
-- **For test access:** Add internal functions to a `Module.Test` table in the exports:
-  ```lua
-  return {
-      PublicFunction = Module.PublicFunction,
-      Test = {
-          InternalFunction = function(...) return Module:InternalFunction(...) end,
-      },
-  }
-  ```
-- **Prevention:** Write integration tests, not export-checking tests (see below)
-
-### UI setAttribute After ApplyToObject
-- **Problem:** Calling `Show()`/`Hide()` immediately after `ApplyToObject()` causes `Object reference not set to an instance of an object`
-- **Symptom:** Unity NullReferenceException when calling `self.object.UI.setAttribute(id, ...)`
-- **Root cause:** TTS hasn't finished processing the XML from `setXmlTable()` when `setAttribute()` is called. The element doesn't exist in TTS's internal state yet.
-- **Solution:** Set initial visibility via `active` param instead of calling `Hide()` in Init:
-  ```lua
-  -- WRONG: Timing issue
-  local button = ui:Button({id = "Foo", ...})
-  ui:ApplyToObject()
-  button:Hide()  -- FAILS - element doesn't exist yet
-
-  -- CORRECT: Set initial state in params
-  local button = ui:Button({id = "Foo", ..., active = false})
-  ui:ApplyToObject()
-  -- Button starts hidden, no Hide() call needed
-  ```
-- **When Show/Hide is safe:** After `PostInit()` or inside event handlers (UI has been processed by then)
-
-### Module Export vs Internal Table
-- **Problem:** `Module.field = value` assignments are not visible to other modules via `require()`
-- **Symptom:** Other modules read `nil` for fields that were definitely assigned
-- **Root cause:** When a module uses `return {...}` with explicit exports, dynamic assignments go to the **internal** `local Module = {}` table, not the **exported** table:
-  ```lua
-  local Module = {}  -- Internal table
-
-  function Module.DoThing()
-      Module.state = "done"  -- Assigns to INTERNAL table
-  end
-
-  return {
-      DoThing = Module.DoThing,
-      -- state is NOT exported!
-  }
-  ```
-- **Solution 1:** Return the internal table directly:
-  ```lua
-  return Module  -- Now Module.state is visible to other modules
-  ```
-- **Solution 2:** Use getter functions:
-  ```lua
-  function Module.GetState() return Module.state end
-  return {
-      DoThing = Module.DoThing,
-      GetState = Module.GetState,
-  }
-  ```
-- **Prevention:** Check if the module uses `return {...}` pattern before adding dynamic field assignments that other modules need to access
+- **TTS Object Lifecycle** — Calling methods on destroyed objects causes `<Unknown Error>`. Check validity before calling, especially in async callbacks.
+- **Deck Formation** — Cards at same position auto-group into decks. Spawn at different positions or destroy first.
+- **Module Exports** — Functions exist but return nil? Check the module's `return` statement.
+- **UI setAttribute Timing** — Can't Show/Hide immediately after ApplyToObject. Set initial state via `active` param instead.
 
 ## Writing TTS Console Tests
 
-### Test Structure Pattern
-TTS console tests in `TTSTests.ttslua` follow this pattern:
-1. **Register command** in `TTSTests.Init()` or a `Register*Tests()` function
-2. **Snapshot state** before making changes (count cards, check locations)
-3. **Execute the operation** being tested
-4. **Use `Wait.frames()`** to allow TTS operations to complete
-5. **Verify results** and report PASSED/FAILED
-6. **Clean up** to restore original state when possible
+For TTS console test patterns (snapshot/action/restore, registration, `Wait.frames`), see the **`kdm-test-patterns`** skill.
 
-### Example Test Pattern
-```lua
-function TTSTests.TestSomeFeature()
-    log:Printf("=== TEST: TestSomeFeature ===")
-    
-    -- Step 1: Snapshot before state
-    local countBefore = TTSTests.CountCardInDeck(cardName, cardType, location)
-    
-    -- Step 2: Execute operation under test
-    Module.Test.SomeOperation(params)
-    
-    Wait.frames(function()
-        -- Step 3: Verify results
-        local countAfter = TTSTests.CountCardInDeck(cardName, cardType, location)
-        
-        if countAfter == expectedCount then
-            log:Printf("TEST RESULT: PASSED")
-        else
-            log:Errorf("TEST RESULT: FAILED - expected %d, got %d", expectedCount, countAfter)
-        end
-    end, 30)  -- Wait ~1 second for TTS operations
-end
-```
-
-### Testing Internal Module Functions
-When testing functions that aren't publicly exported:
-1. **Add to `Module.Test` table** in the module's return statement
-2. **Wrap colon-methods** to handle `self` correctly:
-   ```lua
-   Test = {
-       -- For Module:Method(arg) syntax
-       Method = function(arg) return Module:Method(arg) end,
-   }
-   ```
-3. **Call via `Module.Test.Method()`** in tests
-
-## Test Strategy Lessons Learned
-
-### ❌ Don't: Export-Checking Tests
-```lua
--- BAD: This test is brittle and adds no real value
-Test.test("Module exports all functions", function(t)
-    local Module = require("Module")
-    t:assertNotNil(Module.FunctionA)
-    t:assertNotNil(Module.FunctionB)
-    -- Fails when refactoring removes unused exports
-    -- Only catches bugs after they've already happened
-end)
-```
-
-**Problems:**
-- Only written after discovering a missing export bug
-- Fails when legitimately removing unused exports during refactoring
-- Doesn't verify actual client usage
-
-### ✅ Do: Integration Tests
-```lua
--- GOOD: Tests actual integration between modules
-Test.test("Strain can take reward card via Archive", function(t)
-    local Strain = require("Kdm/Strain")
-    local Archive = require("Kdm/Archive")
-    
-    -- Verify integration contract exists
-    t:assertNotNil(Strain.Test._TakeRewardCard, "Strain must export for TTS harness")
-    t:assertNotNil(Archive.TakeFromDeck, "Archive must export for Strain to use")
-    
-    -- Note: Full behavior tested in TTS via >testcardstate
-end)
-```
-
-**Benefits:**
-- Documents actual integration dependencies
-- Only fails when real client code breaks
-- When refactoring removes Strain.Test, you remove this test too
-- Clear relationship: "Strain needs Archive.TakeFromDeck"
+Quick reference:
+- Register in `TTSTests/<Module>Tests.ttslua` + `ALL_TESTS` in `TTSTests.ttslua`
+- Use `>testfocus` during development, `>testall` before closing beads
+- Expose internal functions via `Module._test.Foo` for test access
 
 ## Progressive Debug Logging Strategy
 

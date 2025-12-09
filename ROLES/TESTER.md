@@ -63,12 +63,28 @@ Needs diagnosis           → debugger subagent → then decide
 Complex/cross-module      → Full Debugger handover
 ```
 
+### Code-Reviewer Subagent
+
+**REQUIRED** before handing acceptance tests to Reviewer:
+- Run `code-reviewer` subagent on your test code
+- Catches test quality issues before they cross role boundaries
+- Skip only for trivial test additions (single assertion, minor tweaks)
+
 ## Key Principle
 
 **Ask:** "What can a user do? What do they see?"
 **Not:** "How does the code work?"
 
-**See `TESTING.md`** for detailed guidance on behavioral vs structural tests, test smells, and testing patterns.
+## Skills Reference
+
+The **`kdm-test-patterns`** skill auto-loads when writing tests and covers:
+- Behavioral vs structural tests (prefer behavioral)
+- Test hierarchy (unit, integration, acceptance, TTS console)
+- Real data vs mock data decisions
+- TTSSpawner test seam pattern
+- Cross-module integration testing
+- TTS console test patterns (snapshot/action/restore)
+- TestWorld and acceptance test guidelines
 
 ## Workflow
 
@@ -122,6 +138,59 @@ function TTSTests.TestFeatureName()
             log:Errorf("TEST RESULT: FAILED")
         end
     end, 30)
+end
+```
+
+#### TTS Test Infrastructure
+
+**File Structure:**
+- `TTSTests.ttslua` — Main registry, `testall` and `testfocus` commands
+- `TTSTests/<Module>Tests.ttslua` — Module-specific test files
+
+**Test Registration (two steps required):**
+
+1. **Register console command** in module file (`TTSTests/<Module>Tests.ttslua`):
+```lua
+function ModuleTests.Register()
+    Console.AddCommand("testfeature", function(args)
+        ModuleTests.TestFeatureName()
+    end, "Description for help text")
+end
+```
+
+2. **Add to ALL_TESTS registry** in `TTSTests.ttslua`:
+```lua
+local ALL_TESTS = {
+    -- ...existing tests...
+    { name = "Feature Name", bead = "kdm-xxx", fn = function(onComplete)
+        ModuleTests.TestFeatureName(onComplete)
+    end },
+}
+```
+
+**FOCUS_BEAD for fast iteration:**
+```lua
+local FOCUS_BEAD = "kdm-w1k.3"  -- Update to current bead
+```
+- `>testfocus` runs only tests tagged with `FOCUS_BEAD`
+- `>testall` runs all registered tests
+- Always update `FOCUS_BEAD` when starting work on a new bead
+
+**Test Pattern with onComplete callback:**
+```lua
+function ModuleTests.TestSomething(onComplete)
+    log:Printf("=== TEST: TestSomething ===")
+
+    -- Setup
+    Showdown.Setup("Monster", "Level 1")
+
+    Wait.frames(function()
+        -- Verify
+        local passed = checkCondition()
+
+        log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+        if onComplete then onComplete(passed) end
+    end, 30)  -- Wait frames for async operations
 end
 ```
 

@@ -84,7 +84,7 @@ end
 -- Update FOCUS_BEAD when switching to a new backlog item
 ---------------------------------------------------------------------------------------------------
 
-local FOCUS_BEAD = "kdm-w1k"  -- Current backlog item - UPDATE THIS
+local FOCUS_BEAD = "kdm-w1k.3"  -- Current backlog item - UPDATE THIS
 
 local ALL_TESTS = {
     -- Strain tests (no specific bead - regression)
@@ -109,6 +109,16 @@ local ALL_TESTS = {
     { name = "Resource Rewards Button Hidden", bead = "kdm-w1k", fn = function(onComplete) ResourceRewardsTests.TestButtonHiddenNoResources(onComplete) end },
     { name = "Resource Rewards Data Integrity", bead = "kdm-w1k", fn = function(onComplete) ResourceRewardsTests.TestResourcesDataIntegrity(onComplete) end },
     { name = "Strange Resources Spawn (kdm-w1k.2)", bead = "kdm-w1k", fn = function(onComplete) ResourceRewardsTests.TestStrangeResourcesSpawn(onComplete) end },
+    -- Resource Rewards Expansion tests (kdm-w1k.3)
+    { name = "Screaming Antelope Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeButtonAppears(onComplete) end },
+    { name = "Screaming Antelope Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeDataIntegrity(onComplete) end },
+    { name = "Screaming Antelope Vermin Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeVerminSpawn(onComplete) end },
+    { name = "Phoenix Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestPhoenixButtonAppears(onComplete) end },
+    { name = "Phoenix Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestPhoenixDataIntegrity(onComplete) end },
+    { name = "Phoenix Strange Resources Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestPhoenixStrangeResourcesSpawn(onComplete) end },
+    { name = "Gorm Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestGormButtonAppears(onComplete) end },
+    { name = "Gorm Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestGormDataIntegrity(onComplete) end },
+    { name = "Gorm Strange Resources Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestGormStrangeResourcesSpawn(onComplete) end },
 }
 
 ---------------------------------------------------------------------------------------------------
@@ -171,7 +181,11 @@ function TTSTests.RunTests(tests)
         local test = tests[currentTest]
         log:Printf("=== TEST %d/%d: %s ===", currentTest, totalTests, test.name)
 
+        local completed = false
         local function onTestComplete(success)
+            if completed then return end  -- Prevent double-completion
+            completed = true
+
             if success == false then
                 failedTests = failedTests + 1
                 table.insert(failedNames, test.name)
@@ -181,10 +195,10 @@ function TTSTests.RunTests(tests)
 
             currentTest = currentTest + 1
 
-            -- Small delay between tests for visual separation
+            -- Wait for cleanup before starting next test
             Wait.frames(function()
                 runNextTest()
-            end, 10)
+            end, 30)
         end
 
         local ok, err = pcall(function()
@@ -192,7 +206,10 @@ function TTSTests.RunTests(tests)
         end)
         if not ok then
             log:Errorf("TEST FAILED: %s - %s", test.name, tostring(err))
-            onTestComplete(false)
+            -- Wait for async operations to settle before marking complete
+            Wait.frames(function()
+                onTestComplete(false)
+            end, 60)
         end
     end
 

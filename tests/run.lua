@@ -43,6 +43,7 @@ local testFiles = {
     "tests.showdown_resourcerewards_integration_test",
     "tests.showdown_setup_integration_test",
     "tests.rules_nav_button_kit_test",
+    "tests.rules_add_to_history_test",
 }
 
 for _, file in ipairs(testFiles) do

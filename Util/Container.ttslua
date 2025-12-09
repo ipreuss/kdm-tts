@@ -297,4 +297,15 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return Container.Create
+-- Export both Create (as callable) and TAGS
+-- Most code uses Container(obj) to create containers
+-- Some code needs Container.TAGS for tag checking
+local export = setmetatable({
+    TAGS = Container.TAGS,
+}, {
+    __call = function(_, object)
+        return Container.Create(object)
+    end,
+})
+
+return export

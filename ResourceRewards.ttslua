@@ -113,10 +113,11 @@ function ResourceRewards.SpawnRewards()
         return
     end
 
-    log:Printf("Spawning resources for %s %s: %d basic, %d monster, %d strange",
+    log:Printf("Spawning resources for %s %s: %d basic, %d monster, %d vermin, %d strange",
         monster.name, level.name,
         rewards.basic or 0,
         rewards.monster or 0,
+        rewards.vermin or 0,
         rewards.strange and #rewards.strange or 0)
 
     -- Use existing decks from the showdown board, not new ones from archive.
@@ -189,12 +190,41 @@ function ResourceRewards.SpawnRewards()
         end
     end
 
+    -- Draw vermin resources from existing deck on showdown board
+    if rewards.vermin and rewards.vermin > 0 then
+        local verminLocation = Location.Get("Vermin")
+        local verminDeckObj = verminLocation:FirstObject({ types = { "Vermin" } })
+
+        if verminDeckObj then
+            local container = Container(verminDeckObj)
+            for i = 1, rewards.vermin do
+                if container:IsEmpty() then
+                    log:Debugf("Vermin deck exhausted after %d cards", i - 1)
+                    break
+                end
+                local cardPos = getCardPosition(cardIndex)
+                container:Take({ position = cardPos })
+                cardIndex = cardIndex + 1
+            end
+        else
+            log:Debugf("No Vermin deck found at showdown board location")
+        end
+    end
+
     -- Draw strange resources from archive (named, guaranteed cards)
     if rewards.strange and #rewards.strange > 0 then
+        -- Determine which Strange Resources deck to use based on monster's expansion
+        local expansion = Showdown.expansionsByMonsterName and Showdown.expansionsByMonsterName[monster.name]
+        local strangeResourcesDeck = "Strange Resources"  -- Default to Core deck
+        if expansion and expansion.components and expansion.components["Strange Resources"] then
+            strangeResourcesDeck = expansion.components["Strange Resources"]
+        end
+        log:Debugf("Using Strange Resources deck: %s (expansion: %s)", strangeResourcesDeck, expansion and expansion.name or "Core")
+
         for _, cardName in ipairs(rewards.strange) do
             local cardPos = getCardPosition(cardIndex)
             Archive.TakeFromDeck({
-                deckName = "Strange Resources",
+                deckName = strangeResourcesDeck,
                 deckType = "Strange Resources",
                 name = cardName,
                 cardType = "Strange Resources",
