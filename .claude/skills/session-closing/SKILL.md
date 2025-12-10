@@ -22,10 +22,54 @@ description: Apply role-specific closing signature and voice announcement when e
 ## Critical Rule
 
 **EVERY role-based session MUST end with:**
-1. Closing signature block
-2. Voice announcement command (executed via Bash)
+1. **Learning capture** — Invoke `learning-capture` skill FIRST
+2. Closing signature block
+3. Voice announcement command (executed via Bash)
 
 **NO EXCEPTIONS.** This is part of the role protocol defined in PROCESS.md.
+
+## Step 1: Learning Capture (MANDATORY)
+
+**Before closing signature, you MUST use the Edit tool to append to `handover/LEARNINGS.md`.**
+
+⚠️ **DO NOT just output learnings to terminal — you MUST write them to the file.**
+
+### Part A: Check for Learnings
+Ask yourself:
+- Did I do something that turned out to be wrong or unwanted?
+- Did I fail to do something that should have been done?
+- Was I reminded to do something that should have been automatic?
+- Did I learn something new about the project (technical, process, architecture)?
+
+### Part B: Skill/Agent Usage Stats (ALWAYS — even if no learnings)
+**This is MANDATORY every session, regardless of whether Part A had learnings.**
+
+### Part C: WRITE TO FILE (CRITICAL)
+
+**You MUST use the Edit tool to append to `/Users/ilja/Documents/GitHub/kdm/handover/LEARNINGS.md`:**
+
+1. Read the file first
+2. Find the `<!-- Add new learnings below this line -->` marker
+3. Use Edit to append your learning entry BELOW that marker
+
+```markdown
+### [YYYY-MM-DD] [Role] Brief title
+
+**Context:** What you were working on
+**Learning:** What you discovered (or "No process issues encountered" if none)
+**Suggested Action:** What should be done (or "None" if none)
+**Category:** skill | agent | doc | process | none
+
+**Skills/Agents this session:**
+- Used: [list all skills and agents invoked]
+- Helpful: [which worked well]
+- Should have triggered: [which didn't activate when expected]
+- Unnecessary: [which triggered but weren't needed]
+```
+
+**This is NOT optional. Outputting to terminal does NOT count. The file MUST be updated.**
+
+**Why this matters:** Team Coach uses this data during retrospectives to identify skills/agents that need better triggers, are underused, or should be removed.
 
 ## Closing Signature Format
 
@@ -107,6 +151,12 @@ say -v Anna "Product Owner fertig. Benötige Klarstellung."
 
 **Before sending your final message, verify:**
 
+**Step 1 — Learning Capture (DO THIS FIRST):**
+- [ ] **Used Edit tool to append to `handover/LEARNINGS.md`** — NOT just terminal output
+- [ ] **Entry includes skill/agent usage stats** — Used, Helpful, Should have triggered, Unnecessary
+- [ ] **File was actually modified** — Verify Edit tool succeeded
+
+**Step 2 — Closing Protocol:**
 - [ ] Closing signature block is present
 - [ ] Signature uses correct role name
 - [ ] Timestamp is current UTC time
@@ -115,6 +165,7 @@ say -v Anna "Product Owner fertig. Benötige Klarstellung."
 - [ ] Status message is in German
 - [ ] Status reflects actual session accomplishments
 - [ ] Numbers are spelled out in German
+- [ ] If creating handover: used handover-manager agent
 
 ## Complete Example
 

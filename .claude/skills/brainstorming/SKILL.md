@@ -181,6 +181,35 @@ Update: `handover/QUEUE.md` with PENDING entry
 
 ---
 
+## Common Rationalizations to Reject
+
+| Rationalization | Reality |
+|-----------------|---------|
+| "The idea is clear enough to start coding" | If you haven't asked questions, you've assumed answers |
+| "Don't need to explore alternatives" | The first approach is rarely the best |
+| "User knows what they want" | Users know the problem, not the solution |
+| "Too simple for brainstorming" | Simple ideas often hide complex edge cases |
+| "Just one question then we'll code" | Partial understanding = rework later |
+| "This is how we always do it" | Patterns should be chosen, not assumed |
+
+---
+
+## Red Flags — STOP and Use Full Process
+
+Stop and restart brainstorming if you notice:
+
+- Jumping to implementation without exploring alternatives
+- Asking multiple questions in one message
+- Proposing only one approach
+- Skipping Phase 3 (exploring alternatives)
+- User accepting design without seeing trade-offs
+- No "Does this look right so far?" validation checks
+- Designing without understanding the problem first
+
+**If you haven't proposed 2-3 approaches with trade-offs, you haven't brainstormed.**
+
+---
+
 ## Handover Integration
 
 After completing brainstorming:

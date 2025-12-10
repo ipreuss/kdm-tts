@@ -133,13 +133,25 @@ For creating handovers after code review:
 - **Recommended** for all handovers to ensure consistent formatting and prevent manual errors
 - See subagent documentation for usage
 
-## Skills Reference
+## Available Skills
+
+### learning-capture
+**Triggers automatically** when learning moments occur. Use immediately when:
+- User corrects your approach or points out a mistake
+- About to say "I should have..." or "I forgot to..."
+- Realizing a process step was skipped
+- Discovering a new pattern or insight about the project
+
+Captures to `handover/LEARNINGS.md` in real-time, not waiting for session end.
+
+### Domain Knowledge
+- **`kdm-coding-conventions`** — SOLID principles, error handling, module exports
+- **`kdm-test-patterns`** — Test quality, integration tests, behavioral vs structural, anti-patterns
+
+### Process Skills
+- **`verification-before-completion`** — Verify tests pass before APPROVED status
 
 For detailed review patterns, see **`CODE_REVIEW_GUIDELINES.md`**.
-
-The following skills provide domain knowledge for review:
-- **`kdm-coding-conventions`** — SOLID principles, error handling, module exports
-- **`kdm-test-patterns`** — Test quality, integration tests, behavioral vs structural
 
 ## Common Checks
 
@@ -178,3 +190,25 @@ Reviewer ─approved─► Architect ─design ok─► Product Owner ─closes 
 - Module boundaries respected
 
 This was a documented learning (2025-12-09): Reviewer initially handed directly to PO, but PROCESS.md requires Architect verification first.
+
+## Scope Verification
+
+When reviewing implementation from a design handover that includes a Design Requirements Checklist:
+
+- [ ] Cross-reference design requirements checklist against implementation
+- [ ] Note any requirements without corresponding code changes
+- [ ] Flag incomplete scope in review findings
+
+**Why this matters:** Scope issues caught at code review are cheaper to fix than at design compliance review. This distributes verification across both Reviewer and Architect.
+
+## Handover Creation
+
+**Always use the `handover-manager` agent** when creating handovers. This ensures:
+- Correct file naming and formatting
+- QUEUE.md is updated automatically
+- Consistent handover structure
+
+**Why not manual?** Manual creation is error-prone (typos in queue entries, inconsistent formatting) and slower.
+
+## Session Closing
+Use voice: `say -v Petra "Reviewer fertig. <status>"`

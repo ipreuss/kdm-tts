@@ -1,6 +1,6 @@
 ---
 name: handover-manager
-description: Manages handover files and queue for role-based workflow. MUST BE USED when (1) work is complete and ready for next role, (2) session starts and needs pending handover check, (3) session ends and queue needs cleanup. Triggers on phrases like 'done', 'finished', 'ready for', 'hand off to', 'pass to', session start, session end.
+description: Manages handover files and queue for role-based workflow. MUST BE USED when (1) work is complete and ready for next role, (2) session starts and needs pending handover check, (3) session ends and queue needs cleanup. **Cleanup removes COMPLETED/SUPERSEDED queue entries AND deletes orphaned HANDOVER_*.md files from disk.** Triggers on phrases like 'done', 'finished', 'ready for', 'hand off to', 'pass to', 'cleanup', session start, session end.
 
 <example>
 Context: Implementer says work is done
@@ -91,7 +91,19 @@ When asked to create a handover:
 
 1. **Generate the handover file** at `/Users/ilja/Documents/GitHub/kdm/handover/HANDOVER_<FROM>_<TO>_<SHORT_DESCRIPTION>.md`
 2. **Add entry to QUEUE.md** with status PENDING
-3. **Return a summary** for the calling role to display
+3. **Prompt for learnings and usage stats** — Always include this reminder in your response:
+   ```
+   📝 **Learning Check:** Before closing this session, capture any learnings in `handover/LEARNINGS.md`:
+   - Process friction or gotchas encountered?
+   - Ideas for improving tools, skills, or workflow?
+   - Patterns worth documenting for future reference?
+
+   📊 **Skill/Agent Usage:** Document which skills and agents were used this session:
+   - Skills invoked: [list skills used, e.g., kdm-coding-conventions, learning-capture]
+   - Agents spawned: [list agents used, e.g., handover-manager, code-reviewer]
+   - Usefulness: [helpful / not triggered when should have / triggered unnecessarily / not needed]
+   ```
+4. **Return a summary** for the calling role to display
 
 **Handover file format:**
 ```markdown
@@ -140,18 +152,26 @@ When asked to acknowledge or complete a handover:
 3. Update status: PENDING → ACKNOWLEDGED or ACKNOWLEDGED → COMPLETED
 4. Write updated QUEUE.md
 
-### 4. Cleanup Queue
+### 4. Cleanup Queue (Queue Entries + Orphaned Files)
 
 When asked to clean up the queue:
 
+**Phase 1: Queue Table Cleanup**
 1. Read `/Users/ilja/Documents/GitHub/kdm/handover/QUEUE.md`
-2. Remove all COMPLETED entries from the queue table
-3. List all handover files: `ls /Users/ilja/Documents/GitHub/kdm/handover/HANDOVER_*.md`
-4. Identify orphaned files (not referenced in QUEUE.md)
-5. Delete orphaned `HANDOVER_*.md` files using Bash
-6. Add entry to Cleanup Log section with date and counts
-7. Write updated QUEUE.md
-8. Report what was removed
+2. Remove all COMPLETED and SUPERSEDED entries from the queue table
+3. Write updated QUEUE.md
+
+**Phase 2: Orphaned File Deletion**
+4. List all handover files: `ls /Users/ilja/Documents/GitHub/kdm/handover/HANDOVER_*.md`
+5. Extract filenames currently referenced in QUEUE.md (any status)
+6. Identify orphaned files (exist on disk but NOT referenced in queue)
+7. Delete orphaned `HANDOVER_*.md` files using Bash: `rm <filepath>`
+
+**Phase 3: Reporting**
+8. Add entry to Cleanup Log section with date, queue entry count, and file count
+9. Report summary: "Removed X queue entries, deleted Y orphaned files"
+
+**CRITICAL:** Cleanup is not complete until orphaned files are deleted from disk. Queue-only cleanup leaves stale files that waste space and cause confusion.
 
 **Protected files** (NEVER delete):
 - `QUEUE.md`
@@ -172,6 +192,20 @@ When asked to clean up the queue:
 
 ### Summary
 [Key information for user display]
+```
+
+**For Create operations, ALWAYS append:**
+```markdown
+---
+📝 **Learning Check:** Before closing this session, capture any learnings in `handover/LEARNINGS.md`:
+- Process friction or gotchas encountered?
+- Ideas for improving tools, skills, or workflow?
+- Patterns worth documenting for future reference?
+
+📊 **Skill/Agent Usage:** Document which skills and agents were used this session:
+- Skills invoked: [list skills used]
+- Agents spawned: [list agents used]
+- Usefulness: [helpful / not triggered when should have / triggered unnecessarily / not needed]
 ```
 
 ## Queue Entry Format

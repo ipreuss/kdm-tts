@@ -289,7 +289,30 @@ After writing a skill description, test it:
 
 If you answer "no" to any question, revise the trigger.
 
-### Operation D: Inventory Skills
+### Operation D: Update Role Documentation
+
+**REQUIRED after creating or modifying a skill that's role-specific.**
+
+When a skill is intended for specific roles:
+
+1. **Identify affected roles** — Which roles will use this skill?
+2. **Read each role file** — `ROLES/<ROLE>.md`
+3. **Update the "Available Skills" section** — Add or modify the skill entry:
+   ```markdown
+   ## Available Skills
+
+   - **`skill-name`** — Brief description of when to use it
+   ```
+4. **Keep descriptions consistent** — Role file entry should match skill's description intent
+
+**Example:**
+If creating `kdm-expansion-data` skill for Implementer and Tester:
+- Update `ROLES/IMPLEMENTER.md` → Add to Available Skills
+- Update `ROLES/TESTER.md` → Add to Available Skills
+
+**Role files location:** `/Users/ilja/Documents/GitHub/kdm/ROLES/`
+
+### Operation E: Inventory Skills
 
 Scan and report:
 ```bash
@@ -404,6 +427,11 @@ For complex workflows, use plan → validate → execute:
 - **Triggers:** [trigger terms]
 - **Allowed Tools:** [if restricted]
 
+### Role Documentation Updated
+| Role | File | Change |
+|------|------|--------|
+| [Role] | `ROLES/[ROLE].md` | Added to Available Skills |
+
 ### How It Activates
 Claude will automatically use this skill when users mention: [triggers]
 
@@ -438,6 +466,7 @@ Claude will automatically use this skill when users mention: [triggers]
 6. **Test with multiple models** — Haiku needs more detail than Opus
 7. **Include requirements** — List any required packages explicitly
 8. **Use gerund naming** — `processing-pdfs` not `pdf-processor`
+9. **Update role documentation** — After creating/modifying a skill, update the "Available Skills" section in relevant `ROLES/*.md` files so roles know what's available to them
 
 ## Debugging Skills
 

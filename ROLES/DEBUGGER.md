@@ -100,6 +100,27 @@ log:Debugf("Variable X = %s", tostring(x))
 log:Debugf("Function exists: %s", tostring(SomeModule.SomeFunction ~= nil))
 ```
 
+## Available Skills
+
+### learning-capture
+**Triggers automatically** when learning moments occur. Use immediately when:
+- User corrects your approach or points out a mistake
+- About to say "I should have..." or "I forgot to..."
+- Realizing a process step was skipped
+- Discovering a new pattern or insight about the project
+
+Captures to `handover/LEARNINGS.md` in real-time, not waiting for session end.
+
+### Primary Debugging Skills
+- **`systematic-debugging`** — Four-phase methodology: investigate → analyze → hypothesis → implement. Iron Law: NO FIXES WITHOUT ROOT CAUSE FIRST
+- **`root-cause-tracing`** — Trace bugs backward through call stack to find source of invalid data
+
+### Supporting Skills
+- **`kdm-tts-patterns`** — Module exports, async callbacks, deck operations, object lifecycle
+- **`kdm-coding-conventions`** — Error handling, guard clauses, fail-fast patterns
+- **`defense-in-depth`** — Multi-layer validation to make bugs structurally impossible
+- **`verification-before-completion`** — Verify root cause with evidence before handover
+
 ## TTS-Specific Debugging
 
 For comprehensive TTS debugging patterns, see the **`kdm-tts-patterns`** skill (auto-loads when debugging TTS code).
@@ -112,8 +133,6 @@ The skill covers:
 - Archive.Clean() concurrent operation hazards
 - Binary search debugging technique
 - Save file inspection patterns
-
-For coding conventions and error handling patterns, see **`kdm-coding-conventions`** skill.
 
 ## Debugging Workflow
 
@@ -274,3 +293,15 @@ Debugger
 ```
 
 When a new bug is reported, create a new debug report. Keep successful resolutions for reference.
+
+## Handover Creation
+
+**Always use the `handover-manager` agent** when creating handovers. This ensures:
+- Correct file naming and formatting
+- QUEUE.md is updated automatically
+- Consistent handover structure
+
+**Why not manual?** Manual creation is error-prone (typos in queue entries, inconsistent formatting) and slower.
+
+## Session Closing
+Use voice: `say -v Yannick "Debugger fertig. <status>"`

@@ -83,16 +83,24 @@ For creating handovers to other roles:
 **Ask:** "What can a user do? What do they see?"
 **Not:** "How does the code work?"
 
-## Skills Reference
+## Available Skills
 
-The **`kdm-test-patterns`** skill auto-loads when writing tests and covers:
-- Behavioral vs structural tests (prefer behavioral)
-- Test hierarchy (unit, integration, acceptance, TTS console)
-- Real data vs mock data decisions
-- TTSSpawner test seam pattern
-- Cross-module integration testing
-- TTS console test patterns (snapshot/action/restore)
-- TestWorld and acceptance test guidelines
+### learning-capture
+**Triggers automatically** when learning moments occur. Use immediately when:
+- User corrects your approach or points out a mistake
+- About to say "I should have..." or "I forgot to..."
+- Realizing a process step was skipped
+- Discovering a new pattern or insight about the project
+
+Captures to `handover/LEARNINGS.md` in real-time, not waiting for session end.
+
+### Core Testing Skills
+- **`kdm-test-patterns`** — Behavioral vs structural, test hierarchy, real vs mock data, anti-patterns, TTS console patterns
+- **`test-driven-development`** — Red-Green-Refactor, write failing test first
+
+### Process Skills
+- **`verification-before-completion`** — Run all tests, verify output, THEN claim "done"
+- **`systematic-debugging`** — When bug found, investigate root cause before fix path decision
 
 ## Workflow
 
@@ -224,6 +232,15 @@ local expected = calculateExpectedValue(inputs)
 -- GOOD: Calls real mod code
 local result = Module._test.Calculate(inputs)
 ```
+
+## Handover Creation
+
+**Always use the `handover-manager` agent** when creating handovers. This ensures:
+- Correct file naming and formatting
+- QUEUE.md is updated automatically
+- Consistent handover structure
+
+**Why not manual?** Manual creation is error-prone (typos in queue entries, inconsistent formatting) and slower.
 
 ## Session Closing
 Use voice: `say -v Audrey "Tester fertig. <status>"`

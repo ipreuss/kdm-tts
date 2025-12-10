@@ -1,0 +1,131 @@
+-- Test Setup Helpers for TTS Console Tests
+--
+-- Provides utilities for setting up test preconditions that can't be
+-- achieved through normal test save file state.
+
+local Archive = require("Kdm/Archive")
+local Container = require("Kdm/Util/Container")
+local Expansion = require("Kdm/Expansion")
+local Location = require("Kdm/Location")
+local log = require("Kdm/Log").ForModule("TestSetup")
+local NamedObject = require("Kdm/NamedObject")
+
+---------------------------------------------------------------------------------------------------
+
+local TestSetup = {}
+
+---------------------------------------------------------------------------------------------------
+-- Constants
+---------------------------------------------------------------------------------------------------
+
+-- Far off-table to avoid collisions with game objects during tests
+local STASH_POSITION = { x = -200, y = 10, z = 200 }
+
+---------------------------------------------------------------------------------------------------
+-- EnableExpansionTerrain
+--
+-- Temporarily merges expansion terrain cards into the Terrain Archive.
+-- The test save file only has Core terrain, so expansion monster tests
+-- fail when they try to spawn expansion-specific terrain.
+--
+-- Usage:
+--   local cleanup = TestSetup.EnableExpansionTerrain("Spidicules")
+--   -- ... run test ...
+--   cleanup()
+--
+-- Returns a cleanup function that restores the original state.
+---------------------------------------------------------------------------------------------------
+
+function TestSetup.EnableExpansionTerrain(expansionName)
+    log:Printf("TestSetup: Enabling %s terrain", expansionName)
+
+    -- Get expansion data (using exported API - expansionsByName is not exported)
+    local expansion = nil
+    for _, exp in ipairs(Expansion.All()) do
+        if exp.name == expansionName then
+            expansion = exp
+            break
+        end
+    end
+    if not expansion then
+        log:Errorf("TestSetup: Unknown expansion '%s'", expansionName)
+        return function() end
+    end
+
+    local terrainComponent = expansion.components and expansion.components["Terrain"]
+    if not terrainComponent then
+        log:Printf("TestSetup: %s has no terrain component, using Core only", expansionName)
+        return function() end
+    end
+
+    -- Get the Terrain Archive
+    local terrainArchive = NamedObject.Get("Terrain Archive")
+    if not terrainArchive then
+        log:Errorf("TestSetup: Could not find Terrain Archive")
+        return function() end
+    end
+
+    -- Take original deck and stash it off-table
+    log:Printf("TestSetup: Stashing original terrain deck")
+    local originalDeck = terrainArchive.takeObject({
+        position = STASH_POSITION,
+        smooth = false,
+    })
+
+    if not originalDeck then
+        log:Errorf("TestSetup: Could not take original terrain deck from archive")
+        return function() end
+    end
+
+    -- Build merged deck from Core + expansion terrain
+    log:Printf("TestSetup: Creating merged terrain deck (Core + %s)", terrainComponent)
+    local terrainLocation = Location.Get("Terrain")
+    local sources = {
+        Archive.ArchiveSource("Core Terrain", "Terrain"),
+        Archive.ArchiveSource(terrainComponent, "Terrain"),
+    }
+
+    local mergedDeck = Archive.CreateDeckFromSources({
+        sources = sources,
+        name = "Terrain",
+        type = "Terrain",
+        location = terrainLocation,
+        rotation = { x = 0, y = 180, z = 180 },
+    })
+
+    if not mergedDeck then
+        log:Errorf("TestSetup: Could not create merged terrain deck")
+        -- Restore original
+        terrainArchive.putObject(originalDeck)
+        return function() end
+    end
+
+    -- Put merged deck into archive
+    log:Printf("TestSetup: Putting merged deck into Terrain Archive")
+    terrainArchive.reset()
+    terrainArchive.putObject(mergedDeck.object)
+
+    -- Return cleanup function
+    return function()
+        log:Printf("TestSetup: Cleaning up %s terrain", expansionName)
+
+        -- Take merged deck from archive and destroy it
+        local mergedToDestroy = terrainArchive.takeObject({
+            position = STASH_POSITION,
+            smooth = false,
+        })
+        if mergedToDestroy then
+            mergedToDestroy.destruct()
+        end
+
+        -- Restore original deck to archive
+        terrainArchive.reset()
+        terrainArchive.putObject(originalDeck)
+
+        log:Printf("TestSetup: Terrain restored to original state")
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+
+return TestSetup

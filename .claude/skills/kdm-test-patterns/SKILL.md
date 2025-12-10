@@ -1,6 +1,6 @@
 ---
 name: kdm-test-patterns
-description: Testing patterns and guidelines for the KDM TTS mod. Covers behavioral vs structural tests, real vs mock data decisions, TTSSpawner test seam pattern, spy/stub patterns, TTS console test commands (>testall, >testfocus), test organization (tests/<area>_test.lua), and when headless tests are sufficient vs when TTS console tests are needed. Use when writing or reviewing tests, implementing features with test requirements, or when user mentions testing, acceptance, unit, integration, spy, mock, stub, behavioral, or structural testing.
+description: Testing patterns, guidelines, and anti-patterns for the KDM TTS mod. Covers behavioral vs structural tests, real vs mock data decisions, TTSSpawner test seam pattern, spy/stub patterns, TTS console test commands (>testall, >testfocus), test organization (tests/<area>_test.lua), testing anti-patterns to avoid, and when headless tests are sufficient vs when TTS console tests are needed. Use when writing or reviewing tests, implementing features with test requirements, or when user mentions testing, acceptance, unit, integration, spy, mock, stub, behavioral, structural, or anti-pattern.
 ---
 
 # KDM Test Patterns
@@ -26,6 +26,125 @@ Consolidated testing knowledge for the KDM TTS mod project. This skill auto-acti
 4. **Tests must exercise real production code** — Never reimplement business logic in test helpers
 5. **Spy pattern over manual state** — Intercept and verify calls, don't track state manually
 6. **All code paths through spies** — Consistent verification across all test scenarios
+
+---
+
+## Testing Anti-Patterns
+
+### Anti-Pattern 1: Testing Mock Behavior
+
+**Problem:** Assertions verify mocks exist, not real behavior.
+
+```lua
+-- ❌ BAD: Testing that the mock exists
+t:assertNotNil(archiveMock)
+t:assertEqual(archiveMock.name, "test-archive")
+```
+
+**Solution:** Test real component behavior with mocks providing dependencies.
+
+```lua
+-- ✅ GOOD: Testing real behavior, mock provides dependency
+Archive.Test_SetSpawner(spawnerStub)
+Archive.Take({ name = "Test Card", type = "Fighting Arts" })
+t:assertEqual(#spawnerStub.takeCalls, 1)  -- Verify real code made the call
+```
+
+**Gate Question:** "Am I testing real behavior or mock existence?"
+
+### Anti-Pattern 2: Test-Only Methods in Production
+
+**Problem:** Adding methods only for test cleanup pollutes production.
+
+```lua
+-- ❌ BAD: Cleanup method only used by tests
+function Archive.ClearAllForTesting()
+    self._cards = {}
+end
+```
+
+**Solution:** Place cleanup logic in test utilities. Use `_test` exports sparingly for exposing internals, not cleanup.
+
+```lua
+-- ✅ GOOD: Cleanup in test file
+local function resetArchiveState()
+    Archive.Test_ResetSpawner()
+    -- Reset via test seams, not production methods
+end
+```
+
+**Our Pattern:** `Module._test.Function` is OK for exposing internal functions for testing, but cleanup belongs in test files.
+
+### Anti-Pattern 3: Mocking Without Understanding
+
+**Problem:** Over-mocking eliminates side effects tests depend on.
+
+```lua
+-- ❌ BAD: Mocked everything, test proves nothing
+local Archive = { Take = function() return {} end }
+local Container = { AddCard = function() return true end }
+-- Test passes but real integration is broken
+```
+
+**Solution:** Understand what real method does before mocking. Mock at TTS boundary only.
+
+```lua
+-- ✅ GOOD: Real modules, stub only at TTS boundary
+local Archive = require("Kdm/Archive")  -- Real module
+Archive.Test_SetSpawner(ttsSpawnerStub)  -- Stub TTS boundary only
+```
+
+**Our Pattern:** Mock at TTS boundary (TTSSpawner), use real modules above.
+
+### Anti-Pattern 4: Incomplete Mocks
+
+**Problem:** Partial mocks missing fields real API provides.
+
+```lua
+-- ❌ BAD: Missing fields real TTS object has
+local objectStub = { getName = function() return "Card" end }
+-- Crashes when code calls objectStub.getPosition()
+```
+
+**Solution:** Mirror complete API response structure.
+
+```lua
+-- ✅ GOOD: All accessed fields present
+local objectStub = {
+    getName = function() return "Card" end,
+    getPosition = function() return { x = 0, y = 0, z = 0 } end,
+    getGUID = function() return "abc123" end,
+}
+```
+
+### Anti-Pattern 5: Tests as Afterthought
+
+**Problem:** Writing tests after implementation provides false confidence.
+
+**Solution:** TDD — write failing test first. See `test-driven-development` skill.
+
+### Anti-Patterns Quick Reference
+
+| Anti-Pattern | Fix |
+|--------------|-----|
+| Asserting on mock elements | Test real component behavior |
+| Test-only production methods | Move cleanup to test utilities |
+| Mocking without understanding | Mock at TTS boundary only |
+| Incomplete mocks | Mirror real API completely |
+| Tests as afterthought | Practice TDD |
+
+### Anti-Pattern Red Flags
+
+Stop and reconsider if you notice:
+
+- Assertions checking for test-specific identifiers
+- Methods called only in test files (except `_test` exports)
+- Mock setup >50% of test code
+- Tests failing when mocks are removed
+- Mocking "just to be safe"
+- Can't explain why the mock is necessary
+
+---
 
 ## Behavioral vs Structural Tests
 

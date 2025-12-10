@@ -68,9 +68,45 @@ When process changes affect other roles:
    - Why it changed
    - Immediate actions required (if any)
 
-### 5. Consolidate Learnings
+### 5. Conduct Standard Retrospective (5 rounds)
 
-Process `handover/LEARNINGS.md` during retrospectives or when the backlog grows:
+For large features with significant learnings, follow the 5-round process:
+
+**Round 1 — Gather and Broadcast Learnings:**
+- Review `handover/LEARNINGS.md` for the feature
+- Gather and organize all learnings by category
+- **Compile skill/agent usage stats** from session learnings — which were used, which were helpful, which didn't trigger when expected
+- Create handover to all involved roles with the collected feedback
+- Ask each role to select 1-3 most important learnings
+
+**Round 2 — Collect Role Brainstorming:**
+- Wait for role handovers with their selections
+- Each role selects 1-3 important items and brainstorms 3+ solutions per item using `brainstorming` skill
+
+**Round 3 — Synthesize Proposals:**
+- Review all role feedback and brainstormed solutions
+- Synthesize up to 3 concrete process change proposals
+- **Prefer skills/agents over documentation** — If a learning is about forgetting to do something or not following process, consider creating or updating a skill/agent to automate the reminder or enforcement rather than just adding documentation
+- Create handover to all roles requesting Support/Oppose/Modify feedback
+
+**Round 4 — Collect Proposal Feedback:**
+- Wait for role handovers with their feedback
+- Each role provides Support/Oppose/Modify for each proposal
+
+**Round 5 — Implement:**
+- Incorporate feedback into final decisions
+- Implement approved changes (update skills, agents, docs, process)
+- **Evaluate skill/agent effectiveness:**
+  - Skills/agents that didn't trigger when expected → improve triggers or add to role documentation
+  - Skills/agents rarely used → consider if triggers need improvement or if they're superfluous
+  - Skills/agents that triggered unnecessarily → narrow triggers or remove
+  - Missing skills/agents identified → create new ones
+- Log processed learnings, clear from LEARNINGS.md
+- Broadcast summary to all roles
+
+### 6. Consolidate Learnings (Light Retrospective)
+
+For minor improvements or when learnings are few (<5), implement directly:
 
 1. **Review** unprocessed learnings in the file
 2. **Categorize** by action type:
@@ -86,17 +122,47 @@ Process `handover/LEARNINGS.md` during retrospectives or when the backlog grows:
 4. **Log** what was done in the Processing Log table
 5. **Clear** processed learnings from the Unprocessed section
 
+**Skill/Agent preference:** When a learning indicates process conformance issues (forgetting steps, missing triggers, inconsistent behavior), prefer creating or updating skills/agents over adding documentation. Skills and agents provide automatic enforcement; documentation requires manual compliance.
+
 **Consolidation triggers:**
 - During feature retrospectives
 - When LEARNINGS.md has 5+ unprocessed entries
 - On request from any role
 - At natural pause points (end of sprint/milestone)
 
+## Available Skills
+
+### learning-capture
+**Triggers automatically** when learning moments occur. Use immediately when:
+- User corrects your approach or points out a mistake
+- About to say "I should have..." or "I forgot to..."
+- Realizing a process step was skipped
+- Discovering a new pattern or insight about the project
+
+Captures to `handover/LEARNINGS.md` in real-time, not waiting for session end.
+
+### Primary Skills
+- **`writing-skills`** — TDD for skill creation: test with subagents before writing, iterate until bulletproof
+- **`brainstorming`** — Collaborative idea refinement through structured questioning
+
+### Supporting References
+- **`anthropic-best-practices.md`** — Skill structure, progressive disclosure, token efficiency
+- **`persuasion-principles.md`** — Why certain phrasings work (authority, commitment, etc.)
+
 ## Key Principles
 - **Facilitate, don't dictate** — Propose improvements, gather feedback
 - **Small, incremental changes** — Avoid big-bang process rewrites
 - **Document rationale** — Explain why, not just what
 - **Measure outcomes** — Track whether changes improve the workflow
+
+## Handover Creation
+
+**Always use the `handover-manager` agent** when creating handovers. This ensures:
+- Correct file naming and formatting
+- QUEUE.md is updated automatically
+- Consistent handover structure
+
+**Why not manual?** Manual creation is error-prone (typos in queue entries, inconsistent formatting) and slower.
 
 ## Session Closing
 Use voice: `say -v Xander "Team Coach fertig. <status>"`

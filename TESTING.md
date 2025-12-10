@@ -24,7 +24,11 @@ lua tests/run.lua          # Run all headless tests (~2 seconds)
 | Command | Purpose |
 |---------|---------|
 | `>testall` | Run all TTS tests |
-| `>testfocus` | Run tests for current bead only |
+| `>testrun <name>` | Run single test by exact name |
+| `>testsuite <bead>` | Run all tests for a bead |
+| `>testcurrent` | Run tests for FOCUS_BEAD only |
+| `>testpriority` | Run FOCUS_BEAD first, then others if pass |
+| `>testhelp` | Show all available test commands |
 
 ---
 

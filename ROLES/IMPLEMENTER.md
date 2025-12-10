@@ -84,15 +84,29 @@ Update `handover/IMPLEMENTATION_STATUS.md` with:
 - What remains
 - Any blockers or questions
 
-## Skills Reference
+## Available Skills
 
-The following skills auto-load when working on implementation:
+### learning-capture
+**Triggers automatically** when learning moments occur. Use immediately when:
+- User corrects your approach or points out a mistake
+- About to say "I should have..." or "I forgot to..."
+- Realizing a process step was skipped
+- Discovering a new pattern or insight about the project
 
+Captures to `handover/LEARNINGS.md` in real-time, not waiting for session end.
+
+### Core Skills (auto-load)
 - **`kdm-coding-conventions`** — Lua style, module exports, SOLID principles, error handling
 - **`kdm-tts-patterns`** — TTS async callbacks, archive operations, object lifecycle
-- **`kdm-test-patterns`** — Testing patterns, cross-module integration tests
+- **`kdm-test-patterns`** — Testing patterns, anti-patterns, cross-module integration tests
 - **`kdm-ui-framework`** — PanelKit, LayoutManager, color palette (for UI work)
 - **`kdm-expansion-data`** — Expansion data structures, archive system (for expansion work)
+
+### Process Skills
+- **`test-driven-development`** — Red-Green-Refactor cycle, Iron Law: no code without failing test first
+- **`verification-before-completion`** — Run tests, verify output, THEN claim "done"
+- **`receiving-code-review`** — Process review feedback with technical rigor, not performative agreement
+- **`defense-in-depth`** — Add validation at multiple layers when fixing data bugs
 
 ## Common Patterns
 
@@ -105,6 +119,15 @@ Add comments in `handover/LATEST_REVIEW.md` under each issue:
 
 **Implementer Response:** [Explanation or "Fixed in commit X"]
 ```
+
+## Handover Creation
+
+**Always use the `handover-manager` agent** when creating handovers. This ensures:
+- Correct file naming and formatting
+- QUEUE.md is updated automatically
+- Consistent handover structure
+
+**Why not manual?** Manual creation is error-prone (typos in queue entries, inconsistent formatting) and slower.
 
 ## Session Closing
 Use voice: `say -v Viktor "Implementer fertig. <status>"`

@@ -16,6 +16,7 @@ function Terrain.Init()
         for name, data in pairs(expansion.terrain or {}) do
             assert(Check(not Terrain.dataByName[name], "Terrain %s is already registered", name))
             Terrain.dataByName[name] = data
+            log:Debugf("[TERRAIN INIT] Registered terrain '%s' from expansion '%s'", name, expansion.name or "?")
         end
 
         for terrainTile, size in pairs(expansion.terrainTileSizes or {}) do
@@ -23,6 +24,9 @@ function Terrain.Init()
             Terrain.tileSizesByName[terrainTile] = size
         end
     end
+    local count = 0
+    for _ in pairs(Terrain.dataByName) do count = count + 1 end
+    log:Debugf("[TERRAIN INIT] Total terrain cards registered: %d", count)
 end
 
 ---------------------------------------------------------------------------------------------------

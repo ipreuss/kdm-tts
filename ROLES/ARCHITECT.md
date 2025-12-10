@@ -28,6 +28,53 @@ The Architect MAY directly edit:
 
 These are structural documents, not implementation code or process documentation.
 
+## Available Skills
+
+### learning-capture
+**Triggers automatically** when learning moments occur. Use immediately when:
+- User corrects your approach or points out a mistake
+- About to say "I should have..." or "I forgot to..."
+- Realizing a process step was skipped
+- Discovering a new pattern or insight about the project
+
+Captures to `handover/LEARNINGS.md` in real-time, not waiting for session end.
+
+### brainstorming
+Use when design requires exploring multiple approaches or clarifying requirements with stakeholders. Guides structured questioning:
+- One question at a time, multiple choice preferred
+- Explores 2-3 approaches with trade-offs
+- Focus on technical constraints, patterns, dependencies
+
+Invoke with: "I'll use the brainstorming skill to explore design options."
+
+### architect-handover-planning
+Use when creating detailed implementation handovers for Implementer. Creates bite-sized tasks (2-5 minutes each):
+- TDD workflow: test → verify fail → implement → verify pass → checkpoint
+- Complete code examples (copy-paste ready)
+- Exact file paths with line ranges
+- TTS testing requirements specified
+
+Invoke with: "I'll use the architect-handover-planning skill to create a detailed implementation plan."
+
+### feature-breakdown
+**Use ALWAYS after brainstorming design.** Guides breaking designs into smallest implementable tasks:
+- Each task = one atomic commit
+- Target: 1-3 files per task, 15-60 minutes implementation
+- Sequential with clear handoff points
+
+**Core principle:** Break every design into smallest units. Don't ask "Is this large?" Ask "What's the smallest piece that can be implemented and committed?"
+
+**When to split further:**
+- Task touches 5+ files
+- Mixes concerns (data + UI, logic + integration)
+- Description uses "and" or "then"
+- Would result in >200 line commit
+- Cannot write single-sentence commit message
+
+After breaking down: create task handovers with specific scope, dependencies, verification criteria, and commit messages.
+
+Invoke with: "I'll use the feature-breakdown skill to split this design into tasks."
+
 ## Available Subagents
 
 ### Handover-Manager Subagent
@@ -70,6 +117,25 @@ Create `handover/HANDOVER_IMPLEMENTER.md` with:
 - Patterns to follow (with code examples)
 - Testing requirements
 - Open questions resolved
+- **Design Requirements Checklist** (see below)
+
+### Design Requirements Checklist
+
+For features with 3+ requirements, include an explicit checklist in the handover:
+
+```markdown
+## Design Requirements Checklist
+Before closing this feature, verify ALL items are implemented:
+- [ ] Requirement 1: [description] — verify via [test type]
+- [ ] Requirement 2: [description] — verify via [test type]
+- [ ] Requirement 3: [description] — verify via [test type]
+
+**Architect verification:** During design compliance review, check each item against implementation evidence (file:line or test).
+```
+
+**Why this matters:** The kdm-w1k feature was 40% complete (4 of 10+ monsters) when code patterns were perfect. Without explicit scope tracking, the bead would have closed prematurely.
+
+**Testability notes:** Include which requirements need TTS console tests vs headless tests to help Tester plan coverage.
 
 ### 5. TTS Testing Specification
 When design involves TTS API interactions, explicitly specify:
@@ -99,6 +165,15 @@ See PROCESS.md "Lightweight Workflow for Pure Refactoring" for full criteria.
 - **Guidance over code** - Describe what to build, not how to type it
 - **Patterns over prescriptions** - Point to existing examples
 - **Feasibility assessment** - Push back on requirements that are technically problematic
+
+## Handover Creation
+
+**Always use the `handover-manager` agent** when creating handovers. This ensures:
+- Correct file naming and formatting
+- QUEUE.md is updated automatically
+- Consistent handover structure
+
+**Why not manual?** Manual creation is error-prone (typos in queue entries, inconsistent formatting) and slower.
 
 ## Session Closing
 Use voice: `say -v Markus "Architekt fertig. <status>"`

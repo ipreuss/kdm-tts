@@ -337,27 +337,46 @@ This ensures all roles stay synchronized on process changes, even mid-session.
 
 | Format | Use When | Rounds |
 |--------|----------|--------|
-| **Standard** | Large features, 5+ handovers, significant issues | 2 rounds |
+| **Standard** | Large features, 5+ handovers, significant issues | 5 rounds |
 | **Light** | Small tasks, technical debt, minor friction | 1 round |
 
 ---
 
-#### Standard Retrospective (2 rounds)
+#### Standard Retrospective (5 rounds)
 
-**Round 1 — Propose Changes:**
+**Round 1 — Gather and Broadcast Learnings:**
 Team Coach reviews `handover/LEARNINGS.md` for the feature, then:
-- Categorizes learnings by type (skill/agent/doc/process)
-- Proposes 1-3 concrete improvements
-- Asks for Support/Oppose/Modify feedback from involved roles
+- Gathers and organizes all learnings by category
+- Creates handover to all involved roles with the collected feedback
+- Asks each role to select 1-3 most important learnings
 
-**Round 2 — Implement:**
+**Round 2 — Role Brainstorming:**
+Each role:
+- Reviews the organized learnings
+- Selects 1-3 most important items from their perspective
+- For each selected item, uses the `brainstorm` skill to generate at least 3 different solutions
+- Creates handover back to Team Coach with selections and brainstormed solutions
+
+**Round 3 — Synthesize Proposals:**
 Team Coach:
-- Incorporates feedback into final proposals
-- Implements approved changes (updates skills, agents, docs)
+- Reviews all role feedback and brainstormed solutions
+- Synthesizes up to 3 concrete process change proposals
+- Creates handover to all roles requesting Support/Oppose/Modify feedback
+
+**Round 4 — Proposal Feedback:**
+Each role:
+- Reviews the synthesized proposals
+- Provides Support/Oppose/Modify feedback for each proposal
+- Creates handover back to Team Coach
+
+**Round 5 — Implement:**
+Team Coach:
+- Incorporates feedback into final decisions
+- Implements approved changes (updates skills, agents, docs, process)
 - Logs processed learnings, clears from LEARNINGS.md
 - Broadcasts summary to all roles
 
-**Time-box:** Max 1 hour elapsed or 3 total handovers per role.
+**Critical:** Always use handovers for feedback requests, never assume roles can respond in-session. Each role processes feedback in their own session.
 
 ---
 

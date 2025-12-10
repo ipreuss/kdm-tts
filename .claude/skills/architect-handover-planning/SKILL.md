@@ -215,6 +215,35 @@ FAIL: specific behavior description
 
 ---
 
+## Common Rationalizations to Reject
+
+| Rationalization | Reality |
+|-----------------|---------|
+| "Implementer can figure out the details" | No. Vague handovers cause rework. Be explicit. |
+| "TDD is overkill for simple tasks" | Every task gets test-first. No exceptions. |
+| "Code example would be too long" | Long examples prevent misunderstanding. Include them. |
+| "File paths are obvious" | Nothing is obvious. Write exact paths. |
+| "They'll know what I mean" | They won't. Write it out. |
+| "Verification steps slow things down" | Missing verification causes bugs. Include them. |
+
+---
+
+## Red Flags — Incomplete Plan
+
+Stop and add more detail if you notice:
+
+- Vague file paths ("somewhere in Kdm/")
+- Missing code examples ("implement validation")
+- No verification steps after tasks
+- Skipping test-first structure
+- "Figure out the best approach" language
+- No expected output for test runs
+- Missing TTS test specification when UI is involved
+
+**If an Implementer with zero context couldn't follow your plan mechanically, it's not ready.**
+
+---
+
 ## Integration with Workflow
 
 ### Before Creating Plan

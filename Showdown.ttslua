@@ -541,6 +541,13 @@ function Showdown.Setup(monsterOrName, levelOrName)
     local terrainDeck = Container(Archive.Take({ name = "Terrain", type = "Terrain", location = "Terrain", rotation = { x = 0, y = 180, z = 180 } }))
     local terrainTilesBag = Container(Archive.Take({ name = "Terrain Tiles", type = "Terrain Tiles", location = "Terrain Tiles" }))
 
+    -- DEBUG: Log all terrain cards in the deck
+    log:Debugf("[TERRAIN DECK] Contents of terrain deck:")
+    for _, obj in ipairs(terrainDeck:Objects()) do
+        log:Debugf("[TERRAIN DECK]   - name='%s', gm_notes='%s'", obj.name, obj.gm_notes or "<nil>")
+    end
+    log:Debugf("[TERRAIN DECK] Total cards in deck: %d", #terrainDeck:Objects())
+
     terrainDeck:Shuffle()
 
     local terrainTileObjects = {}
@@ -560,9 +567,10 @@ function Showdown.Setup(monsterOrName, levelOrName)
     end
     local SpawnTerrain = function(terrain, locations, rotations)
         local terrainLocation, miscLocation = NextTerrainLocation()
+        log:Debugf("[SPAWN TERRAIN] Looking for terrain card '%s' in deck", terrain or "<random>")
         local terrainCard = terrainDeck:Take({ name = terrain, type = "Terrain", position = Location.Get(terrainLocation):Position() })
         if not terrainCard then
-            return log:Errorf("Couldn't find terrain '%s'", terrain)
+            return log:Errorf("Couldn't find terrain '%s' in deck. Check if expansion terrain is being merged.", terrain)
         end
         local descriptor
         if terrain then
@@ -570,9 +578,11 @@ function Showdown.Setup(monsterOrName, levelOrName)
         else
             descriptor = "random"
         end
-        log:Debugf("Spawned %s %s terrain at %s", descriptor, terrainCard.getName(), terrainLocation)
+        local cardName = terrainCard.getName()
+        log:Debugf("Spawned %s %s terrain at %s (card name from TTS: '%s')", descriptor, terrain or "random", terrainLocation, cardName)
 
-        local data = Terrain.Data(terrainCard.getName())
+        log:Debugf("[TERRAIN LOOKUP] Looking up terrain data for card name '%s'", cardName)
+        local data = Terrain.Data(cardName)
         if locations then
             for i, location in ipairs(locations) do
                 SpawnTerrainTile(data.terrainTile, location, rotations[i])

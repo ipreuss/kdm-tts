@@ -14,6 +14,7 @@ local Location = require("Kdm/Location")
 local log = require("Kdm/Log").ForModule("TTSTests")
 local ResourceRewards = require("Kdm/ResourceRewards")
 local Showdown = require("Kdm/Showdown")
+local TestSetup = require("Kdm/TTSTests/TestSetup")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -1108,6 +1109,7 @@ end
 function ResourceRewardsTests.TestSpidiculesButtonAppears(onComplete)
     log:Printf("=== TEST: TestSpidiculesButtonAppears (Integration) ===")
 
+    local cleanup = TestSetup.EnableExpansionTerrain("Spidicules")
     Showdown.Clean()
 
     Wait.frames(function()
@@ -1125,6 +1127,7 @@ function ResourceRewardsTests.TestSpidiculesButtonAppears(onComplete)
                 log:Printf("=== TEST: TestSpidiculesButtonAppears COMPLETE ===")
                 log:Printf("TEST RESULT: PASSED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(true) end
             else
                 log:Errorf("TEST: Rewards button is NOT visible!")
@@ -1133,6 +1136,7 @@ function ResourceRewardsTests.TestSpidiculesButtonAppears(onComplete)
                 log:Printf("=== TEST: TestSpidiculesButtonAppears COMPLETE ===")
                 log:Printf("TEST RESULT: FAILED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(false) end
             end
         end, 60)
@@ -1217,6 +1221,7 @@ end
 function ResourceRewardsTests.TestSpidiculesStrangeResourcesSpawn(onComplete)
     log:Printf("=== TEST: TestSpidiculesStrangeResourcesSpawn (Behavioral) ===")
 
+    local cleanup = TestSetup.EnableExpansionTerrain("Spidicules")
     Showdown.Clean()
 
     Wait.frames(function()
@@ -1276,6 +1281,7 @@ function ResourceRewardsTests.TestSpidiculesStrangeResourcesSpawn(onComplete)
                 log:Printf("=== TEST: TestSpidiculesStrangeResourcesSpawn COMPLETE ===")
                 log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(passed) end
             end, 60)
         end, 30)
@@ -1289,6 +1295,7 @@ end
 function ResourceRewardsTests.TestDragonKingButtonAppears(onComplete)
     log:Printf("=== TEST: TestDragonKingButtonAppears (Integration) ===")
 
+    local cleanup = TestSetup.EnableExpansionTerrain("Dragon King")
     Showdown.Clean()
 
     Wait.frames(function()
@@ -1306,6 +1313,7 @@ function ResourceRewardsTests.TestDragonKingButtonAppears(onComplete)
                 log:Printf("=== TEST: TestDragonKingButtonAppears COMPLETE ===")
                 log:Printf("TEST RESULT: PASSED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(true) end
             else
                 log:Errorf("TEST: Rewards button is NOT visible!")
@@ -1314,6 +1322,7 @@ function ResourceRewardsTests.TestDragonKingButtonAppears(onComplete)
                 log:Printf("=== TEST: TestDragonKingButtonAppears COMPLETE ===")
                 log:Printf("TEST RESULT: FAILED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(false) end
             end
         end, 60)
@@ -1399,6 +1408,7 @@ end
 function ResourceRewardsTests.TestDragonKingStrangeResourcesSpawn(onComplete)
     log:Printf("=== TEST: TestDragonKingStrangeResourcesSpawn (Behavioral) ===")
 
+    local cleanup = TestSetup.EnableExpansionTerrain("Dragon King")
     Showdown.Clean()
 
     Wait.frames(function()
@@ -1459,6 +1469,7 @@ function ResourceRewardsTests.TestDragonKingStrangeResourcesSpawn(onComplete)
                 log:Printf("=== TEST: TestDragonKingStrangeResourcesSpawn COMPLETE ===")
                 log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(passed) end
             end, 60)
         end, 30)
@@ -1472,6 +1483,7 @@ end
 function ResourceRewardsTests.TestSunstalkerButtonAppears(onComplete)
     log:Printf("=== TEST: TestSunstalkerButtonAppears (Integration) ===")
 
+    local cleanup = TestSetup.EnableExpansionTerrain("Sunstalker")
     Showdown.Clean()
 
     Wait.frames(function()
@@ -1489,6 +1501,7 @@ function ResourceRewardsTests.TestSunstalkerButtonAppears(onComplete)
                 log:Printf("=== TEST: TestSunstalkerButtonAppears COMPLETE ===")
                 log:Printf("TEST RESULT: PASSED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(true) end
             else
                 log:Errorf("TEST: Rewards button is NOT visible!")
@@ -1497,6 +1510,7 @@ function ResourceRewardsTests.TestSunstalkerButtonAppears(onComplete)
                 log:Printf("=== TEST: TestSunstalkerButtonAppears COMPLETE ===")
                 log:Printf("TEST RESULT: FAILED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(false) end
             end
         end, 60)
@@ -1582,6 +1596,7 @@ end
 function ResourceRewardsTests.TestSunstalkerStrangeResourcesSpawn(onComplete)
     log:Printf("=== TEST: TestSunstalkerStrangeResourcesSpawn (Behavioral) ===")
 
+    local cleanup = TestSetup.EnableExpansionTerrain("Sunstalker")
     Showdown.Clean()
 
     Wait.frames(function()
@@ -1642,6 +1657,7 @@ function ResourceRewardsTests.TestSunstalkerStrangeResourcesSpawn(onComplete)
                 log:Printf("=== TEST: TestSunstalkerStrangeResourcesSpawn COMPLETE ===")
                 log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(passed) end
             end, 60)
         end, 30)
@@ -1655,6 +1671,7 @@ end
 function ResourceRewardsTests.TestDungBeetleKnightButtonAppears(onComplete)
     log:Printf("=== TEST: TestDungBeetleKnightButtonAppears (Integration) ===")
 
+    local cleanup = TestSetup.EnableExpansionTerrain("Dung Beetle Knight")
     Showdown.Clean()
 
     Wait.frames(function()
@@ -1672,6 +1689,7 @@ function ResourceRewardsTests.TestDungBeetleKnightButtonAppears(onComplete)
                 log:Printf("=== TEST: TestDungBeetleKnightButtonAppears COMPLETE ===")
                 log:Printf("TEST RESULT: PASSED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(true) end
             else
                 log:Errorf("TEST: Rewards button is NOT visible!")
@@ -1680,6 +1698,7 @@ function ResourceRewardsTests.TestDungBeetleKnightButtonAppears(onComplete)
                 log:Printf("=== TEST: TestDungBeetleKnightButtonAppears COMPLETE ===")
                 log:Printf("TEST RESULT: FAILED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(false) end
             end
         end, 60)
@@ -1765,6 +1784,7 @@ end
 function ResourceRewardsTests.TestDungBeetleKnightStrangeResourcesSpawn(onComplete)
     log:Printf("=== TEST: TestDungBeetleKnightStrangeResourcesSpawn (Behavioral) ===")
 
+    local cleanup = TestSetup.EnableExpansionTerrain("Dung Beetle Knight")
     Showdown.Clean()
 
     Wait.frames(function()
@@ -1824,6 +1844,7 @@ function ResourceRewardsTests.TestDungBeetleKnightStrangeResourcesSpawn(onComple
                 log:Printf("=== TEST: TestDungBeetleKnightStrangeResourcesSpawn COMPLETE ===")
                 log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(passed) end
             end, 60)
         end, 30)
@@ -1837,6 +1858,7 @@ end
 function ResourceRewardsTests.TestFlowerKnightButtonAppears(onComplete)
     log:Printf("=== TEST: TestFlowerKnightButtonAppears (Integration) ===")
 
+    local cleanup = TestSetup.EnableExpansionTerrain("Flower Knight")
     Showdown.Clean()
 
     Wait.frames(function()
@@ -1854,6 +1876,7 @@ function ResourceRewardsTests.TestFlowerKnightButtonAppears(onComplete)
                 log:Printf("=== TEST: TestFlowerKnightButtonAppears COMPLETE ===")
                 log:Printf("TEST RESULT: PASSED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(true) end
             else
                 log:Errorf("TEST: Rewards button is NOT visible!")
@@ -1862,6 +1885,7 @@ function ResourceRewardsTests.TestFlowerKnightButtonAppears(onComplete)
                 log:Printf("=== TEST: TestFlowerKnightButtonAppears COMPLETE ===")
                 log:Printf("TEST RESULT: FAILED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(false) end
             end
         end, 60)
@@ -1937,6 +1961,7 @@ end
 function ResourceRewardsTests.TestFlowerKnightNoStrangeResources(onComplete)
     log:Printf("=== TEST: TestFlowerKnightNoStrangeResources (Behavioral) ===")
 
+    local cleanup = TestSetup.EnableExpansionTerrain("Flower Knight")
     Showdown.Clean()
 
     Wait.frames(function()
@@ -2007,6 +2032,7 @@ function ResourceRewardsTests.TestFlowerKnightNoStrangeResources(onComplete)
                 log:Printf("=== TEST: TestFlowerKnightNoStrangeResources COMPLETE ===")
                 log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(passed) end
             end, 60)
         end, 30)

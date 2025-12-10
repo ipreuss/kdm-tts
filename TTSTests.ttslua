@@ -32,31 +32,47 @@ local ResourceRewardsTests = require("Kdm/TTSTests/ResourceRewardsTests")
 local TTSTests = {}
 
 ---------------------------------------------------------------------------------------------------
+-- Test Registry with Bead Tags
+-- Update FOCUS_BEAD when switching to a new backlog item
+---------------------------------------------------------------------------------------------------
+
+local FOCUS_BEAD = "kdm-96o"  -- Current backlog item - UPDATE THIS
+
+---------------------------------------------------------------------------------------------------
 
 function TTSTests.Init()
     Console.AddCommand("testhelp", function(args)
-        log:Printf("Available TTS tests:")
-        log:Printf("  >testall - Run all TTS tests")
-        log:Printf("  >testfocus - Run tests for current bead only (fast)")
-        log:Printf("  >teststrain [cardname] - Test adding a strain fighting art to the deck")
-        log:Printf("  >teststrainvermin [cardname] - Test adding a strain vermin card to the deck")
-        log:Printf("  >testdialogspec - Test DialogFromSpec callback timing issue")
-        log:Printf("  >testcardstate [stateId] - Test archive fallback for Story of Blood stateful names")
-        log:Printf("  >testatmospheric - Test Atmospheric Change milestone (archive/add)")
-        log:Printf("  >testheatwaverestore - Test restoring Heat Wave from Trash to Settlement Events")
-        log:Printf("  >testmilestone - Test full milestone execution (AddCard + SpawnForSurvivor)")
-        log:Printf("  >testplottwist - Test Plot Twist milestone (fightingArt + strangeResource)")
-        log:Printf("  >testconsequence - Test ConsequenceApplicator operations")
-        log:Printf("  >testpatterns - Test spawning Pattern deck from archive")
-        log:Printf("  >testpatterngear - Test spawning Pattern Gear deck from archive")
-        log:Printf("  >testshuffle - Test whether Seed Patterns deck gets shuffled")
-        log:Printf("  >testayaspairing - Test Aya's Spear + Sword cross-name pairing")
-        log:Printf("  >testayasseparate - Test Aya's weapons display as 2 separate lines")
-        log:Printf("  >testbonehatchet - Test Bone Hatchet same-name pairing (1 merged line)")
-        log:Printf("  >testrewardsbutton - Test rewards button appears on showdown")
-        log:Printf("  >testrewardshidden - Test rewards button hidden when no resources")
-        log:Printf("  >testrewardsspawn - Test correct resources spawned")
-        log:Printf("  >testrewardsstrange - Test strange resources spawn from archive (L3)")
+        log:Printf("TTS Test Commands:")
+        log:Printf("")
+        log:Printf("  Selective Execution:")
+        log:Printf("    >testrun <name>     - Run single test by exact name")
+        log:Printf("    >testsuite <bead>   - Run all tests for a bead")
+        log:Printf("    >testcurrent        - Run tests for FOCUS_BEAD (%s)", FOCUS_BEAD)
+        log:Printf("    >testpriority       - Run FOCUS_BEAD first, then others if pass")
+        log:Printf("")
+        log:Printf("  Full Suite:")
+        log:Printf("    >testall            - Run all TTS tests")
+        log:Printf("")
+        log:Printf("  Individual Tests:")
+        log:Printf("    >teststrain [card]  - Test adding a strain fighting art")
+        log:Printf("    >teststrainvermin   - Test adding a strain vermin card")
+        log:Printf("    >testdialogspec     - Test DialogFromSpec callback timing")
+        log:Printf("    >testcardstate [id] - Test archive fallback for stateful names")
+        log:Printf("    >testatmospheric    - Test Atmospheric Change milestone")
+        log:Printf("    >testheatwaverestore- Test restoring Heat Wave from Trash")
+        log:Printf("    >testmilestone      - Test full milestone execution")
+        log:Printf("    >testplottwist      - Test Plot Twist milestone")
+        log:Printf("    >testconsequence    - Test ConsequenceApplicator operations")
+        log:Printf("    >testpatterns       - Test spawning Pattern deck")
+        log:Printf("    >testpatterngear    - Test spawning Pattern Gear deck")
+        log:Printf("    >testshuffle        - Test Seed Patterns deck shuffle")
+        log:Printf("    >testayaspairing    - Test Aya's weapon pairing")
+        log:Printf("    >testayasseparate   - Test Aya's weapons separate lines")
+        log:Printf("    >testbonehatchet    - Test Bone Hatchet pairing")
+        log:Printf("    >testrewardsbutton  - Test rewards button visibility")
+        log:Printf("    >testrewardshidden  - Test rewards button hidden")
+        log:Printf("    >testrewardsspawn   - Test correct resources spawned")
+        log:Printf("    >testrewardsstrange - Test strange resources spawn")
     end, "Show available TTS test commands")
 
     Console.AddCommand("testall", function(args)
@@ -66,6 +82,35 @@ function TTSTests.Init()
     Console.AddCommand("testfocus", function(args)
         TTSTests.RunFocusedTests()
     end, "Run only tests for current bead (fast)")
+
+    Console.AddCommand("testrun", function(args)
+        if #args < 2 then
+            log:Printf("Usage: testrun <test_name>")
+            log:Printf("Example: testrun Spidicules Button Visible")
+            return
+        end
+        -- Join all args after command name (test names have spaces)
+        local testName = table.concat(args, " ", 2)
+        TTSTests.RunSingleTest(testName)
+    end, "Run a single test by name")
+
+    Console.AddCommand("testsuite", function(args)
+        if #args < 2 then
+            log:Printf("Usage: testsuite <bead_id>")
+            log:Printf("Example: testsuite kdm-96o")
+            return
+        end
+        local beadId = args[2]
+        TTSTests.RunBeadSuite(beadId)
+    end, "Run all tests for a specific bead")
+
+    Console.AddCommand("testcurrent", function(args)
+        TTSTests.RunCurrentBeadTests()
+    end, "Run tests for current bead (FOCUS_BEAD)")
+
+    Console.AddCommand("testpriority", function(args)
+        TTSTests.RunPriorityTests()
+    end, "Run current bead tests first, then others if all pass")
 
     -- Register all test module commands
     StrainTests.Register()
@@ -78,13 +123,6 @@ function TTSTests.Init()
     BattleTests.Register()
     ResourceRewardsTests.Register()
 end
-
----------------------------------------------------------------------------------------------------
--- Test Registry with Bead Tags
--- Update FOCUS_BEAD when switching to a new backlog item
----------------------------------------------------------------------------------------------------
-
-local FOCUS_BEAD = "kdm-w1k.3"  -- Current backlog item - UPDATE THIS
 
 local ALL_TESTS = {
     -- Strain tests (no specific bead - regression)
@@ -119,26 +157,26 @@ local ALL_TESTS = {
     { name = "Gorm Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestGormButtonAppears(onComplete) end },
     { name = "Gorm Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestGormDataIntegrity(onComplete) end },
     { name = "Gorm Strange Resources Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestGormStrangeResourcesSpawn(onComplete) end },
-    -- Spidicules tests (kdm-w1k.3)
-    { name = "Spidicules Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestSpidiculesButtonAppears(onComplete) end },
-    { name = "Spidicules Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestSpidiculesDataIntegrity(onComplete) end },
-    { name = "Spidicules Strange Resources Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestSpidiculesStrangeResourcesSpawn(onComplete) end },
-    -- Dragon King tests (kdm-w1k.3)
-    { name = "Dragon King Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestDragonKingButtonAppears(onComplete) end },
-    { name = "Dragon King Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestDragonKingDataIntegrity(onComplete) end },
-    { name = "Dragon King Strange Resources Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestDragonKingStrangeResourcesSpawn(onComplete) end },
-    -- Sunstalker tests (kdm-w1k.3)
-    { name = "Sunstalker Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestSunstalkerButtonAppears(onComplete) end },
-    { name = "Sunstalker Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestSunstalkerDataIntegrity(onComplete) end },
-    { name = "Sunstalker Strange Resources Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestSunstalkerStrangeResourcesSpawn(onComplete) end },
-    -- Dung Beetle Knight tests (kdm-w1k.3)
-    { name = "Dung Beetle Knight Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightButtonAppears(onComplete) end },
-    { name = "Dung Beetle Knight Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightDataIntegrity(onComplete) end },
-    { name = "Dung Beetle Knight Strange Resources Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightStrangeResourcesSpawn(onComplete) end },
-    -- Flower Knight tests (kdm-w1k.3)
-    { name = "Flower Knight Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightButtonAppears(onComplete) end },
-    { name = "Flower Knight Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightDataIntegrity(onComplete) end },
-    { name = "Flower Knight No Strange Resources", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightNoStrangeResources(onComplete) end },
+    -- Spidicules tests (kdm-96o - uses TestSetup.EnableExpansionTerrain)
+    { name = "Spidicules Button Visible", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestSpidiculesButtonAppears(onComplete) end },
+    { name = "Spidicules Data Integrity", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestSpidiculesDataIntegrity(onComplete) end },
+    { name = "Spidicules Strange Resources Spawn", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestSpidiculesStrangeResourcesSpawn(onComplete) end },
+    -- Dragon King tests (kdm-96o - uses TestSetup.EnableExpansionTerrain)
+    { name = "Dragon King Button Visible", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestDragonKingButtonAppears(onComplete) end },
+    { name = "Dragon King Data Integrity", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestDragonKingDataIntegrity(onComplete) end },
+    { name = "Dragon King Strange Resources Spawn", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestDragonKingStrangeResourcesSpawn(onComplete) end },
+    -- Sunstalker tests (kdm-96o - uses TestSetup.EnableExpansionTerrain)
+    { name = "Sunstalker Button Visible", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestSunstalkerButtonAppears(onComplete) end },
+    { name = "Sunstalker Data Integrity", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestSunstalkerDataIntegrity(onComplete) end },
+    { name = "Sunstalker Strange Resources Spawn", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestSunstalkerStrangeResourcesSpawn(onComplete) end },
+    -- Dung Beetle Knight tests (kdm-96o - uses TestSetup.EnableExpansionTerrain)
+    { name = "Dung Beetle Knight Button Visible", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightButtonAppears(onComplete) end },
+    { name = "Dung Beetle Knight Data Integrity", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightDataIntegrity(onComplete) end },
+    { name = "Dung Beetle Knight Strange Resources Spawn", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightStrangeResourcesSpawn(onComplete) end },
+    -- Flower Knight tests (kdm-96o - uses TestSetup.EnableExpansionTerrain)
+    { name = "Flower Knight Button Visible", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightButtonAppears(onComplete) end },
+    { name = "Flower Knight Data Integrity", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightDataIntegrity(onComplete) end },
+    { name = "Flower Knight No Strange Resources", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightNoStrangeResources(onComplete) end },
 }
 
 ---------------------------------------------------------------------------------------------------
@@ -151,11 +189,66 @@ function TTSTests.RunAllTests()
 end
 
 ---------------------------------------------------------------------------------------------------
--- Run Focused Tests (current bead first, then regression if all pass)
+-- Run Single Test by Name
 ---------------------------------------------------------------------------------------------------
 
-function TTSTests.RunFocusedTests()
-    log:Printf("=== RUNNING FOCUSED TESTS FOR %s ===", FOCUS_BEAD)
+function TTSTests.RunSingleTest(testName)
+    local foundTest = nil
+    local lowerTestName = string.lower(testName)
+    for _, test in ipairs(ALL_TESTS) do
+        if string.lower(test.name) == lowerTestName then
+            foundTest = test
+            break
+        end
+    end
+
+    if not foundTest then
+        log:Errorf("Test not found: '%s'", testName)
+        log:Printf("Use >testhelp to see available test commands")
+        return
+    end
+
+    log:Printf("=== RUNNING SINGLE TEST: %s ===", testName)
+    TTSTests.RunTests({ foundTest })
+end
+
+---------------------------------------------------------------------------------------------------
+-- Run All Tests for a Bead
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.RunBeadSuite(beadId)
+    local beadTests = {}
+    for _, test in ipairs(ALL_TESTS) do
+        if test.bead == beadId then
+            table.insert(beadTests, test)
+        end
+    end
+
+    if #beadTests == 0 then
+        log:Errorf("No tests found for bead: '%s'", beadId)
+        log:Printf("Check that tests are tagged with bead = \"%s\"", beadId)
+        return
+    end
+
+    log:Printf("=== RUNNING %d TESTS FOR BEAD %s ===", #beadTests, beadId)
+    TTSTests.RunTests(beadTests)
+end
+
+---------------------------------------------------------------------------------------------------
+-- Run Tests for Current Bead Only
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.RunCurrentBeadTests()
+    log:Printf("=== RUNNING TESTS FOR CURRENT BEAD: %s ===", FOCUS_BEAD)
+    TTSTests.RunBeadSuite(FOCUS_BEAD)
+end
+
+---------------------------------------------------------------------------------------------------
+-- Run Priority Tests (current bead first, then regression if all pass)
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.RunPriorityTests()
+    log:Printf("=== RUNNING PRIORITY TESTS FOR %s ===", FOCUS_BEAD)
 
     local focusedTests = {}
     local regressionTests = {}
@@ -197,6 +290,12 @@ function TTSTests.RunFocusedTests()
             TTSTests.RunTests(regressionTests)
         end, 30)
     end)
+end
+
+-- Keep RunFocusedTests as alias for backward compatibility during transition
+function TTSTests.RunFocusedTests()
+    log:Printf("[DEPRECATED] >testfocus is deprecated, use >testpriority instead")
+    TTSTests.RunPriorityTests()
 end
 
 ---------------------------------------------------------------------------------------------------
