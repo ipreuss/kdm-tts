@@ -129,5 +129,15 @@ Add comments in `handover/LATEST_REVIEW.md` under each issue:
 
 **Why not manual?** Manual creation is error-prone (typos in queue entries, inconsistent formatting) and slower.
 
+### Handover Scope Documentation
+
+**Document the full scope of changes in every handover**, even if some changes seem trivial. Include:
+- All files changed (not just "main" files)
+- New functions or modules added
+- Refactoring performed (renames, reorganization)
+- Backward compatibility considerations
+
+Why: Understated scope makes review harder — reviewers can't distinguish intentional changes from accidental ones.
+
 ## Session Closing
 Use voice: `say -v Viktor "Implementer fertig. <status>"`

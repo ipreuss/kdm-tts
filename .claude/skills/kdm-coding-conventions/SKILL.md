@@ -232,6 +232,37 @@ function Module._TestStubUi() ... end
 - Require modules via stable paths: `require("Kdm/Gear")`
 - Avoid circular dependencies
 
+### Variable Declaration Order for Closures
+
+**CRITICAL:** Module-level locals must be declared **before** any function that references them.
+
+```lua
+-- ❌ WRONG: Variable declared after function that uses it
+local Module = {}
+
+function Module.Init()
+    -- This closure captures FOCUS_BEAD at definition time
+    someCallback = function()
+        print(FOCUS_BEAD)  -- Captures nil! Variable doesn't exist yet
+    end
+end
+
+local FOCUS_BEAD = "kdm-123"  -- Too late - closure already captured nil
+
+-- ✅ CORRECT: Declare before functions that reference it
+local FOCUS_BEAD = "kdm-123"  -- Declared first
+
+local Module = {}
+
+function Module.Init()
+    someCallback = function()
+        print(FOCUS_BEAD)  -- Captures the actual value
+    end
+end
+```
+
+**Why:** Lua closures capture variable references at **definition time**, not call time. If a function is defined before a local variable is declared, the closure captures `nil`.
+
 ## Paradigm Preference
 
 **Default to object-oriented Lua:**

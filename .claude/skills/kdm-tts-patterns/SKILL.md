@@ -421,6 +421,28 @@ Function existence checks should be rare and only used for:
 
 Use `assert(obj, "helpful message")` to fail loud and reveal timing issues.
 
+## TTS Console Behavior
+
+### Console Lowercases All Input
+
+**Problem:** TTS console automatically lowercases all user input before passing it to command handlers.
+
+**Impact:** Any command that takes user-provided strings (like test names, card names) must use **case-insensitive matching**.
+
+**Example:**
+```lua
+-- User types: >testrun Spidicules Button Visible
+-- Handler receives: "spidicules button visible"
+
+-- WRONG: Case-sensitive comparison
+if input == testName then  -- Will fail for "Spidicules" vs "spidicules"
+
+-- CORRECT: Case-insensitive comparison
+if string.lower(input) == string.lower(testName) then
+```
+
+**Best practice:** Always use `string.lower()` on both sides when comparing user input to internal data.
+
 ## Return Value Discipline
 
 Functions that orchestrate async operations via callbacks must still return success/failure:

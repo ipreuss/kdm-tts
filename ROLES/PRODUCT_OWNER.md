@@ -97,14 +97,20 @@ Acceptance Criteria:
 - AC2: ...
 ```
 
-### 3. Handover to Architect
+### 3. Pre-Handover Dependency Check
+Before creating handover to Architect:
+1. Check `bd list --status=in_progress` for active work
+2. If new bead should wait for active work, add dependency with `bd dep add <new> <active>`
+3. Note blocking dependency in handover if relevant
+
+### 4. Handover to Architect
 Create `handover/HANDOVER_ARCHITECT.md` with:
 - Feature summary
 - User stories with acceptance criteria
 - Priority and dependencies
 - Open questions
 
-### 4. Validate Delivery
+### 5. Validate Delivery
 - Review implemented features against acceptance criteria
 - Confirm with stakeholders
 - Update documentation if needed

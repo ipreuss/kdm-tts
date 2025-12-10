@@ -103,9 +103,21 @@ Log.DEBUG.MODULES = {
 | Symptom | Likely Cause |
 |---------|--------------|
 | "attempt to call nil" | Missing module export or require |
+| "attempt to index a nil value" | Accessing unexported module state (check return statement) |
 | Callback never fires | Object destroyed before callback |
 | Wrong position | Coordinate system confusion |
 | UI not visible | Wrong player color or z-order |
+
+### Unexported Module State
+
+**Problem:** "attempt to index a nil value" when accessing a field like `Module.someTable[key]`
+
+**Root cause:** Lua modules export via `return { ... }`. If the module stores internal state that's not in the return statement, external code accessing it gets `nil`.
+
+**Diagnostic pattern:**
+1. Check the module's `return { ... }` statement
+2. See what's actually exported vs what you're trying to access
+3. Use exported APIs (like `Module.All()`) instead of internal state
 
 ---
 

@@ -126,7 +126,7 @@ Different handovers have different requirements:
 | Debugger | Implementer | Diagnosis, root cause evidence, recommended fix |
 | Tester | Reviewer | Acceptance tests written, coverage, what they verify |
 | Reviewer | Architect | Review approval, design compliance check needed |
-| Architect | Product Owner | Design validated, feature complete for PO review |
+| Architect | Product Owner | Design validated, feature complete, commit checkpoint |
 | Any | Team Coach | Process friction, retrospective request |
 
 ### 2. Ask Clarifying Questions
@@ -413,6 +413,30 @@ Generate handover content following PROCESS.md conventions:
 
 ## Related Issues
 [Other areas that might be affected]
+```
+
+**Architect → Product Owner:**
+```markdown
+## Design Compliance Review
+**Status:** VALIDATED / ISSUES FOUND
+
+## Acceptance Criteria Verification
+- [x] AC1: [description] — verified via [evidence]
+- [x] AC2: [description] — verified via [evidence]
+
+## Implementation Summary
+[Brief overview of what was implemented]
+
+## Deferred Items (if any)
+[Items moved to child beads]
+
+## ⚠️ Commit Ready
+Code changes have been approved and are ready for commit.
+
+**Files changed:** [list key files]
+
+---
+*This is a commit checkpoint — human maintainer should commit approved changes.*
 ```
 
 ### 5. Quality Checklist
