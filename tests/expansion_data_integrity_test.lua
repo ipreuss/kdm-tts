@@ -446,6 +446,163 @@ Test.test("White Lion has resource rewards for L1-L3 (existing baseline)", funct
     t:assertEqual(lionRewards["Level 3"].strange[1], "Elder Cat Teeth", "White Lion L3 strange should be Elder Cat Teeth")
 end)
 
+Test.test("Spidicules has resource rewards for L1-L3", function(t)
+    local monstersWithRewards = collectMonsterResourceRewards()
+
+    local rewards = {}
+    for _, entry in ipairs(monstersWithRewards) do
+        if entry.monster == "Spidicules" then
+            rewards[entry.level] = entry.resources
+        end
+    end
+
+    -- L1: 4 basic, 4 monster
+    t:assertNotNil(rewards["Level 1"], "Spidicules L1 should have rewards")
+    t:assertEqual(rewards["Level 1"].basic, 4, "Spidicules L1 basic should be 4")
+    t:assertEqual(rewards["Level 1"].monster, 4, "Spidicules L1 monster should be 4")
+
+    -- L2: 4 basic, 6 monster
+    t:assertNotNil(rewards["Level 2"], "Spidicules L2 should have rewards")
+    t:assertEqual(rewards["Level 2"].basic, 4, "Spidicules L2 basic should be 4")
+    t:assertEqual(rewards["Level 2"].monster, 6, "Spidicules L2 monster should be 6")
+
+    -- L3: 4 basic, 8 monster, strange = { "Silken Nervous System" }
+    t:assertNotNil(rewards["Level 3"], "Spidicules L3 should have rewards")
+    t:assertEqual(rewards["Level 3"].basic, 4, "Spidicules L3 basic should be 4")
+    t:assertEqual(rewards["Level 3"].monster, 8, "Spidicules L3 monster should be 8")
+    t:assertNotNil(rewards["Level 3"].strange, "Spidicules L3 should have strange resources")
+    t:assertEqual(#rewards["Level 3"].strange, 1, "Spidicules L3 should have 1 strange resource")
+    t:assertEqual(rewards["Level 3"].strange[1], "Silken Nervous System", "Spidicules L3 strange should be Silken Nervous System")
+end)
+
+Test.test("Dragon King has resource rewards for L1-L3", function(t)
+    local monstersWithRewards = collectMonsterResourceRewards()
+
+    local rewards = {}
+    for _, entry in ipairs(monstersWithRewards) do
+        if entry.monster == "Dragon King" then
+            rewards[entry.level] = entry.resources
+        end
+    end
+
+    -- L1: 4 basic, 4 monster
+    t:assertNotNil(rewards["Level 1"], "Dragon King L1 should have rewards")
+    t:assertEqual(rewards["Level 1"].basic, 4, "Dragon King L1 basic should be 4")
+    t:assertEqual(rewards["Level 1"].monster, 4, "Dragon King L1 monster should be 4")
+
+    -- L2: 4 basic, 6 monster, strange = { "Pituitary Gland" }
+    t:assertNotNil(rewards["Level 2"], "Dragon King L2 should have rewards")
+    t:assertEqual(rewards["Level 2"].basic, 4, "Dragon King L2 basic should be 4")
+    t:assertEqual(rewards["Level 2"].monster, 6, "Dragon King L2 monster should be 6")
+    t:assertNotNil(rewards["Level 2"].strange, "Dragon King L2 should have strange resources")
+    t:assertEqual(#rewards["Level 2"].strange, 1, "Dragon King L2 should have 1 strange resource")
+    t:assertEqual(rewards["Level 2"].strange[1], "Pituitary Gland", "Dragon King L2 strange should be Pituitary Gland")
+
+    -- L3: 4 basic, 8 monster, strange = { "Shining Liver" }
+    t:assertNotNil(rewards["Level 3"], "Dragon King L3 should have rewards")
+    t:assertEqual(rewards["Level 3"].basic, 4, "Dragon King L3 basic should be 4")
+    t:assertEqual(rewards["Level 3"].monster, 8, "Dragon King L3 monster should be 8")
+    t:assertNotNil(rewards["Level 3"].strange, "Dragon King L3 should have strange resources")
+    t:assertEqual(#rewards["Level 3"].strange, 1, "Dragon King L3 should have 1 strange resource")
+    t:assertEqual(rewards["Level 3"].strange[1], "Shining Liver", "Dragon King L3 strange should be Shining Liver")
+end)
+
+Test.test("Sunstalker has resource rewards for L1-L3", function(t)
+    local monstersWithRewards = collectMonsterResourceRewards()
+
+    local rewards = {}
+    for _, entry in ipairs(monstersWithRewards) do
+        if entry.monster == "Sunstalker" then
+            rewards[entry.level] = entry.resources
+        end
+    end
+
+    -- L1: 4 basic, 4 monster, strange = { "Sunstones" }
+    t:assertNotNil(rewards["Level 1"], "Sunstalker L1 should have rewards")
+    t:assertEqual(rewards["Level 1"].basic, 4, "Sunstalker L1 basic should be 4")
+    t:assertEqual(rewards["Level 1"].monster, 4, "Sunstalker L1 monster should be 4")
+    t:assertNotNil(rewards["Level 1"].strange, "Sunstalker L1 should have strange resources")
+    t:assertEqual(#rewards["Level 1"].strange, 1, "Sunstalker L1 should have 1 strange resource")
+    t:assertEqual(rewards["Level 1"].strange[1], "Sunstones", "Sunstalker L1 strange should be Sunstones")
+
+    -- L2: 4 basic, 6 monster, strange = { "1,000 Year Sunspot" }
+    t:assertNotNil(rewards["Level 2"], "Sunstalker L2 should have rewards")
+    t:assertEqual(rewards["Level 2"].basic, 4, "Sunstalker L2 basic should be 4")
+    t:assertEqual(rewards["Level 2"].monster, 6, "Sunstalker L2 monster should be 6")
+    t:assertNotNil(rewards["Level 2"].strange, "Sunstalker L2 should have strange resources")
+    t:assertEqual(#rewards["Level 2"].strange, 1, "Sunstalker L2 should have 1 strange resource")
+    t:assertEqual(rewards["Level 2"].strange[1], "1,000 Year Sunspot", "Sunstalker L2 strange should be 1,000 Year Sunspot")
+
+    -- L3: 7 basic, 8 monster, strange = { "3,000 Year Sunspot" }
+    t:assertNotNil(rewards["Level 3"], "Sunstalker L3 should have rewards")
+    t:assertEqual(rewards["Level 3"].basic, 7, "Sunstalker L3 basic should be 7")
+    t:assertEqual(rewards["Level 3"].monster, 8, "Sunstalker L3 monster should be 8")
+    t:assertNotNil(rewards["Level 3"].strange, "Sunstalker L3 should have strange resources")
+    t:assertEqual(#rewards["Level 3"].strange, 1, "Sunstalker L3 should have 1 strange resource")
+    t:assertEqual(rewards["Level 3"].strange[1], "3,000 Year Sunspot", "Sunstalker L3 strange should be 3,000 Year Sunspot")
+end)
+
+Test.test("Dung Beetle Knight has resource rewards for L1-L3", function(t)
+    local monstersWithRewards = collectMonsterResourceRewards()
+
+    local rewards = {}
+    for _, entry in ipairs(monstersWithRewards) do
+        if entry.monster == "Dung Beetle Knight" then
+            rewards[entry.level] = entry.resources
+        end
+    end
+
+    -- L1: 6 basic, 4 monster, strange = { "Preserved Caustic Dung", "Preserved Caustic Dung" }
+    t:assertNotNil(rewards["Level 1"], "Dung Beetle Knight L1 should have rewards")
+    t:assertEqual(rewards["Level 1"].basic, 6, "Dung Beetle Knight L1 basic should be 6")
+    t:assertEqual(rewards["Level 1"].monster, 4, "Dung Beetle Knight L1 monster should be 4")
+    t:assertNotNil(rewards["Level 1"].strange, "Dung Beetle Knight L1 should have strange resources")
+    t:assertEqual(#rewards["Level 1"].strange, 2, "Dung Beetle Knight L1 should have 2 strange resources")
+
+    -- L2: 7 basic, 6 monster, strange = { 3x "Preserved Caustic Dung", "Scell" }
+    t:assertNotNil(rewards["Level 2"], "Dung Beetle Knight L2 should have rewards")
+    t:assertEqual(rewards["Level 2"].basic, 7, "Dung Beetle Knight L2 basic should be 7")
+    t:assertEqual(rewards["Level 2"].monster, 6, "Dung Beetle Knight L2 monster should be 6")
+    t:assertNotNil(rewards["Level 2"].strange, "Dung Beetle Knight L2 should have strange resources")
+    t:assertEqual(#rewards["Level 2"].strange, 4, "Dung Beetle Knight L2 should have 4 strange resources")
+
+    -- L3: 8 basic, 8 monster, strange = { 3x "Preserved Caustic Dung", "Scell" }
+    t:assertNotNil(rewards["Level 3"], "Dung Beetle Knight L3 should have rewards")
+    t:assertEqual(rewards["Level 3"].basic, 8, "Dung Beetle Knight L3 basic should be 8")
+    t:assertEqual(rewards["Level 3"].monster, 8, "Dung Beetle Knight L3 monster should be 8")
+    t:assertNotNil(rewards["Level 3"].strange, "Dung Beetle Knight L3 should have strange resources")
+    t:assertEqual(#rewards["Level 3"].strange, 4, "Dung Beetle Knight L3 should have 4 strange resources")
+end)
+
+Test.test("Flower Knight has resource rewards for L1-L3", function(t)
+    local monstersWithRewards = collectMonsterResourceRewards()
+
+    local rewards = {}
+    for _, entry in ipairs(monstersWithRewards) do
+        if entry.monster == "Flower Knight" then
+            rewards[entry.level] = entry.resources
+        end
+    end
+
+    -- L1: 4 basic, 4 monster (no strange)
+    t:assertNotNil(rewards["Level 1"], "Flower Knight L1 should have rewards")
+    t:assertEqual(rewards["Level 1"].basic, 4, "Flower Knight L1 basic should be 4")
+    t:assertEqual(rewards["Level 1"].monster, 4, "Flower Knight L1 monster should be 4")
+    t:assertNil(rewards["Level 1"].strange, "Flower Knight L1 should have no strange resources")
+
+    -- L2: 4 basic, 6 monster (no strange)
+    t:assertNotNil(rewards["Level 2"], "Flower Knight L2 should have rewards")
+    t:assertEqual(rewards["Level 2"].basic, 4, "Flower Knight L2 basic should be 4")
+    t:assertEqual(rewards["Level 2"].monster, 6, "Flower Knight L2 monster should be 6")
+    t:assertNil(rewards["Level 2"].strange, "Flower Knight L2 should have no strange resources")
+
+    -- L3: 4 basic, 8 monster (no strange)
+    t:assertNotNil(rewards["Level 3"], "Flower Knight L3 should have rewards")
+    t:assertEqual(rewards["Level 3"].basic, 4, "Flower Knight L3 basic should be 4")
+    t:assertEqual(rewards["Level 3"].monster, 8, "Flower Knight L3 monster should be 8")
+    t:assertNil(rewards["Level 3"].strange, "Flower Knight L3 should have no strange resources")
+end)
+
 --------------------------------------------------------------------------------
 
 -- Summary test that reports statistics

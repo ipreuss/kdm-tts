@@ -549,6 +549,7 @@ Skills provide domain knowledge that Claude automatically applies when context m
 | `kdm-expansion-data` | Expansion data structures, archive system, card naming conventions | expansion, gear, monster, archive, card, deck |
 | `kdm-ui-framework` | UI patterns, PanelKit, LayoutManager, color palette, dialog creation | UI, panel, dialog, PanelKit, LayoutManager, CLASSIC |
 | `dry-violations` | Detects duplication when making similar changes in multiple places | copy-paste, same change, duplicate code, extract |
+| `session-closing` | Ensures roles use closing signature and voice announcement | done, finished, thanks, handover, summary, waiting for user |
 
 ### Debugging Procedure
 

@@ -28,6 +28,16 @@ The Architect MAY directly edit:
 
 These are structural documents, not implementation code or process documentation.
 
+## Available Subagents
+
+### Handover-Manager Subagent
+
+For creating handovers to Implementer or other roles:
+- Use `handover-manager` subagent to create handover files and update QUEUE.md
+- Subagent handles file creation, queue entry formatting, and status tracking
+- **Recommended** for all handovers to ensure consistent formatting and prevent manual errors
+- See subagent documentation for usage
+
 ## Handover Documents
 - **Input:** `handover/HANDOVER_ARCHITECT.md` (from Product Owner)
 - **Output:** `handover/HANDOVER_IMPLEMENTER.md` (design to Implementer)

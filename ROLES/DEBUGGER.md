@@ -41,6 +41,14 @@ The full Debugger role is for **complex bugs** that require dedicated investigat
 ### Pre-Handover Review
 When handing over with regression tests, run `code-reviewer` subagent on your test code before creating the handover.
 
+### Available Subagents
+
+For creating handovers after debugging:
+- Use `handover-manager` subagent to create handover files and update QUEUE.md
+- Subagent handles file creation, queue entry formatting, and status tracking
+- **Recommended** for all handovers to ensure consistent formatting and prevent manual errors
+- See subagent documentation for usage
+
 ### Not Allowed
 - Implement bug fixes (change logic, add parameters, fix coordinates)
 - Change non-logging production code

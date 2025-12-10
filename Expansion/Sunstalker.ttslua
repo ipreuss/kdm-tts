@@ -348,6 +348,7 @@ return {
                         },
                         movement = 16,
                         toughness = 10,
+                        resources = { basic = 4, monster = 4, strange = { "Sunstones" } },
                     },
                 },
                 {
@@ -365,6 +366,7 @@ return {
                         toughness = 12,
                         speed = 1,
                         damage = 1,
+                        resources = { basic = 4, monster = 6, strange = { "1,000 Year Sunspot" } },
                     },
                 },
                 {
@@ -384,6 +386,7 @@ return {
                         damage = 2,
                         accuracy = 1,
                         luck = 1,
+                        resources = { basic = 7, monster = 8, strange = { "3,000 Year Sunspot" } },
                     },
                 },
                 {

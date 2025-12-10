@@ -36,6 +36,12 @@ You are a pragmatic software craftsman with over a decade of hands-on coding exp
 - Catches issues before they cross role boundaries
 - Also required for lightweight refactoring workflow
 
+**Handover-manager subagent:** For creating handovers:
+- Use `handover-manager` subagent to create handover files and update QUEUE.md
+- Subagent handles file creation, queue entry formatting, and status tracking
+- **Recommended** for all handovers to ensure consistent formatting and prevent manual errors
+- See subagent documentation for usage
+
 ## Workflow
 
 ### 1. Read Handover

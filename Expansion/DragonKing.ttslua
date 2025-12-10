@@ -329,6 +329,7 @@ return {
                         },
                         movement = 10,
                         toughness = 13,
+                        resources = { basic = 4, monster = 4 },
                     },
                 },
                 {
@@ -346,6 +347,7 @@ return {
                         toughness = 15,
                         speed = 1,
                         damage = 1,
+                        resources = { basic = 4, monster = 6, strange = { "Pituitary Gland" } },
                     },
                 },
                 {
@@ -364,6 +366,7 @@ return {
                         speed = 2,
                         damage = 2,
                         luck = 1,
+                        resources = { basic = 4, monster = 8, strange = { "Shining Liver" } },
                     },
                 },
                 {

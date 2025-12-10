@@ -80,6 +80,71 @@ function ResourceRewardsTests.Register()
     Console.AddCommand("testgormstrange", function(args)
         ResourceRewardsTests.TestGormStrangeResourcesSpawn()
     end, "Test Gorm L3 spawns Stomach Lining")
+
+    -- Spidicules tests
+    Console.AddCommand("testspidiculesbutton", function(args)
+        ResourceRewardsTests.TestSpidiculesButtonAppears()
+    end, "Test rewards button appears for Spidicules L1")
+
+    Console.AddCommand("testspidiculesdata", function(args)
+        ResourceRewardsTests.TestSpidiculesDataIntegrity()
+    end, "Test Spidicules resource data for all levels")
+
+    Console.AddCommand("testspidstrange", function(args)
+        ResourceRewardsTests.TestSpidiculesStrangeResourcesSpawn()
+    end, "Test Spidicules L3 spawns Silken Nervous System")
+
+    -- Dragon King tests
+    Console.AddCommand("testdragonkingbutton", function(args)
+        ResourceRewardsTests.TestDragonKingButtonAppears()
+    end, "Test rewards button appears for Dragon King L1")
+
+    Console.AddCommand("testdragonkingdata", function(args)
+        ResourceRewardsTests.TestDragonKingDataIntegrity()
+    end, "Test Dragon King resource data for all levels")
+
+    Console.AddCommand("testdkstrange", function(args)
+        ResourceRewardsTests.TestDragonKingStrangeResourcesSpawn()
+    end, "Test Dragon King L2 spawns Pituitary Gland")
+
+    -- Sunstalker tests
+    Console.AddCommand("testsunbutton", function(args)
+        ResourceRewardsTests.TestSunstalkerButtonAppears()
+    end, "Test rewards button appears for Sunstalker L1")
+
+    Console.AddCommand("testsundata", function(args)
+        ResourceRewardsTests.TestSunstalkerDataIntegrity()
+    end, "Test Sunstalker resource data for all levels")
+
+    Console.AddCommand("testsunstrange", function(args)
+        ResourceRewardsTests.TestSunstalkerStrangeResourcesSpawn()
+    end, "Test Sunstalker L1 spawns Sunstones")
+
+    -- Dung Beetle Knight tests
+    Console.AddCommand("testdbkbutton", function(args)
+        ResourceRewardsTests.TestDungBeetleKnightButtonAppears()
+    end, "Test rewards button appears for Dung Beetle Knight L1")
+
+    Console.AddCommand("testdbkdata", function(args)
+        ResourceRewardsTests.TestDungBeetleKnightDataIntegrity()
+    end, "Test Dung Beetle Knight resource data for all levels")
+
+    Console.AddCommand("testdbkstrange", function(args)
+        ResourceRewardsTests.TestDungBeetleKnightStrangeResourcesSpawn()
+    end, "Test DBK L2 spawns 3x CPD + Scell")
+
+    -- Flower Knight tests
+    Console.AddCommand("testfkbutton", function(args)
+        ResourceRewardsTests.TestFlowerKnightButtonAppears()
+    end, "Test rewards button appears for Flower Knight L1")
+
+    Console.AddCommand("testfkdata", function(args)
+        ResourceRewardsTests.TestFlowerKnightDataIntegrity()
+    end, "Test Flower Knight resource data for all levels")
+
+    Console.AddCommand("testfknostrange", function(args)
+        ResourceRewardsTests.TestFlowerKnightNoStrangeResources()
+    end, "Test Flower Knight L3 spawns NO strange resources")
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1031,6 +1096,918 @@ function ResourceRewardsTests.TestGormStrangeResourcesSpawn(onComplete)
             log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
             Showdown.Clean()
             if onComplete then onComplete(passed) end
+            end, 60)
+        end, 30)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+-- SPIDICULES TESTS
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestSpidiculesButtonAppears(onComplete)
+    log:Printf("=== TEST: TestSpidiculesButtonAppears (Integration) ===")
+
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting Spidicules Level 1 showdown via Showdown.Setup()...")
+
+        Showdown.Setup("Spidicules", "Level 1")
+
+        Wait.frames(function()
+            log:Printf("TEST: Checking button visibility after showdown setup...")
+
+            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+
+            if buttonVisible then
+                log:Printf("TEST: Rewards button IS visible for Spidicules L1")
+                log:Printf("=== TEST: TestSpidiculesButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: PASSED")
+                Showdown.Clean()
+                if onComplete then onComplete(true) end
+            else
+                log:Errorf("TEST: Rewards button is NOT visible!")
+                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
+                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
+                log:Printf("=== TEST: TestSpidiculesButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(false) end
+            end
+        end, 60)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestSpidiculesDataIntegrity(onComplete)
+    log:Printf("=== TEST: TestSpidiculesDataIntegrity ===")
+    log:Printf("TEST: Verifying Spidicules resource data structure...")
+
+    local monster = Showdown.Test.MonsterByName("Spidicules")
+    if not monster then
+        log:Errorf("TEST FAILED: Could not find Spidicules monster")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    local passed = true
+    local expectedResources = {
+        { levelName = "Level 1", basic = 4, monster = 4 },
+        { levelName = "Level 2", basic = 4, monster = 6 },
+        { levelName = "Level 3", basic = 4, monster = 8, strange = { "Silken Nervous System" } },
+    }
+
+    for _, expected in ipairs(expectedResources) do
+        local level = findLevelByName(monster, expected.levelName)
+        if not level then
+            log:Errorf("TEST: Spidicules %s not found", expected.levelName)
+            passed = false
+        else
+            local rewards = level.showdown and level.showdown.resources
+            if not rewards then
+                log:Errorf("TEST: %s has no resources data", expected.levelName)
+                passed = false
+            else
+                local levelPassed = true
+                if rewards.basic ~= expected.basic then
+                    log:Errorf("TEST: %s expected %d basic, got %d",
+                        expected.levelName, expected.basic, rewards.basic or 0)
+                    levelPassed = false
+                end
+                if rewards.monster ~= expected.monster then
+                    log:Errorf("TEST: %s expected %d monster, got %d",
+                        expected.levelName, expected.monster, rewards.monster or 0)
+                    levelPassed = false
+                end
+                if expected.strange then
+                    if not rewards.strange or #rewards.strange ~= #expected.strange then
+                        log:Errorf("TEST: %s expected %d strange resources, got %d",
+                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
+                        levelPassed = false
+                    else
+                        for i, expectedName in ipairs(expected.strange) do
+                            if rewards.strange[i] ~= expectedName then
+                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
+                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
+                                levelPassed = false
+                            end
+                        end
+                    end
+                end
+                if levelPassed then
+                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
+                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s)",
+                        expected.levelName, rewards.basic, rewards.monster, strangeStr)
+                else
+                    passed = false
+                end
+            end
+        end
+    end
+
+    log:Printf("=== TEST: TestSpidiculesDataIntegrity COMPLETE ===")
+    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+    if onComplete then onComplete(passed) end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestSpidiculesStrangeResourcesSpawn(onComplete)
+    log:Printf("=== TEST: TestSpidiculesStrangeResourcesSpawn (Behavioral) ===")
+
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting Spidicules Level 3 showdown (has Silken Nervous System)...")
+
+        Showdown.Setup("Spidicules", "Level 3")
+
+        Wait.frames(function()
+            log:Printf("TEST: Checking 'Silken Nervous System' does NOT exist before spawn...")
+            local beforeFound = false
+            for _, obj in ipairs(getObjects()) do
+                if obj.getName() == "Silken Nervous System" then
+                    beforeFound = true
+                    break
+                end
+            end
+
+            if beforeFound then
+                log:Printf("TEST: Warning - 'Silken Nervous System' already exists on table")
+            else
+                log:Printf("TEST: Confirmed - 'Silken Nervous System' not on table before spawn")
+            end
+
+            log:Printf("TEST: Triggering ResourceRewards.SpawnRewards()...")
+            ResourceRewards.Test.SpawnRewards()
+
+            Wait.frames(function()
+                log:Printf("TEST: Searching table for 'Silken Nervous System'...")
+
+                local found = false
+                for _, obj in ipairs(getObjects()) do
+                    if obj.getName() == "Silken Nervous System" then
+                        found = true
+                        local pos = obj.getPosition()
+                        log:Printf("TEST: Found 'Silken Nervous System' at (%.1f, %.1f, %.1f)", pos.x, pos.y, pos.z)
+                        break
+                    end
+                end
+
+                local passed = found
+                if not found then
+                    log:Errorf("TEST: 'Silken Nervous System' NOT found on table!")
+                end
+
+                -- Cleanup spawned resources
+                log:Printf("TEST: Cleaning up spawned resources...")
+                local cleanedCount = 0
+                for _, obj in ipairs(getObjects()) do
+                    local pos = obj.getPosition()
+                    if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
+                        obj.destruct()
+                        cleanedCount = cleanedCount + 1
+                    end
+                end
+                log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+
+                log:Printf("=== TEST: TestSpidiculesStrangeResourcesSpawn COMPLETE ===")
+                log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(passed) end
+            end, 60)
+        end, 30)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+-- DRAGON KING TESTS
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestDragonKingButtonAppears(onComplete)
+    log:Printf("=== TEST: TestDragonKingButtonAppears (Integration) ===")
+
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting Dragon King Level 1 showdown via Showdown.Setup()...")
+
+        Showdown.Setup("Dragon King", "Level 1")
+
+        Wait.frames(function()
+            log:Printf("TEST: Checking button visibility after showdown setup...")
+
+            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+
+            if buttonVisible then
+                log:Printf("TEST: Rewards button IS visible for Dragon King L1")
+                log:Printf("=== TEST: TestDragonKingButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: PASSED")
+                Showdown.Clean()
+                if onComplete then onComplete(true) end
+            else
+                log:Errorf("TEST: Rewards button is NOT visible!")
+                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
+                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
+                log:Printf("=== TEST: TestDragonKingButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(false) end
+            end
+        end, 60)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestDragonKingDataIntegrity(onComplete)
+    log:Printf("=== TEST: TestDragonKingDataIntegrity ===")
+    log:Printf("TEST: Verifying Dragon King resource data structure...")
+
+    local monster = Showdown.Test.MonsterByName("Dragon King")
+    if not monster then
+        log:Errorf("TEST FAILED: Could not find Dragon King monster")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    local passed = true
+    -- Dragon King has strange resources at L2 (Pituitary Gland) and L3 (Shining Liver)
+    local expectedResources = {
+        { levelName = "Level 1", basic = 4, monster = 4 },
+        { levelName = "Level 2", basic = 4, monster = 6, strange = { "Pituitary Gland" } },
+        { levelName = "Level 3", basic = 4, monster = 8, strange = { "Shining Liver" } },
+    }
+
+    for _, expected in ipairs(expectedResources) do
+        local level = findLevelByName(monster, expected.levelName)
+        if not level then
+            log:Errorf("TEST: Dragon King %s not found", expected.levelName)
+            passed = false
+        else
+            local rewards = level.showdown and level.showdown.resources
+            if not rewards then
+                log:Errorf("TEST: %s has no resources data", expected.levelName)
+                passed = false
+            else
+                local levelPassed = true
+                if rewards.basic ~= expected.basic then
+                    log:Errorf("TEST: %s expected %d basic, got %d",
+                        expected.levelName, expected.basic, rewards.basic or 0)
+                    levelPassed = false
+                end
+                if rewards.monster ~= expected.monster then
+                    log:Errorf("TEST: %s expected %d monster, got %d",
+                        expected.levelName, expected.monster, rewards.monster or 0)
+                    levelPassed = false
+                end
+                if expected.strange then
+                    if not rewards.strange or #rewards.strange ~= #expected.strange then
+                        log:Errorf("TEST: %s expected %d strange resources, got %d",
+                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
+                        levelPassed = false
+                    else
+                        for i, expectedName in ipairs(expected.strange) do
+                            if rewards.strange[i] ~= expectedName then
+                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
+                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
+                                levelPassed = false
+                            end
+                        end
+                    end
+                end
+                if levelPassed then
+                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
+                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s)",
+                        expected.levelName, rewards.basic, rewards.monster, strangeStr)
+                else
+                    passed = false
+                end
+            end
+        end
+    end
+
+    log:Printf("=== TEST: TestDragonKingDataIntegrity COMPLETE ===")
+    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+    if onComplete then onComplete(passed) end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestDragonKingStrangeResourcesSpawn(onComplete)
+    log:Printf("=== TEST: TestDragonKingStrangeResourcesSpawn (Behavioral) ===")
+
+    Showdown.Clean()
+
+    Wait.frames(function()
+        -- Test L2 which has Pituitary Gland (unique - strange at L2)
+        log:Printf("TEST: Starting Dragon King Level 2 showdown (has Pituitary Gland)...")
+
+        Showdown.Setup("Dragon King", "Level 2")
+
+        Wait.frames(function()
+            log:Printf("TEST: Checking 'Pituitary Gland' does NOT exist before spawn...")
+            local beforeFound = false
+            for _, obj in ipairs(getObjects()) do
+                if obj.getName() == "Pituitary Gland" then
+                    beforeFound = true
+                    break
+                end
+            end
+
+            if beforeFound then
+                log:Printf("TEST: Warning - 'Pituitary Gland' already exists on table")
+            else
+                log:Printf("TEST: Confirmed - 'Pituitary Gland' not on table before spawn")
+            end
+
+            log:Printf("TEST: Triggering ResourceRewards.SpawnRewards()...")
+            ResourceRewards.Test.SpawnRewards()
+
+            Wait.frames(function()
+                log:Printf("TEST: Searching table for 'Pituitary Gland'...")
+
+                local found = false
+                for _, obj in ipairs(getObjects()) do
+                    if obj.getName() == "Pituitary Gland" then
+                        found = true
+                        local pos = obj.getPosition()
+                        log:Printf("TEST: Found 'Pituitary Gland' at (%.1f, %.1f, %.1f)", pos.x, pos.y, pos.z)
+                        break
+                    end
+                end
+
+                local passed = found
+                if not found then
+                    log:Errorf("TEST: 'Pituitary Gland' NOT found on table!")
+                end
+
+                -- Cleanup spawned resources
+                log:Printf("TEST: Cleaning up spawned resources...")
+                local cleanedCount = 0
+                for _, obj in ipairs(getObjects()) do
+                    local pos = obj.getPosition()
+                    if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
+                        obj.destruct()
+                        cleanedCount = cleanedCount + 1
+                    end
+                end
+                log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+
+                log:Printf("=== TEST: TestDragonKingStrangeResourcesSpawn COMPLETE ===")
+                log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(passed) end
+            end, 60)
+        end, 30)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+-- SUNSTALKER TESTS
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestSunstalkerButtonAppears(onComplete)
+    log:Printf("=== TEST: TestSunstalkerButtonAppears (Integration) ===")
+
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting Sunstalker Level 1 showdown via Showdown.Setup()...")
+
+        Showdown.Setup("Sunstalker", "Level 1")
+
+        Wait.frames(function()
+            log:Printf("TEST: Checking button visibility after showdown setup...")
+
+            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+
+            if buttonVisible then
+                log:Printf("TEST: Rewards button IS visible for Sunstalker L1")
+                log:Printf("=== TEST: TestSunstalkerButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: PASSED")
+                Showdown.Clean()
+                if onComplete then onComplete(true) end
+            else
+                log:Errorf("TEST: Rewards button is NOT visible!")
+                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
+                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
+                log:Printf("=== TEST: TestSunstalkerButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(false) end
+            end
+        end, 60)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestSunstalkerDataIntegrity(onComplete)
+    log:Printf("=== TEST: TestSunstalkerDataIntegrity ===")
+    log:Printf("TEST: Verifying Sunstalker resource data structure...")
+
+    local monster = Showdown.Test.MonsterByName("Sunstalker")
+    if not monster then
+        log:Errorf("TEST FAILED: Could not find Sunstalker monster")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    local passed = true
+    -- Sunstalker has strange resources at ALL levels (unique!)
+    local expectedResources = {
+        { levelName = "Level 1", basic = 4, monster = 4, strange = { "Sunstones" } },
+        { levelName = "Level 2", basic = 4, monster = 6, strange = { "1,000 Year Sunspot" } },
+        { levelName = "Level 3", basic = 7, monster = 8, strange = { "3,000 Year Sunspot" } },
+    }
+
+    for _, expected in ipairs(expectedResources) do
+        local level = findLevelByName(monster, expected.levelName)
+        if not level then
+            log:Errorf("TEST: Sunstalker %s not found", expected.levelName)
+            passed = false
+        else
+            local rewards = level.showdown and level.showdown.resources
+            if not rewards then
+                log:Errorf("TEST: %s has no resources data", expected.levelName)
+                passed = false
+            else
+                local levelPassed = true
+                if rewards.basic ~= expected.basic then
+                    log:Errorf("TEST: %s expected %d basic, got %d",
+                        expected.levelName, expected.basic, rewards.basic or 0)
+                    levelPassed = false
+                end
+                if rewards.monster ~= expected.monster then
+                    log:Errorf("TEST: %s expected %d monster, got %d",
+                        expected.levelName, expected.monster, rewards.monster or 0)
+                    levelPassed = false
+                end
+                if expected.strange then
+                    if not rewards.strange or #rewards.strange ~= #expected.strange then
+                        log:Errorf("TEST: %s expected %d strange resources, got %d",
+                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
+                        levelPassed = false
+                    else
+                        for i, expectedName in ipairs(expected.strange) do
+                            if rewards.strange[i] ~= expectedName then
+                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
+                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
+                                levelPassed = false
+                            end
+                        end
+                    end
+                end
+                if levelPassed then
+                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
+                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s)",
+                        expected.levelName, rewards.basic, rewards.monster, strangeStr)
+                else
+                    passed = false
+                end
+            end
+        end
+    end
+
+    log:Printf("=== TEST: TestSunstalkerDataIntegrity COMPLETE ===")
+    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+    if onComplete then onComplete(passed) end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestSunstalkerStrangeResourcesSpawn(onComplete)
+    log:Printf("=== TEST: TestSunstalkerStrangeResourcesSpawn (Behavioral) ===")
+
+    Showdown.Clean()
+
+    Wait.frames(function()
+        -- Test L1 which has Sunstones (unique - strange at L1!)
+        log:Printf("TEST: Starting Sunstalker Level 1 showdown (has Sunstones at L1!)...")
+
+        Showdown.Setup("Sunstalker", "Level 1")
+
+        Wait.frames(function()
+            log:Printf("TEST: Checking 'Sunstones' does NOT exist before spawn...")
+            local beforeFound = false
+            for _, obj in ipairs(getObjects()) do
+                if obj.getName() == "Sunstones" then
+                    beforeFound = true
+                    break
+                end
+            end
+
+            if beforeFound then
+                log:Printf("TEST: Warning - 'Sunstones' already exists on table")
+            else
+                log:Printf("TEST: Confirmed - 'Sunstones' not on table before spawn")
+            end
+
+            log:Printf("TEST: Triggering ResourceRewards.SpawnRewards()...")
+            ResourceRewards.Test.SpawnRewards()
+
+            Wait.frames(function()
+                log:Printf("TEST: Searching table for 'Sunstones'...")
+
+                local found = false
+                for _, obj in ipairs(getObjects()) do
+                    if obj.getName() == "Sunstones" then
+                        found = true
+                        local pos = obj.getPosition()
+                        log:Printf("TEST: Found 'Sunstones' at (%.1f, %.1f, %.1f)", pos.x, pos.y, pos.z)
+                        break
+                    end
+                end
+
+                local passed = found
+                if not found then
+                    log:Errorf("TEST: 'Sunstones' NOT found on table!")
+                end
+
+                -- Cleanup spawned resources
+                log:Printf("TEST: Cleaning up spawned resources...")
+                local cleanedCount = 0
+                for _, obj in ipairs(getObjects()) do
+                    local pos = obj.getPosition()
+                    if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
+                        obj.destruct()
+                        cleanedCount = cleanedCount + 1
+                    end
+                end
+                log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+
+                log:Printf("=== TEST: TestSunstalkerStrangeResourcesSpawn COMPLETE ===")
+                log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(passed) end
+            end, 60)
+        end, 30)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+-- DUNG BEETLE KNIGHT TESTS
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestDungBeetleKnightButtonAppears(onComplete)
+    log:Printf("=== TEST: TestDungBeetleKnightButtonAppears (Integration) ===")
+
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting Dung Beetle Knight Level 1 showdown via Showdown.Setup()...")
+
+        Showdown.Setup("Dung Beetle Knight", "Level 1")
+
+        Wait.frames(function()
+            log:Printf("TEST: Checking button visibility after showdown setup...")
+
+            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+
+            if buttonVisible then
+                log:Printf("TEST: Rewards button IS visible for Dung Beetle Knight L1")
+                log:Printf("=== TEST: TestDungBeetleKnightButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: PASSED")
+                Showdown.Clean()
+                if onComplete then onComplete(true) end
+            else
+                log:Errorf("TEST: Rewards button is NOT visible!")
+                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
+                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
+                log:Printf("=== TEST: TestDungBeetleKnightButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(false) end
+            end
+        end, 60)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestDungBeetleKnightDataIntegrity(onComplete)
+    log:Printf("=== TEST: TestDungBeetleKnightDataIntegrity ===")
+    log:Printf("TEST: Verifying Dung Beetle Knight resource data structure...")
+
+    local monster = Showdown.Test.MonsterByName("Dung Beetle Knight")
+    if not monster then
+        log:Errorf("TEST FAILED: Could not find Dung Beetle Knight monster")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    local passed = true
+    -- DBK has MULTIPLE strange resources at all levels (stress test!)
+    local expectedResources = {
+        { levelName = "Level 1", basic = 6, monster = 4, strange = { "Preserved Caustic Dung", "Preserved Caustic Dung" } },
+        { levelName = "Level 2", basic = 7, monster = 6, strange = { "Preserved Caustic Dung", "Preserved Caustic Dung", "Preserved Caustic Dung", "Scell" } },
+        { levelName = "Level 3", basic = 8, monster = 8, strange = { "Preserved Caustic Dung", "Preserved Caustic Dung", "Preserved Caustic Dung", "Scell" } },
+    }
+
+    for _, expected in ipairs(expectedResources) do
+        local level = findLevelByName(monster, expected.levelName)
+        if not level then
+            log:Errorf("TEST: Dung Beetle Knight %s not found", expected.levelName)
+            passed = false
+        else
+            local rewards = level.showdown and level.showdown.resources
+            if not rewards then
+                log:Errorf("TEST: %s has no resources data", expected.levelName)
+                passed = false
+            else
+                local levelPassed = true
+                if rewards.basic ~= expected.basic then
+                    log:Errorf("TEST: %s expected %d basic, got %d",
+                        expected.levelName, expected.basic, rewards.basic or 0)
+                    levelPassed = false
+                end
+                if rewards.monster ~= expected.monster then
+                    log:Errorf("TEST: %s expected %d monster, got %d",
+                        expected.levelName, expected.monster, rewards.monster or 0)
+                    levelPassed = false
+                end
+                if expected.strange then
+                    if not rewards.strange or #rewards.strange ~= #expected.strange then
+                        log:Errorf("TEST: %s expected %d strange resources, got %d",
+                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
+                        levelPassed = false
+                    else
+                        for i, expectedName in ipairs(expected.strange) do
+                            if rewards.strange[i] ~= expectedName then
+                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
+                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
+                                levelPassed = false
+                            end
+                        end
+                    end
+                end
+                if levelPassed then
+                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
+                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s)",
+                        expected.levelName, rewards.basic, rewards.monster, strangeStr)
+                else
+                    passed = false
+                end
+            end
+        end
+    end
+
+    log:Printf("=== TEST: TestDungBeetleKnightDataIntegrity COMPLETE ===")
+    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+    if onComplete then onComplete(passed) end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestDungBeetleKnightStrangeResourcesSpawn(onComplete)
+    log:Printf("=== TEST: TestDungBeetleKnightStrangeResourcesSpawn (Behavioral) ===")
+
+    Showdown.Clean()
+
+    Wait.frames(function()
+        -- Test L2 which has 3x CPD + Scell (stress test with multiple strange)
+        log:Printf("TEST: Starting Dung Beetle Knight Level 2 showdown (has 3x CPD + Scell)...")
+
+        Showdown.Setup("Dung Beetle Knight", "Level 2")
+
+        Wait.frames(function()
+            log:Printf("TEST: Triggering ResourceRewards.SpawnRewards()...")
+            ResourceRewards.Test.SpawnRewards()
+
+            Wait.frames(function()
+                log:Printf("TEST: Counting spawned strange resources...")
+
+                local cpdCount = 0
+                local scellFound = false
+                for _, obj in ipairs(getObjects()) do
+                    local name = obj.getName()
+                    if name == "Preserved Caustic Dung" then
+                        cpdCount = cpdCount + 1
+                        local pos = obj.getPosition()
+                        log:Printf("TEST: Found 'Preserved Caustic Dung' #%d at (%.1f, %.1f, %.1f)", cpdCount, pos.x, pos.y, pos.z)
+                    elseif name == "Scell" then
+                        scellFound = true
+                        local pos = obj.getPosition()
+                        log:Printf("TEST: Found 'Scell' at (%.1f, %.1f, %.1f)", pos.x, pos.y, pos.z)
+                    end
+                end
+
+                local passed = true
+                if cpdCount < 3 then
+                    log:Errorf("TEST: Expected 3 'Preserved Caustic Dung', found %d", cpdCount)
+                    passed = false
+                else
+                    log:Printf("TEST: Correctly found %d 'Preserved Caustic Dung'", cpdCount)
+                end
+                if not scellFound then
+                    log:Errorf("TEST: 'Scell' NOT found on table!")
+                    passed = false
+                else
+                    log:Printf("TEST: Correctly found 'Scell'")
+                end
+
+                -- Cleanup spawned resources
+                log:Printf("TEST: Cleaning up spawned resources...")
+                local cleanedCount = 0
+                for _, obj in ipairs(getObjects()) do
+                    local pos = obj.getPosition()
+                    if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
+                        obj.destruct()
+                        cleanedCount = cleanedCount + 1
+                    end
+                end
+                log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+
+                log:Printf("=== TEST: TestDungBeetleKnightStrangeResourcesSpawn COMPLETE ===")
+                log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(passed) end
+            end, 60)
+        end, 30)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+-- FLOWER KNIGHT TESTS
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestFlowerKnightButtonAppears(onComplete)
+    log:Printf("=== TEST: TestFlowerKnightButtonAppears (Integration) ===")
+
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting Flower Knight Level 1 showdown via Showdown.Setup()...")
+
+        Showdown.Setup("Flower Knight", "Level 1")
+
+        Wait.frames(function()
+            log:Printf("TEST: Checking button visibility after showdown setup...")
+
+            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+
+            if buttonVisible then
+                log:Printf("TEST: Rewards button IS visible for Flower Knight L1")
+                log:Printf("=== TEST: TestFlowerKnightButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: PASSED")
+                Showdown.Clean()
+                if onComplete then onComplete(true) end
+            else
+                log:Errorf("TEST: Rewards button is NOT visible!")
+                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
+                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
+                log:Printf("=== TEST: TestFlowerKnightButtonAppears COMPLETE ===")
+                log:Printf("TEST RESULT: FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(false) end
+            end
+        end, 60)
+    end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestFlowerKnightDataIntegrity(onComplete)
+    log:Printf("=== TEST: TestFlowerKnightDataIntegrity ===")
+    log:Printf("TEST: Verifying Flower Knight resource data structure...")
+
+    local monster = Showdown.Test.MonsterByName("Flower Knight")
+    if not monster then
+        log:Errorf("TEST FAILED: Could not find Flower Knight monster")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    local passed = true
+    -- Flower Knight has NO strange resources at any level (edge case!)
+    local expectedResources = {
+        { levelName = "Level 1", basic = 4, monster = 4 },
+        { levelName = "Level 2", basic = 4, monster = 6 },
+        { levelName = "Level 3", basic = 4, monster = 8 },
+    }
+
+    for _, expected in ipairs(expectedResources) do
+        local level = findLevelByName(monster, expected.levelName)
+        if not level then
+            log:Errorf("TEST: Flower Knight %s not found", expected.levelName)
+            passed = false
+        else
+            local rewards = level.showdown and level.showdown.resources
+            if not rewards then
+                log:Errorf("TEST: %s has no resources data", expected.levelName)
+                passed = false
+            else
+                local levelPassed = true
+                if rewards.basic ~= expected.basic then
+                    log:Errorf("TEST: %s expected %d basic, got %d",
+                        expected.levelName, expected.basic, rewards.basic or 0)
+                    levelPassed = false
+                end
+                if rewards.monster ~= expected.monster then
+                    log:Errorf("TEST: %s expected %d monster, got %d",
+                        expected.levelName, expected.monster, rewards.monster or 0)
+                    levelPassed = false
+                end
+                -- Flower Knight should NOT have strange resources
+                if rewards.strange and #rewards.strange > 0 then
+                    log:Errorf("TEST: %s should NOT have strange resources, but has %d",
+                        expected.levelName, #rewards.strange)
+                    levelPassed = false
+                end
+                if levelPassed then
+                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d, no strange)",
+                        expected.levelName, rewards.basic, rewards.monster)
+                else
+                    passed = false
+                end
+            end
+        end
+    end
+
+    log:Printf("=== TEST: TestFlowerKnightDataIntegrity COMPLETE ===")
+    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+    if onComplete then onComplete(passed) end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestFlowerKnightNoStrangeResources(onComplete)
+    log:Printf("=== TEST: TestFlowerKnightNoStrangeResources (Behavioral) ===")
+
+    Showdown.Clean()
+
+    Wait.frames(function()
+        -- Test L3 which should have NO strange resources (edge case)
+        log:Printf("TEST: Starting Flower Knight Level 3 showdown (should have NO strange resources)...")
+
+        Showdown.Setup("Flower Knight", "Level 3")
+
+        Wait.frames(function()
+            -- Count objects at Resource Rewards location BEFORE spawning
+            local rewardsLocation = Location.Get("Resource Rewards")
+            local beforeSpawnObjects = rewardsLocation:AllObjects()
+            local beforeSpawnCount = #beforeSpawnObjects
+            log:Printf("TEST: Resource Rewards location has %d objects before spawn", beforeSpawnCount)
+
+            log:Printf("TEST: Triggering ResourceRewards.SpawnRewards()...")
+            ResourceRewards.Test.SpawnRewards()
+
+            Wait.frames(function()
+                -- Count spawned resources
+                local afterSpawnObjects = rewardsLocation:AllObjects()
+                local spawnedCount = #afterSpawnObjects - beforeSpawnCount
+                log:Printf("TEST: Spawned %d new objects", spawnedCount)
+
+                -- Expected: 4 basic + 8 monster = 12 resources, NO strange
+                -- Verify no strange resources were spawned
+                local strangeFound = {}
+                local knownStrangeResources = {
+                    "Black Lichen", "Elder Cat Teeth", "Phoenix Crest",
+                    "Silken Nervous System", "Pituitary Gland", "Shining Liver",
+                    "Sunstones", "1,000 Year Sunspot", "3,000 Year Sunspot",
+                    "Preserved Caustic Dung", "Scell", "Stomach Lining"
+                }
+
+                for _, obj in ipairs(getObjects()) do
+                    local name = obj.getName()
+                    for _, strangeName in ipairs(knownStrangeResources) do
+                        if name == strangeName then
+                            local pos = obj.getPosition()
+                            -- Only count if in spawn area
+                            if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
+                                table.insert(strangeFound, name)
+                            end
+                        end
+                    end
+                end
+
+                local passed = true
+                if #strangeFound > 0 then
+                    log:Errorf("TEST: Found unexpected strange resources: %s", table.concat(strangeFound, ", "))
+                    passed = false
+                else
+                    log:Printf("TEST: Correctly spawned NO strange resources for Flower Knight L3")
+                end
+
+                -- Cleanup spawned resources
+                log:Printf("TEST: Cleaning up spawned resources...")
+                local cleanedCount = 0
+                for _, obj in ipairs(getObjects()) do
+                    local pos = obj.getPosition()
+                    if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
+                        obj.destruct()
+                        cleanedCount = cleanedCount + 1
+                    end
+                end
+                log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+
+                log:Printf("=== TEST: TestFlowerKnightNoStrangeResources COMPLETE ===")
+                log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(passed) end
             end, 60)
         end, 30)
     end, 10)

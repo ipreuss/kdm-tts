@@ -123,6 +123,16 @@ Details...
 **APPROVED** / **APPROVED with notes** / **NEEDS CHANGES**
 ```
 
+## Available Subagents
+
+### Handover-Manager Subagent
+
+For creating handovers after code review:
+- Use `handover-manager` subagent to create handover files and update QUEUE.md
+- Subagent handles file creation, queue entry formatting, and status tracking
+- **Recommended** for all handovers to ensure consistent formatting and prevent manual errors
+- See subagent documentation for usage
+
 ## Skills Reference
 
 For detailed review patterns, see **`CODE_REVIEW_GUIDELINES.md`**.

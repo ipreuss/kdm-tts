@@ -119,6 +119,26 @@ local ALL_TESTS = {
     { name = "Gorm Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestGormButtonAppears(onComplete) end },
     { name = "Gorm Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestGormDataIntegrity(onComplete) end },
     { name = "Gorm Strange Resources Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestGormStrangeResourcesSpawn(onComplete) end },
+    -- Spidicules tests (kdm-w1k.3)
+    { name = "Spidicules Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestSpidiculesButtonAppears(onComplete) end },
+    { name = "Spidicules Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestSpidiculesDataIntegrity(onComplete) end },
+    { name = "Spidicules Strange Resources Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestSpidiculesStrangeResourcesSpawn(onComplete) end },
+    -- Dragon King tests (kdm-w1k.3)
+    { name = "Dragon King Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestDragonKingButtonAppears(onComplete) end },
+    { name = "Dragon King Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestDragonKingDataIntegrity(onComplete) end },
+    { name = "Dragon King Strange Resources Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestDragonKingStrangeResourcesSpawn(onComplete) end },
+    -- Sunstalker tests (kdm-w1k.3)
+    { name = "Sunstalker Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestSunstalkerButtonAppears(onComplete) end },
+    { name = "Sunstalker Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestSunstalkerDataIntegrity(onComplete) end },
+    { name = "Sunstalker Strange Resources Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestSunstalkerStrangeResourcesSpawn(onComplete) end },
+    -- Dung Beetle Knight tests (kdm-w1k.3)
+    { name = "Dung Beetle Knight Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightButtonAppears(onComplete) end },
+    { name = "Dung Beetle Knight Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightDataIntegrity(onComplete) end },
+    { name = "Dung Beetle Knight Strange Resources Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightStrangeResourcesSpawn(onComplete) end },
+    -- Flower Knight tests (kdm-w1k.3)
+    { name = "Flower Knight Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightButtonAppears(onComplete) end },
+    { name = "Flower Knight Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightDataIntegrity(onComplete) end },
+    { name = "Flower Knight No Strange Resources", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightNoStrangeResources(onComplete) end },
 }
 
 ---------------------------------------------------------------------------------------------------
@@ -131,16 +151,20 @@ function TTSTests.RunAllTests()
 end
 
 ---------------------------------------------------------------------------------------------------
--- Run Focused Tests (current bead only)
+-- Run Focused Tests (current bead first, then regression if all pass)
 ---------------------------------------------------------------------------------------------------
 
 function TTSTests.RunFocusedTests()
     log:Printf("=== RUNNING FOCUSED TESTS FOR %s ===", FOCUS_BEAD)
 
     local focusedTests = {}
+    local regressionTests = {}
+
     for _, test in ipairs(ALL_TESTS) do
         if test.bead == FOCUS_BEAD then
             table.insert(focusedTests, test)
+        else
+            table.insert(regressionTests, test)
         end
     end
 
@@ -150,14 +174,37 @@ function TTSTests.RunFocusedTests()
         return
     end
 
-    TTSTests.RunTests(focusedTests)
+    log:Printf("Phase 1: %d focused tests for %s", #focusedTests, FOCUS_BEAD)
+    log:Printf("Phase 2: %d regression tests (if Phase 1 passes)", #regressionTests)
+
+    TTSTests.RunTests(focusedTests, function(passed, failed)
+        if failed > 0 then
+            log:Errorf("=== STOPPING: %d focused test(s) failed ===", failed)
+            log:Printf("Fix focused tests before running regression tests")
+            return
+        end
+
+        if #regressionTests == 0 then
+            log:Printf("=== ALL TESTS COMPLETE (no regression tests) ===")
+            return
+        end
+
+        log:Printf("")
+        log:Printf("=== PHASE 2: REGRESSION TESTS ===")
+        log:Printf("All %d focused tests passed, running %d regression tests...", passed, #regressionTests)
+
+        Wait.frames(function()
+            TTSTests.RunTests(regressionTests)
+        end, 30)
+    end)
 end
 
 ---------------------------------------------------------------------------------------------------
 -- Generic Test Runner
+-- Optional onAllComplete callback receives (passedCount, failedCount)
 ---------------------------------------------------------------------------------------------------
 
-function TTSTests.RunTests(tests)
+function TTSTests.RunTests(tests, onAllComplete)
 
     local currentTest = 1
     local totalTests = #tests
@@ -167,13 +214,16 @@ function TTSTests.RunTests(tests)
 
     local function runNextTest()
         if currentTest > totalTests then
-            log:Printf("=== ALL TTS TESTS COMPLETE ===")
+            log:Printf("=== TEST BATCH COMPLETE ===")
             log:Printf("Ran %d tests: %d passed, %d failed", totalTests, passedTests, failedTests)
             if failedTests > 0 then
                 log:Errorf("Failed tests:")
                 for _, name in ipairs(failedNames) do
                     log:Errorf("  - %s", name)
                 end
+            end
+            if onAllComplete then
+                onAllComplete(passedTests, failedTests)
             end
             return
         end

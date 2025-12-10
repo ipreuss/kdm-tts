@@ -157,6 +157,7 @@ return {
                         },
                         movement = 7,
                         toughness = 6,
+                        resources = { basic = 4, monster = 4 },
                     },
                 },
                 {
@@ -174,6 +175,7 @@ return {
                         movement = 8,
                         toughness = 8,
                         damage = 1,
+                        resources = { basic = 4, monster = 6 },
                     },
                 },
                 {
@@ -191,6 +193,7 @@ return {
                         toughness = 11,
                         speed = 1,
                         damage = 2,
+                        resources = { basic = 4, monster = 8 },
                     },
                 },
             }

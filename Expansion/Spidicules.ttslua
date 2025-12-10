@@ -183,6 +183,7 @@ return {
                             }
                         },
                         randomTerrain = 2,
+                        resources = { basic = 4, monster = 4 },
                     },
                 },
                 {
@@ -213,6 +214,7 @@ return {
                             }
                         },
                         randomTerrain = 2,
+                        resources = { basic = 4, monster = 6 },
                     },
                 },
                 {
@@ -244,6 +246,7 @@ return {
                             }
                         },
                         randomTerrain = 2,
+                        resources = { basic = 4, monster = 8, strange = { "Silken Nervous System" } },
                     },
                 },
             },

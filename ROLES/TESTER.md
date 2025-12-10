@@ -70,6 +70,14 @@ Complex/cross-module      → Full Debugger handover
 - Catches test quality issues before they cross role boundaries
 - Skip only for trivial test additions (single assertion, minor tweaks)
 
+### Handover-Manager Subagent
+
+For creating handovers to other roles:
+- Use `handover-manager` subagent to create handover files and update QUEUE.md
+- Subagent handles file creation, queue entry formatting, and status tracking
+- **Recommended** for all handovers to ensure consistent formatting and prevent manual errors
+- See subagent documentation for usage
+
 ## Key Principle
 
 **Ask:** "What can a user do? What do they see?"
