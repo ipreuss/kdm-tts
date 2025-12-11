@@ -29,6 +29,7 @@ Log.DEBUG_MODULES = {
     --["PanelKit"] = true,  -- RESOLVED: Level list truncation (2025-12-08, bead kdm-q3s)
     --["Player"] = true,
     --["Rules"] = true,
+    --["TestSetup"] = true,  -- MONITORING: Unknown Error in terrain cleanup, not reproducible (2025-12-10, kdm-li3). Uses Printf, not Debugf.
     --["TTSTests"] = true,
     --["Showdown"] = true,  -- DIAGNOSED: Expansion terrain lookup (2025-12-10, bead kdm-96o)
     --["Terrain"] = true,  -- DIAGNOSED: Expansion terrain lookup (2025-12-10, bead kdm-96o)

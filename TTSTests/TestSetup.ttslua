@@ -109,18 +109,34 @@ function TestSetup.EnableExpansionTerrain(expansionName)
     return function()
         log:Printf("TestSetup: Cleaning up %s terrain", expansionName)
 
+        -- Debug logging for kdm-li3: Unknown Error was reported during cleanup but couldn't
+        -- be reproduced consistently. Suspected rare TTS timing issue. Leaving diagnostics
+        -- to identify root cause if it recurs. (2025-12-10)
+        log:Printf("[DEBUG] terrainArchive valid: %s", tostring(terrainArchive ~= nil))
+        log:Printf("[DEBUG] terrainArchive.takeObject exists: %s", tostring(terrainArchive and terrainArchive.takeObject ~= nil))
+        log:Printf("[DEBUG] originalDeck valid: %s", tostring(originalDeck ~= nil))
+        log:Printf("[DEBUG] originalDeck.destruct exists: %s", tostring(originalDeck and originalDeck.destruct ~= nil))
+
         -- Take merged deck from archive and destroy it
+        log:Printf("[DEBUG] About to call terrainArchive.takeObject()")
         local mergedToDestroy = terrainArchive.takeObject({
             position = STASH_POSITION,
             smooth = false,
         })
+        log:Printf("[DEBUG] takeObject returned: %s", tostring(mergedToDestroy ~= nil))
         if mergedToDestroy then
+            log:Printf("[DEBUG] About to call mergedToDestroy.destruct()")
             mergedToDestroy.destruct()
+            log:Printf("[DEBUG] destruct() completed")
         end
 
         -- Restore original deck to archive
+        log:Printf("[DEBUG] About to call terrainArchive.reset()")
         terrainArchive.reset()
+        log:Printf("[DEBUG] reset() completed")
+        log:Printf("[DEBUG] About to call terrainArchive.putObject(originalDeck)")
         terrainArchive.putObject(originalDeck)
+        log:Printf("[DEBUG] putObject() completed")
 
         log:Printf("TestSetup: Terrain restored to original state")
     end

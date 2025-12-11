@@ -36,7 +36,7 @@ local TTSTests = {}
 -- Update FOCUS_BEAD when switching to a new backlog item
 ---------------------------------------------------------------------------------------------------
 
-local FOCUS_BEAD = "kdm-96o"  -- Current backlog item - UPDATE THIS
+local FOCUS_BEAD = "kdm-rhc"  -- Current backlog item - UPDATE THIS
 
 ---------------------------------------------------------------------------------------------------
 
@@ -142,41 +142,41 @@ local ALL_TESTS = {
     { name = "Aya's Weapon Pairing (cross-name)", bead = "kdm-rbl", fn = function(onComplete) BattleTests.TestAyasWeaponPairing(onComplete) end },
     { name = "Aya's Weapons Separate Lines", bead = "kdm-rbl", fn = function(onComplete) BattleTests.TestAyasWeaponsSeparateLines(onComplete) end },
     { name = "Bone Hatchet Pairing (same-name)", bead = "kdm-rbl", fn = function(onComplete) BattleTests.TestBoneHatchetPairing(onComplete) end },
-    -- Resource Rewards integration tests (kdm-w1k)
-    { name = "Resource Rewards Button Visible", bead = "kdm-w1k", fn = function(onComplete) ResourceRewardsTests.TestButtonAppearsOnShowdown(onComplete) end },
-    { name = "Resource Rewards Button Hidden", bead = "kdm-w1k", fn = function(onComplete) ResourceRewardsTests.TestButtonHiddenNoResources(onComplete) end },
-    { name = "Resource Rewards Data Integrity", bead = "kdm-w1k", fn = function(onComplete) ResourceRewardsTests.TestResourcesDataIntegrity(onComplete) end },
-    { name = "Strange Resources Spawn (kdm-w1k.2)", bead = "kdm-w1k", fn = function(onComplete) ResourceRewardsTests.TestStrangeResourcesSpawn(onComplete) end },
-    -- Resource Rewards Expansion tests (kdm-w1k.3)
-    { name = "Screaming Antelope Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeButtonAppears(onComplete) end },
-    { name = "Screaming Antelope Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeDataIntegrity(onComplete) end },
-    { name = "Screaming Antelope Vermin Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeVerminSpawn(onComplete) end },
-    { name = "Phoenix Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestPhoenixButtonAppears(onComplete) end },
-    { name = "Phoenix Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestPhoenixDataIntegrity(onComplete) end },
-    { name = "Phoenix Strange Resources Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestPhoenixStrangeResourcesSpawn(onComplete) end },
-    { name = "Gorm Button Visible", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestGormButtonAppears(onComplete) end },
-    { name = "Gorm Data Integrity", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestGormDataIntegrity(onComplete) end },
-    { name = "Gorm Strange Resources Spawn", bead = "kdm-w1k.3", fn = function(onComplete) ResourceRewardsTests.TestGormStrangeResourcesSpawn(onComplete) end },
-    -- Spidicules tests (kdm-96o - uses TestSetup.EnableExpansionTerrain)
-    { name = "Spidicules Button Visible", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestSpidiculesButtonAppears(onComplete) end },
-    { name = "Spidicules Data Integrity", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestSpidiculesDataIntegrity(onComplete) end },
-    { name = "Spidicules Strange Resources Spawn", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestSpidiculesStrangeResourcesSpawn(onComplete) end },
-    -- Dragon King tests (kdm-96o - uses TestSetup.EnableExpansionTerrain)
-    { name = "Dragon King Button Visible", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestDragonKingButtonAppears(onComplete) end },
-    { name = "Dragon King Data Integrity", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestDragonKingDataIntegrity(onComplete) end },
-    { name = "Dragon King Strange Resources Spawn", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestDragonKingStrangeResourcesSpawn(onComplete) end },
-    -- Sunstalker tests (kdm-96o - uses TestSetup.EnableExpansionTerrain)
-    { name = "Sunstalker Button Visible", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestSunstalkerButtonAppears(onComplete) end },
-    { name = "Sunstalker Data Integrity", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestSunstalkerDataIntegrity(onComplete) end },
-    { name = "Sunstalker Strange Resources Spawn", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestSunstalkerStrangeResourcesSpawn(onComplete) end },
-    -- Dung Beetle Knight tests (kdm-96o - uses TestSetup.EnableExpansionTerrain)
-    { name = "Dung Beetle Knight Button Visible", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightButtonAppears(onComplete) end },
-    { name = "Dung Beetle Knight Data Integrity", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightDataIntegrity(onComplete) end },
-    { name = "Dung Beetle Knight Strange Resources Spawn", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightStrangeResourcesSpawn(onComplete) end },
-    -- Flower Knight tests (kdm-96o - uses TestSetup.EnableExpansionTerrain)
-    { name = "Flower Knight Button Visible", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightButtonAppears(onComplete) end },
-    { name = "Flower Knight Data Integrity", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightDataIntegrity(onComplete) end },
-    { name = "Flower Knight No Strange Resources", bead = "kdm-96o", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightNoStrangeResources(onComplete) end },
+    -- Resource Rewards integration tests (kdm-w1k + kdm-rhc refactoring)
+    { name = "Resource Rewards Button Visible", bead = { "kdm-w1k", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestButtonAppearsOnShowdown(onComplete) end },
+    { name = "Resource Rewards Button Hidden", bead = { "kdm-w1k", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestButtonHiddenNoResources(onComplete) end },
+    { name = "Resource Rewards Data Integrity", bead = { "kdm-w1k", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestResourcesDataIntegrity(onComplete) end },
+    { name = "Strange Resources Spawn", bead = { "kdm-w1k", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestStrangeResourcesSpawn(onComplete) end },
+    -- Resource Rewards Expansion tests (kdm-w1k.3 + kdm-rhc refactoring)
+    { name = "Screaming Antelope Button Visible", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeButtonAppears(onComplete) end },
+    { name = "Screaming Antelope Data Integrity", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeDataIntegrity(onComplete) end },
+    { name = "Screaming Antelope Vermin Spawn", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeVerminSpawn(onComplete) end },
+    { name = "Phoenix Button Visible", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestPhoenixButtonAppears(onComplete) end },
+    { name = "Phoenix Data Integrity", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestPhoenixDataIntegrity(onComplete) end },
+    { name = "Phoenix Strange Resources Spawn", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestPhoenixStrangeResourcesSpawn(onComplete) end },
+    { name = "Gorm Button Visible", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestGormButtonAppears(onComplete) end },
+    { name = "Gorm Data Integrity", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestGormDataIntegrity(onComplete) end },
+    { name = "Gorm Strange Resources Spawn", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestGormStrangeResourcesSpawn(onComplete) end },
+    -- Spidicules tests (kdm-96o + kdm-rhc refactoring)
+    { name = "Spidicules Button Visible", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestSpidiculesButtonAppears(onComplete) end },
+    { name = "Spidicules Data Integrity", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestSpidiculesDataIntegrity(onComplete) end },
+    { name = "Spidicules Strange Resources Spawn", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestSpidiculesStrangeResourcesSpawn(onComplete) end },
+    -- Dragon King tests (kdm-96o + kdm-rhc refactoring)
+    { name = "Dragon King Button Visible", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestDragonKingButtonAppears(onComplete) end },
+    { name = "Dragon King Data Integrity", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestDragonKingDataIntegrity(onComplete) end },
+    { name = "Dragon King Strange Resources Spawn", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestDragonKingStrangeResourcesSpawn(onComplete) end },
+    -- Sunstalker tests (kdm-96o + kdm-rhc refactoring)
+    { name = "Sunstalker Button Visible", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestSunstalkerButtonAppears(onComplete) end },
+    { name = "Sunstalker Data Integrity", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestSunstalkerDataIntegrity(onComplete) end },
+    { name = "Sunstalker Strange Resources Spawn", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestSunstalkerStrangeResourcesSpawn(onComplete) end },
+    -- Dung Beetle Knight tests (kdm-96o + kdm-rhc refactoring)
+    { name = "Dung Beetle Knight Button Visible", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightButtonAppears(onComplete) end },
+    { name = "Dung Beetle Knight Data Integrity", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightDataIntegrity(onComplete) end },
+    { name = "Dung Beetle Knight Strange Resources Spawn", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightStrangeResourcesSpawn(onComplete) end },
+    -- Flower Knight tests (kdm-96o + kdm-rhc refactoring)
+    { name = "Flower Knight Button Visible", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightButtonAppears(onComplete) end },
+    { name = "Flower Knight Data Integrity", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightDataIntegrity(onComplete) end },
+    { name = "Flower Knight No Strange Resources", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightNoStrangeResources(onComplete) end },
 }
 
 ---------------------------------------------------------------------------------------------------
@@ -213,13 +213,36 @@ function TTSTests.RunSingleTest(testName)
 end
 
 ---------------------------------------------------------------------------------------------------
+-- Helper: Check if test matches a bead (supports string or array of beads)
+---------------------------------------------------------------------------------------------------
+
+local function testMatchesBead(test, beadId)
+    if not test.bead then
+        return false
+    end
+    -- Single bead (string)
+    if type(test.bead) == "string" then
+        return test.bead == beadId
+    end
+    -- Multiple beads (array)
+    if type(test.bead) == "table" then
+        for _, b in ipairs(test.bead) do
+            if b == beadId then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+---------------------------------------------------------------------------------------------------
 -- Run All Tests for a Bead
 ---------------------------------------------------------------------------------------------------
 
 function TTSTests.RunBeadSuite(beadId)
     local beadTests = {}
     for _, test in ipairs(ALL_TESTS) do
-        if test.bead == beadId then
+        if testMatchesBead(test, beadId) then
             table.insert(beadTests, test)
         end
     end
@@ -254,7 +277,7 @@ function TTSTests.RunPriorityTests()
     local regressionTests = {}
 
     for _, test in ipairs(ALL_TESTS) do
-        if test.bead == FOCUS_BEAD then
+        if testMatchesBead(test, FOCUS_BEAD) then
             table.insert(focusedTests, test)
         else
             table.insert(regressionTests, test)

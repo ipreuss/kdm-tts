@@ -128,6 +128,30 @@ This data is critical for retrospectives to evaluate which skills/agents need im
 - **Don't interrupt workflow** — add entry and continue
 - **All roles use this** — Product Owner through Tester
 
+## Meta-Learning Check
+
+**After capturing a learning, ask yourself two questions:**
+
+### 1. Is there a meta-learning?
+A higher-level insight about the learning itself:
+- Why did this mistake happen? Is there a pattern in this project?
+- Could a skill/agent have prevented this?
+- Does this reveal a gap in our process that affects multiple roles?
+- Is this the second or third time this type of issue has occurred in this codebase?
+
+### 2. Is there a general principle for this project?
+A broader rule that applies across this codebase:
+- What principle does this specific case illustrate for KDM development?
+- Could this apply to other roles or modules in this project?
+- Does this connect to our established patterns (SOLID, fail-fast, TTS patterns)?
+
+**Example:**
+- **Learning:** "Overwrote existing bead tags instead of extending them"
+- **Meta-learning:** "This is the second time destructive modification caused problems in our workflow"
+- **General principle:** "In KDM development, default to additive changes (extend) rather than destructive (replace) unless replacement is explicitly required"
+
+If meta-learning or general principle exists, capture as separate entry with category `process` or `skill`.
+
 ## What Happens Next
 
 Team Coach reviews `handover/LEARNINGS.md` during retrospectives and:

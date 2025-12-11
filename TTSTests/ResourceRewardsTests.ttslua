@@ -21,6 +21,33 @@ local TestSetup = require("Kdm/TTSTests/TestSetup")
 local ResourceRewardsTests = {}
 
 ---------------------------------------------------------------------------------------------------
+-- Constants and Helpers
+---------------------------------------------------------------------------------------------------
+
+-- Resource spawn grid bounds for cleanup (matches ResourceRewards.ttslua spawn area)
+-- Spawn grid starts at x=50.60, z=-13.88 and extends 4 columns × N rows
+local SPAWN_GRID_BOUNDS = {
+    xMin = 49, xMax = 60,
+    zMin = -30, zMax = -10
+}
+
+-- Helper to clean up spawned resources after tests
+local function cleanupSpawnedResources()
+    log:Printf("TEST: Cleaning up spawned resources...")
+    local cleanedCount = 0
+    for _, obj in ipairs(getObjects()) do
+        local pos = obj.getPosition()
+        if pos.x >= SPAWN_GRID_BOUNDS.xMin and pos.x <= SPAWN_GRID_BOUNDS.xMax
+           and pos.z >= SPAWN_GRID_BOUNDS.zMin and pos.z <= SPAWN_GRID_BOUNDS.zMax then
+            obj.destruct()
+            cleanedCount = cleanedCount + 1
+        end
+    end
+    log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+    return cleanedCount
+end
+
+---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.Register()
     Console.AddCommand("testrewardsbutton", function(args)
@@ -243,28 +270,24 @@ local function findLevelByName(monster, levelName)
     return nil
 end
 
-function ResourceRewardsTests.TestResourcesDataIntegrity(onComplete)
-    log:Printf("=== TEST: TestResourcesDataIntegrity ===")
-    log:Printf("TEST: Verifying White Lion resource data structure...")
+-- Helper to validate monster resource data for all levels
+-- Returns true if all validations pass, false otherwise
+local function validateMonsterResourceData(monsterName, expectedLevels, onComplete)
+    log:Printf("=== TEST: Test%sDataIntegrity ===", monsterName:gsub(" ", ""))
+    log:Printf("TEST: Verifying %s resource data structure...", monsterName)
 
-    local monster = Showdown.Test.MonsterByName("White Lion")
+    local monster = Showdown.Test.MonsterByName(monsterName)
     if not monster then
-        log:Errorf("TEST FAILED: Could not find White Lion monster")
+        log:Errorf("TEST FAILED: Could not find %s monster", monsterName)
         if onComplete then onComplete(false) end
         return
     end
 
     local passed = true
-    local expectedResources = {
-        { levelName = "Level 1", basic = 4, monster = 4 },
-        { levelName = "Level 2", basic = 4, monster = 6 },
-        { levelName = "Level 3", basic = 4, monster = 8 },
-    }
-
-    for _, expected in ipairs(expectedResources) do
+    for _, expected in ipairs(expectedLevels) do
         local level = findLevelByName(monster, expected.levelName)
         if not level then
-            log:Errorf("TEST: White Lion %s not found", expected.levelName)
+            log:Errorf("TEST: %s %s not found", monsterName, expected.levelName)
             passed = false
         else
             local rewards = level.showdown and level.showdown.resources
@@ -273,19 +296,58 @@ function ResourceRewardsTests.TestResourcesDataIntegrity(onComplete)
                 passed = false
             else
                 local levelPassed = true
+
+                -- Check basic
                 if rewards.basic ~= expected.basic then
                     log:Errorf("TEST: %s expected %d basic, got %d",
                         expected.levelName, expected.basic, rewards.basic or 0)
                     levelPassed = false
                 end
+
+                -- Check monster
                 if rewards.monster ~= expected.monster then
                     log:Errorf("TEST: %s expected %d monster, got %d",
                         expected.levelName, expected.monster, rewards.monster or 0)
                     levelPassed = false
                 end
+
+                -- Check vermin (optional)
+                if expected.vermin and rewards.vermin ~= expected.vermin then
+                    log:Errorf("TEST: %s expected %d vermin, got %d",
+                        expected.levelName, expected.vermin, rewards.vermin or 0)
+                    levelPassed = false
+                end
+
+                -- Check strange (optional)
+                if expected.strange then
+                    if not rewards.strange or #rewards.strange ~= #expected.strange then
+                        log:Errorf("TEST: %s expected %d strange resources, got %d",
+                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
+                        levelPassed = false
+                    else
+                        for i, expectedName in ipairs(expected.strange) do
+                            if rewards.strange[i] ~= expectedName then
+                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
+                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
+                                levelPassed = false
+                            end
+                        end
+                    end
+                end
+
+                -- Check for unexpected strange (for monsters that should have none)
+                if expected.noStrange and rewards.strange and #rewards.strange > 0 then
+                    log:Errorf("TEST: %s should NOT have strange resources, but has %d",
+                        expected.levelName, #rewards.strange)
+                    levelPassed = false
+                end
+
                 if levelPassed then
-                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d)",
-                        expected.levelName, rewards.basic, rewards.monster)
+                    local verminStr = expected.vermin and string.format(", vermin=%d", rewards.vermin) or ""
+                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
+                    local noStrangeStr = expected.noStrange and ", no strange" or ""
+                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s%s%s)",
+                        expected.levelName, rewards.basic, rewards.monster, verminStr, strangeStr, noStrangeStr)
                 else
                     passed = false
                 end
@@ -293,20 +355,28 @@ function ResourceRewardsTests.TestResourcesDataIntegrity(onComplete)
         end
     end
 
-    -- Also verify Location exists
+    log:Printf("=== TEST: Test%sDataIntegrity COMPLETE ===", monsterName:gsub(" ", ""))
+    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+    if onComplete then onComplete(passed) end
+end
+
+function ResourceRewardsTests.TestResourcesDataIntegrity(onComplete)
+    validateMonsterResourceData("White Lion", {
+        { levelName = "Level 1", basic = 4, monster = 4 },
+        { levelName = "Level 2", basic = 4, monster = 6 },
+        { levelName = "Level 3", basic = 4, monster = 8 },
+    }, onComplete)
+
+    -- Also verify Location exists (White Lion specific)
+    -- Informational only - Location existence logged but doesn't affect pass/fail
     local location = Location.Get("Resource Rewards")
     if not location then
         log:Errorf("TEST: Resource Rewards location not found")
-        passed = false
     else
         local center = location:Center()
         log:Printf("TEST: Resource Rewards location at (%.2f, %.2f, %.2f)",
             center.x, center.y, center.z)
     end
-
-    log:Printf("=== TEST: TestResourcesDataIntegrity COMPLETE ===")
-    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
-    if onComplete then onComplete(passed) end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -500,18 +570,7 @@ function ResourceRewardsTests.TestStrangeResourcesSpawn(onComplete)
                 passed = false
             end
 
-            -- Cleanup: delete spawned resources (cards near spawn position x~50-58)
-            log:Printf("TEST: Cleaning up spawned resources...")
-            local cleanedCount = 0
-            for _, obj in ipairs(getObjects()) do
-                local pos = obj.getPosition()
-                -- Spawn grid is at x=50.60 to ~58, z=-13.88 to ~-26
-                if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
-                    obj.destruct()
-                    cleanedCount = cleanedCount + 1
-                end
-            end
-            log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+            cleanupSpawnedResources()
 
             log:Printf("=== TEST: TestStrangeResourcesSpawn COMPLETE ===")
             log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
@@ -564,80 +623,11 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.TestScreamingAntelopeDataIntegrity(onComplete)
-    log:Printf("=== TEST: TestScreamingAntelopeDataIntegrity ===")
-    log:Printf("TEST: Verifying Screaming Antelope resource data structure...")
-
-    local monster = Showdown.Test.MonsterByName("Screaming Antelope")
-    if not monster then
-        log:Errorf("TEST FAILED: Could not find Screaming Antelope monster")
-        if onComplete then onComplete(false) end
-        return
-    end
-
-    local passed = true
-    local expectedResources = {
+    validateMonsterResourceData("Screaming Antelope", {
         { levelName = "Level 1", basic = 4, monster = 4 },
         { levelName = "Level 2", basic = 4, monster = 6 },
         { levelName = "Level 3", basic = 5, monster = 7, vermin = 2, strange = { "Black Lichen" } },
-    }
-
-    for _, expected in ipairs(expectedResources) do
-        local level = findLevelByName(monster, expected.levelName)
-        if not level then
-            log:Errorf("TEST: Screaming Antelope %s not found", expected.levelName)
-            passed = false
-        else
-            local rewards = level.showdown and level.showdown.resources
-            if not rewards then
-                log:Errorf("TEST: %s has no resources data", expected.levelName)
-                passed = false
-            else
-                local levelPassed = true
-                if rewards.basic ~= expected.basic then
-                    log:Errorf("TEST: %s expected %d basic, got %d",
-                        expected.levelName, expected.basic, rewards.basic or 0)
-                    levelPassed = false
-                end
-                if rewards.monster ~= expected.monster then
-                    log:Errorf("TEST: %s expected %d monster, got %d",
-                        expected.levelName, expected.monster, rewards.monster or 0)
-                    levelPassed = false
-                end
-                if expected.vermin and rewards.vermin ~= expected.vermin then
-                    log:Errorf("TEST: %s expected %d vermin, got %d",
-                        expected.levelName, expected.vermin, rewards.vermin or 0)
-                    levelPassed = false
-                end
-                if expected.strange then
-                    if not rewards.strange or #rewards.strange ~= #expected.strange then
-                        log:Errorf("TEST: %s expected %d strange resources, got %d",
-                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
-                        levelPassed = false
-                    else
-                        for i, expectedName in ipairs(expected.strange) do
-                            if rewards.strange[i] ~= expectedName then
-                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
-                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
-                                levelPassed = false
-                            end
-                        end
-                    end
-                end
-                if levelPassed then
-                    local verminStr = expected.vermin and string.format(", vermin=%d", rewards.vermin) or ""
-                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
-                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s%s)",
-                        expected.levelName, rewards.basic, rewards.monster, verminStr, strangeStr)
-                else
-                    passed = false
-                end
-            end
-        end
-    end
-
-    log:Printf("=== TEST: TestScreamingAntelopeDataIntegrity COMPLETE ===")
-    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
-    if onComplete then onComplete(passed) end
+    }, onComplete)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -697,17 +687,7 @@ function ResourceRewardsTests.TestScreamingAntelopeVerminSpawn(onComplete)
                 log:Printf("TEST PASSED: Correctly drew %d vermin resources from deck", verminDrawn)
             end
 
-            -- Cleanup spawned resources
-            log:Printf("TEST: Cleaning up spawned resources...")
-            local cleanedCount = 0
-            for _, obj in ipairs(getObjects()) do
-                local pos = obj.getPosition()
-                if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
-                    obj.destruct()
-                    cleanedCount = cleanedCount + 1
-                end
-            end
-            log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+            cleanupSpawnedResources()
 
             log:Printf("=== TEST: TestScreamingAntelopeVerminSpawn COMPLETE ===")
             log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
@@ -760,74 +740,11 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.TestPhoenixDataIntegrity(onComplete)
-    log:Printf("=== TEST: TestPhoenixDataIntegrity ===")
-    log:Printf("TEST: Verifying Phoenix resource data structure...")
-
-    local monster = Showdown.Test.MonsterByName("Phoenix")
-    if not monster then
-        log:Errorf("TEST FAILED: Could not find Phoenix monster")
-        if onComplete then onComplete(false) end
-        return
-    end
-
-    local passed = true
-    local expectedResources = {
+    validateMonsterResourceData("Phoenix", {
         { levelName = "Level 1", basic = 4, monster = 6 },
         { levelName = "Level 2", basic = 5, monster = 7 },
         { levelName = "Level 3", basic = 6, monster = 9, strange = { "Phoenix Crest", "Black Lichen" } },
-    }
-
-    for _, expected in ipairs(expectedResources) do
-        local level = findLevelByName(monster, expected.levelName)
-        if not level then
-            log:Errorf("TEST: Phoenix %s not found", expected.levelName)
-            passed = false
-        else
-            local rewards = level.showdown and level.showdown.resources
-            if not rewards then
-                log:Errorf("TEST: %s has no resources data", expected.levelName)
-                passed = false
-            else
-                local levelPassed = true
-                if rewards.basic ~= expected.basic then
-                    log:Errorf("TEST: %s expected %d basic, got %d",
-                        expected.levelName, expected.basic, rewards.basic or 0)
-                    levelPassed = false
-                end
-                if rewards.monster ~= expected.monster then
-                    log:Errorf("TEST: %s expected %d monster, got %d",
-                        expected.levelName, expected.monster, rewards.monster or 0)
-                    levelPassed = false
-                end
-                if expected.strange then
-                    if not rewards.strange or #rewards.strange ~= #expected.strange then
-                        log:Errorf("TEST: %s expected %d strange resources, got %d",
-                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
-                        levelPassed = false
-                    else
-                        for i, expectedName in ipairs(expected.strange) do
-                            if rewards.strange[i] ~= expectedName then
-                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
-                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
-                                levelPassed = false
-                            end
-                        end
-                    end
-                end
-                if levelPassed then
-                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
-                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s)",
-                        expected.levelName, rewards.basic, rewards.monster, strangeStr)
-                else
-                    passed = false
-                end
-            end
-        end
-    end
-
-    log:Printf("=== TEST: TestPhoenixDataIntegrity COMPLETE ===")
-    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
-    if onComplete then onComplete(passed) end
+    }, onComplete)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -894,17 +811,7 @@ function ResourceRewardsTests.TestPhoenixStrangeResourcesSpawn(onComplete)
                 passed = false
             end
 
-            -- Cleanup spawned resources
-            log:Printf("TEST: Cleaning up spawned resources...")
-            local cleanedCount = 0
-            for _, obj in ipairs(getObjects()) do
-                local pos = obj.getPosition()
-                if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
-                    obj.destruct()
-                    cleanedCount = cleanedCount + 1
-                end
-            end
-            log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+            cleanupSpawnedResources()
 
             log:Printf("=== TEST: TestPhoenixStrangeResourcesSpawn COMPLETE ===")
             log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
@@ -957,74 +864,11 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.TestGormDataIntegrity(onComplete)
-    log:Printf("=== TEST: TestGormDataIntegrity ===")
-    log:Printf("TEST: Verifying Gorm resource data structure...")
-
-    local monster = Showdown.Test.MonsterByName("Gorm")
-    if not monster then
-        log:Errorf("TEST FAILED: Could not find Gorm monster")
-        if onComplete then onComplete(false) end
-        return
-    end
-
-    local passed = true
-    local expectedResources = {
+    validateMonsterResourceData("Gorm", {
         { levelName = "Level 1", basic = 4, monster = 4 },
         { levelName = "Level 2", basic = 4, monster = 6 },
         { levelName = "Level 3", basic = 4, monster = 8, strange = { "Stomach Lining" } },
-    }
-
-    for _, expected in ipairs(expectedResources) do
-        local level = findLevelByName(monster, expected.levelName)
-        if not level then
-            log:Errorf("TEST: Gorm %s not found", expected.levelName)
-            passed = false
-        else
-            local rewards = level.showdown and level.showdown.resources
-            if not rewards then
-                log:Errorf("TEST: %s has no resources data", expected.levelName)
-                passed = false
-            else
-                local levelPassed = true
-                if rewards.basic ~= expected.basic then
-                    log:Errorf("TEST: %s expected %d basic, got %d",
-                        expected.levelName, expected.basic, rewards.basic or 0)
-                    levelPassed = false
-                end
-                if rewards.monster ~= expected.monster then
-                    log:Errorf("TEST: %s expected %d monster, got %d",
-                        expected.levelName, expected.monster, rewards.monster or 0)
-                    levelPassed = false
-                end
-                if expected.strange then
-                    if not rewards.strange or #rewards.strange ~= #expected.strange then
-                        log:Errorf("TEST: %s expected %d strange resources, got %d",
-                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
-                        levelPassed = false
-                    else
-                        for i, expectedName in ipairs(expected.strange) do
-                            if rewards.strange[i] ~= expectedName then
-                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
-                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
-                                levelPassed = false
-                            end
-                        end
-                    end
-                end
-                if levelPassed then
-                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
-                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s)",
-                        expected.levelName, rewards.basic, rewards.monster, strangeStr)
-                else
-                    passed = false
-                end
-            end
-        end
-    end
-
-    log:Printf("=== TEST: TestGormDataIntegrity COMPLETE ===")
-    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
-    if onComplete then onComplete(passed) end
+    }, onComplete)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1081,17 +925,7 @@ function ResourceRewardsTests.TestGormStrangeResourcesSpawn(onComplete)
                 passed = false
             end
 
-            -- Cleanup spawned resources
-            log:Printf("TEST: Cleaning up spawned resources...")
-            local cleanedCount = 0
-            for _, obj in ipairs(getObjects()) do
-                local pos = obj.getPosition()
-                if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
-                    obj.destruct()
-                    cleanedCount = cleanedCount + 1
-                end
-            end
-            log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+            cleanupSpawnedResources()
 
             log:Printf("=== TEST: TestGormStrangeResourcesSpawn COMPLETE ===")
             log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
@@ -1146,74 +980,11 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.TestSpidiculesDataIntegrity(onComplete)
-    log:Printf("=== TEST: TestSpidiculesDataIntegrity ===")
-    log:Printf("TEST: Verifying Spidicules resource data structure...")
-
-    local monster = Showdown.Test.MonsterByName("Spidicules")
-    if not monster then
-        log:Errorf("TEST FAILED: Could not find Spidicules monster")
-        if onComplete then onComplete(false) end
-        return
-    end
-
-    local passed = true
-    local expectedResources = {
+    validateMonsterResourceData("Spidicules", {
         { levelName = "Level 1", basic = 4, monster = 4 },
         { levelName = "Level 2", basic = 4, monster = 6 },
         { levelName = "Level 3", basic = 4, monster = 8, strange = { "Silken Nervous System" } },
-    }
-
-    for _, expected in ipairs(expectedResources) do
-        local level = findLevelByName(monster, expected.levelName)
-        if not level then
-            log:Errorf("TEST: Spidicules %s not found", expected.levelName)
-            passed = false
-        else
-            local rewards = level.showdown and level.showdown.resources
-            if not rewards then
-                log:Errorf("TEST: %s has no resources data", expected.levelName)
-                passed = false
-            else
-                local levelPassed = true
-                if rewards.basic ~= expected.basic then
-                    log:Errorf("TEST: %s expected %d basic, got %d",
-                        expected.levelName, expected.basic, rewards.basic or 0)
-                    levelPassed = false
-                end
-                if rewards.monster ~= expected.monster then
-                    log:Errorf("TEST: %s expected %d monster, got %d",
-                        expected.levelName, expected.monster, rewards.monster or 0)
-                    levelPassed = false
-                end
-                if expected.strange then
-                    if not rewards.strange or #rewards.strange ~= #expected.strange then
-                        log:Errorf("TEST: %s expected %d strange resources, got %d",
-                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
-                        levelPassed = false
-                    else
-                        for i, expectedName in ipairs(expected.strange) do
-                            if rewards.strange[i] ~= expectedName then
-                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
-                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
-                                levelPassed = false
-                            end
-                        end
-                    end
-                end
-                if levelPassed then
-                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
-                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s)",
-                        expected.levelName, rewards.basic, rewards.monster, strangeStr)
-                else
-                    passed = false
-                end
-            end
-        end
-    end
-
-    log:Printf("=== TEST: TestSpidiculesDataIntegrity COMPLETE ===")
-    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
-    if onComplete then onComplete(passed) end
+    }, onComplete)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1266,17 +1037,7 @@ function ResourceRewardsTests.TestSpidiculesStrangeResourcesSpawn(onComplete)
                     log:Errorf("TEST: 'Silken Nervous System' NOT found on table!")
                 end
 
-                -- Cleanup spawned resources
-                log:Printf("TEST: Cleaning up spawned resources...")
-                local cleanedCount = 0
-                for _, obj in ipairs(getObjects()) do
-                    local pos = obj.getPosition()
-                    if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
-                        obj.destruct()
-                        cleanedCount = cleanedCount + 1
-                    end
-                end
-                log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+                cleanupSpawnedResources()
 
                 log:Printf("=== TEST: TestSpidiculesStrangeResourcesSpawn COMPLETE ===")
                 log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
@@ -1332,75 +1093,11 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.TestDragonKingDataIntegrity(onComplete)
-    log:Printf("=== TEST: TestDragonKingDataIntegrity ===")
-    log:Printf("TEST: Verifying Dragon King resource data structure...")
-
-    local monster = Showdown.Test.MonsterByName("Dragon King")
-    if not monster then
-        log:Errorf("TEST FAILED: Could not find Dragon King monster")
-        if onComplete then onComplete(false) end
-        return
-    end
-
-    local passed = true
-    -- Dragon King has strange resources at L2 (Pituitary Gland) and L3 (Shining Liver)
-    local expectedResources = {
+    validateMonsterResourceData("Dragon King", {
         { levelName = "Level 1", basic = 4, monster = 4 },
         { levelName = "Level 2", basic = 4, monster = 6, strange = { "Pituitary Gland" } },
         { levelName = "Level 3", basic = 4, monster = 8, strange = { "Shining Liver" } },
-    }
-
-    for _, expected in ipairs(expectedResources) do
-        local level = findLevelByName(monster, expected.levelName)
-        if not level then
-            log:Errorf("TEST: Dragon King %s not found", expected.levelName)
-            passed = false
-        else
-            local rewards = level.showdown and level.showdown.resources
-            if not rewards then
-                log:Errorf("TEST: %s has no resources data", expected.levelName)
-                passed = false
-            else
-                local levelPassed = true
-                if rewards.basic ~= expected.basic then
-                    log:Errorf("TEST: %s expected %d basic, got %d",
-                        expected.levelName, expected.basic, rewards.basic or 0)
-                    levelPassed = false
-                end
-                if rewards.monster ~= expected.monster then
-                    log:Errorf("TEST: %s expected %d monster, got %d",
-                        expected.levelName, expected.monster, rewards.monster or 0)
-                    levelPassed = false
-                end
-                if expected.strange then
-                    if not rewards.strange or #rewards.strange ~= #expected.strange then
-                        log:Errorf("TEST: %s expected %d strange resources, got %d",
-                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
-                        levelPassed = false
-                    else
-                        for i, expectedName in ipairs(expected.strange) do
-                            if rewards.strange[i] ~= expectedName then
-                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
-                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
-                                levelPassed = false
-                            end
-                        end
-                    end
-                end
-                if levelPassed then
-                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
-                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s)",
-                        expected.levelName, rewards.basic, rewards.monster, strangeStr)
-                else
-                    passed = false
-                end
-            end
-        end
-    end
-
-    log:Printf("=== TEST: TestDragonKingDataIntegrity COMPLETE ===")
-    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
-    if onComplete then onComplete(passed) end
+    }, onComplete)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1454,17 +1151,7 @@ function ResourceRewardsTests.TestDragonKingStrangeResourcesSpawn(onComplete)
                     log:Errorf("TEST: 'Pituitary Gland' NOT found on table!")
                 end
 
-                -- Cleanup spawned resources
-                log:Printf("TEST: Cleaning up spawned resources...")
-                local cleanedCount = 0
-                for _, obj in ipairs(getObjects()) do
-                    local pos = obj.getPosition()
-                    if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
-                        obj.destruct()
-                        cleanedCount = cleanedCount + 1
-                    end
-                end
-                log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+                cleanupSpawnedResources()
 
                 log:Printf("=== TEST: TestDragonKingStrangeResourcesSpawn COMPLETE ===")
                 log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
@@ -1520,75 +1207,11 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.TestSunstalkerDataIntegrity(onComplete)
-    log:Printf("=== TEST: TestSunstalkerDataIntegrity ===")
-    log:Printf("TEST: Verifying Sunstalker resource data structure...")
-
-    local monster = Showdown.Test.MonsterByName("Sunstalker")
-    if not monster then
-        log:Errorf("TEST FAILED: Could not find Sunstalker monster")
-        if onComplete then onComplete(false) end
-        return
-    end
-
-    local passed = true
-    -- Sunstalker has strange resources at ALL levels (unique!)
-    local expectedResources = {
+    validateMonsterResourceData("Sunstalker", {
         { levelName = "Level 1", basic = 4, monster = 4, strange = { "Sunstones" } },
         { levelName = "Level 2", basic = 4, monster = 6, strange = { "1,000 Year Sunspot" } },
         { levelName = "Level 3", basic = 7, monster = 8, strange = { "3,000 Year Sunspot" } },
-    }
-
-    for _, expected in ipairs(expectedResources) do
-        local level = findLevelByName(monster, expected.levelName)
-        if not level then
-            log:Errorf("TEST: Sunstalker %s not found", expected.levelName)
-            passed = false
-        else
-            local rewards = level.showdown and level.showdown.resources
-            if not rewards then
-                log:Errorf("TEST: %s has no resources data", expected.levelName)
-                passed = false
-            else
-                local levelPassed = true
-                if rewards.basic ~= expected.basic then
-                    log:Errorf("TEST: %s expected %d basic, got %d",
-                        expected.levelName, expected.basic, rewards.basic or 0)
-                    levelPassed = false
-                end
-                if rewards.monster ~= expected.monster then
-                    log:Errorf("TEST: %s expected %d monster, got %d",
-                        expected.levelName, expected.monster, rewards.monster or 0)
-                    levelPassed = false
-                end
-                if expected.strange then
-                    if not rewards.strange or #rewards.strange ~= #expected.strange then
-                        log:Errorf("TEST: %s expected %d strange resources, got %d",
-                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
-                        levelPassed = false
-                    else
-                        for i, expectedName in ipairs(expected.strange) do
-                            if rewards.strange[i] ~= expectedName then
-                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
-                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
-                                levelPassed = false
-                            end
-                        end
-                    end
-                end
-                if levelPassed then
-                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
-                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s)",
-                        expected.levelName, rewards.basic, rewards.monster, strangeStr)
-                else
-                    passed = false
-                end
-            end
-        end
-    end
-
-    log:Printf("=== TEST: TestSunstalkerDataIntegrity COMPLETE ===")
-    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
-    if onComplete then onComplete(passed) end
+    }, onComplete)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1642,17 +1265,7 @@ function ResourceRewardsTests.TestSunstalkerStrangeResourcesSpawn(onComplete)
                     log:Errorf("TEST: 'Sunstones' NOT found on table!")
                 end
 
-                -- Cleanup spawned resources
-                log:Printf("TEST: Cleaning up spawned resources...")
-                local cleanedCount = 0
-                for _, obj in ipairs(getObjects()) do
-                    local pos = obj.getPosition()
-                    if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
-                        obj.destruct()
-                        cleanedCount = cleanedCount + 1
-                    end
-                end
-                log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+                cleanupSpawnedResources()
 
                 log:Printf("=== TEST: TestSunstalkerStrangeResourcesSpawn COMPLETE ===")
                 log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
@@ -1708,75 +1321,11 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.TestDungBeetleKnightDataIntegrity(onComplete)
-    log:Printf("=== TEST: TestDungBeetleKnightDataIntegrity ===")
-    log:Printf("TEST: Verifying Dung Beetle Knight resource data structure...")
-
-    local monster = Showdown.Test.MonsterByName("Dung Beetle Knight")
-    if not monster then
-        log:Errorf("TEST FAILED: Could not find Dung Beetle Knight monster")
-        if onComplete then onComplete(false) end
-        return
-    end
-
-    local passed = true
-    -- DBK has MULTIPLE strange resources at all levels (stress test!)
-    local expectedResources = {
+    validateMonsterResourceData("Dung Beetle Knight", {
         { levelName = "Level 1", basic = 6, monster = 4, strange = { "Preserved Caustic Dung", "Preserved Caustic Dung" } },
         { levelName = "Level 2", basic = 7, monster = 6, strange = { "Preserved Caustic Dung", "Preserved Caustic Dung", "Preserved Caustic Dung", "Scell" } },
         { levelName = "Level 3", basic = 8, monster = 8, strange = { "Preserved Caustic Dung", "Preserved Caustic Dung", "Preserved Caustic Dung", "Scell" } },
-    }
-
-    for _, expected in ipairs(expectedResources) do
-        local level = findLevelByName(monster, expected.levelName)
-        if not level then
-            log:Errorf("TEST: Dung Beetle Knight %s not found", expected.levelName)
-            passed = false
-        else
-            local rewards = level.showdown and level.showdown.resources
-            if not rewards then
-                log:Errorf("TEST: %s has no resources data", expected.levelName)
-                passed = false
-            else
-                local levelPassed = true
-                if rewards.basic ~= expected.basic then
-                    log:Errorf("TEST: %s expected %d basic, got %d",
-                        expected.levelName, expected.basic, rewards.basic or 0)
-                    levelPassed = false
-                end
-                if rewards.monster ~= expected.monster then
-                    log:Errorf("TEST: %s expected %d monster, got %d",
-                        expected.levelName, expected.monster, rewards.monster or 0)
-                    levelPassed = false
-                end
-                if expected.strange then
-                    if not rewards.strange or #rewards.strange ~= #expected.strange then
-                        log:Errorf("TEST: %s expected %d strange resources, got %d",
-                            expected.levelName, #expected.strange, rewards.strange and #rewards.strange or 0)
-                        levelPassed = false
-                    else
-                        for i, expectedName in ipairs(expected.strange) do
-                            if rewards.strange[i] ~= expectedName then
-                                log:Errorf("TEST: %s strange[%d] expected '%s', got '%s'",
-                                    expected.levelName, i, expectedName, rewards.strange[i] or "nil")
-                                levelPassed = false
-                            end
-                        end
-                    end
-                end
-                if levelPassed then
-                    local strangeStr = expected.strange and string.format(", strange=%d", #rewards.strange) or ""
-                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d%s)",
-                        expected.levelName, rewards.basic, rewards.monster, strangeStr)
-                else
-                    passed = false
-                end
-            end
-        end
-    end
-
-    log:Printf("=== TEST: TestDungBeetleKnightDataIntegrity COMPLETE ===")
-    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
-    if onComplete then onComplete(passed) end
+    }, onComplete)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1829,17 +1378,7 @@ function ResourceRewardsTests.TestDungBeetleKnightStrangeResourcesSpawn(onComple
                     log:Printf("TEST: Correctly found 'Scell'")
                 end
 
-                -- Cleanup spawned resources
-                log:Printf("TEST: Cleaning up spawned resources...")
-                local cleanedCount = 0
-                for _, obj in ipairs(getObjects()) do
-                    local pos = obj.getPosition()
-                    if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
-                        obj.destruct()
-                        cleanedCount = cleanedCount + 1
-                    end
-                end
-                log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+                cleanupSpawnedResources()
 
                 log:Printf("=== TEST: TestDungBeetleKnightStrangeResourcesSpawn COMPLETE ===")
                 log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
@@ -1895,65 +1434,11 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.TestFlowerKnightDataIntegrity(onComplete)
-    log:Printf("=== TEST: TestFlowerKnightDataIntegrity ===")
-    log:Printf("TEST: Verifying Flower Knight resource data structure...")
-
-    local monster = Showdown.Test.MonsterByName("Flower Knight")
-    if not monster then
-        log:Errorf("TEST FAILED: Could not find Flower Knight monster")
-        if onComplete then onComplete(false) end
-        return
-    end
-
-    local passed = true
-    -- Flower Knight has NO strange resources at any level (edge case!)
-    local expectedResources = {
-        { levelName = "Level 1", basic = 4, monster = 4 },
-        { levelName = "Level 2", basic = 4, monster = 6 },
-        { levelName = "Level 3", basic = 4, monster = 8 },
-    }
-
-    for _, expected in ipairs(expectedResources) do
-        local level = findLevelByName(monster, expected.levelName)
-        if not level then
-            log:Errorf("TEST: Flower Knight %s not found", expected.levelName)
-            passed = false
-        else
-            local rewards = level.showdown and level.showdown.resources
-            if not rewards then
-                log:Errorf("TEST: %s has no resources data", expected.levelName)
-                passed = false
-            else
-                local levelPassed = true
-                if rewards.basic ~= expected.basic then
-                    log:Errorf("TEST: %s expected %d basic, got %d",
-                        expected.levelName, expected.basic, rewards.basic or 0)
-                    levelPassed = false
-                end
-                if rewards.monster ~= expected.monster then
-                    log:Errorf("TEST: %s expected %d monster, got %d",
-                        expected.levelName, expected.monster, rewards.monster or 0)
-                    levelPassed = false
-                end
-                -- Flower Knight should NOT have strange resources
-                if rewards.strange and #rewards.strange > 0 then
-                    log:Errorf("TEST: %s should NOT have strange resources, but has %d",
-                        expected.levelName, #rewards.strange)
-                    levelPassed = false
-                end
-                if levelPassed then
-                    log:Printf("TEST: %s resources correct (basic=%d, monster=%d, no strange)",
-                        expected.levelName, rewards.basic, rewards.monster)
-                else
-                    passed = false
-                end
-            end
-        end
-    end
-
-    log:Printf("=== TEST: TestFlowerKnightDataIntegrity COMPLETE ===")
-    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
-    if onComplete then onComplete(passed) end
+    validateMonsterResourceData("Flower Knight", {
+        { levelName = "Level 1", basic = 4, monster = 4, noStrange = true },
+        { levelName = "Level 2", basic = 4, monster = 6, noStrange = true },
+        { levelName = "Level 3", basic = 4, monster = 8, noStrange = true },
+    }, onComplete)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -2002,7 +1487,8 @@ function ResourceRewardsTests.TestFlowerKnightNoStrangeResources(onComplete)
                         if name == strangeName then
                             local pos = obj.getPosition()
                             -- Only count if in spawn area
-                            if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
+                            if pos.x >= SPAWN_GRID_BOUNDS.xMin and pos.x <= SPAWN_GRID_BOUNDS.xMax
+                               and pos.z >= SPAWN_GRID_BOUNDS.zMin and pos.z <= SPAWN_GRID_BOUNDS.zMax then
                                 table.insert(strangeFound, name)
                             end
                         end
@@ -2017,17 +1503,7 @@ function ResourceRewardsTests.TestFlowerKnightNoStrangeResources(onComplete)
                     log:Printf("TEST: Correctly spawned NO strange resources for Flower Knight L3")
                 end
 
-                -- Cleanup spawned resources
-                log:Printf("TEST: Cleaning up spawned resources...")
-                local cleanedCount = 0
-                for _, obj in ipairs(getObjects()) do
-                    local pos = obj.getPosition()
-                    if pos.x >= 49 and pos.x <= 60 and pos.z >= -30 and pos.z <= -10 then
-                        obj.destruct()
-                        cleanedCount = cleanedCount + 1
-                    end
-                end
-                log:Printf("TEST: Cleaned up %d objects", cleanedCount)
+                cleanupSpawnedResources()
 
                 log:Printf("=== TEST: TestFlowerKnightNoStrangeResources COMPLETE ===")
                 log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
