@@ -414,6 +414,24 @@ TTS tests are slower than headless tests, so two commands are available:
 
 Tests without a `bead` field are regression tests (run with `>testall` only). Tests tagged with a bead run when that bead matches `FOCUS_BEAD`.
 
+### Multiple Beads Per Test
+
+Tests often need association with multiple beads:
+- **Original feature bead** (e.g., `kdm-w1k`) for regression testing
+- **Maintenance/refactoring beads** (e.g., `kdm-rhc`) for verifying changes don't break behavior
+
+Use array format for multiple beads:
+
+```lua
+-- Single bead (string):
+{ name = "White Lion Rewards", bead = "kdm-w1k", fn = ... },
+
+-- Multiple beads (array):
+{ name = "White Lion Rewards", bead = { "kdm-w1k", "kdm-rhc" }, fn = ... },
+```
+
+The `testMatchesBead()` helper in `TTSTests.ttslua` handles both formats. Tests with multiple beads run when ANY of their beads match `FOCUS_BEAD`.
+
 ## TTS Console Test Pattern: Snapshot/Action/Restore
 
 **Pattern for TTS integration tests:**

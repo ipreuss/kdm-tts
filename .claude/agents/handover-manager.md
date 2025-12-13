@@ -113,12 +113,18 @@ When asked to create a handover:
 **From:** <Role>
 **To:** <Role>
 **Bead:** <bead-id if applicable>
+**Work Folder:** `work/<bead-id>/` (if applicable)
 
 ---
 
 ## Summary
 
 <Brief 1-2 sentence overview>
+
+## Context
+
+See `work/<bead-id>/` for full background, especially:
+- [list relevant files in work folder, if any]
 
 ## Details
 
@@ -128,6 +134,8 @@ When asked to create a handover:
 
 <What the receiving role needs to do>
 ```
+
+**Work folder reference:** When a bead has an active work folder, always reference it in the handover. The receiving role should read existing files before starting work.
 
 **QUEUE.md entry format:**
 ```markdown

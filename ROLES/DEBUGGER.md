@@ -29,6 +29,20 @@ The full Debugger role is for **complex bugs** that require dedicated investigat
 - Don't modify production logic (only add logging)
 - **Don't close beads** — When diagnosis is complete, create a handover to Product Owner (features/bugs) or Architect (technical tasks) for closure
 
+## Work Folder
+
+When working on a bead, contribute to its work folder (`work/<bead-id>/`):
+
+**Debugger typically creates/updates:**
+- `debug-notes.md` — Investigation notes, hypotheses, evidence, dead ends
+
+**At session start:** Read existing files in the work folder for context.
+**Before handover, ask:** "What investigation context would help if this bug recurs?" Create new files as needed.
+
+See `work/README.md` for full guidelines.
+
+---
+
 ## Permitted Operations
 
 ### Allowed

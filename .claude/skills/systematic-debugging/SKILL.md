@@ -63,6 +63,23 @@ Trace: GetRewards ← Setup ← OnShowdownStart ← EventManager.Fire
 3. **Verify fix** — Run tests, confirm issue resolved
 4. **Run code-reviewer** — Before handover
 
+### Phase 5: Monitoring Mode (For Non-Reproducible Bugs)
+
+When a bug cannot be reproduced despite thorough investigation:
+
+1. **Add permanent logging** — Use `log:Printf()` (not `Debugf`) so it always outputs
+2. **Document the logging** — Add comment explaining WHY the logging exists
+3. **Mark in DEBUG_MODULES** — Add note with status "MONITORING" to prevent accidental removal
+4. **Close as "cannot reproduce"** — With monitoring in place, if bug recurs, diagnostic info is captured
+
+```lua
+-- MONITORING (kdm-li3): Intermittent Unknown Error during terrain cleanup
+-- If this triggers, capture the log output and reopen the bead
+log:Printf("[MONITOR] TestSetup.CleanupTerrain called with deck: %s", tostring(deck))
+```
+
+This is better than leaving bugs open indefinitely or removing investigation code.
+
 ---
 
 ## Red Flags — Stop and Follow Process

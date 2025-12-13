@@ -78,6 +78,24 @@ After splitting: prioritize stories, hand over ONE story at a time to Architect.
 
 Invoke with: "I'll use the feature-breakdown skill to split this into user stories."
 
+## Work Folder
+
+When starting a new bead, create a work folder to capture persistent context:
+
+```bash
+mkdir work/kdm-xyz
+```
+
+**Product Owner creates:**
+- `README.md` — Quick summary: what is this bead about?
+- `requirements.md` — Acceptance criteria, constraints, user stories
+
+**Before each handover, ask:** "What additional information would help the next role?" Create new files as needed.
+
+See `work/README.md` for full guidelines.
+
+---
+
 ## Workflow
 
 ### 1. Gather Requirements

@@ -195,6 +195,7 @@ Generate handover content following PROCESS.md conventions:
 **From:** [Sending Role]
 **To:** [Receiving Role]
 **Bead:** [bead-id if applicable]
+**Work Folder:** `work/<bead-id>/` (if exists)
 
 ---
 
@@ -204,7 +205,10 @@ Generate handover content following PROCESS.md conventions:
 
 ## Context
 
-[Background information: what led to this handover, relevant history]
+See `work/<bead-id>/` for full background, especially:
+- [list relevant files: design.md, progress.md, etc.]
+
+[Additional background information: what led to this handover, relevant history]
 
 ## [Role-Specific Sections]
 
@@ -448,6 +452,7 @@ Before returning the handover content, verify:
 - [ ] Receiving role has enough context to start work
 - [ ] Files/references include absolute paths where specific
 - [ ] Action Required section is clear and actionable
+- [ ] Work folder reference included (if bead has work folder)
 
 **Clarity:**
 - [ ] Summary is concise (1-2 sentences)

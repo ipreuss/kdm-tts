@@ -78,6 +78,20 @@ For creating handovers to other roles:
 - **Recommended** for all handovers to ensure consistent formatting and prevent manual errors
 - See subagent documentation for usage
 
+## Work Folder
+
+When working on a bead, contribute to its work folder (`work/<bead-id>/`):
+
+**Tester typically creates/updates:**
+- `testing.md` — Test plan, results, bugs found, TTS console commands
+
+**At session start:** Read existing files in the work folder for context.
+**Before handover, ask:** "What would help the next role understand what I tested and found?" Create new files as needed.
+
+See `work/README.md` for full guidelines.
+
+---
+
 ## Key Principle
 
 **Ask:** "What can a user do? What do they see?"
@@ -103,6 +117,16 @@ Captures to `handover/LEARNINGS.md` in real-time, not waiting for session end.
 - **`systematic-debugging`** — When bug found, investigate root cause before fix path decision
 
 ## Workflow
+
+### 0. Session Start (TTS Test Work)
+
+**When receiving handover for TTS test work, immediately:**
+
+1. **Update FOCUS_BEAD** in `TTSTests.ttslua` to the current bead
+2. **Verify test registration** — Check tests are in `ALL_TESTS` with correct bead tag
+3. **Run `./updateTTS.sh`** — Sync changes before any TTS testing
+
+This enables `>testfocus` to run the right tests from the start.
 
 ### 1. Read Acceptance Criteria
 From `handover/HANDOVER_TESTER.md`:
@@ -212,6 +236,14 @@ end
 
 ### 5. Verify Tests Catch Bugs
 **Critical:** Temporarily break the production code and verify your test fails. If breaking the code doesn't fail the test, the test is worthless.
+
+### 6. Before Handover
+
+**After ANY code changes (including test files, FOCUS_BEAD updates):**
+
+1. **Run `./updateTTS.sh`** — Sync to TTS before asking user to test
+2. **Verify tests pass** — Run `>testfocus` or `>testall` as appropriate
+3. **Use code-reviewer subagent** — Review test quality before handover
 
 ## Common Pitfalls
 

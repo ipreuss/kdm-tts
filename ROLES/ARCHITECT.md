@@ -91,6 +91,20 @@ For creating handovers to Implementer or other roles:
 - **Input:** `handover/HANDOVER_ARCHITECT.md` (from Product Owner)
 - **Output:** `handover/HANDOVER_IMPLEMENTER.md` (design to Implementer)
 
+## Work Folder
+
+When working on a bead, contribute to its work folder (`work/<bead-id>/`):
+
+**Architect typically creates/updates:**
+- `design.md` — Architecture decisions, patterns, rationale, alternatives considered
+- `decisions.md` — Key decisions with "why" documented
+
+**Before each handover, ask:** "What context would help Implementer understand my thinking?" Create new files as needed.
+
+See `work/README.md` for full guidelines.
+
+---
+
 ## Workflow
 
 ### 1. Receive Requirements

@@ -400,6 +400,52 @@ Product Owner creates `HANDOVER_PO_TEAMCOACH_RETRO_<FEATURE>.md` with:
 
 ---
 
+## Work Folders
+
+Each active bead gets a dedicated folder (`work/<bead-id>/`) where roles document knowledge as they work. The folder starts empty; roles create files as needed.
+
+### Core Principle
+
+**Reflect on what additional information might be useful and create new files as needed.** The suggested structure is a starting point, not a constraint. If you think "this would help the next role," write it down.
+
+### Suggested Files (All Optional)
+
+| File | Typical Owner | Purpose |
+|------|---------------|---------|
+| `README.md` | Any | Quick summary: what, why, current status |
+| `requirements.md` | Product Owner | Acceptance criteria, constraints, user stories |
+| `design.md` | Architect | Decisions, patterns, rationale, alternatives considered |
+| `progress.md` | Implementer | What's done, what remains, blockers |
+| `testing.md` | Tester | Test plan, results, bugs found, TTS commands |
+| `review.md` | Reviewer | Code review findings (per-bead history) |
+| `decisions.md` | Any | Key decisions with rationale and date |
+| `learnings.md` | Any | Insights during work (feeds retrospective) |
+| `debug-notes.md` | Debugger | Investigation notes, hypotheses, evidence |
+
+### Lifecycle
+
+1. **Creation:** Product Owner creates `work/kdm-xyz/` when bead starts
+2. **Active Work:** Each role reads existing files, adds/updates files as needed
+3. **Closure:** Team Coach reviews folder for learnings, then archives or deletes
+
+### Integration with Handovers
+
+Work folders complement handovers:
+- **Handovers** focus on: what action is needed now
+- **Work folders** provide: persistent context across all handovers
+
+Example handover reference:
+```markdown
+## Context
+See `work/kdm-xyz/` for full background, especially:
+- `design.md` for architectural decisions
+- `progress.md` for implementation status
+```
+
+See `work/README.md` for detailed usage instructions.
+
+---
+
 ## Bead Guidelines
 
 ### Bead Creation Guidelines
