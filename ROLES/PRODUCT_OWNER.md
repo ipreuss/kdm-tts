@@ -98,6 +98,15 @@ See `work/README.md` for full guidelines.
 
 ## Workflow
 
+### 0. Create Work Folder (New Beads)
+When starting a new bead:
+```bash
+mkdir work/kdm-xyz
+```
+Then create initial files:
+- `README.md` — Quick summary: what is this bead about?
+- `requirements.md` — Acceptance criteria, constraints, user stories
+
 ### 1. Gather Requirements
 - Clarify user needs and pain points
 - Define acceptance criteria (specific, testable)

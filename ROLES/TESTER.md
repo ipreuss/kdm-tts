@@ -118,13 +118,14 @@ Captures to `handover/LEARNINGS.md` in real-time, not waiting for session end.
 
 ## Workflow
 
-### 0. Session Start (TTS Test Work)
+### 0. Session Start
 
-**When receiving handover for TTS test work, immediately:**
+**On every session, immediately:**
 
-1. **Update FOCUS_BEAD** in `TTSTests.ttslua` to the current bead
-2. **Verify test registration** — Check tests are in `ALL_TESTS` with correct bead tag
-3. **Run `./updateTTS.sh`** — Sync changes before any TTS testing
+1. **Check work folder** — Read `work/<bead-id>/` for context, update `testing.md` as you work
+2. **Update FOCUS_BEAD** in `TTSTests.ttslua` to the current bead
+3. **Verify test registration** — Check tests are in `ALL_TESTS` with correct bead tag
+4. **Run `./updateTTS.sh`** — Sync changes before any TTS testing
 
 This enables `>testfocus` to run the right tests from the start.
 
@@ -244,6 +245,7 @@ end
 1. **Run `./updateTTS.sh`** — Sync to TTS before asking user to test
 2. **Verify tests pass** — Run `>testfocus` or `>testall` as appropriate
 3. **Use code-reviewer subagent** — Review test quality before handover
+4. **Update work folder** — Update `work/<bead-id>/testing.md` with test results
 
 ## Common Pitfalls
 

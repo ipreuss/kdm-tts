@@ -420,10 +420,4 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init = Rules.Init,
-    RulebookAndState = Rules.RulebookAndState,
-    Search = Rules.Search,
-    SpawnRules = Rules.SpawnRules,
-    createRulebookButtons = Rules.createRulebookButtons,
-}
+return Rules

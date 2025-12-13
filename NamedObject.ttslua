@@ -228,8 +228,4 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init = NamedObject.Init,
-    Get = NamedObject.Get,
-    DEFAULT_CAST_HEIGHT = NamedObject.DEFAULT_CAST_HEIGHT,
-}
+return NamedObject

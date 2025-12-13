@@ -341,13 +341,4 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init = Hunt.Init,
-    Setup = Hunt.Setup,
-    ShowUi = Hunt.ShowUi,
-    HideUi = Hunt.HideUi,
-    IsUiOpen = Hunt.IsUiOpen,
-    Clean = Hunt.Clean,
-    Import = Hunt.Import,
-    Export = Hunt.Export,
-}
+return Hunt

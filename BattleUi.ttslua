@@ -417,12 +417,9 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init = BattleUi.Init,
-    PostInit = BattleUi.PostInit,
-    Save = BattleUi.Save,
-    -- Test interface
-    Test = {
-        CalcWeapons = BattleUi.CalcWeapons,
-    },
+-- Test interface
+BattleUi.Test = {
+    CalcWeapons = BattleUi.CalcWeapons,
 }
+
+return BattleUi

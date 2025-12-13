@@ -1294,21 +1294,14 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init = Campaign.Init,
-    Save = Campaign.Save,
-    ShowUi = Campaign.ShowUi,
-    HideUi = Campaign.HideUi,
-    IsUiOpen = Campaign.IsUiOpen,
-    Campaign = function() return Campaign.campaign end,
-    CalculateStrainRewards = Campaign.CalculateStrainRewards,
-    AddStrainRewards = Campaign.AddStrainRewards,
-    _test = {
-        SetupSettlementEventsDeck = Campaign.SetupSettlementEventsDeck,
-        SetupDeckFromExpansionComponents = Campaign.SetupDeckFromExpansionComponents,
-        Import = Campaign.Import,
-        EXPORT_VERSION = Campaign.EXPORT_VERSION,
-        BuildStrainMilestoneState = buildStrainMilestoneState,
-        RandomSelect = Campaign.RandomSelect,
-    },
+Campaign.Campaign = function() return Campaign.campaign end
+Campaign._test = {
+    SetupSettlementEventsDeck = Campaign.SetupSettlementEventsDeck,
+    SetupDeckFromExpansionComponents = Campaign.SetupDeckFromExpansionComponents,
+    Import = Campaign.Import,
+    EXPORT_VERSION = Campaign.EXPORT_VERSION,
+    BuildStrainMilestoneState = buildStrainMilestoneState,
+    RandomSelect = Campaign.RandomSelect,
 }
+
+return Campaign

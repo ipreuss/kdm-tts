@@ -125,13 +125,6 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init = Expansion.Init,
-    Save = Expansion.Save,
-    All = Expansion.All,
-    SetEnabled = Expansion.SetEnabled,
-    IsEnabled = Expansion.IsEnabled,
-    SetUnlockedMode = Expansion.SetUnlockedMode,
-    IsUnlockedMode = Expansion.IsUnlockedMode,
-    EnabledFilter = function(expansion) return Expansion.IsEnabled(expansion.name) end,
-}
+Expansion.EnabledFilter = function(expansion) return Expansion.IsEnabled(expansion.name) end
+
+return Expansion

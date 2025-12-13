@@ -149,7 +149,6 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Create = OverlayClass.Create,
-    Is = function(x) return getmetatable(x) == OverlayClass end,
-}
+OverlayClass.Is = function(x) return getmetatable(x) == OverlayClass end
+
+return OverlayClass

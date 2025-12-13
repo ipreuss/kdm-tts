@@ -150,6 +150,9 @@ The skill covers:
 
 ## Debugging Workflow
 
+### 0. Session Start
+Read `work/<bead-id>/` for context — prior debug notes, design decisions, known issues.
+
 ### 1. Identify the Error Context
 - Note the exact error message and function name
 - Determine if the error is in onClick handlers, module initialization, or other TTS-specific contexts
@@ -186,6 +189,9 @@ The skill covers:
 - Disable debug modules that were temporarily enabled
 - Ensure tests cover the fixed scenario
 - Update handover documentation with lessons learned
+
+### 7. Update Work Folder
+Update `work/<bead-id>/debug-notes.md` with investigation findings, root cause, and fix for persistent record.
 
 ## Common Pitfalls
 

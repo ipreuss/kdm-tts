@@ -603,8 +603,4 @@ function Names.getName(gender, character)
     return names[math.random(#names)]
 end
 
-return {
-    Gender = Names.Gender,
-    getName = Names.getName,
-    names = Names.names,
-}
+return Names

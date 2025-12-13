@@ -107,6 +107,11 @@ See `work/README.md` for full guidelines.
 
 ## Workflow
 
+### 0. Check Work Folder
+Read `work/<bead-id>/` for persistent context:
+- Requirements, prior decisions, progress from other roles
+- Create/update `design.md` with architectural decisions
+
 ### 1. Receive Requirements
 Read `handover/HANDOVER_ARCHITECT.md` to understand:
 - What feature is requested
@@ -158,6 +163,9 @@ When design involves TTS API interactions, explicitly specify:
 - Which operations need TTS console tests
 - Which can be tested headless
 - Test patterns to follow
+
+### 6. Update Work Folder
+Update `work/<bead-id>/design.md` with architectural decisions and rationale for persistent record.
 
 ## Lightweight Refactoring Workflow
 

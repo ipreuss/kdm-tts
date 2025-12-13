@@ -537,12 +537,4 @@ function Location.ExportDeck(location, type)
     return cardNames
 end
 
-return {
-    Is = Location.Is,
-    Init = Location.Init,
-    Get = Location.Get,
-    LocationsAtPosition = Location.LocationsAtPosition,
-    ObjectLocations = Location.ObjectLocations,
-    Scan = Location.Scan,
-    ExportDeck = Location.ExportDeck,
-}
+return Location

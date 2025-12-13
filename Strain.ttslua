@@ -930,22 +930,12 @@ function Strain.IsUiOpen()
     return Strain.dialog and Strain.dialog:IsOpen()
 end
 
-return {
-    Init = Strain.Init,
-    Save = Strain.Save,
-    LoadState = Strain.LoadState,
-    ShowUi = Strain.ShowUi,
-    HideUi = Strain.HideUi,
-    IsUiOpen = Strain.IsUiOpen,
-    MILESTONE_CARDS = Strain.MILESTONE_CARDS,
-    ComputeConsequenceChanges = Strain.ComputeConsequenceChanges,
-    FindMilestone = Strain.FindMilestone,
-    BuildUndoMessage = Strain.BuildUndoMessage,
-    Test = {
-        _TakeRewardCard = Strain._TakeRewardCard,
-        SetReachedMilestones = Strain.Test_SetReachedMilestones,
-        ResetReachedMilestones = Strain.Test_ResetReachedMilestones,
-        ExecuteConsequences = function(milestone) return Strain:ExecuteConsequences(milestone) end,
-        ReverseConsequences = function(milestone) return Strain:ReverseConsequences(milestone) end,
-    },
+Strain.Test = {
+    _TakeRewardCard = Strain._TakeRewardCard,
+    SetReachedMilestones = Strain.Test_SetReachedMilestones,
+    ResetReachedMilestones = Strain.Test_ResetReachedMilestones,
+    ExecuteConsequences = function(milestone) return Strain:ExecuteConsequences(milestone) end,
+    ReverseConsequences = function(milestone) return Strain:ReverseConsequences(milestone) end,
 }
+
+return Strain

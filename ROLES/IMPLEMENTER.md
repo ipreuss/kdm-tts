@@ -59,6 +59,11 @@ See `work/README.md` for full guidelines.
 
 ## Workflow
 
+### 0. Check Work Folder
+Read `work/<bead-id>/` for persistent context:
+- Design decisions, requirements, progress from prior sessions
+- Create/update `progress.md` as you work
+
 ### 1. Read Handover
 Check these files before starting:
 - `handover/HANDOVER_IMPLEMENTER.md` - Design to implement
@@ -98,6 +103,9 @@ Update `handover/IMPLEMENTATION_STATUS.md` with:
 - What was completed
 - What remains
 - Any blockers or questions
+
+### 7. Update Work Folder
+Update `work/<bead-id>/progress.md` with implementation progress for persistent record.
 
 ## Available Skills
 

@@ -677,24 +677,4 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init = Ui.Init,
-    Create3d = Ui.Create3d,
-    Get2d = Ui.Get2d,
-    LEFT_MOUSE_BUTTON = Ui.LEFT_MOUSE_BUTTON,
-
-    IMAGE_COLORS = Ui.IMAGE_COLORS,
-    INVISIBLE_COLORS = Ui.INVISIBLE_COLORS,
-
-    LIGHT_BROWN = Ui.LIGHT_BROWN,
-    MID_BROWN = Ui.MID_BROWN,
-    DARK_BROWN = Ui.DARK_BROWN,
-
-    LIGHT_RED = Ui.LIGHT_RED,
-    DARK_RED = Ui.DARK_RED,
-    LIGHT_GREEN = Ui.LIGHT_GREEN,
-
-    --LIGHT_BROWN_COLORS = Ui.LIGHT_BROWN_COLORS,
-    MID_BROWN_COLORS = Ui.MID_BROWN_COLORS,
-    DARK_BROWN_COLORS = Ui.DARK_BROWN_COLORS,
-}
+return Ui

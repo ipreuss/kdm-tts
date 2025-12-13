@@ -104,7 +104,6 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Create = GridClass.Create,
-    Is = function(x) return getmetatable(x) == GridClass end,
-}
+GridClass.Is = function(x) return getmetatable(x) == GridClass end
+
+return GridClass

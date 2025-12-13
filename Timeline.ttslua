@@ -1149,41 +1149,25 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init = Timeline.Init,
-    PostInit = Timeline.PostInit,
-    Save = Timeline.Save,
-    Import = Timeline.Import,
-    Export = Timeline.Export,
-    ShowUi = Timeline.ShowUi,
-    HideUi = Timeline.HideUi,
-    ShowUiForAll = Timeline.ShowUiForAll,
-    HideUiForAll = Timeline.HideUiForAll,
-    IsUiOpen = Timeline.IsUiOpen,
-    MAX_YEARS = Timeline.MAX_YEARS,
-    MAX_YEAR_EVENTS = Timeline.MAX_YEAR_EVENTS,
-    GetSurvivalLimit = Timeline.GetSurvivalLimit,
-    RefreshSettlementEventSearchFromDeck = Timeline.RefreshSettlementEventSearchFromDeck,
-    ScheduleEvent = Timeline.ScheduleEvent,
-    RemoveEventByName = Timeline.RemoveEventByName,
-    _testResetSearchState = function()
-        Timeline.trie = Trie()
-        Timeline.baseSearchEntries = {}
-        Timeline.currentSettlementEventNames = nil
-    end,
-    _test = {
-        SortedKeys = SortedKeys,
-        AddBaseSearchEntry = AddBaseSearchEntry,
-        NamesEqual = NamesEqual,
-        RebuildSearchTrie = Timeline.RebuildSearchTrie,
-        GetTrie = function() return Timeline.trie end,
-        GetCurrentSettlementEventNames = function() return Timeline.currentSettlementEventNames end,
-        SettlementEventNamesFromDeck = Timeline.SettlementEventNamesFromDeck,
-        SetLocationGet = TestSetLocationGet,
-        ResetLocationGet = TestResetLocationGet,
-        SetContainerFunction = TestSetContainerFunction,
-        ResetContainerFunction = TestResetContainerFunction,
-        FindEventByName = FindEventByName,
-        NextUncheckedYearIndex = NextUncheckedYearIndex,
-    },
+Timeline._testResetSearchState = function()
+    Timeline.trie = Trie()
+    Timeline.baseSearchEntries = {}
+    Timeline.currentSettlementEventNames = nil
+end
+Timeline._test = {
+    SortedKeys = SortedKeys,
+    AddBaseSearchEntry = AddBaseSearchEntry,
+    NamesEqual = NamesEqual,
+    RebuildSearchTrie = Timeline.RebuildSearchTrie,
+    GetTrie = function() return Timeline.trie end,
+    GetCurrentSettlementEventNames = function() return Timeline.currentSettlementEventNames end,
+    SettlementEventNamesFromDeck = Timeline.SettlementEventNamesFromDeck,
+    SetLocationGet = TestSetLocationGet,
+    ResetLocationGet = TestResetLocationGet,
+    SetContainerFunction = TestSetContainerFunction,
+    ResetContainerFunction = TestResetContainerFunction,
+    FindEventByName = FindEventByName,
+    NextUncheckedYearIndex = NextUncheckedYearIndex,
 }
+
+return Timeline

@@ -47,8 +47,4 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init = Terrain.Init,
-    Data = Terrain.Data,
-    TileSize = Terrain.TileSize
-}
+return Terrain

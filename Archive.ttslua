@@ -896,25 +896,8 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init = Archive.Init,
-    RegisterEntries = Archive.RegisterEntries,
-    Take = Archive.Take,
-    TakeObject = Archive.TakeObject,
-    TakeFromDeck = Archive.TakeFromDeck,
-    ArchiveSource = Archive.ArchiveSource,
-    ContainerSource = Archive.ContainerSource,
-    CreateDeckFromSources = Archive.CreateDeckFromSources,
-    Clean = Archive.Clean,
-    CreateAllGearDeck = Archive.CreateAllGearDeck,
-    TransferCard = Archive.TransferCard,
-    RemoveAndDestroyCard = Archive.RemoveAndDestroyCard,
-    TransferCardBetweenDecks = Archive.TransferCardBetweenDecks,
-    RemoveCardFromDeck = Archive.RemoveCardFromDeck,
-    
-    -- Test seam exports
-    Test_SetSpawner = Archive.Test_SetSpawner,
-    Test_ResetSpawner = Archive.Test_ResetSpawner,
-    Test_Key = Archive.Key,
-    Test_RegisterIndexEntry = Archive.RegisterIndexEntry,
-}
+-- Test seam exports
+Archive.Test_Key = Archive.Key
+Archive.Test_RegisterIndexEntry = Archive.RegisterIndexEntry
+
+return Archive

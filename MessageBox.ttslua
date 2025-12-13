@@ -182,8 +182,4 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init = MessageBox.Init,
-    Show = MessageBox.Show,
-    Hide = MessageBox.Hide,
-}
+return MessageBox

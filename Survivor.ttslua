@@ -1960,42 +1960,25 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init = Survivor.Init,
-    PostInit = Survivor.PostInit,
-    InitSaveState = Survivor.InitSaveState,
-    Save = Survivor.Save,
-    Import = Survivor.Import,
-    Export = Survivor.Export,
-    SetCharacterProvider = Survivor.SetCharacterProvider,
-    SetInnovationsChecker = Survivor.SetInnovationsChecker,
-    DepartingSurvivorNeedsToSkipNextHunt = Survivor.DepartingSurvivorNeedsToSkipNextHunt,
-    NewSurvivor = Survivor.newSurvivor,
-    CreateSurvivor = Survivor.CreateSurvivor,
-
-    Survivors = function() return Survivor.survivors end,
-
-    SurvivorForId = function(id) return Survivor.survivorsById[id] end,
-    SurvivorBoxForSurvivor = function(survivor) return Survivor.survivorBoxesBySurvivor[survivor] end,
-    SurvivorBoxForObject = function(object) return Survivor.survivorBoxesByObject[object] end,
-    SurvivorSheetForSurvivor = function(survivor) return Survivor.survivorSheetsBySurvivor[survivor] end,
-    SurvivorSheetForObject = function(object) return Survivor.survivorSheetsByObject[object] end,
-
-    CreateSurvivorSheet = function(survivor, object)
-        local survivorSheet = SurvivorSheetClass.Create(survivor, object)
-        Survivor.survivorSheetsBySurvivor[survivor] = survivorSheet
-        Survivor.survivorSheetsByObject[object] = survivorSheet
-        EventManager.FireEvent(EventManager.ON_SURVIVOR_GETS_IN_PLAY, survivor)
-        return survivorSheet
-    end,
-    ClearSkipNextHunt = Survivor.ClearSkipNextHunt,
-    Test = {
-        stubUi = Survivor.TestStubUi,
-    },
-
-    ALLOWED_CARD_TYPES = Survivor.ALLOWED_CARD_TYPES,
-    SpawnSurvivorBox = Survivor.SpawnSurvivorBox,
-    SetSurvivalLimitProvider = function(provider)
-        survivalLimitProvider = provider
-    end
+Survivor.NewSurvivor = Survivor.newSurvivor
+Survivor.Survivors = function() return Survivor.survivors end
+Survivor.SurvivorForId = function(id) return Survivor.survivorsById[id] end
+Survivor.SurvivorBoxForSurvivor = function(survivor) return Survivor.survivorBoxesBySurvivor[survivor] end
+Survivor.SurvivorBoxForObject = function(object) return Survivor.survivorBoxesByObject[object] end
+Survivor.SurvivorSheetForSurvivor = function(survivor) return Survivor.survivorSheetsBySurvivor[survivor] end
+Survivor.SurvivorSheetForObject = function(object) return Survivor.survivorSheetsByObject[object] end
+Survivor.CreateSurvivorSheet = function(survivor, object)
+    local survivorSheet = SurvivorSheetClass.Create(survivor, object)
+    Survivor.survivorSheetsBySurvivor[survivor] = survivorSheet
+    Survivor.survivorSheetsByObject[object] = survivorSheet
+    EventManager.FireEvent(EventManager.ON_SURVIVOR_GETS_IN_PLAY, survivor)
+    return survivorSheet
+end
+Survivor.SetSurvivalLimitProvider = function(provider)
+    survivalLimitProvider = provider
+end
+Survivor.Test = {
+    stubUi = Survivor.TestStubUi,
 }
+
+return Survivor

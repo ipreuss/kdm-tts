@@ -153,8 +153,4 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init = Log.Init,
-    PostInit = Log.PostInit,
-    ForModule = Log.ForModule,
-}
+return Log

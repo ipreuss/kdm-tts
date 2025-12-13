@@ -146,7 +146,7 @@ return {           -- ❌ Avoid this pattern
 - Simpler, less error-prone
 - A bug caused by mixed patterns cost 4 debug cycles (see `HANDOVER_DEBUGGER_ARCHITECT_MIXED_EXPORT_PATTERN.md`)
 
-**Migration status:** ~48 modules still use explicit exports; ~32 use the standard pattern. Migration is tracked in bead kdm-0e0.
+**Note:** Expansion data files (e.g., `Expansion/Gorm.ttslua`) use `return { ... }` at line 1 because they are pure data declarations, not behavioral modules. This is intentional.
 
 **Note:** This is a single-team mod, not a public library. The encapsulation benefit of explicit exports doesn't justify the bug risk.
 

@@ -56,8 +56,4 @@ function Gear.cannonicalFor(name)
     return pos and name:sub(1, pos - 2) or name
 end
 
-return {
-    Init = Gear.Init,
-    new = Gear.new,
-    getByName = Gear.getByName
-}
+return Gear

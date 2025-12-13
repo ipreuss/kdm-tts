@@ -33,8 +33,9 @@ See `work/README.md` for full guidelines.
 
 ## Review Process
 
-### 0. Check for Implementer Comments
-**FIRST:** Check `handover/LATEST_REVIEW.md` for implementer responses to previous review items. The implementer may have added comments explaining decisions or asking for clarification.
+### 0. Session Start
+1. **Check work folder** — Read `work/<bead-id>/` for context (design decisions, requirements)
+2. **Check for Implementer Comments** — Read `handover/LATEST_REVIEW.md` for responses to previous review items
 
 ### 1. Gather Context
 1. Check for new screenshots: `ls -t ~/Desktop/*.png | head -3`
@@ -72,6 +73,9 @@ Update `handover/LATEST_REVIEW.md` with:
 - Test-only exports analysis
 - Recommendations
 - Status (APPROVED / APPROVED with notes / NEEDS CHANGES)
+
+### 5. Update Work Folder
+Update `work/<bead-id>/review.md` with review findings for persistent record.
 
 ## Review Template
 

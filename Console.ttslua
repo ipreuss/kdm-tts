@@ -147,8 +147,4 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init = Console.Init,
-    Printf = Console.Printf,
-    AddCommand = Console.AddCommand,
-}
+return Console

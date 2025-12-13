@@ -188,16 +188,12 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Init      = Monster.Init,
-    PostInit  = Monster.PostInit,
-    Save      = Monster.Save,
-    Movement  = function() return Monster.Stat("movement") end,
-    Toughness = function() return Monster.Stat("toughness") end,
-    Damage    = function() return Monster.Stat("damage") end,
-    Speed     = function() return Monster.Stat("speed") end,
-    Accuracy  = function() return Monster.Stat("accuracy") end,
-    Evasion   = function() return Monster.Stat("evasion") end,
-    Luck      = function() return Monster.Stat("luck") end,
-    SetStat   = Monster.SetStat,
-}
+Monster.Movement  = function() return Monster.Stat("movement") end
+Monster.Toughness = function() return Monster.Stat("toughness") end
+Monster.Damage    = function() return Monster.Stat("damage") end
+Monster.Speed     = function() return Monster.Stat("speed") end
+Monster.Accuracy  = function() return Monster.Stat("accuracy") end
+Monster.Evasion   = function() return Monster.Stat("evasion") end
+Monster.Luck      = function() return Monster.Stat("luck") end
+
+return Monster

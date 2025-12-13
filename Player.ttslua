@@ -1228,14 +1228,6 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-return {
-    Is = Player.Is,
-    Create = Player.Create,
-    Init = Player.Init,
-    PostInit = Player.PostInit,
-    Save = Player.Save,
-    Players = function() return Player.players end,
-    ForFigurine = Player.ForFigurine,
-    ForPortrait = Player.ForPortrait,
-    ForBingo = Player.ForBingo,
-}
+Player.Players = function() return Player.players end
+
+return Player
