@@ -1,6 +1,6 @@
 ---
 name: kdm-test-patterns
-description: Testing patterns, guidelines, and anti-patterns for the KDM TTS mod. Covers behavioral vs structural tests, real vs mock data decisions, TTSSpawner test seam pattern, spy/stub patterns, TTS console test commands (>testall, >testfocus), test organization (tests/<area>_test.lua), testing anti-patterns to avoid, and when headless tests are sufficient vs when TTS console tests are needed. Use when writing or reviewing tests, implementing features with test requirements, or when user mentions testing, acceptance, unit, integration, spy, mock, stub, behavioral, structural, or anti-pattern.
+description: Testing patterns, guidelines, and anti-patterns for the KDM TTS mod. Covers behavioral vs structural tests, real vs mock data decisions, TTSSpawner test seam pattern, spy/stub patterns, TTS console test commands (>testall, >testfocus), test organization (tests/<area>_test.lua), testing anti-patterns to avoid, when headless tests are sufficient vs when TTS console tests are needed, and exploratory testing for coverage gaps (edge cases, implicit assumptions, bug clustering). Use when writing or reviewing tests, implementing features with test requirements, finding coverage gaps, or when user mentions testing, acceptance, unit, integration, spy, mock, stub, behavioral, structural, anti-pattern, edge case, boundary, or coverage.
 ---
 
 # KDM Test Patterns
@@ -543,6 +543,123 @@ local selected = Campaign.RandomSelect(unlockedFightingArts, 3)  -- was 5
 ```
 
 If breaking the mod doesn't break the test, the test is worthless.
+
+---
+
+## Exploratory Testing: Finding Coverage Gaps
+
+Based on BugMagnet methodology (Gojko Adzic). Use when reviewing test coverage or writing new tests.
+
+### Implicit Assumption Violations
+
+**Most bugs occur when code assumes something that isn't guaranteed.** For every function, ask: "What assumptions does this code make?"
+
+| Assumption | Test With |
+|------------|-----------|
+| "IDs are unique" | Duplicate IDs, GUIDs |
+| "Collection has items" | Empty collection, nil |
+| "Order is preserved" | Reversed order, random order |
+| "State is valid" | Invalid state, wrong lifecycle phase |
+| "Relationships exist" | Orphaned records, missing references |
+| "Values in range" | Boundary values, negatives, zero |
+| "Input is formatted correctly" | Wrong type, missing fields |
+
+### Bug Clustering Principle
+
+**Bugs cluster together.** When you find a bug at one edge case:
+
+1. Test adjacent values (n-1, n+1, boundary±1)
+2. Test similar patterns in related functions
+3. Test same category of edge case in other modules
+4. Don't stop at first bug — systematically explore the cluster
+
+### KDM-Specific Edge Cases
+
+| Category | Test Cases |
+|----------|------------|
+| **Decks** | Empty, single card, full deck, duplicates, nil |
+| **Levels** | 0, 1, 2, 3, 4+ (remember: no L4 rewards tier), negative |
+| **Resources** | 0, 1, max count, more than max, fractional |
+| **Archive** | Missing entry, wrong type, stale cache, destroyed object |
+| **Callbacks** | Object destroyed before callback, nil callback, multiple callbacks |
+| **Card names** | With `[variant]` suffix, special characters, very long names |
+| **Positions** | Origin, off-grid, negative coordinates, nil |
+| **Monster data** | Missing level, no rewards defined, empty terrain |
+
+### Collection Edge Cases (Decks, Archives, Lists)
+
+| Scenario | What Can Go Wrong |
+|----------|-------------------|
+| Empty | Index out of bounds, nil access, division by zero |
+| Single element | Off-by-one errors, "first" vs "only" confusion |
+| Many elements (100+) | Performance issues, stack overflow, UI overflow |
+| Duplicates | Uniqueness assumptions violated |
+| Nil elements | Iteration crashes, unexpected nil propagation |
+| Nested structures | Deep access paths fail, circular references |
+
+### State Transition Edge Cases
+
+For any stateful system (showdowns, campaigns, UI):
+
+| Scenario | Test |
+|----------|------|
+| Operation in wrong state | Setup before init, action after cleanup |
+| Invalid transition | Skip required steps, repeat completed steps |
+| Concurrent operations | Two actions at once, rapid repeated calls |
+| Interrupted operation | Callback never fires, partial completion |
+
+### Test Naming Convention (BugMagnet Style)
+
+**Format:** `"returns X when Y"` or `"throws error when Z"`
+
+| ✅ Good | ❌ Bad |
+|---------|--------|
+| `"returns empty table when deck is nil"` | `"handles nil deck"` |
+| `"throws error when level is negative"` | `"validates level"` |
+| `"returns L3 rewards when level is 4"` | `"level 4 test"` |
+
+The test name should tell you exactly what behavior is being verified.
+
+### Max 3 Attempts Rule
+
+When a test keeps failing after 3 fix attempts:
+
+1. **Stop trying to fix it**
+2. **Document as a skipped test** with:
+   - What behavior was expected
+   - What actually happens
+   - Root cause hypothesis
+   - Why 3 attempts failed
+3. **Move on** — don't get stuck
+4. **Create a bead** if it's a real bug worth fixing later
+
+```lua
+-- Example: Skipped test documenting a bug
+Test.skip("returns correct count when deck has duplicates - BUG", function(t)
+    -- Expected: Count should be 3
+    -- Actual: Returns 2 (duplicates merged incorrectly)
+    -- Root cause: Table uses card name as key, losing duplicates
+    -- Attempts: Tried array storage, Set pattern, count field
+    -- See: kdm-xxx for proper fix
+end)
+```
+
+### Coverage Gap Analysis Workflow
+
+When reviewing test coverage for a module:
+
+1. **List all public functions**
+2. **For each function, identify:**
+   - Happy path (tested?)
+   - Edge cases from tables above (tested?)
+   - Error conditions (tested?)
+3. **Prioritize gaps:**
+   - High: User-facing, data corruption risk
+   - Medium: Internal, recoverable errors
+   - Low: Unlikely scenarios, cosmetic issues
+4. **Write tests for high-priority gaps first**
+
+---
 
 ## Acceptance Testing Principles
 
