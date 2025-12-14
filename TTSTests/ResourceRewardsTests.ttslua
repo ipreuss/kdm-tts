@@ -303,24 +303,24 @@ function ResourceRewardsTests.TestButtonHiddenNoResources(onComplete)
     Showdown.Clean()
 
     Wait.frames(function()
-        log:Printf("TEST: Starting White Lion Prologue showdown (no resources)...")
+        log:Printf("TEST: Starting Dragon King 'Death of the Dragon King' showdown (no resources)...")
 
-        -- Prologue has no resource rewards defined
-        Showdown.Setup("White Lion", "Prologue")
+        -- Death of the Dragon King is a story event with no resource rewards defined
+        Showdown.Setup("Dragon King", "Death of the Dragon King")
 
         Wait.frames(function()
-            log:Printf("TEST: Checking button visibility after Prologue setup...")
+            log:Printf("TEST: Checking button visibility after Death of the Dragon King setup...")
 
             local buttonVisible = ResourceRewards.Test.IsButtonVisible()
 
             if not buttonVisible then
-                log:Printf("TEST: Rewards button correctly hidden for Prologue")
+                log:Printf("TEST: Rewards button correctly hidden for Death of the Dragon King")
                 log:Printf("=== TEST: TestButtonHiddenNoResources COMPLETE ===")
                 log:Printf("TEST RESULT: PASSED")
                 Showdown.Clean()
                 if onComplete then onComplete(true) end
             else
-                log:Errorf("TEST: Rewards button should be hidden for Prologue!")
+                log:Errorf("TEST: Rewards button should be hidden for Death of the Dragon King!")
                 log:Printf("=== TEST: TestButtonHiddenNoResources COMPLETE ===")
                 log:Printf("TEST RESULT: FAILED")
                 Showdown.Clean()
@@ -1690,6 +1690,118 @@ function ResourceRewardsTests.TestGreatGoldenCatDataIntegrity(onComplete)
     validateMonsterResourceData("White Lion", {
         { levelName = "Great Golden Cat", basic = 4, monster = 9 },
     }, onComplete)
+end
+
+---------------------------------------------------------------------------------------------------
+-- SPECIAL MONSTER VARIANT TESTS (kdm-5zu)
+---------------------------------------------------------------------------------------------------
+
+-- Prologue (White Lion) - now has L1 resources
+function ResourceRewardsTests.TestPrologueButtonAppears(onComplete)
+    testButtonAppears("White Lion", "Prologue", "Prologue", onComplete)
+end
+
+function ResourceRewardsTests.TestPrologueDataIntegrity(onComplete)
+    validateMonsterResourceData("White Lion", {
+        { levelName = "Prologue", basic = 4, monster = 4 },
+    }, onComplete)
+end
+
+-- Golden Eyed King of 1000 Years (Phoenix) - L3 Phoenix resources
+function ResourceRewardsTests.TestGoldenEyedKingButtonAppears(onComplete)
+    testButtonAppears("Phoenix", "Golden Eyed King of 1000 Years", "GoldenEyedKing", onComplete)
+end
+
+function ResourceRewardsTests.TestGoldenEyedKingDataIntegrity(onComplete)
+    validateMonsterResourceData("Phoenix", {
+        { levelName = "Golden Eyed King of 1000 Years", basic = 6, monster = 9, strange = { "Phoenix Crest", "Black Lichen" } },
+    }, onComplete)
+end
+
+-- The Old Master (Dung Beetle Knight) - L3 DBK resources + 4 Elytra
+function ResourceRewardsTests.TestOldMasterButtonAppears(onComplete)
+    testButtonAppears("Dung Beetle Knight", "The Old Master", "OldMaster", onComplete)
+end
+
+function ResourceRewardsTests.TestOldMasterDataIntegrity(onComplete)
+    validateMonsterResourceData("Dung Beetle Knight", {
+        { levelName = "The Old Master", basic = 8, monster = 8, strange = { "Preserved Caustic Dung", "Preserved Caustic Dung", "Preserved Caustic Dung", "Scell", "Elytra", "Elytra", "Elytra", "Elytra" } },
+    }, onComplete)
+end
+
+function ResourceRewardsTests.TestOldMasterStrangeResourcesSpawn(onComplete)
+    log:Printf("=== TEST: TestOldMasterStrangeResourcesSpawn (Behavioral) ===")
+
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting The Old Master showdown (has 4 Elytra strange resources)...")
+
+        Showdown.Setup("Dung Beetle Knight", "The Old Master")
+
+        Wait.frames(function()
+            log:Printf("TEST: Triggering ResourceRewards.SpawnRewards()...")
+            ResourceRewards.Test.SpawnRewards()
+
+            Wait.frames(function()
+                log:Printf("TEST: Counting 'Elytra' on table...")
+
+                local elytraCount = 0
+                for _, obj in ipairs(getObjects()) do
+                    if obj.getName() == "Elytra" then
+                        elytraCount = elytraCount + 1
+                    end
+                end
+
+                log:Printf("TEST: Found %d 'Elytra' cards", elytraCount)
+
+                local passed = elytraCount >= 4
+                if not passed then
+                    log:Errorf("TEST: Expected at least 4 'Elytra', found %d", elytraCount)
+                end
+
+                cleanupSpawnedResources()
+
+                log:Printf("=== TEST: TestOldMasterStrangeResourcesSpawn COMPLETE ===")
+                log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(passed) end
+            end, 60)
+        end, 30)
+    end, 10)
+end
+
+-- The Great Devourer (Sunstalker) - story event, NO resources (button hidden)
+function ResourceRewardsTests.TestGreatDevourerButtonHidden(onComplete)
+    log:Printf("=== TEST: TestGreatDevourerButtonHidden (Integration) ===")
+
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting The Great Devourer showdown (story event, no resources)...")
+
+        Showdown.Setup("Sunstalker", "The Great Devourer")
+
+        Wait.frames(function()
+            log:Printf("TEST: Checking button visibility...")
+
+            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+
+            if not buttonVisible then
+                log:Printf("TEST: Rewards button correctly hidden for The Great Devourer")
+                log:Printf("=== TEST: TestGreatDevourerButtonHidden COMPLETE ===")
+                log:Printf("TEST RESULT: PASSED")
+                Showdown.Clean()
+                if onComplete then onComplete(true) end
+            else
+                log:Errorf("TEST: Rewards button should be hidden for The Great Devourer!")
+                log:Printf("=== TEST: TestGreatDevourerButtonHidden COMPLETE ===")
+                log:Printf("TEST RESULT: FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(false) end
+            end
+        end, 60)
+    end, 10)
 end
 
 ---------------------------------------------------------------------------------------------------

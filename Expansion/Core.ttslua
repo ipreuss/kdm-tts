@@ -1427,6 +1427,7 @@ return {
                         evasion = 2,
                         luck = 1000,
                         unfixedTerrain = { "Ore Vein", "Bug Patch" },
+                        resources = { basic = 6, monster = 9, strange = { "Phoenix Crest", "Black Lichen" } },
                     },
                 },
             },
@@ -1752,6 +1753,7 @@ return {
                         topHitLocationCards = { "Strange Hand" },
                         fixedTerrain = {},
                         randomTerrain = 0,
+                        resources = { basic = 4, monster = 4 },
                     },
                 },
                 {

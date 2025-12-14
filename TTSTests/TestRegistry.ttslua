@@ -25,7 +25,7 @@ local TestRegistry = {}
 -- Focus Bead - Update when switching to a new backlog item
 ---------------------------------------------------------------------------------------------------
 
-TestRegistry.FOCUS_BEAD = "kdm-cb7"
+TestRegistry.FOCUS_BEAD = "kdm-5zu"
 
 ---------------------------------------------------------------------------------------------------
 -- All Tests Registry
@@ -92,6 +92,15 @@ TestRegistry.ALL_TESTS = {
     { name = "Beast of Sorrow Strange Resource Spawn", bead = "kdm-cb7", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestBeastOfSorrowStrangeResourcesSpawn(onComplete) end },
     { name = "Great Golden Cat Button Visible", bead = "kdm-cb7", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestGreatGoldenCatButtonAppears(onComplete) end },
     { name = "Great Golden Cat Data Integrity", bead = "kdm-cb7", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestGreatGoldenCatDataIntegrity(onComplete) end },
+    -- Special Monster Variant tests (kdm-5zu)
+    { name = "Prologue Button Visible", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestPrologueButtonAppears(onComplete) end },
+    { name = "Prologue Data Integrity", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestPrologueDataIntegrity(onComplete) end },
+    { name = "Golden Eyed King Button Visible", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestGoldenEyedKingButtonAppears(onComplete) end },
+    { name = "Golden Eyed King Data Integrity", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestGoldenEyedKingDataIntegrity(onComplete) end },
+    { name = "The Old Master Button Visible", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestOldMasterButtonAppears(onComplete) end },
+    { name = "The Old Master Data Integrity", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestOldMasterDataIntegrity(onComplete) end },
+    { name = "The Old Master Strange Resources Spawn", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestOldMasterStrangeResourcesSpawn(onComplete) end },
+    { name = "The Great Devourer Button Hidden", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestGreatDevourerButtonHidden(onComplete) end },
 }
 
 ---------------------------------------------------------------------------------------------------
