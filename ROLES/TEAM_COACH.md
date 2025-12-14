@@ -65,6 +65,11 @@ Consider:
 - Documentation requirements
 - Training/communication needs
 
+**Workflow Integration Rule:** When adding role responsibilities, they MUST be in the numbered workflow steps, not just in reference sections. Roles follow checklists — standalone sections get skipped.
+- Session-start actions → Add as Step 0
+- Before-handover actions → Add as final Step N
+- Reference sections explain *why*; workflow steps ensure *execution*
+
 ### 3. Document Changes
 Update relevant files:
 - `PROCESS.md` for workflow changes
@@ -141,6 +146,17 @@ For minor improvements or when learnings are few (<5), implement directly:
 - When LEARNINGS.md has 5+ unprocessed entries
 - On request from any role
 - At natural pause points (end of sprint/milestone)
+
+### 7. Archive Work Folder
+
+After retrospective, consolidate and clean up `work/<bead-id>/`:
+
+1. **Review** all files for valuable content
+2. **Promote** persistent knowledge:
+   - Design decisions → ARCHITECTURE.md or ADRs
+   - Patterns discovered → skills
+   - Process insights → already in LEARNINGS.md processing
+3. **Delete** the folder — work folders are temporary
 
 ## Available Skills
 

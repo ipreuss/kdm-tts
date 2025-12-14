@@ -20,6 +20,8 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 - `ROLES/TESTER.md` — Acceptance testing, TestWorld usage, TTS console tests
 - `ROLES/TEAM_COACH.md` — Process improvement, workflow optimization
 
+**Role file structure principle:** Each role file has numbered workflow steps that roles follow as a checklist. Important actions MUST be in the numbered steps, not just in reference sections — standalone sections get skipped during execution.
+
 ### Role Workflow
 
 **Code change flow:**
@@ -133,6 +135,13 @@ This forces explicit consideration of TTS-specific requirements upfront, prevent
 - Before closing, verify: "What tests prove this works? Would a regression be caught?"
 - If no tests exist, either add them or document why testing is not applicable
 - For data/configuration changes, integrity tests may serve as acceptance tests
+
+**Audit trail:** Always add a comment before closing to document who and why:
+```bash
+bd comments add <id> "Closing: <role> verified <what was checked>"
+bd close <id>
+```
+Note: The `--reason` flag on `bd close` is display-only and not persisted. Use comments for audit trail.
 
 This ensures proper validation before marking work as done.
 
@@ -316,7 +325,7 @@ This ensures all roles stay synchronized on process changes, even mid-session.
 
 ### Feature Retrospectives
 
-**When Product Owner closes a feature bead**, they should create a handover to Team Coach requesting a retrospective if:
+**When closing a bead** (Product Owner for features/bugs, Architect for technical tasks), create a handover to Team Coach requesting a retrospective if:
 - The feature took multiple sessions across multiple roles
 - Unexpected blockers or bugs were encountered
 - The implementation deviated significantly from the original design
@@ -519,12 +528,26 @@ Derive the status from actual session accomplishments. Spell out numbers as Germ
 2. **Specify** – write or extend the relevant test so it fails for the current implementation. If touching multiple layers, prefer starting with the highest-value test and add focused unit tests if needed.
 3. **Implement** – modify the production code in small, reviewed commits while keeping tests red/green visible. Prioritize self-explanatory code (clear names, types, constants, structure) over added documentation; only document when code cannot carry the intent alone. When fixing a bug or untested path, first add/adjust a failing test that reproduces it before changing code.
 4. **Verify** – run `lua tests/run.lua` (and any scenario scripts) until everything passes. If the change affects Tabletop Simulator behavior (especially TTS console commands, UI interactions, or Archive/deck operations), run `./updateTTS.sh` and perform TTS verification—headless tests alone are insufficient for TTS-specific functionality. **Always run `./updateTTS.sh` before asking the user to test in TTS.**
-5. **Refine** – after green tests, scan for smells (brittle test setup, hidden dependencies, duplication) and introduce/refine seams or small refactors while keeping tests green; then re-verify. Apply the Boy Scout Rule: whenever you edit a file, leave it slightly better (naming, structure, guard clauses, comments, tests). If you uncover a larger refactor that is risky to tackle immediately, document it (see Architecture "Future Refactor Opportunities") so we don't lose the insight.
+5. **Refine (Refactoring Checkpoint)** – after green tests:
+   - **Scan for smells:** brittle test setup, hidden dependencies, duplication, long functions
+   - **Apply Boy Scout Rule:** leave touched files better than you found them
+   - **Decision framework:**
+     - Small (<10 lines), low risk, already modified files → refactor now
+     - Requires new tests or touches unmodified files → create bead
+     - Speculative future need → skip (YAGNI)
+   - **If modifying legacy code:** Use techniques from `legacy-code-testing` skill (characterization tests, seams)
+   - **Domain restructuring:** If touched files belong to an identifiable domain (Survivor/, Showdown/, Archive/, etc.) and aren't yet in a domain folder:
+     - Consider moving them (use `git mv` to preserve history)
+     - Move closely related files together (avoid orphaning single files)
+     - Create/update domain `README.md` with file responsibilities
+     - Update imports in files that require the moved modules
+   - **Re-verify:** all tests still green after refactoring
 
 ### Safety Net Principles
 
 - **Baseline tests before edits** – confirm existing behavior has automated coverage (unit/integration). If coverage is missing for the code you are about to edit, add characterization tests that express the current behavior before changing logic.
 - **Protect regressions** – when a bug is reported, reproduce it in a failing test before touching implementation code. The test should prove the fix and guard against future regressions.
+- **Refactoring requires safety** – before refactoring any code, ensure adequate test coverage exists. If coverage is missing, add characterization tests first. See `legacy-code-testing` skill for patterns.
 - **Keep tests close to code** – place new specs in `tests/<area>_test.lua` and register them in `tests/run.lua` so they are part of the default `lua tests/run.lua` run.
 - **Executable behavior specs** – when work changes a user-visible behavior or acceptance criteria, add/refresh a high-level test (integration/behavior) that documents the intent (the "what") alongside unit tests that cover "how."
 

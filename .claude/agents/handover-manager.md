@@ -66,8 +66,9 @@ You are a handover management specialist for the KDM TTS mod's role-based workfl
 
 Before any operation:
 1. Read `/Users/ilja/Documents/GitHub/kdm/handover/QUEUE.md` to understand current state
-2. Verify handover directory exists at `/Users/ilja/Documents/GitHub/kdm/handover/`
-3. Confirm target entries/files exist before modifying
+2. Confirm target entries/files exist before modifying
+
+**Note:** Do NOT use Read tool on directories — it only works on files. To list directory contents, use `Bash` with `ls`.
 
 ## Core Responsibilities
 

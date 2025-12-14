@@ -46,6 +46,14 @@ See `work/README.md` for full guidelines.
 1. View diff stats: `git --no-pager diff --stat`
 2. Review each changed file
 3. Check for patterns and anti-patterns (see CODE_REVIEW_GUIDELINES.md)
+4. **Proactive refactoring check:**
+   - File size: Any modified file >300 lines? >500 lines?
+   - If >500 lines, invoke `refactoring-advisor` agent and include findings in review
+   - Check: Did implementation include expected Boy Scout Rule improvements?
+5. **Domain restructuring check:**
+   - Were significantly modified files candidates for domain folders?
+   - If files were moved: Are imports updated? Is domain README created/updated?
+   - If files weren't moved but should have been: Note as recommendation
 
 ### 3. SRP / Test-Only Exports Check
 **CRITICAL:** For each module's exports, verify:
@@ -136,6 +144,25 @@ Details...
 
 ---
 
+## Refactoring Assessment
+
+**File size check:**
+- [ ] All modified files <300 lines (good)
+- [ ] Files 300-500 lines: [list] — monitor
+- [ ] Files >500 lines: [list] — invoke refactoring-advisor
+
+**Boy Scout Rule applied:**
+- [ ] Yes - improvements made
+- [ ] No - explain why not applicable
+- [ ] Missed opportunities - [list]
+
+**Domain restructuring:**
+- [ ] No candidates for domain folders
+- [ ] Files moved correctly (imports updated, README created)
+- [ ] Missed opportunity - [list files that should move to which domain]
+
+---
+
 ## Status
 
 **APPROVED** / **APPROVED with notes** / **NEEDS CHANGES**
@@ -208,6 +235,20 @@ Reviewer ─approved─► Architect ─design ok─► Product Owner ─closes 
 - Module boundaries respected
 
 This was a documented learning (2025-12-09): Reviewer initially handed directly to PO, but PROCESS.md requires Architect verification first.
+
+## Proactive Refactoring Triggers
+
+**Invoke `refactoring-advisor` agent when:**
+- Any modified file exceeds 500 lines
+- Review finds 3+ code smells in a single module
+- Implementation added complexity without reducing it elsewhere
+- Test-only exports were added (SRP violation indicator)
+- You find yourself thinking "this module is hard to review"
+
+**Document in review:**
+- Immediate issues (block approval)
+- Boy Scout opportunities (should address)
+- Technical debt beads (create for later)
 
 ## Scope Verification
 

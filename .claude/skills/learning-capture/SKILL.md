@@ -24,6 +24,7 @@ Capture learnings **immediately** when they occur, not at session end. This skil
 - Finding a workaround or solution to a tricky problem
 - Catching yourself violating a role boundary or process rule
 - Learning something that changes how you'll approach similar tasks
+- Spent significant time understanding code — what documentation would have helped?
 
 ## Instructions
 

@@ -1,6 +1,6 @@
 ---
 name: refactoring-advisor
-description: Analyzes code for refactoring opportunities per SOLID principles and CODE_REVIEW_GUIDELINES. Use PROACTIVELY when Architect is designing around legacy code, before major changes to existing modules, when Reviewer finds code smells, or when file size exceeds guidelines (300+ lines warning, 500+ lines critical).
+description: Analyzes code for refactoring opportunities per SOLID principles and CODE_REVIEW_GUIDELINES. Use PROACTIVELY when (1) Architect designs changes to files >300 lines, (2) Reviewer finds modified files >500 lines or 3+ code smells, (3) Implementer's Boy Scout Rule opportunities exceed simple fixes, (4) test-only exports added (SRP violation). Triggers on: refactoring, code smell, file size, SOLID, SRP violation, large module, hard to maintain.
 
 <example>
 Context: Architect planning changes to large module
@@ -401,6 +401,31 @@ For each refactoring opportunity, assess:
 8. **Be pragmatic** — Balance SOLID principles against YAGNI (You Aren't Gonna Need It)
 9. **Estimate honestly** — Don't minimize effort or risk
 10. **Verify file size** — Always check line count against thresholds
+
+## Refactoring Decision Framework
+
+Help roles decide what to do with identified opportunities:
+
+| Priority | Decision | Rationale |
+|----------|----------|-----------|
+| P0 (Critical, <1hr, low risk) | **Do now** | Highest value, minimal cost |
+| P1 (High, related to current work) | **Do now** if tests exist | Prevents technical debt accumulation |
+| P2/P3 (Medium/Low priority) | **Create bead** | Document for future, don't block current work |
+| Speculative, no current pain | **Skip** | YAGNI - solve real problems, not hypothetical ones |
+
+**For legacy code refactoring:**
+Reference `legacy-code-testing` skill for:
+- Characterization tests before modifying
+- Seam identification for testability
+- Sprout/wrap methods for safe addition
+
+## Role-Specific Triggers
+
+**Architect:** Invoke before designing changes to files >300 lines or modules with known code smells.
+
+**Reviewer:** Invoke when modified files exceed 500 lines, when 3+ code smells found in single module, or when Test-only exports added.
+
+**Implementer:** Invoke when Boy Scout Rule opportunities exceed simple fixes and require structured analysis.
 
 ## When NOT to Recommend Refactoring
 

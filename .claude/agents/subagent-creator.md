@@ -208,12 +208,20 @@ You are [role description with expertise level].
 
 ## Model Selection Guidelines
 
-| Use Case | Model | Rationale |
-|----------|-------|-----------|
-| Complex analysis, code review | `opus` | Highest capability |
-| General tasks, balanced | `sonnet` | Good balance (default) |
-| Fast, simple, high-volume | `haiku` | 3x cost savings, low latency |
-| Consistency with parent | `inherit` | Matches main conversation |
+**Two-tier strategy:** Use the cheapest model that can reliably do the job.
+
+| Model | Use When | Examples |
+|-------|----------|----------|
+| `haiku` | Deterministic tasks, template-based output, file operations, running commands | test-runner, handover-manager, beads-backlog-manager |
+| `sonnet` | Analysis, design decisions, reasoning about code, multi-step problem solving | debugger, refactoring-advisor, seam-finder, skill-manager |
+| `opus` | Complex quality judgments, nuanced reviews, architectural decisions | code-reviewer |
+
+**Decision framework:**
+1. Can the task be done with templates/rules? → `haiku`
+2. Does it require reasoning about code structure? → `sonnet`
+3. Does it make subjective quality judgments? → `opus`
+
+**Cost impact:** haiku is ~10x cheaper than opus. Always justify opus usage.
 
 ## Creation Process
 
@@ -222,6 +230,7 @@ Determine:
 - What specific task does this agent handle?
 - When should it be invoked (triggers)?
 - What tools does it need?
+- What model tier? (See Model Selection Guidelines above)
 - What's the expected output format?
 - Are there existing patterns to follow?
 
@@ -274,8 +283,11 @@ When optimizing an existing agent, check and fix:
 - [ ] Too verbose — streamline without losing clarity
 
 ### Model Issues
-- [ ] Using opus for simple tasks — switch to sonnet/haiku
-- [ ] Using haiku for complex analysis — switch to opus
+- [ ] Model not specified — add explicit `model:` field
+- [ ] Using opus for deterministic tasks — switch to haiku
+- [ ] Using opus for analysis tasks — switch to sonnet
+- [ ] Using haiku for reasoning tasks — switch to sonnet
+- [ ] Using sonnet/haiku for quality judgments — switch to opus
 
 ## Output Format
 

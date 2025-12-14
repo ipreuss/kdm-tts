@@ -1,6 +1,6 @@
 ---
 name: session-closing
-description: Apply role-specific closing signature and voice announcement when ending sessions, completing tasks, creating handovers, giving final summaries, requesting user attention, or when user says done/finished/thanks/let's stop. Critical for role-based workflow protocol.
+description: Apply role-specific closing signature and voice announcement when ending sessions, completing tasks, creating handovers, giving final summaries, or when user says done/finished/thanks/let's stop. Also use when user attention is needed - waiting for decision, approval, clarification, or input. Use when blocked and cannot proceed without user action, about to ask user to review something, or about to end with "Is there anything else...?". Critical for role-based workflow protocol.
 ---
 
 # Session Closing Protocol
@@ -21,8 +21,17 @@ description: Apply role-specific closing signature and voice announcement when e
 
 ## Critical Rule
 
+**⛔ STOP — Before closing, answer these questions:**
+1. Did I do something wrong or unwanted this session?
+2. Did I fail to do something that should have been done?
+3. Was I reminded to do something that should have been automatic?
+4. Did I learn something new about the project?
+5. Did I spend significant time understanding code? What documentation would have helped?
+
+**If ANY answer is yes → Write to LEARNINGS.md BEFORE closing signature.**
+
 **EVERY role-based session MUST end with:**
-1. **Learning capture** — Invoke `learning-capture` skill FIRST
+1. **Learning capture** — Invoke `learning-capture` skill FIRST (write to file, not terminal)
 2. Closing signature block
 3. Voice announcement command (executed via Bash)
 

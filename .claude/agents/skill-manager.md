@@ -123,18 +123,34 @@ Clear, step-by-step guidance.
 Concrete usage examples.
 ```
 
-### Optional: Supporting Files
+### Optional: Bundled Resources
 
 ```
 my-skill/
 ├── SKILL.md          (required, <500 lines)
-├── REFERENCE.md      (detailed API docs)
-├── EXAMPLES.md       (usage examples)
-├── FORMS.md          (form-filling guides)
-└── scripts/
-    ├── helper.py
-    └── validate.py
+├── references/       (documentation loaded into context as needed)
+│   ├── api-docs.md
+│   └── schemas.md
+├── scripts/          (executable code, can run without loading)
+│   ├── helper.py
+│   └── validate.py
+└── assets/           (files for output, NOT loaded into context)
+    ├── template.html
+    └── logo.png
 ```
+
+**Resource types:**
+
+| Type | Purpose | Context Cost |
+|------|---------|--------------|
+| `references/` | Docs Claude reads when needed | Loaded on demand |
+| `scripts/` | Executable code for deterministic tasks | Zero (executed, not read) |
+| `assets/` | Templates, images for output | Zero (copied, not read) |
+
+**When to use each:**
+- **references/** — API docs, schemas, domain knowledge, detailed guides
+- **scripts/** — Repetitive code that would be rewritten each time
+- **assets/** — Templates, boilerplate, images used in final output
 
 ### File Location
 
@@ -142,26 +158,52 @@ my-skill/
 
 Skills are git-committed and shared with the team. Do not create personal skills in `~/.claude/skills/`.
 
+## What NOT to Include
+
+Skills should only contain essential files. Do NOT create:
+- README.md
+- INSTALLATION_GUIDE.md
+- QUICK_REFERENCE.md
+- CHANGELOG.md
+- Any auxiliary documentation
+
+The skill should only contain information needed for an AI agent to do the job. No setup procedures, user-facing docs, or process documentation.
+
 ## Operations
 
 ### Operation A: Create New Skill
 
-1. **Gather requirements:**
-   - What task/domain does this cover?
-   - What are the trigger terms?
-   - What reference materials are needed?
+**Step 1: Understand with concrete examples**
+- What specific tasks/queries should trigger this skill?
+- Ask clarifying questions if needed
+- Get concrete examples of expected usage
 
-2. **Create directory structure:**
-   ```bash
-   mkdir -p .claude/skills/skill-name
-   ```
+**Step 2: Plan reusable contents**
+For each example, analyze:
+- What code would be rewritten each time? → `scripts/`
+- What documentation is needed? → `references/`
+- What templates/assets are used in output? → `assets/`
 
-3. **Write SKILL.md** with:
-   - Specific description with trigger terms
-   - Concise instructions (<500 lines)
-   - Concrete examples
+**Step 3: Create directory structure**
+```bash
+mkdir -p .claude/skills/skill-name
+mkdir -p .claude/skills/skill-name/references  # if needed
+mkdir -p .claude/skills/skill-name/scripts     # if needed
+mkdir -p .claude/skills/skill-name/assets      # if needed
+```
 
-4. **Add supporting files** if needed (REFERENCE.md, scripts, etc.)
+**Step 4: Write SKILL.md** with:
+- Specific description with trigger terms
+- Concise instructions (<500 lines)
+- Concrete examples
+- References to bundled resources
+
+**Step 5: Add bundled resources** if planned in Step 2
+
+**Step 6: Validate the skill**
+- Check YAML frontmatter is valid
+- Verify all referenced files exist
+- Ensure description includes "when to use" triggers
 
 ### Operation B: Modify Existing Skill
 
@@ -169,6 +211,7 @@ Skills are git-committed and shared with the team. Do not create personal skills
 2. Identify what needs changing
 3. Preserve what works well
 4. Write the updated file directly
+5. Validate: check references exist, description has triggers
 
 ### Operation C: Optimize Skill Description
 
@@ -347,24 +390,58 @@ Restricts which tools Claude can use when this skill is active.
 Context window is limited. Challenge every token:
 - Does Claude really need this explanation?
 - Can Claude assume this knowledge?
+- Default assumption: Claude is already very smart
 
-### 2. Match Specificity to Fragility
+### 2. Set Appropriate Degrees of Freedom
 
-| Situation | Approach |
-|-----------|----------|
-| Multiple valid approaches | High freedom: text instructions |
-| Preferred pattern exists | Medium: pseudocode with parameters |
-| Fragile operations | Low freedom: specific scripts |
+Match specificity to the task's fragility and variability:
+
+| Situation | Approach | Example |
+|-----------|----------|---------|
+| Multiple valid approaches | High freedom: text instructions | "Extract key points from the document" |
+| Preferred pattern exists | Medium: pseudocode with parameters | Template with placeholders |
+| Fragile/error-prone operations | Low freedom: specific scripts | `scripts/rotate_pdf.py` |
+
+Think of Claude as exploring a path: a narrow bridge with cliffs needs specific guardrails (low freedom), while an open field allows many routes (high freedom).
 
 ### 3. Progressive Disclosure
 
-Put detailed content in separate files:
+Put detailed content in separate files. Claude loads these only when referenced.
+
+**Pattern 1: High-level guide with references**
 ```markdown
-For form filling, see [FORMS.md](FORMS.md).
-For API reference, see [REFERENCE.md](REFERENCE.md).
+## Quick start
+[core example]
+
+## Advanced features
+- **Form filling**: See [references/forms.md](references/forms.md)
+- **API reference**: See [references/api.md](references/api.md)
 ```
 
-Claude loads these only when referenced.
+**Pattern 2: Domain-specific organization**
+For skills with multiple domains, organize by domain:
+```
+bigquery-skill/
+├── SKILL.md (overview and navigation)
+└── references/
+    ├── finance.md (revenue, billing)
+    ├── sales.md (pipeline, opportunities)
+    └── product.md (usage, features)
+```
+When user asks about sales, Claude only reads `sales.md`.
+
+**Pattern 3: Variant-specific organization**
+For skills supporting multiple frameworks:
+```
+cloud-deploy/
+├── SKILL.md (workflow + provider selection)
+└── references/
+    ├── aws.md
+    ├── gcp.md
+    └── azure.md
+```
+
+**Important:** Avoid deeply nested references. Keep references one level deep from SKILL.md.
 
 ### 4. Scripts Over Instructions
 

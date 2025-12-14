@@ -340,6 +340,24 @@ Modal blocker automatically shows/hides with dialog.
 
 **Per-player vs global** → Check `perPlayer` flag when calling Show/Hide methods
 
+**DialogFromSpec callbacks run synchronously** → Custom `render` callbacks in LayoutManager specs execute *during* `DialogFromSpec()`, not after it returns. Any variable you plan to initialize after the call will be `nil` inside callbacks:
+```lua
+-- BUG: lateVar is nil inside render callback
+local lateVar = nil
+PanelKit.DialogFromSpec({
+    spec = spec:AddCustom({
+        render = function(ctx)
+            lateVar:DoSomething()  -- ERROR: attempt to index nil
+        end,
+    }),
+})
+lateVar = SomeValue()  -- Too late!
+
+-- FIX: Initialize before DialogFromSpec, or capture in closure beforehand
+local earlyVar = SomeValue()
+PanelKit.DialogFromSpec({ ... })
+```
+
 ## Files Reference
 
 - `Ui.ttslua` — Color constants, base UI DSL

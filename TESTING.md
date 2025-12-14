@@ -26,8 +26,12 @@ lua tests/run.lua          # Run all headless tests (~2 seconds)
 | `>testall` | Run all TTS tests |
 | `>testrun <name>` | Run single test by exact name |
 | `>testsuite <bead>` | Run all tests for a bead |
+| `>testsuite list` | List beads with test counts and titles |
+| `>testsuite domains` | List domains with test counts |
+| `>testsuite domain <name>` | Run all tests for a domain |
 | `>testcurrent` | Run tests for FOCUS_BEAD only |
 | `>testpriority` | Run FOCUS_BEAD first, then others if pass |
+| `>testerrordetect` | Verify error log detection works (intentional failure test) |
 | `>testhelp` | Show all available test commands |
 
 ---
@@ -59,12 +63,35 @@ tests/
 TTS console tests require two-step registration:
 
 1. **Add test function** in `TTSTests/<Area>Tests.ttslua`
-2. **Register in `ALL_TESTS`** in `TTSTests.ttslua`:
+2. **Register in `ALL_TESTS`** in `TTSTests/TestRegistry.ttslua`:
    ```lua
-   { name = "Test Name", bead = "kdm-xxx", fn = function(onComplete) ... end },
+   { name = "Test Name", bead = "kdm-xxx", domain = "showdown", fn = function(onComplete) ... end },
    ```
 
+**Fields:**
+- `name` — Test name (required)
+- `bead` — Bead ID or array of IDs for `>testsuite <bead>` (optional)
+- `domain` — Functional area: settlement, showdown, hunt, campaign, survivor, ui (optional)
+- `fn` — Test function with `onComplete` callback (required)
+
 Tests without a `bead` field are regression tests (run with `>testall` only).
+
+---
+
+## Verification Test Pattern
+
+**For tests that must intentionally fail** (e.g., verifying detection mechanisms work):
+
+1. **Keep separate from `ALL_TESTS`** — Don't add to `>testall` suite
+2. **Create dedicated command** — e.g., `>testerrordetect`
+3. **Interpret failure as success** — Command reports PASSED when test fails as expected
+
+**Example:** Error log detection verification (`>testerrordetect`)
+- Test intentionally logs an error and expects the framework to detect it
+- If test reports FAILED → error detection works → verification PASSED
+- If test reports PASSED → error detection broken → verification FAILED
+
+**Why this pattern?** Including intentional-failure tests in `>testall` would always show failures, causing confusion. Dedicated commands make the intent clear.
 
 ---
 

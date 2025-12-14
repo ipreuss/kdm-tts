@@ -134,6 +134,7 @@ From `handover/HANDOVER_TESTER.md`:
 - Feature description
 - User stories
 - Acceptance criteria to verify
+- **User verification already done:** Check what Implementer already had user verify — avoid duplicate requests
 
 ### 2. Design Tests
 For each acceptance criterion:

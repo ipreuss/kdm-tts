@@ -10,6 +10,9 @@ Log.__call = function(self, ...) log(...) end
 
 Log.logsByModule = {}
 
+-- Error listener for test framework
+Log.errorListener = nil
+
 Log.DEBUG_MODULES = {
     --["array"] = true,
     --["Archive"] = true,
@@ -84,8 +87,24 @@ end
 
 function Log:Errorf(fmt, ...)
     fmt = fmt or ""
-    log(Util.SafeFormat("[%s] "..fmt, self.module, ...), nil, "error")
+    local msg = Util.SafeFormat("[%s] "..fmt, self.module, ...)
+    log(msg, nil, "error")
     printToAll(Util.SafeFormat("[ff4444]"..fmt, ...))
+
+    -- Notify listener if registered (for test framework)
+    if Log.errorListener then
+        Log.errorListener(self.module, msg)
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Log.SetErrorListener(listener)
+    Log.errorListener = listener
+end
+
+function Log.ClearErrorListener()
+    Log.errorListener = nil
 end
 
 ---------------------------------------------------------------------------------------------------

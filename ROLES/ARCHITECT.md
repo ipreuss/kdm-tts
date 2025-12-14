@@ -77,6 +77,14 @@ After breaking down: create task handovers with specific scope, dependencies, ve
 
 Invoke with: "I'll use the feature-breakdown skill to split this design into tasks."
 
+### legacy-code-testing
+Use when design involves modifying existing modules with limited test coverage. Provides:
+- Characterization test patterns (capture existing behavior before changing)
+- Seam identification for testability
+- Sprout/wrap methods for safe modification
+
+Invoke when: Implementer will need to modify untested code, or refactoring-advisor identifies testability concerns.
+
 ## Available Subagents
 
 ### Handover-Manager Subagent
@@ -123,6 +131,7 @@ Before designing:
 - Explore codebase for similar functionality
 - Review `ARCHITECTURE.md` for existing patterns
 - Check for ADRs that may apply
+- **Refactoring check:** If design touches files >300 lines or modules with known code smells, invoke `refactoring-advisor` agent to assess whether refactoring should precede or accompany the feature work
 
 ### 3. Design Solution
 Document:
@@ -139,6 +148,7 @@ Create `handover/HANDOVER_IMPLEMENTER.md` with:
 - Testing requirements
 - Open questions resolved
 - **Design Requirements Checklist** (see below)
+- **Refactoring scope:** Identify refactoring that should precede implementation (prerequisite) vs accompany it (Boy Scout Rule) vs follow it (tech debt bead)
 
 ### Design Requirements Checklist
 
@@ -167,6 +177,17 @@ When design involves TTS API interactions, explicitly specify:
 ### 6. Update Work Folder
 Update `work/<bead-id>/design.md` with architectural decisions and rationale for persistent record.
 
+### 7. Design Compliance Verification (When Receiving from Reviewer)
+When receiving a handover from Reviewer for design verification:
+1. **Check bead status first:** `bd show <bead-id>` — if already CLOSED, investigate who closed it and why
+2. **Verify design compliance:** Check implementation against Design Requirements Checklist
+3. **Check LEARNINGS.md:** Review unprocessed learnings from this feature's development — if significant learnings exist, create Team Coach handover for retrospective before closure
+4. **Hand to appropriate closer:**
+   - `type=task` → Architect closes after verification
+   - `type=feature|bug` → Hand to Product Owner for closure
+
+**Process violation check:** Only Architect (for tasks) or Product Owner (for features/bugs) may close beads. If bead was closed by another role, flag this in the handover.
+
 ## Lightweight Refactoring Workflow
 
 For pure refactoring tasks, a streamlined workflow applies:
@@ -180,6 +201,7 @@ PO (scope approval) → Architect → Implementer (with subagent review) → Tes
 2. Design and hand to Implementer (same as standard)
 3. Receive verification from Tester
 4. **Close the technical task bead** (Architect, not PO)
+5. **Request retrospective** — Create handover to Team Coach if learnings exist or workflow had friction (same criteria as PO closure)
 
 **Escalation:** If Tester finds behavioral bugs (not just regressions) or scope creeps, escalate to standard workflow.
 
@@ -189,6 +211,7 @@ See PROCESS.md "Lightweight Workflow for Pure Refactoring" for full criteria.
 - **Guidance over code** - Describe what to build, not how to type it
 - **Patterns over prescriptions** - Point to existing examples
 - **Feasibility assessment** - Push back on requirements that are technically problematic
+- **Practical workflow impact** - When proposing process changes, ask: "What does this require humans and sessions to coordinate?" Favor simpler workflows over theoretical purity
 
 ## Role Boundary Checkpoints
 

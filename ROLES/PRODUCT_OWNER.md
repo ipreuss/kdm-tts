@@ -131,6 +131,10 @@ Before creating handover to Architect:
 3. Note blocking dependency in handover if relevant
 
 ### 4. Handover to Architect
+**Before creating handover:**
+- Verify bead is not already implemented — quick grep for key function names in codebase
+- Check if blocking beads were recently closed (work may have been done during blocker fix)
+
 Create `handover/HANDOVER_ARCHITECT.md` with:
 - Feature summary
 - User stories with acceptance criteria
@@ -141,6 +145,15 @@ Create `handover/HANDOVER_ARCHITECT.md` with:
 - Review implemented features against acceptance criteria
 - Confirm with stakeholders
 - Update documentation if needed
+
+### 6. Close Bead (Feature/Bug Types Only)
+Before closing:
+1. **Check LEARNINGS.md:** Review unprocessed learnings from this feature's development — if significant learnings exist, create Team Coach handover for retrospective before closure
+2. Check for open child beads: `bd show <parent-id>`
+3. For each open child, populate its description with the relevant AC section from the parent
+4. Create work folder for the next child to be worked: `mkdir work/kdm-xyz`
+
+**Why:** Children of closed parents often have empty descriptions. Updating all siblings at parent closure prevents repetitive work later.
 
 ## Handover Creation
 

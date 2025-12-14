@@ -12,9 +12,12 @@
 --   PatternTests.ttslua     - Pattern deck spawning, Seed Patterns shuffle
 --   BattleTests.ttslua      - Weapon pairing (Aya's weapons, Bone Hatchet)
 --   ResourceRewardsTests.ttslua - Resource rewards button and spawning
+--   TestRegistry.ttslua     - Test registry with bead tags
+--   TestErrorCapture.ttslua - Error capture for test framework
 
 local Console = require("Kdm/Console")
-local log = require("Kdm/Log").ForModule("TTSTests")
+local Log = require("Kdm/Log")
+local log = Log.ForModule("TTSTests")
 
 -- Import test modules
 local StrainTests = require("Kdm/TTSTests/StrainTests")
@@ -27,16 +30,13 @@ local PatternTests = require("Kdm/TTSTests/PatternTests")
 local BattleTests = require("Kdm/TTSTests/BattleTests")
 local ResourceRewardsTests = require("Kdm/TTSTests/ResourceRewardsTests")
 
+-- Import test infrastructure modules
+local TestRegistry = require("Kdm/TTSTests/TestRegistry")
+local TestErrorCapture = require("Kdm/TTSTests/TestErrorCapture")
+
 ---------------------------------------------------------------------------------------------------
 
 local TTSTests = {}
-
----------------------------------------------------------------------------------------------------
--- Test Registry with Bead Tags
--- Update FOCUS_BEAD when switching to a new backlog item
----------------------------------------------------------------------------------------------------
-
-local FOCUS_BEAD = "kdm-rhc"  -- Current backlog item - UPDATE THIS
 
 ---------------------------------------------------------------------------------------------------
 
@@ -44,14 +44,21 @@ function TTSTests.Init()
     Console.AddCommand("testhelp", function(args)
         log:Printf("TTS Test Commands:")
         log:Printf("")
+        log:Printf("  Discovery:")
+        log:Printf("    >testlist              - List all tests alphabetically")
+        log:Printf("    >testsuite list        - List beads with test counts and titles")
+        log:Printf("    >testsuite domains     - List domains with test counts")
+        log:Printf("")
         log:Printf("  Selective Execution:")
-        log:Printf("    >testrun <name>     - Run single test by exact name")
-        log:Printf("    >testsuite <bead>   - Run all tests for a bead")
-        log:Printf("    >testcurrent        - Run tests for FOCUS_BEAD (%s)", FOCUS_BEAD)
-        log:Printf("    >testpriority       - Run FOCUS_BEAD first, then others if pass")
+        log:Printf("    >testrun <name>        - Run single test by exact name")
+        log:Printf("    >testsuite <bead>      - Run all tests for a bead")
+        log:Printf("    >testsuite domain <n>  - Run all tests for a domain")
+        log:Printf("    >testcurrent           - Run tests for FOCUS_BEAD (%s)", TestRegistry.FOCUS_BEAD)
+        log:Printf("    >testpriority          - Run FOCUS_BEAD first, then others if pass")
         log:Printf("")
         log:Printf("  Full Suite:")
         log:Printf("    >testall            - Run all TTS tests")
+        log:Printf("    >testerrordetect    - Verify error detection (should FAIL)")
         log:Printf("")
         log:Printf("  Individual Tests:")
         log:Printf("    >teststrain [card]  - Test adding a strain fighting art")
@@ -96,13 +103,30 @@ function TTSTests.Init()
 
     Console.AddCommand("testsuite", function(args)
         if #args < 2 then
-            log:Printf("Usage: testsuite <bead_id>")
-            log:Printf("Example: testsuite kdm-96o")
+            log:Printf("Usage:")
+            log:Printf("  testsuite list           - List beads with test counts")
+            log:Printf("  testsuite <bead_id>      - Run tests for a bead")
+            log:Printf("  testsuite domains        - List domains with test counts")
+            log:Printf("  testsuite domain <name>  - Run tests for a domain")
             return
         end
-        local beadId = args[2]
-        TTSTests.RunBeadSuite(beadId)
-    end, "Run all tests for a specific bead")
+        local arg = args[2]
+        if arg == "list" then
+            TestRegistry.PrintBeadSuites()
+        elseif arg == "domains" then
+            TestRegistry.PrintDomainSuites()
+        elseif arg == "domain" then
+            if #args < 3 then
+                log:Printf("Usage: testsuite domain <name>")
+                log:Printf("")
+                TestRegistry.PrintDomainSuites()
+                return
+            end
+            TTSTests.RunDomainSuite(args[3])
+        else
+            TTSTests.RunBeadSuite(arg)
+        end
+    end, "Run tests by bead or domain")
 
     Console.AddCommand("testcurrent", function(args)
         TTSTests.RunCurrentBeadTests()
@@ -111,6 +135,14 @@ function TTSTests.Init()
     Console.AddCommand("testpriority", function(args)
         TTSTests.RunPriorityTests()
     end, "Run current bead tests first, then others if all pass")
+
+    Console.AddCommand("testerrordetect", function(args)
+        TTSTests.VerifyErrorDetection()
+    end, "Verify error log detection works (should FAIL)")
+
+    Console.AddCommand("testlist", function(args)
+        TestRegistry.PrintAllTests()
+    end, "List all available tests alphabetically")
 
     -- Register all test module commands
     StrainTests.Register()
@@ -124,68 +156,13 @@ function TTSTests.Init()
     ResourceRewardsTests.Register()
 end
 
-local ALL_TESTS = {
-    -- Strain tests (no specific bead - regression)
-    { name = "Add Fighting Art (Shielderang)", fn = function(onComplete) StrainTests.TestAddFightingArtToArchive("Shielderang", onComplete) end },
-    { name = "Add Vermin (Fiddler Crab Spider)", fn = function(onComplete) StrainTests.TestAddVerminToDeck("Fiddler Crab Spider", onComplete) end },
-    { name = "Card State Fallback (Story of Blood)", fn = function(onComplete) StrainTests.TestCardStateFallback("Story of Blood", nil, onComplete) end },
-    -- Dialog tests (no specific bead - regression)
-    { name = "DialogFromSpec Callback Timing", fn = function(onComplete) DialogTests.TestDialogFromSpecCallbackTiming(onComplete) end },
-    -- Atmospheric tests (no specific bead - regression)
-    { name = "Atmospheric Change (Heat Wave/Lump of Atnas)", fn = function(onComplete) AtmosphericTests.TestAtmosphericChange(onComplete) end },
-    -- Consequence tests (no specific bead - regression)
-    { name = "ConsequenceApplicator Operations", fn = function(onComplete) ConsequenceTests.TestConsequenceApplicator(onComplete) end },
-    -- Pattern tests (no specific bead - regression)
-    { name = "Pattern Deck Spawn", fn = function(onComplete) PatternTests.TestPatternDeckSpawn(onComplete) end },
-    { name = "Pattern Gear Deck Spawn", fn = function(onComplete) PatternTests.TestPatternGearDeckSpawn(onComplete) end },
-    -- Battle/Weapon pairing tests (kdm-rbl)
-    { name = "Aya's Weapon Pairing (cross-name)", bead = "kdm-rbl", fn = function(onComplete) BattleTests.TestAyasWeaponPairing(onComplete) end },
-    { name = "Aya's Weapons Separate Lines", bead = "kdm-rbl", fn = function(onComplete) BattleTests.TestAyasWeaponsSeparateLines(onComplete) end },
-    { name = "Bone Hatchet Pairing (same-name)", bead = "kdm-rbl", fn = function(onComplete) BattleTests.TestBoneHatchetPairing(onComplete) end },
-    -- Resource Rewards integration tests (kdm-w1k + kdm-rhc refactoring)
-    { name = "Resource Rewards Button Visible", bead = { "kdm-w1k", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestButtonAppearsOnShowdown(onComplete) end },
-    { name = "Resource Rewards Button Hidden", bead = { "kdm-w1k", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestButtonHiddenNoResources(onComplete) end },
-    { name = "Resource Rewards Data Integrity", bead = { "kdm-w1k", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestResourcesDataIntegrity(onComplete) end },
-    { name = "Strange Resources Spawn", bead = { "kdm-w1k", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestStrangeResourcesSpawn(onComplete) end },
-    -- Resource Rewards Expansion tests (kdm-w1k.3 + kdm-rhc refactoring)
-    { name = "Screaming Antelope Button Visible", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeButtonAppears(onComplete) end },
-    { name = "Screaming Antelope Data Integrity", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeDataIntegrity(onComplete) end },
-    { name = "Screaming Antelope Vermin Spawn", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeVerminSpawn(onComplete) end },
-    { name = "Phoenix Button Visible", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestPhoenixButtonAppears(onComplete) end },
-    { name = "Phoenix Data Integrity", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestPhoenixDataIntegrity(onComplete) end },
-    { name = "Phoenix Strange Resources Spawn", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestPhoenixStrangeResourcesSpawn(onComplete) end },
-    { name = "Gorm Button Visible", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestGormButtonAppears(onComplete) end },
-    { name = "Gorm Data Integrity", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestGormDataIntegrity(onComplete) end },
-    { name = "Gorm Strange Resources Spawn", bead = { "kdm-w1k.3", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestGormStrangeResourcesSpawn(onComplete) end },
-    -- Spidicules tests (kdm-96o + kdm-rhc refactoring)
-    { name = "Spidicules Button Visible", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestSpidiculesButtonAppears(onComplete) end },
-    { name = "Spidicules Data Integrity", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestSpidiculesDataIntegrity(onComplete) end },
-    { name = "Spidicules Strange Resources Spawn", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestSpidiculesStrangeResourcesSpawn(onComplete) end },
-    -- Dragon King tests (kdm-96o + kdm-rhc refactoring)
-    { name = "Dragon King Button Visible", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestDragonKingButtonAppears(onComplete) end },
-    { name = "Dragon King Data Integrity", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestDragonKingDataIntegrity(onComplete) end },
-    { name = "Dragon King Strange Resources Spawn", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestDragonKingStrangeResourcesSpawn(onComplete) end },
-    -- Sunstalker tests (kdm-96o + kdm-rhc refactoring)
-    { name = "Sunstalker Button Visible", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestSunstalkerButtonAppears(onComplete) end },
-    { name = "Sunstalker Data Integrity", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestSunstalkerDataIntegrity(onComplete) end },
-    { name = "Sunstalker Strange Resources Spawn", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestSunstalkerStrangeResourcesSpawn(onComplete) end },
-    -- Dung Beetle Knight tests (kdm-96o + kdm-rhc refactoring)
-    { name = "Dung Beetle Knight Button Visible", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightButtonAppears(onComplete) end },
-    { name = "Dung Beetle Knight Data Integrity", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightDataIntegrity(onComplete) end },
-    { name = "Dung Beetle Knight Strange Resources Spawn", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestDungBeetleKnightStrangeResourcesSpawn(onComplete) end },
-    -- Flower Knight tests (kdm-96o + kdm-rhc refactoring)
-    { name = "Flower Knight Button Visible", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightButtonAppears(onComplete) end },
-    { name = "Flower Knight Data Integrity", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightDataIntegrity(onComplete) end },
-    { name = "Flower Knight No Strange Resources", bead = { "kdm-96o", "kdm-rhc" }, fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightNoStrangeResources(onComplete) end },
-}
-
 ---------------------------------------------------------------------------------------------------
 -- Run All Tests
 ---------------------------------------------------------------------------------------------------
 
 function TTSTests.RunAllTests()
     log:Printf("=== RUNNING ALL TTS TESTS ===")
-    TTSTests.RunTests(ALL_TESTS)
+    TTSTests.RunTests(TestRegistry.ALL_TESTS)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -195,7 +172,7 @@ end
 function TTSTests.RunSingleTest(testName)
     local foundTest = nil
     local lowerTestName = string.lower(testName)
-    for _, test in ipairs(ALL_TESTS) do
+    for _, test in ipairs(TestRegistry.ALL_TESTS) do
         if string.lower(test.name) == lowerTestName then
             foundTest = test
             break
@@ -213,36 +190,13 @@ function TTSTests.RunSingleTest(testName)
 end
 
 ---------------------------------------------------------------------------------------------------
--- Helper: Check if test matches a bead (supports string or array of beads)
----------------------------------------------------------------------------------------------------
-
-local function testMatchesBead(test, beadId)
-    if not test.bead then
-        return false
-    end
-    -- Single bead (string)
-    if type(test.bead) == "string" then
-        return test.bead == beadId
-    end
-    -- Multiple beads (array)
-    if type(test.bead) == "table" then
-        for _, b in ipairs(test.bead) do
-            if b == beadId then
-                return true
-            end
-        end
-    end
-    return false
-end
-
----------------------------------------------------------------------------------------------------
 -- Run All Tests for a Bead
 ---------------------------------------------------------------------------------------------------
 
 function TTSTests.RunBeadSuite(beadId)
     local beadTests = {}
-    for _, test in ipairs(ALL_TESTS) do
-        if testMatchesBead(test, beadId) then
+    for _, test in ipairs(TestRegistry.ALL_TESTS) do
+        if TestRegistry.TestMatchesBead(test, beadId) then
             table.insert(beadTests, test)
         end
     end
@@ -258,12 +212,30 @@ function TTSTests.RunBeadSuite(beadId)
 end
 
 ---------------------------------------------------------------------------------------------------
+-- Run All Tests for a Domain
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.RunDomainSuite(domainName)
+    local domainTests = TestRegistry.DiscoverTestsByDomain(domainName)
+
+    if #domainTests == 0 then
+        log:Errorf("No tests found for domain: '%s'", domainName)
+        log:Printf("Available domains:")
+        TestRegistry.PrintDomainSuites()
+        return
+    end
+
+    log:Printf("=== RUNNING %d TESTS FOR DOMAIN %s ===", #domainTests, domainName)
+    TTSTests.RunTests(domainTests)
+end
+
+---------------------------------------------------------------------------------------------------
 -- Run Tests for Current Bead Only
 ---------------------------------------------------------------------------------------------------
 
 function TTSTests.RunCurrentBeadTests()
-    log:Printf("=== RUNNING TESTS FOR CURRENT BEAD: %s ===", FOCUS_BEAD)
-    TTSTests.RunBeadSuite(FOCUS_BEAD)
+    log:Printf("=== RUNNING TESTS FOR CURRENT BEAD: %s ===", TestRegistry.FOCUS_BEAD)
+    TTSTests.RunBeadSuite(TestRegistry.FOCUS_BEAD)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -271,13 +243,13 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function TTSTests.RunPriorityTests()
-    log:Printf("=== RUNNING PRIORITY TESTS FOR %s ===", FOCUS_BEAD)
+    log:Printf("=== RUNNING PRIORITY TESTS FOR %s ===", TestRegistry.FOCUS_BEAD)
 
     local focusedTests = {}
     local regressionTests = {}
 
-    for _, test in ipairs(ALL_TESTS) do
-        if testMatchesBead(test, FOCUS_BEAD) then
+    for _, test in ipairs(TestRegistry.ALL_TESTS) do
+        if TestRegistry.TestMatchesBead(test, TestRegistry.FOCUS_BEAD) then
             table.insert(focusedTests, test)
         else
             table.insert(regressionTests, test)
@@ -285,12 +257,12 @@ function TTSTests.RunPriorityTests()
     end
 
     if #focusedTests == 0 then
-        log:Printf("No tests tagged with bead '%s'", FOCUS_BEAD)
-        log:Printf("Update FOCUS_BEAD in TTSTests.ttslua or tag tests with this bead")
+        log:Printf("No tests tagged with bead '%s'", TestRegistry.FOCUS_BEAD)
+        log:Printf("Update FOCUS_BEAD in TTSTests/TestRegistry.ttslua or tag tests with this bead")
         return
     end
 
-    log:Printf("Phase 1: %d focused tests for %s", #focusedTests, FOCUS_BEAD)
+    log:Printf("Phase 1: %d focused tests for %s", #focusedTests, TestRegistry.FOCUS_BEAD)
     log:Printf("Phase 2: %d regression tests (if Phase 1 passes)", #regressionTests)
 
     TTSTests.RunTests(focusedTests, function(passed, failed)
@@ -353,10 +325,23 @@ function TTSTests.RunTests(tests, onAllComplete)
         local test = tests[currentTest]
         log:Printf("=== TEST %d/%d: %s ===", currentTest, totalTests, test.name)
 
+        -- Start capturing errors before test execution
+        TestErrorCapture.Start()
+
         local completed = false
         local function onTestComplete(success)
             if completed then return end  -- Prevent double-completion
             completed = true
+
+            -- Stop capturing and check for errors
+            local errors = TestErrorCapture.Stop()
+            if #errors > 0 then
+                log:Printf("TEST FAILED: %d error(s) logged during execution:", #errors)
+                for _, err in ipairs(errors) do
+                    log:Printf("  %s", err.message)
+                end
+                success = false  -- Force failure even if assertions passed
+            end
 
             if success == false then
                 failedTests = failedTests + 1
@@ -377,6 +362,8 @@ function TTSTests.RunTests(tests, onAllComplete)
             test.fn(onTestComplete)
         end)
         if not ok then
+            -- Stop capturing before logging the pcall error
+            TestErrorCapture.Stop()
             log:Errorf("TEST FAILED: %s - %s", test.name, tostring(err))
             -- Wait for async operations to settle before marking complete
             Wait.frames(function()
@@ -386,6 +373,40 @@ function TTSTests.RunTests(tests, onAllComplete)
     end
 
     runNextTest()
+end
+
+---------------------------------------------------------------------------------------------------
+-- Verify Error Detection (kdm-fl2.2)
+-- This test should FAIL to prove error log detection works
+---------------------------------------------------------------------------------------------------
+
+function TTSTests.VerifyErrorDetection()
+    log:Printf("=== VERIFYING ERROR DETECTION (should FAIL) ===")
+    log:Printf("This test intentionally logs an error to verify the detection mechanism.")
+    log:Printf("Expected result: TEST FAILED with error message shown.")
+    log:Printf("")
+
+    local verificationTest = {
+        { name = "Error Log Causes Test Failure", fn = function(onComplete)
+            -- This test verifies that error logs cause test failure even when assertions pass
+            log:Printf("Logging a warning (should not cause failure)")
+            log:Errorf("Intentional error for verification - this should cause test failure")
+            -- Call onComplete with success=true, but the error capture should override to false
+            onComplete(true)
+        end }
+    }
+
+    TTSTests.RunTests(verificationTest, function(passed, failed)
+        if failed == 1 then
+            log:Printf("")
+            log:Printf("[66ff66]SUCCESS: Error detection is working correctly!")
+            log:Printf("The test failed as expected because an error was logged.")
+        else
+            log:Errorf("")
+            log:Errorf("ERROR: Error detection is NOT working!")
+            log:Errorf("The test should have failed but it passed.")
+        end
+    end)
 end
 
 ---------------------------------------------------------------------------------------------------

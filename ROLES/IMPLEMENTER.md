@@ -82,6 +82,10 @@ Write an implementation plan including:
 - Order of changes
 - Test strategy
 - Assumptions and open questions
+- **Refactoring assessment:**
+  - Do files need characterization tests before modification? (see `legacy-code-testing` skill)
+  - Are there code smells in the touched code that should be addressed?
+  - What Boy Scout Rule improvements will you make while there?
 
 **Get confirmation before proceeding with code changes.**
 
@@ -92,19 +96,62 @@ Follow the test-first loop from PROCESS.md:
 3. Refactor while keeping tests green
 4. Verify with `lua tests/run.lua`
 
-### 5. TTS Verification
+### 5. Refactor (Boy Scout Rule)
+After tests are green, apply the Boy Scout Rule to code you touched:
+
+**Decision Framework:**
+| Situation | Action |
+|-----------|--------|
+| Small (<10 lines), low risk, files already modified | Do now |
+| Medium, related to current work, tests cover it | Do now |
+| Large, unrelated to current work | Create bead for later |
+| Speculative "might need" improvement | Skip (YAGNI) |
+
+**Safe refactorings (always do):**
+- Extract pure functions from mixed logic
+- Improve unclear names in code you're reading
+- Remove dead code you encounter
+- Add guard clauses for realistic error cases
+
+**Requires characterization test first:**
+- Changing function signatures
+- Extracting modules
+- Modifying shared abstractions
+
+See `legacy-code-testing` skill for Feathers patterns (seams, sprout method, wrap method).
+
+**Domain restructuring (incremental):**
+
+When to move files to domain folders:
+- File is being significantly modified (not just a typo fix)
+- Clear domain ownership (file obviously belongs to Survivor/, Showdown/, Archive/, etc.)
+- Related files can move together (avoid orphaning a single file)
+
+When NOT to move:
+- Trivial changes (single-line fixes)
+- Unclear domain ownership
+- Would require updating 20+ imports (defer to dedicated restructuring bead)
+
+How to move:
+1. `git mv OldPath.ttslua Domain/NewPath.ttslua`
+2. Update all `require()` calls that reference the moved file
+3. Create/update `Domain/README.md` with file responsibilities
+4. Moves + import updates can be in same commit
+
+### 6. TTS Verification
 When changes affect TTS interactions:
 1. Run `./updateTTS.sh`
 2. Test in TTS console
 3. Verify UI and behavior
 
-### 6. Update Status
+### 7. Update Status
 Update `handover/IMPLEMENTATION_STATUS.md` with:
 - What was completed
 - What remains
 - Any blockers or questions
+- **User verification already done:** If user ran TTS tests or verified behavior during implementation, record results here — don't leave for Tester to re-request
 
-### 7. Update Work Folder
+### 8. Update Work Folder
 Update `work/<bead-id>/progress.md` with implementation progress for persistent record.
 
 ## Available Skills
@@ -130,6 +177,7 @@ Captures to `handover/LEARNINGS.md` in real-time, not waiting for session end.
 - **`verification-before-completion`** — Run tests, verify output, THEN claim "done"
 - **`receiving-code-review`** — Process review feedback with technical rigor, not performative agreement
 - **`defense-in-depth`** — Add validation at multiple layers when fixing data bugs
+- **`legacy-code-testing`** — Feathers patterns for modifying code with limited test coverage: characterization tests, seams, sprout/wrap methods
 
 ## Common Patterns
 
