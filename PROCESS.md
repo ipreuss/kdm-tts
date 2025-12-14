@@ -44,9 +44,29 @@ PO ─acceptance criteria──────────────────�
 3. Implementer completes changes → Reviewer reviews code and tests
 4. Reviewer approves → Tester writes acceptance tests
 5. Tester completes acceptance tests → Reviewer reviews acceptance tests
-6. Reviewer approves → Architect verifies design compliance
-7. Architect approves → Product Owner validates feature is complete
-8. Findings at any stage may loop back to prior roles
+6. **Reviewer approves → Human commits to git** (see "Git Commit Milestone" below)
+7. Architect verifies design compliance
+8. Architect approves → Product Owner validates feature is complete
+9. Findings at any stage may loop back to prior roles
+
+### Git Commit Milestone
+
+**When:** After Reviewer approves code (step 6 above).
+
+**Why:** Code is tested and reviewed — safe to commit. Human maintains git history.
+
+**Reviewer prompts human:**
+```
+Ready for git commit. Files changed:
+- [list from git diff --name-only]
+
+Suggested commit message:
+[type]: [brief description]
+
+Please commit when ready, then I'll hand over to Architect.
+```
+
+**Types:** feat, fix, refactor, test, docs, chore
 
 ### Bug Fast Path (Tester → Implementer)
 

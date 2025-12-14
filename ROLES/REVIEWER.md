@@ -82,7 +82,14 @@ Update `handover/LATEST_REVIEW.md` with:
 - Recommendations
 - Status (APPROVED / APPROVED with notes / NEEDS CHANGES)
 
-### 5. Update Work Folder
+### 5. Git Commit Handover (When APPROVED)
+When status is APPROVED, prompt human to commit before handing to Architect:
+1. Run `git --no-pager diff --name-only` to list changed files
+2. Suggest commit message based on changes
+3. Wait for human to confirm commit is done
+4. Then create handover to Architect
+
+### 6. Update Work Folder
 Update `work/<bead-id>/review.md` with review findings for persistent record.
 
 ## Review Template
@@ -226,7 +233,18 @@ For detailed review patterns, see **`CODE_REVIEW_GUIDELINES.md`**.
 **After approval, the correct handoff sequence is:**
 
 ```
-Reviewer ─approved─► Architect ─design ok─► Product Owner ─closes bead─►
+Reviewer ─approved─► Human (git commit) ─► Architect ─design ok─► Product Owner ─closes bead─►
+```
+
+**Git Commit Handover:** When review status is APPROVED, prompt the human to commit:
+```
+Ready for git commit. Files changed:
+- [list modified files]
+
+Suggested commit message:
+[type]: [brief description]
+
+Please commit when ready, then I'll hand over to Architect.
 ```
 
 **Do NOT skip Architect.** Even for simple features, Architect verifies:

@@ -47,6 +47,42 @@ local function cleanupSpawnedResources()
     return cleanedCount
 end
 
+-- Helper for button visibility integration tests (reduces duplication)
+-- testLabel is used for log messages (e.g., "YoungLion" produces "TestYoungLionButtonAppears")
+local function testButtonAppears(monsterName, levelName, testLabel, onComplete)
+    log:Printf("=== TEST: Test%sButtonAppears (Integration) ===", testLabel)
+
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting %s showdown via Showdown.Setup()...", levelName)
+
+        Showdown.Setup(monsterName, levelName)
+
+        Wait.frames(function()
+            log:Printf("TEST: Checking button visibility after showdown setup...")
+
+            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
+
+            if buttonVisible then
+                log:Printf("TEST: Rewards button IS visible for %s", levelName)
+                log:Printf("=== TEST: Test%sButtonAppears COMPLETE ===", testLabel)
+                log:Printf("TEST RESULT: PASSED")
+                Showdown.Clean()
+                if onComplete then onComplete(true) end
+            else
+                log:Errorf("TEST: Rewards button is NOT visible!")
+                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
+                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
+                log:Printf("=== TEST: Test%sButtonAppears COMPLETE ===", testLabel)
+                log:Printf("TEST RESULT: FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(false) end
+            end
+        end, 60)
+    end, 10)
+end
+
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.Register()
@@ -173,6 +209,43 @@ function ResourceRewardsTests.Register()
     Console.AddCommand("testfknostrange", function(args)
         ResourceRewardsTests.TestFlowerKnightNoStrangeResources()
     end, "Test Flower Knight L3 spawns NO strange resources")
+
+    -- White Lion variant tests (kdm-cb7)
+    Console.AddCommand("testyounglionbutton", function(args)
+        ResourceRewardsTests.TestYoungLionButtonAppears()
+    end, "Test rewards button appears for The Young Lion")
+
+    Console.AddCommand("testyoungliondata", function(args)
+        ResourceRewardsTests.TestYoungLionDataIntegrity()
+    end, "Test The Young Lion resource data (L1 rewards)")
+
+    Console.AddCommand("testradiantlionbutton", function(args)
+        ResourceRewardsTests.TestRadiantLionButtonAppears()
+    end, "Test rewards button appears for Radiant Lion")
+
+    Console.AddCommand("testradiantliondata", function(args)
+        ResourceRewardsTests.TestRadiantLionDataIntegrity()
+    end, "Test Radiant Lion resource data (L2 rewards)")
+
+    Console.AddCommand("testbeastsorrowbutton", function(args)
+        ResourceRewardsTests.TestBeastOfSorrowButtonAppears()
+    end, "Test rewards button appears for Beast of Sorrow")
+
+    Console.AddCommand("testbeastsorrowdata", function(args)
+        ResourceRewardsTests.TestBeastOfSorrowDataIntegrity()
+    end, "Test Beast of Sorrow resource data (L3 + Iron)")
+
+    Console.AddCommand("testbeastsorrowstrange", function(args)
+        ResourceRewardsTests.TestBeastOfSorrowStrangeResourcesSpawn()
+    end, "Test Beast of Sorrow spawns Iron strange resource")
+
+    Console.AddCommand("testgoldencatbutton", function(args)
+        ResourceRewardsTests.TestGreatGoldenCatButtonAppears()
+    end, "Test rewards button appears for Great Golden Cat")
+
+    Console.AddCommand("testgoldencatdata", function(args)
+        ResourceRewardsTests.TestGreatGoldenCatDataIntegrity()
+    end, "Test Great Golden Cat resource data (L3 + 1)")
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1513,6 +1586,110 @@ function ResourceRewardsTests.TestFlowerKnightNoStrangeResources(onComplete)
             end, 60)
         end, 30)
     end, 10)
+end
+
+---------------------------------------------------------------------------------------------------
+-- WHITE LION VARIANT TESTS (kdm-cb7)
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestYoungLionButtonAppears(onComplete)
+    testButtonAppears("White Lion", "The Young Lion", "YoungLion", onComplete)
+end
+
+function ResourceRewardsTests.TestYoungLionDataIntegrity(onComplete)
+    validateMonsterResourceData("White Lion", {
+        { levelName = "The Young Lion", basic = 4, monster = 4 },
+    }, onComplete)
+end
+
+function ResourceRewardsTests.TestRadiantLionButtonAppears(onComplete)
+    testButtonAppears("White Lion", "Radiant Lion", "RadiantLion", onComplete)
+end
+
+function ResourceRewardsTests.TestRadiantLionDataIntegrity(onComplete)
+    validateMonsterResourceData("White Lion", {
+        { levelName = "Radiant Lion", basic = 4, monster = 6 },
+    }, onComplete)
+end
+
+function ResourceRewardsTests.TestBeastOfSorrowButtonAppears(onComplete)
+    testButtonAppears("White Lion", "Beast of Sorrow", "BeastOfSorrow", onComplete)
+end
+
+function ResourceRewardsTests.TestBeastOfSorrowDataIntegrity(onComplete)
+    validateMonsterResourceData("White Lion", {
+        { levelName = "Beast of Sorrow", basic = 4, monster = 8, strange = { "Iron" } },
+    }, onComplete)
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewardsTests.TestBeastOfSorrowStrangeResourcesSpawn(onComplete)
+    log:Printf("=== TEST: TestBeastOfSorrowStrangeResourcesSpawn (Behavioral) ===")
+
+    Showdown.Clean()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting Beast of Sorrow showdown (has Iron strange resource)...")
+
+        Showdown.Setup("White Lion", "Beast of Sorrow")
+
+        Wait.frames(function()
+            log:Printf("TEST: Checking 'Iron' does NOT exist before spawn...")
+            local beforeFound = false
+            for _, obj in ipairs(getObjects()) do
+                if obj.getName() == "Iron" then
+                    beforeFound = true
+                    break
+                end
+            end
+
+            if beforeFound then
+                log:Printf("TEST: Warning - 'Iron' already exists on table (previous test residue?)")
+            else
+                log:Printf("TEST: Confirmed - 'Iron' not on table before spawn")
+            end
+
+            log:Printf("TEST: Triggering ResourceRewards.SpawnRewards()...")
+            ResourceRewards.Test.SpawnRewards()
+
+            Wait.frames(function()
+                log:Printf("TEST: Searching table for 'Iron'...")
+
+                local found = false
+                for _, obj in ipairs(getObjects()) do
+                    if obj.getName() == "Iron" then
+                        found = true
+                        local pos = obj.getPosition()
+                        log:Printf("TEST: Found 'Iron' at (%.1f, %.1f, %.1f)", pos.x, pos.y, pos.z)
+                        break
+                    end
+                end
+
+                local passed = found
+                if not found then
+                    log:Errorf("TEST: 'Iron' NOT found on table!")
+                end
+
+                cleanupSpawnedResources()
+
+                log:Printf("=== TEST: TestBeastOfSorrowStrangeResourcesSpawn COMPLETE ===")
+                log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+                Showdown.Clean()
+                if onComplete then onComplete(passed) end
+            end, 60)
+        end, 30)
+    end, 10)
+end
+
+function ResourceRewardsTests.TestGreatGoldenCatButtonAppears(onComplete)
+    testButtonAppears("White Lion", "Great Golden Cat", "GreatGoldenCat", onComplete)
+end
+
+function ResourceRewardsTests.TestGreatGoldenCatDataIntegrity(onComplete)
+    validateMonsterResourceData("White Lion", {
+        { levelName = "Great Golden Cat", basic = 4, monster = 9 },
+    }, onComplete)
 end
 
 ---------------------------------------------------------------------------------------------------

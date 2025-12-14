@@ -25,7 +25,7 @@ local TestRegistry = {}
 -- Focus Bead - Update when switching to a new backlog item
 ---------------------------------------------------------------------------------------------------
 
-TestRegistry.FOCUS_BEAD = "kdm-fl2.2"
+TestRegistry.FOCUS_BEAD = "kdm-cb7"
 
 ---------------------------------------------------------------------------------------------------
 -- All Tests Registry
@@ -82,6 +82,16 @@ TestRegistry.ALL_TESTS = {
     { name = "Flower Knight Button Visible", bead = { "kdm-96o", "kdm-rhc" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightButtonAppears(onComplete) end },
     { name = "Flower Knight Data Integrity", bead = { "kdm-96o", "kdm-rhc" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightDataIntegrity(onComplete) end },
     { name = "Flower Knight No Strange Resources", bead = { "kdm-96o", "kdm-rhc" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestFlowerKnightNoStrangeResources(onComplete) end },
+    -- White Lion Variant tests (kdm-cb7)
+    { name = "The Young Lion Button Visible", bead = "kdm-cb7", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestYoungLionButtonAppears(onComplete) end },
+    { name = "The Young Lion Data Integrity", bead = "kdm-cb7", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestYoungLionDataIntegrity(onComplete) end },
+    { name = "Radiant Lion Button Visible", bead = "kdm-cb7", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestRadiantLionButtonAppears(onComplete) end },
+    { name = "Radiant Lion Data Integrity", bead = "kdm-cb7", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestRadiantLionDataIntegrity(onComplete) end },
+    { name = "Beast of Sorrow Button Visible", bead = "kdm-cb7", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestBeastOfSorrowButtonAppears(onComplete) end },
+    { name = "Beast of Sorrow Data Integrity", bead = "kdm-cb7", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestBeastOfSorrowDataIntegrity(onComplete) end },
+    { name = "Beast of Sorrow Strange Resource Spawn", bead = "kdm-cb7", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestBeastOfSorrowStrangeResourcesSpawn(onComplete) end },
+    { name = "Great Golden Cat Button Visible", bead = "kdm-cb7", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestGreatGoldenCatButtonAppears(onComplete) end },
+    { name = "Great Golden Cat Data Integrity", bead = "kdm-cb7", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestGreatGoldenCatDataIntegrity(onComplete) end },
 }
 
 ---------------------------------------------------------------------------------------------------
