@@ -53,18 +53,21 @@ PO ─acceptance criteria──────────────────�
 
 **When:** After Reviewer approves code (step 6 above).
 
-**Why:** Code is tested and reviewed — safe to commit. Human maintains git history.
+**Why:** Code is tested and reviewed — safe to commit.
 
-**Reviewer prompts human:**
-```
-Ready for git commit. Files changed:
-- [list from git diff --name-only]
+**Reviewer executes commit (human approval required):**
+1. Run `git status` to show changes
+2. Stage files: `git add [files]`
+3. Commit with message:
+   ```bash
+   git commit -m "[type]: [description]
 
-Suggested commit message:
-[type]: [brief description]
+   [optional body]
 
-Please commit when ready, then I'll hand over to Architect.
-```
+   Bead: kdm-xxx"
+   ```
+4. Human reviews and approves the commit command
+5. After commit succeeds, hand over to Architect
 
 **Types:** feat, fix, refactor, test, docs, chore
 

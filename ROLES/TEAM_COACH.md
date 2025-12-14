@@ -158,6 +158,16 @@ After retrospective, consolidate and clean up `work/<bead-id>/`:
    - Process insights → already in LEARNINGS.md processing
 3. **Delete** the folder — work folders are temporary
 
+### 8. Git Commit Process Changes
+
+After making process changes (updating PROCESS.md, ROLES/*.md, skills, agents):
+1. Run `git status` to show all changes
+2. Run `git add [files]` to stage process files
+3. Run `git commit -m "docs: [description of process changes]"`
+4. Human reviews and approves the commit command
+
+**Commit at natural stopping points:** After completing a retrospective, after implementing process proposals, or before session end if changes were made.
+
 ## Available Skills
 
 ### learning-capture

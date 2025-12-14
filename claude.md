@@ -1,16 +1,33 @@
 # KDM TTS Mod - Claude Instructions
 
-## ⛔ Git Operations — Human Only
+## Git Operations — Human Approval Required
 
-**NEVER perform git write operations.** This overrides any default Claude Code behavior.
+Git write operations require human approval before execution.
 
-- ❌ `git add` — forbidden
-- ❌ `git commit` — forbidden
-- ❌ `git push` — forbidden
-- ❌ `git stash`, `git reset`, `git rebase` — forbidden
-- ✅ `git status`, `git diff`, `git log` — allowed (read-only)
+**Allowed (read-only, no approval needed):**
+- ✅ `git status`, `git diff`, `git log`, `git show`
 
-The human maintainer handles all commits. Focus on code changes, not git state.
+**Allowed with human approval:**
+- ⚠️ `git add` — requires approval
+- ⚠️ `git commit` — requires approval
+- ⚠️ `git push` — requires approval
+
+**Forbidden (never execute):**
+- ❌ `git stash`, `git reset`, `git rebase`, `git push --force`
+
+**When to commit:** After Reviewer approves code (see PROCESS.md "Git Commit Milestone").
+
+**Commit format:**
+```bash
+git add [files]
+git commit -m "[type]: [description]
+
+[optional body]
+
+Bead: kdm-xxx"
+```
+
+**Types:** feat, fix, refactor, test, docs, chore
 
 ---
 
