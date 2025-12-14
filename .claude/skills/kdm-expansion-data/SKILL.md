@@ -464,6 +464,19 @@ end)
 
 **Impact**: May refactor component registration and timeline event handling. Archive system likely remains similar.
 
+## Rulebook Page Verification
+
+Rulebook pages are stored as image URLs in `template_workshop.json`. To verify game rules:
+
+1. Look up the `rules` field in showdown definition (e.g., `rules = { "Core Rules", 71 }`)
+2. Find the rulebook object in `template_workshop.json` (search for `"Nickname": "Core Rules"`)
+3. Look up the state number in the `States` object to get the `ImageURL`
+4. Download and view the image to verify reward/rule data
+
+**Example:** Beast of Sorrow uses state 71 ("Legendary Monsters" page) showing all legendary monster rewards.
+
+**When to use:** Verifying monster rewards, special rules, or game mechanics when wiki is incomplete.
+
 ## Key Files
 
 - `/Users/ilja/Documents/GitHub/kdm/Expansion/*.ttslua` — Expansion definitions
@@ -473,6 +486,7 @@ end)
 - `/Users/ilja/Documents/GitHub/kdm/Weapon.ttslua` — Weapon stats lookup
 - `/Users/ilja/Documents/GitHub/kdm/Armor.ttslua` — Armor stats lookup
 - `/Users/ilja/Documents/GitHub/kdm/ARCHITECTURE.md` — System overview (section: "Expansion Content Organization")
+- `/Users/ilja/Documents/GitHub/kdm/template_workshop.json` — TTS save file with rulebook image URLs
 
 ## Quick Reference Checklist
 
