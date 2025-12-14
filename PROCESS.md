@@ -495,6 +495,18 @@ Examples:
 - "Edge case X should be handled eventually" → create bead
 - "Documentation needs updating after this lands" → create bead
 
+### Changing Bead Type After Creation
+
+The `bd update` command does not support changing issue type. To change a bead's type after creation:
+
+1. Edit `.beads/issues.jsonl` directly
+2. Find the bead's JSON line and change `"issue_type":"task"` to `"issue_type":"feature"` (or other type)
+3. Use `bd --no-db show <id>` to verify the change (bypasses cached database)
+
+**When to change type:**
+- Bead was created as `task` but is actually user-facing → change to `feature`
+- Bead was created as `feature` but is purely technical → change to `task`
+
 ---
 
 ## Session Closing
