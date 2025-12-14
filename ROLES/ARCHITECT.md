@@ -131,6 +131,7 @@ Before designing:
 - Explore codebase for similar functionality
 - Review `ARCHITECTURE.md` for existing patterns
 - Check for ADRs that may apply
+- **KDM game mechanics:** If wiki/external sources are incomplete or return 404, ask user — their domain expertise is authoritative for game rules
 - **Refactoring check:** If design touches files >300 lines or modules with known code smells, invoke `refactoring-advisor` agent to assess whether refactoring should precede or accompany the feature work
 
 ### 3. Design Solution

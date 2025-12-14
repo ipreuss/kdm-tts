@@ -244,9 +244,12 @@ end
 **After ANY code changes (including test files, FOCUS_BEAD updates):**
 
 1. **Run `./updateTTS.sh`** — Sync to TTS before asking user to test
-2. **Verify tests pass** — Run `>testfocus` or `>testall` as appropriate
+2. **Wait for user TTS verification** — For TTS console tests, user must confirm tests pass before handover (AI cannot run TTS tests)
 3. **Use code-reviewer subagent** — Review test quality before handover
-4. **Update work folder** — Update `work/<bead-id>/testing.md` with test results
+4. **Document verification in handover** — Include "TTS Verification: User confirmed [commands] passed on [date]"
+5. **Update work folder** — Update `work/<bead-id>/testing.md` with verification results
+
+**DO NOT create handover until user confirms TTS tests pass.** Handing off unverified tests wastes downstream roles' time.
 
 ## Common Pitfalls
 

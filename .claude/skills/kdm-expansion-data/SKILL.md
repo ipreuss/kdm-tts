@@ -421,6 +421,17 @@ Resource rewards spawn from **existing decks on showdown board**, not fresh arch
 
 **Implementation**: `ResourceRewards.ttslua` inspects board decks, doesn't call `Archive.Take()`.
 
+### Level 4+ Monster Rewards
+
+KDM doesn't define separate L4 reward tiers. Level 4+ monsters use **L3 rewards + unique bonuses**:
+
+| Monster | Level | Base Rewards | Bonus |
+|---------|-------|--------------|-------|
+| Beast of Sorrow | 4 | L3 rewards | +1 Iron (strange) |
+| Great Golden Cat | 4 | L3 rewards | +1 monster resource of choice |
+
+**Pattern**: Higher-level variants grant the highest standard reward tier (L3) plus unique bonuses (strange resources, rare gear, extra monster resources). Don't look for "L4 rewards" — they don't exist.
+
 ## Deck Lifecycle
 
 Many decks follow this pattern:

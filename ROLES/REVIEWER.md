@@ -36,6 +36,7 @@ See `work/README.md` for full guidelines.
 ### 0. Session Start
 1. **Check work folder** — Read `work/<bead-id>/` for context (design decisions, requirements)
 2. **Check for Implementer Comments** — Read `handover/LATEST_REVIEW.md` for responses to previous review items
+3. **Check TTS verification status** — Look in handover and `work/<bead-id>/testing.md` for existing TTS verification — don't re-request what user already verified
 
 ### 1. Gather Context
 1. Check for new screenshots: `ls -t ~/Desktop/*.png | head -3`
