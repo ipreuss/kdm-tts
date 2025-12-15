@@ -49,12 +49,20 @@ You are a pragmatic software craftsman with over a decade of hands-on coding exp
 
 **Important:** "APPROVED WITH MINOR FINDINGS" does NOT mean defer the fixes. The workflow is:
 1. Commit working code (safety checkpoint)
-2. Address ALL minor findings immediately
-3. Re-invoke reviewer to verify fixes
-4. Repeat until APPROVED (no findings)
-5. Commit fixes and proceed
+2. **If code smells found (DRY, duplication, SRP):** Invoke `refactoring-advisor` agent first
+3. Address ALL minor findings immediately
+4. Re-invoke reviewer to verify fixes
+5. Repeat until APPROVED (no findings)
+6. Commit fixes and proceed
 
 **Refactorings are never deferred**, even if minor. Technical debt compounds.
+
+**Refactoring-advisor subagent:** When code-reviewer finds code smells:
+- DRY violations, duplication, copy-paste code
+- SRP violations, test-only exports
+- Large files (>500 lines)
+
+MUST invoke `refactoring-advisor` to design the proper fix. Don't hack a quick solution.
 
 **Testing subagents:** For writing tests (Implementer writes unit tests directly; use agents for specialized tests):
 

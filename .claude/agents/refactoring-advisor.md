@@ -1,6 +1,33 @@
 ---
 name: refactoring-advisor
-description: Analyzes code for refactoring opportunities per SOLID principles and CODE_REVIEW_GUIDELINES. Use PROACTIVELY when (1) Architect designs changes to files >300 lines, (2) Reviewer finds modified files >500 lines or 3+ code smells, (3) Implementer's Boy Scout Rule opportunities exceed simple fixes, (4) test-only exports added (SRP violation). Triggers on: refactoring, code smell, file size, SOLID, SRP violation, large module, hard to maintain.
+description: Analyzes code for refactoring opportunities per SOLID principles and CODE_REVIEW_GUIDELINES. **MUST USE** after code-reviewer finds ANY code smell (DRY violation, SRP violation, large file, duplication). Also use proactively when Architect designs changes to files >300 lines. Triggers on: DRY violation, code smell, duplication, file size, SOLID, SRP violation, large module, copy-paste, similar code, refactoring, hard to maintain.
+
+<example>
+Context: code-reviewer found DRY violation
+assistant: [code-reviewer returns] "APPROVED WITH MINOR FINDINGS: DRY violation - similar test setup in 3 functions"
+assistant: "Let me use the refactoring-advisor agent to analyze the duplication and recommend the best extraction strategy."
+<commentary>
+CRITICAL: Code-reviewer found code smell. MUST invoke refactoring-advisor before fixing.
+</commentary>
+</example>
+
+<example>
+Context: code-reviewer found duplication
+assistant: [code-reviewer returns] "MAJOR FINDINGS: Copy-pasted spawn logic in Hunt.ttslua lines 45-60 and 120-135"
+assistant: "Let me use the refactoring-advisor agent to analyze the duplication and design the proper abstraction."
+<commentary>
+Duplication found. Refactoring-advisor determines HOW to fix, not just THAT it needs fixing.
+</commentary>
+</example>
+
+<example>
+Context: code-reviewer flagged file size
+assistant: [code-reviewer returns] "ResourceRewards.ttslua is 650 lines - consider splitting"
+assistant: "Let me use the refactoring-advisor agent to analyze ResourceRewards.ttslua and identify natural split points."
+<commentary>
+File size warning. Refactoring-advisor provides concrete extraction plan.
+</commentary>
+</example>
 
 <example>
 Context: Architect planning changes to large module
@@ -12,38 +39,10 @@ Large existing module getting bigger. Check for refactoring opportunities first.
 </example>
 
 <example>
-Context: Before major feature addition
-user: "The Showdown module needs support for quarry monsters"
-assistant: "Before adding quarry support, let me use the refactoring-advisor agent to analyze Showdown.ttslua for any existing structural issues we should address first."
+Context: Implementer notices similar code while working
+assistant: "I notice this spawn pattern is similar to what's in Showdown.ttslua. Let me use the refactoring-advisor agent to check if we should extract a shared helper."
 <commentary>
-Major change to existing code. Proactive analysis prevents building on poor structure.
-</commentary>
-</example>
-
-<example>
-Context: Reviewer found code smells
-user: "The reviewer flagged TTSTests.ttslua for SRP violations"
-assistant: "Let me use the refactoring-advisor agent to analyze TTSTests.ttslua and recommend specific refactoring strategies."
-<commentary>
-Code smell identified. Agent provides concrete refactoring recommendations.
-</commentary>
-</example>
-
-<example>
-Context: File size exceeded threshold
-user: "Campaign.ttslua is over 800 lines now"
-assistant: "Let me use the refactoring-advisor agent to analyze Campaign.ttslua and identify how to split responsibilities."
-<commentary>
-File size exceeds 500-line threshold. Likely SRP violation needing extraction.
-</commentary>
-</example>
-
-<example>
-Context: Implicit request for refactoring advice
-user: "This module is getting hard to work with"
-assistant: "Let me use the refactoring-advisor agent to analyze it for SOLID principle violations and recommend improvements."
-<commentary>
-Developer pain point indicates code smells. Systematic analysis will identify issues.
+Proactive duplication detection. Check before creating more technical debt.
 </commentary>
 </example>
 

@@ -197,12 +197,16 @@ The parent session has full context of what's being implemented. Use:
 
 **Critical:** "APPROVED WITH MINOR FINDINGS" does NOT mean defer fixes to the future. The workflow is:
 1. Commit working code (safety checkpoint)
-2. Address ALL minor findings immediately
-3. Re-invoke reviewer to verify fixes
-4. Repeat until APPROVED
-5. Commit fixes and proceed to next step
+2. **If code smells found (DRY, duplication, SRP):** Invoke `refactoring-advisor` agent to design the fix
+3. Address ALL findings immediately
+4. Re-invoke reviewer to verify fixes
+5. Repeat until APPROVED
+6. Commit fixes and proceed to next step
 
 **Refactorings are never deferred**, even if minor. Technical debt compounds.
+
+**Refactoring-advisor integration:**
+When this review identifies code smells (DRY violations, duplication, SRP issues, large files), the implementing role MUST invoke `refactoring-advisor` before fixing. The advisor designs the proper abstraction; don't just hack a quick fix.
 
 **Same-Session Fix Loop:**
 This agent is designed for iterative review within a single session:
