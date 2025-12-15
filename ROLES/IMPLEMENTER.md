@@ -119,12 +119,17 @@ Before coding:
 Write an implementation plan including:
 - Files to modify
 - Order of changes
-- Test strategy
 - Assumptions and open questions
 - **Refactoring assessment:**
   - Do files need characterization tests before modification? → Use `characterization-test-writer` subagent
   - Are there code smells in the touched code that should be addressed?
   - What Boy Scout Rule improvements will you make while there?
+
+**Test strategy (mandatory — plan ALL layers upfront):**
+- [ ] Characterization tests needed? (modifying existing code with limited coverage)
+- [ ] Unit tests for new/changed behavior
+- [ ] Acceptance tests for user-visible behavior (domain language)
+- [ ] TTS console tests needed? (UI, spawning, Archive operations)
 
 **If characterization tests needed:** Invoke `characterization-test-writer` before any code changes.
 

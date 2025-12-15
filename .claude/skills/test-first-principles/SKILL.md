@@ -179,6 +179,26 @@ local function CountCardsInLocation(location)
 end
 ```
 
+## Test Naming Conventions
+
+### Acceptance Tests
+Prefix with `ACCEPTANCE:` to distinguish from unit tests:
+```lua
+Test.test("ACCEPTANCE: hunt cleanup removes decks with only hunt cards", function(t)
+```
+
+### Characterization Tests
+Prefix with `CHARACTERIZATION:` when documenting existing behavior before modification:
+```lua
+Test.test("CHARACTERIZATION: Clean() ignores cards not matching type filter", function(t)
+```
+
+**After fixing a bug captured by characterization test:**
+- Remove `CHARACTERIZATION:` prefix if test now documents expected behavior
+- Or update the test to verify the NEW expected behavior
+
+This prevents confusion about whether a test documents a bug or expected behavior.
+
 ## Test Quality Bar
 
 - **Breaking production code must fail tests** — Verify by temporarily breaking code

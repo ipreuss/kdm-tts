@@ -13,6 +13,30 @@ The skill covers:
 
 ---
 
+## Four-Layer Testing Strategy
+
+When implementing features or fixing bugs, plan ALL test layers upfront:
+
+| Layer | When to Write | Purpose | Tools |
+|-------|---------------|---------|-------|
+| **1. Characterization** | Before modifying existing code | Capture current behavior (including bugs) as safety net | `tests/*_test.lua` with `CHARACTERIZATION:` prefix |
+| **2. Unit** | TDD red-green cycle | Verify new/changed behavior in isolation | `tests/*_test.lua`, `tests/stubs/` |
+| **3. Acceptance** | After unit tests pass | Verify user-visible behavior using domain language | `tests/acceptance/*_acceptance_test.lua`, `TestWorld` |
+| **4. TTS Console** | When TTS-specific behavior involved | Verify real TTS interactions | `TTSTests/*Tests.ttslua`, `>testall` |
+
+**Mandatory planning checklist (before writing any code):**
+- [ ] Characterization tests needed? (modifying existing code with limited coverage)
+- [ ] Unit tests for new/changed behavior
+- [ ] Acceptance tests for user-visible behavior (domain language)
+- [ ] TTS console tests needed? (UI, spawning, Archive operations)
+
+**Key principles:**
+- Never skip acceptance tests — "unit tests sufficient" is almost never true
+- Characterization tests document existing behavior, including bugs (prefix with `CHARACTERIZATION:`)
+- After fixing a characterized bug, update test to verify NEW expected behavior
+
+---
+
 ## Quick Reference
 
 **Commands:**
