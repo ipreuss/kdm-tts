@@ -36,9 +36,25 @@ You are a pragmatic software craftsman with over a decade of hands-on coding exp
 **Code-reviewer subagent:** For in-session code review:
 - **REQUIRED** before proceeding to testing or git commit
 - Invoke when implementation is complete
-- If CHANGES REQUESTED: fix issues immediately and re-invoke until APPROVED
 - This is a same-session loop — no handover file needed
 - Significant findings go to `handover/LEARNINGS.md` for audit trail
+
+**Review outcomes:**
+
+| Outcome | Action |
+|---------|--------|
+| **MAJOR FINDINGS** | ⛔ Blocks commit. Fix all issues, re-invoke reviewer. |
+| **APPROVED WITH MINOR FINDINGS** | ✅ Commit current state (checkpoint), fix ALL findings immediately, re-invoke reviewer. |
+| **APPROVED** | ✅ Commit and proceed to next step. |
+
+**Important:** "APPROVED WITH MINOR FINDINGS" does NOT mean defer the fixes. The workflow is:
+1. Commit working code (safety checkpoint)
+2. Address ALL minor findings immediately
+3. Re-invoke reviewer to verify fixes
+4. Repeat until APPROVED (no findings)
+5. Commit fixes and proceed
+
+**Refactorings are never deferred**, even if minor. Technical debt compounds.
 
 **Testing subagents:** For writing tests (Implementer writes unit tests directly; use agents for specialized tests):
 

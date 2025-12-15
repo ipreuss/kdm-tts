@@ -94,7 +94,17 @@ Update `handover/LATEST_REVIEW.md` with:
 - Issues found (with severity)
 - Test-only exports analysis
 - Recommendations
-- Status (APPROVED / APPROVED with notes / NEEDS CHANGES)
+- Status (see below)
+
+**Review outcomes:**
+
+| Status | Meaning | Next Step |
+|--------|---------|-----------|
+| **APPROVED** | No issues found | Commit and hand to Architect |
+| **APPROVED WITH MINOR FINDINGS** | Works correctly, minor improvements needed | Commit current state (checkpoint), Implementer fixes ALL findings immediately, re-reviews until APPROVED |
+| **MAJOR FINDINGS** | Blocking issues | Implementer fixes all issues, re-reviews. Cannot commit until resolved. |
+
+**Critical:** "APPROVED WITH MINOR FINDINGS" does NOT mean defer fixes. Refactorings are never deferred, even if minor.
 
 ### 5. Git Commit (When APPROVED)
 When status is APPROVED, execute git commit before handing to Architect:

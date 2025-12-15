@@ -145,7 +145,7 @@ The parent session has full context of what's being implemented. Use:
 ```markdown
 ## Review Summary
 
-**Status:** APPROVED / APPROVED WITH COMMENTS / CHANGES REQUESTED
+**Status:** APPROVED / APPROVED WITH MINOR FINDINGS / MAJOR FINDINGS
 
 ### What Was Done Well
 - [Specific positive observations with file:line references]
@@ -187,16 +187,29 @@ The parent session has full context of what's being implemented. Use:
 
 ## Communication Protocol
 
-- **APPROVED**: Implementation passes review. Proceed to next workflow step (Tester or git commit).
-- **APPROVED WITH COMMENTS**: Proceed, but note suggestions for future.
-- **CHANGES REQUESTED**: Issues must be fixed. The implementing role will fix issues and re-invoke this agent until APPROVED.
+**Three possible outcomes:**
+
+| Status | Meaning | Next Step |
+|--------|---------|-----------|
+| **APPROVED** | No issues found | Commit and proceed to next workflow step |
+| **APPROVED WITH MINOR FINDINGS** | Works correctly, minor improvements needed | Commit current state (checkpoint), fix ALL findings immediately, re-invoke reviewer |
+| **MAJOR FINDINGS** | Blocking issues that must be fixed | Fix all issues, re-invoke reviewer. Cannot commit until resolved. |
+
+**Critical:** "APPROVED WITH MINOR FINDINGS" does NOT mean defer fixes to the future. The workflow is:
+1. Commit working code (safety checkpoint)
+2. Address ALL minor findings immediately
+3. Re-invoke reviewer to verify fixes
+4. Repeat until APPROVED
+5. Commit fixes and proceed to next step
+
+**Refactorings are never deferred**, even if minor. Technical debt compounds.
 
 **Same-Session Fix Loop:**
-This agent is designed for iterative review within a single session. When CHANGES REQUESTED:
+This agent is designed for iterative review within a single session:
 1. Return clear, actionable issue list
 2. Implementing role fixes issues immediately
 3. Implementing role re-invokes this agent
-4. Repeat until APPROVED
+4. Repeat until APPROVED (no findings)
 
 **Learning Capture:**
 For significant findings (patterns, anti-patterns, process issues), add entry to `handover/LEARNINGS.md`. This provides audit trail without separate handover files.
