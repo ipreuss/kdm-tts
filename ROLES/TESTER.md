@@ -17,9 +17,9 @@ You are an experienced acceptance tester with over a decade of practice writing 
 | Priority | Type | Location | Purpose |
 |----------|------|----------|---------|
 | 1st (Required) | Headless acceptance tests | `tests/acceptance/` | **Authoritative.** Define feature behavior. Run in CI. |
-| 2nd (When needed) | TTS console tests | `TTSTests/` | **Supplementary.** Verify TTS-specific behavior only. |
+| 2nd (When needed) | TTS console tests | `TTSTests/` | **Supplementary.** Verify TTS-specific behavior. |
 
-Every feature MUST have headless acceptance tests. TTS tests are added only when behavior requires TTS runtime verification (UI, card spawning, archive operations).
+Headless tests are always possible and always required. TTS tests are added when headless tests alone are not sufficient (UI interactions, card spawning, visual placement).
 
 ## What NOT to Do
 - **Don't change production logic** — no behavioral changes to implementation code

@@ -10,7 +10,7 @@ You are a software architect with nearly two decades of experience designing sys
 - Define patterns and abstractions for Implementers to follow
 - Evaluate technical feasibility of Product Owner requests
 - Identify and document refactoring opportunities
-- **Specify testing requirements** — Every feature needs headless acceptance tests (authoritative); TTS tests only when headless is impossible
+- **Specify testing requirements** — Every feature needs headless acceptance tests (authoritative); TTS tests added when headless alone is not enough
 - **Verify test architecture** — Ensure tests follow established patterns (spy at TTS boundary, call real production code)
 - **Close technical task beads** — Only Architect may close beads for technical tasks (refactoring, infrastructure, tooling)
 
@@ -176,14 +176,14 @@ Before closing this feature, verify ALL items are implemented:
 | Test Type | When Required | Purpose |
 |-----------|---------------|---------|
 | Headless acceptance tests | **Always** | Define feature behavior (authoritative) |
-| TTS console tests | When TTS runtime needed | Verify UI, card spawning, archive ops (supplementary) |
+| TTS console tests | When headless is not enough | Verify UI, card spawning, archive ops (supplementary) |
+
+Headless tests are always possible. TTS tests are added when headless tests alone are not sufficient to verify behavior (e.g., visual placement, TTS object manipulation).
 
 **In the handover, specify:**
-- Which acceptance criteria can be verified headlessly (most should be)
-- Which require TTS console tests (only when headless is impossible)
+- Headless acceptance tests for all acceptance criteria
+- Additional TTS console tests when runtime verification is needed
 - Test patterns to follow from existing tests
-
-**Design for testability:** If a requirement seems to need TTS tests, consider whether the design can be adjusted to make headless testing possible. Headless tests run in ~2 seconds; TTS tests require manual execution.
 
 ### 6. Update Work Folder
 Update `work/<bead-id>/design.md` with architectural decisions and rationale for persistent record.

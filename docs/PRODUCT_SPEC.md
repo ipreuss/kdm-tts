@@ -35,7 +35,7 @@ TTS console tests (`TTSTests/*.ttslua`) verify behavior that requires the TTS ru
 - Archive/deck operations
 - Visual verification
 
-Every feature should have headless acceptance tests first. TTS tests are added only when behavior cannot be verified headlessly.
+Headless tests are always possible and always required. TTS tests are added when headless tests alone are not sufficient.
 
 ### Static Documentation (Reference Only)
 
