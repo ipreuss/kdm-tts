@@ -1,6 +1,6 @@
 ---
 name: learning-capture
-description: Capture learnings in real-time when mistakes occur, process steps are missed, user corrections happen, or new insights are discovered. Triggers when about to say "I should have", "I forgot to", when corrected by user, when discovering patterns, workarounds, or realizing skipped process steps. Documents immediately to handover/LEARNINGS.md.
+description: Capture learnings in real-time. MANDATORY triggers: before any handover, after fixing errors/bugs, when tasks complete, before session close. Also triggers on "I should have", "I forgot to", user corrections, new discoveries. Documents to handover/LEARNINGS.md.
 ---
 
 # Learning Capture (Real-Time)
@@ -10,6 +10,14 @@ description: Capture learnings in real-time when mistakes occur, process steps a
 Capture learnings **immediately** when they occur, not at session end. This skill triggers automatically when learning moments happen during active work.
 
 ## When This Activates
+
+### Mandatory Triggers (ALWAYS capture)
+These are workflow checkpoints — pause and reflect before proceeding:
+
+- **Before creating any handover** — Ask: "What did I learn during this work?"
+- **After fixing an error/bug** — Ask: "What caused this? How could it have been prevented?"
+- **When a task is marked complete** — Ask: "What went well? What was harder than expected?"
+- **Before session closing** — Capture skill/agent usage stats (see below)
 
 ### User-Observable Triggers
 - User points out something you did that was wrong or unwanted
