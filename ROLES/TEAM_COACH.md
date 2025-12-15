@@ -147,16 +147,47 @@ For minor improvements or when learnings are few (<5), implement directly:
 - On request from any role
 - At natural pause points (end of sprint/milestone)
 
-### 7. Archive Work Folder
+### 7. Archive Work Folders (Closed Beads)
 
-After retrospective, consolidate and clean up `work/<bead-id>/`:
+After retrospective, consolidate and clean up work folders for closed beads:
 
-1. **Review** all files for valuable content
-2. **Promote** persistent knowledge:
-   - Design decisions → ARCHITECTURE.md or ADRs
-   - Patterns discovered → skills
-   - Process insights → already in LEARNINGS.md processing
-3. **Delete** the folder — work folders are temporary
+**Step 1: Identify closed bead folders**
+```bash
+# List all work folders and check bead status
+for dir in work/kdm-*/; do
+  bead=$(basename "$dir")
+  status=$(bd show "$bead" 2>/dev/null | grep "Status:" | cut -d: -f2)
+  echo "$bead: $status"
+done
+```
+
+**Step 2: Check for staleness**
+Before deleting, verify content isn't needed:
+- **Design patterns** — Is this a reusable pattern that should be in a skill?
+- **Implementation details** — Is this now obsolete (code was implemented and may have diverged)?
+- **Reference data** — Are external links (wiki URLs) captured in code comments?
+
+**Staleness indicators:**
+- Bead closed > 1 week ago → content likely stale
+- Design.md differs from actual implementation → delete (implementation is source of truth)
+- Content already captured in LEARNINGS.md processing → delete
+
+**Step 3: Review and promote**
+For each file in closed bead folders:
+| Content Type | Action |
+|--------------|--------|
+| Design decisions still relevant | ARCHITECTURE.md or skill |
+| Reusable patterns | Create/update skill |
+| External reference links | Already in code → delete |
+| Implementation-specific details | Delete (code is source of truth) |
+| Process insights | Already processed via LEARNINGS.md → delete |
+
+**Step 4: Delete the folder**
+```bash
+rm -rf work/kdm-xyz/
+```
+
+Work folders are temporary — valuable content should be promoted to permanent locations before deletion.
 
 ### 8. Git Commit Process Changes
 

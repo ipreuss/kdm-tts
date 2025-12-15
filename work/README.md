@@ -23,9 +23,19 @@ Create initial files: `README.md` (summary), `requirements.md` (acceptance crite
 - **Ask:** "What info would help the next role?" and document it
 
 ### 3. Closure (Team Coach)
-- Review folder for learnings → move to `handover/LEARNINGS.md`
-- Archive or delete folder after retrospective
-- Move persistent insights to skills/docs as appropriate
+During retrospective, Team Coach processes closed bead work folders:
+
+1. **Check bead status** — Only process folders for closed beads
+2. **Review for learnings** — Any insights not yet in `handover/LEARNINGS.md`?
+3. **Check for staleness** — Design docs may diverge from implementation:
+   - Compare design.md against actual code (code is source of truth)
+   - Wiki URLs in design.md → should be in code comments, not docs
+4. **Promote persistent knowledge** — Move to skills or ARCHITECTURE.md if reusable
+5. **Delete folder** — Work folders are temporary; don't accumulate
+
+**Staleness rule of thumb:** If bead closed > 1 week ago, assume implementation-specific content is stale (code may have evolved).
+
+See `ROLES/TEAM_COACH.md` Step 7 for detailed cleanup procedure.
 
 ## Suggested Files (Optional)
 
