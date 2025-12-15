@@ -16,6 +16,7 @@ local ConsequenceTests = require("Kdm/TTSTests/ConsequenceTests")
 local PatternTests = require("Kdm/TTSTests/PatternTests")
 local BattleTests = require("Kdm/TTSTests/BattleTests")
 local ResourceRewardsTests = require("Kdm/TTSTests/ResourceRewardsTests")
+local HuntTests = require("Kdm/TTSTests/HuntTests")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -25,7 +26,7 @@ local TestRegistry = {}
 -- Focus Bead - Update when switching to a new backlog item
 ---------------------------------------------------------------------------------------------------
 
-TestRegistry.FOCUS_BEAD = "kdm-5zu"
+TestRegistry.FOCUS_BEAD = "kdm-0zu"
 
 ---------------------------------------------------------------------------------------------------
 -- All Tests Registry
@@ -101,6 +102,19 @@ TestRegistry.ALL_TESTS = {
     { name = "The Old Master Data Integrity", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestOldMasterDataIntegrity(onComplete) end },
     { name = "The Old Master Strange Resources Spawn", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestOldMasterStrangeResourcesSpawn(onComplete) end },
     { name = "The Great Devourer Button Hidden", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestGreatDevourerButtonHidden(onComplete) end },
+    -- Hunt Card Auto-Reveal tests (hunt domain)
+    { name = "ACCEPTANCE: Hunt party drop reveals card", bead = "kdm-i3z", domain = "hunt", fn = function(onComplete) HuntTests.TestHuntPartyDropTriggersReveal(onComplete) end },
+    { name = "ACCEPTANCE: Face-down card flips to face-up", bead = "kdm-i3z", domain = "hunt", fn = function(onComplete) HuntTests.TestFaceDownCardFlips(onComplete) end },
+    { name = "ACCEPTANCE: Empty space causes no error", bead = "kdm-i3z", domain = "hunt", fn = function(onComplete) HuntTests.TestEmptySpaceNoOp(onComplete) end },
+    { name = "ACCEPTANCE: Cleanup clears revealed cards", bead = "kdm-i3z", domain = "hunt", fn = function(onComplete) HuntTests.TestCleanupClearsRevealedCards(onComplete) end },
+    { name = "ACCEPTANCE: Visited position not re-revealed", bead = "kdm-i3z", domain = "hunt", fn = function(onComplete) HuntTests.TestVisitedPositionTracking(onComplete) end },
+    { name = "ACCEPTANCE: Two card types at location revealed sequentially", bead = "kdm-i3z", domain = "hunt", fn = function(onComplete) HuntTests.TestTwoCardsAtLocation(onComplete) end },
+    { name = "ACCEPTANCE: Stacked cards (deck) revealed sequentially", bead = "kdm-i3z", domain = "hunt", fn = function(onComplete) HuntTests.TestDeckAtLocation(onComplete) end },
+    { name = "ACCEPTANCE: Top card revealed first from deck", bead = "kdm-i3z", domain = "hunt", fn = function(onComplete) HuntTests.TestTopCardRevealedFirstFromDeck(onComplete) end },
+    { name = "ACCEPTANCE: Top card revealed first (individual cards)", bead = "kdm-i3z", domain = "hunt", fn = function(onComplete) HuntTests.TestTopCardRevealedFirstIndividual(onComplete) end },
+    { name = "ACCEPTANCE: Next Card button below card with readable text", bead = "kdm-i3z", domain = "hunt", fn = function(onComplete) HuntTests.TestNextCardButtonAppearsBelowCard(onComplete) end },
+    -- Deck Cleanup test (kdm-0zu fix)
+    { name = "ACCEPTANCE: Deck containing matching cards cleaned up", bead = "kdm-0zu", domain = "hunt", fn = function(onComplete) HuntTests.TestDeckCleanup(onComplete) end },
 }
 
 ---------------------------------------------------------------------------------------------------

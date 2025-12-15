@@ -38,12 +38,15 @@ local testFiles = {
     "tests.acceptance.pattern_gear_acceptance_test",
     "tests.acceptance.weapon_pairing_acceptance_test",
     "tests.acceptance.resource_rewards_acceptance_test",
+    "tests.acceptance.hunt_reveal_acceptance_test",
+    "tests.acceptance.hunt_cleanup_acceptance_test",
     "tests.ui_create3d_cache_test",
     "tests.showdown_module_export_test",
     "tests.showdown_resourcerewards_integration_test",
     "tests.showdown_setup_integration_test",
     "tests.rules_nav_button_kit_test",
     "tests.rules_add_to_history_test",
+    "tests.location_clean_test",
 }
 
 for _, file in ipairs(testFiles) do

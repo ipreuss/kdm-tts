@@ -407,6 +407,17 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+-- Check if ALL cards in a deck match the specified types
+local function allDeckCardsMatchTypes(deck, types)
+    local deckObjects = deck.getObjects()
+    for _, cardData in ipairs(deckObjects) do
+        if not Util.ArrayContains(types, cardData.gm_notes) then
+            return false
+        end
+    end
+    return true
+end
+
 function Location:Clean(params, castFunc)
     local tags, types = params.tags, params.types
     log:Debugf("Cleaning %s", self)
@@ -423,6 +434,11 @@ function Location:Clean(params, castFunc)
 
         elseif Location.Matches(obj, tags, types) then
             log:Debugf("Destroying hit object [%s] %s with matching type %s/tag %s", obj.getGUID(), obj.getName(), obj.getGMNotes(), obj.tag)
+            obj.destruct()
+
+        elseif obj.tag == "Deck" and types and allDeckCardsMatchTypes(obj, types) then
+            -- Deck objects don't have GMNotes matching their cards, so check card contents
+            log:Debugf("Destroying deck [%s] %s - all %d cards match types", obj.getGUID(), obj.getName(), obj.getQuantity())
             obj.destruct()
 
         else
