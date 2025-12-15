@@ -38,42 +38,48 @@ description: Apply role-specific closing signature and voice announcement when e
 
 **NO EXCEPTIONS.** This is part of the role protocol defined in PROCESS.md.
 
-## Step 0: Git Commit/Push Check (MANDATORY)
+## Step 0: Git Status Check (MANDATORY)
 
-**⚠️ CRITICAL: Work is NOT done until it's pushed to remote.**
-
-Before learning capture and closing signature, check for uncommitted changes:
+**Before closing, always check for uncommitted changes:**
 
 ```bash
 git status
 ```
 
-**If there are uncommitted changes:**
+### If uncommitted changes exist:
 
-1. **Stage code changes:**
-   ```bash
-   git add <files>
-   ```
+**Evaluate whether to commit based on these criteria:**
 
-2. **Commit with proper message:**
-   ```bash
-   git commit -m "[type]: [description]
+| Condition | Action |
+|-----------|--------|
+| Tests pass AND code-reviewer approved | ✅ Commit and push |
+| Tests pass but no review yet | ⚠️ Flag in closing — work ready for review |
+| Tests failing or incomplete | ⚠️ Flag in closing — work in progress |
+| Process/doc changes only (no code) | ✅ Commit and push (no review needed) |
 
-   Bead: kdm-xxx
+**When committing:**
+```bash
+git add <files>
+git commit -m "[type]: [description]
 
-   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+Bead: kdm-xxx
 
-   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
-   ```
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
-3. **Push to remote:**
-   ```bash
-   git push
-   ```
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
+git push
+```
 
 **Types:** feat, fix, refactor, test, docs, chore
 
-**Why this matters:** Uncommitted code across sessions creates confusion, lost work, and large messy commits later. Every session should leave the repo in a clean state.
+### If NOT committing:
+
+**Document in your closing summary:**
+- What changes are uncommitted
+- Why (tests failing, awaiting review, work incomplete)
+- What the next session needs to do
+
+**Why this matters:** Committing untested or unreviewed code is worse than leaving it uncommitted. But leaving work uncommitted without documentation causes confusion in the next session.
 
 ## Step 1: Learning Capture (MANDATORY)
 
@@ -196,10 +202,12 @@ say -v Anna "Product Owner fertig. Benötige Klarstellung."
 
 **Before sending your final message, verify:**
 
-**Step 0 — Git Commit/Push (DO THIS FIRST):**
+**Step 0 — Git Status Check (DO THIS FIRST):**
 - [ ] **Ran `git status`** — checked for uncommitted changes
-- [ ] **If changes exist:** staged, committed with proper message, pushed
-- [ ] **Repo is clean** — `git status` shows "nothing to commit, working tree clean"
+- [ ] **If changes exist, evaluated commit criteria:**
+  - Tests pass AND code-reviewer approved → commit and push
+  - Otherwise → document uncommitted work in closing summary
+- [ ] **If not committing:** documented what's uncommitted and why
 
 **Step 1 — Learning Capture:**
 - [ ] **Used Edit tool to append to `handover/LEARNINGS.md`** — NOT just terminal output
@@ -295,7 +303,9 @@ say -v Viktor "Implementierer fertig. Handover an Tester erstellt."
 ## Common Mistakes to Avoid
 
 **DON'T:**
-- **Skip git commit/push** — most common mistake, leaves work uncommitted
+- **Skip `git status` check** — must always check for uncommitted changes
+- **Commit without tests passing and code-reviewer approval** — unreviewed code is worse than uncommitted
+- **Leave uncommitted work undocumented** — next session won't know what's pending
 - Skip the closing signature
 - Skip the voice announcement
 - Use English in voice message
@@ -306,7 +316,9 @@ say -v Viktor "Implementierer fertig. Handover an Tester erstellt."
 - Wait for user response without closing signature
 
 **DO:**
-- **Always check `git status` first** — commit and push before closing
+- **Always run `git status` first** — know what's uncommitted
+- **Only commit when tests pass AND code-reviewer approved** (or for process/doc-only changes)
+- **Document uncommitted work** when not committing
 - Always include both signature and voice
 - Use specific, concrete status
 - Match voice to current role
