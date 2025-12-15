@@ -14,26 +14,30 @@ This mod automates campaign management, survivor tracking, and encounter setup f
 - Groups who want automated tracking without manual spreadsheets
 - Solo players managing multiple survivors
 
-## Feature Index
+## Feature Documentation
 
-Each feature has its own specification document in `features/`:
+**Primary documentation is executable acceptance tests** in `tests/acceptance/`. Tests serve as living documentation that cannot become stale.
 
-| Feature | Status | Description |
-|---------|--------|-------------|
-| [Strain Milestones](features/strain-milestones.md) | ✅ Complete | Track and automate strain milestone rewards across campaigns |
-| [Campaign Management](features/campaign.md) | 📄 Outline | Campaign setup, export/import, expansion selection |
-| [Survivors](features/survivors.md) | 📄 Outline | Survivor sheets, survivor board, markers, notes |
-| [Hunt Phase](features/hunt.md) | 📄 Outline | Hunt event automation, random events |
-| [Showdown Phase](features/showdown.md) | 📄 Outline | Showdown setup, terrain spawning, monster stats |
-| [Battle UI](features/battle-ui.md) | 📄 Outline | Weapon display, hit locations, turn tracking |
-| [Timeline](features/timeline.md) | 📄 Outline | Timeline events, settlement phase, milestones |
-| [Settlement](features/settlement.md) | 📄 Outline | Settlement locations, gear crafting, resources |
+### Acceptance Tests (Living Documentation)
 
-**Status legend:**
-- ✅ Complete — Fully specified and implemented
-- 🚧 Partial — Implemented but spec incomplete
-- 📄 Outline — Spec placeholder, implementation exists
-- 📋 Planned — Not yet implemented
+| Feature | Test File | Description |
+|---------|-----------|-------------|
+| Strain Milestones | `strain_acceptance_test.lua` | Track and automate strain milestone rewards across campaigns |
+| Pattern Gear | `pattern_gear_acceptance_test.lua` | Pattern and Seed Pattern crafting system from Gambler's Chest |
+| Resource Rewards | `resource_rewards_acceptance_test.lua` | Post-showdown resource spawning (basic, monster, strange) |
+| Weapon Pairing | `weapon_pairing_acceptance_test.lua` | Paired weapon mechanics including cross-name pairing |
+
+### Static Documentation (Reference Only)
+
+Detailed markdown specs exist for some features in `features/`. These are **reference only** — tests are the authoritative source for behavior.
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| [Strain Milestones](features/strain-milestones.md) | ✅ Complete | Detailed reference |
+| [Pattern Gear](features/pattern-gear.md) | ✅ Complete | Detailed reference |
+| [Trash System](features/trash.md) | ✅ Complete | Card removal system |
+
+Other `features/*.md` files are stubs and may be removed in future cleanup.
 
 ## Cross-Cutting Concerns
 
@@ -59,13 +63,16 @@ The mod supports official KDM expansions. Expansions are enabled per-campaign du
 - Timeline events and settlement locations
 - Monster AI and hit location decks
 
-## Document Conventions
+## Documentation Philosophy
 
-Each feature specification should include:
+**Executable tests over static documents.**
 
-1. **Overview** — What the feature does, in plain language
-2. **User Stories** — Key use cases from the player's perspective
-3. **Behavior** — Detailed expected behavior, step by step
-4. **UI Elements** — Dialogs, boards, buttons involved
-5. **Acceptance Criteria** — Testable conditions for "done"
-6. **Status** — Implementation state and known limitations
+Acceptance tests are the authoritative source for feature behavior:
+- They cannot become stale (tests fail if behavior changes)
+- They use domain language readable by non-programmers
+- They demonstrate exactly what the feature does
+
+Static markdown docs are reserved for:
+- **Reference tables** (milestone lists, consequence types)
+- **Complex user workflows** that span multiple features
+- **Historical context** when needed
