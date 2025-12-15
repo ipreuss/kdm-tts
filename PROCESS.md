@@ -26,36 +26,37 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 
 **Code change flow:**
 ```
-PO ─requirements─► Architect ─design─► Implementer ─code─► Reviewer ─reviewed─► Tester
-                                                                                   │
-PO ─acceptance criteria───────────────────────────────────────────────────────────►│
-                                                                                   │
-                        ◄──────────────────── acceptance tests ───────────────────┘
+PO ─requirements─► Architect ─design─► Implementer ─code+review─► Tester
+                                                                     │
+PO ─acceptance criteria─────────────────────────────────────────────►│
+                                                                     │
+                        ◄──────────── acceptance tests ─────────────┘
                         │
-                    Reviewer ─reviewed─► Architect ─design ok─► PO (validation)
+                    Implementer (review) ─► Architect ─design ok─► PO (validation)
 ```
 
-**All code goes through Reviewer** — including acceptance tests written by Tester.
+**Code review happens via subagent** — Implementer invokes `code-reviewer` subagent before proceeding. Same-session fix loop until APPROVED.
+**Full Reviewer role reserved for complex cases** — large scope (10+ files), architectural concerns, or when user requests dedicated review.
 **Architect verifies design compliance** — before PO validates requirements are met.
 
 **Handoff points:**
 1. Product Owner defines requirements → Architect designs solution
 2. Architect provides design → Implementer writes code + implementation tests
-3. Implementer completes changes → Reviewer reviews code and tests
-4. Reviewer approves → Tester writes acceptance tests
-5. Tester completes acceptance tests → Reviewer reviews acceptance tests
-6. **Reviewer approves → Human commits to git** (see "Git Commit Milestone" below)
+3. Implementer invokes `code-reviewer` subagent → fix loop until APPROVED (no handover)
+4. Implementer hands off to Tester (with review approval documented)
+5. Tester completes acceptance tests → invokes `code-reviewer` subagent → fix loop until APPROVED
+6. **After review approval → Human commits to git** (see "Git Commit Milestone" below)
 7. Architect verifies design compliance
 8. Architect approves → Product Owner validates feature is complete
 9. Findings at any stage may loop back to prior roles
 
 ### Git Commit Milestone
 
-**When:** After Reviewer approves code (step 6 above).
+**When:** After `code-reviewer` subagent returns APPROVED (step 6 above).
 
 **Why:** Code is tested and reviewed — safe to commit.
 
-**Reviewer executes commit (human approval required):**
+**Implementing role executes commit (human approval required):**
 1. Run `git status` to show changes
 2. Stage files: `git add [files]`
 3. Commit with message:
@@ -67,7 +68,7 @@ PO ─acceptance criteria──────────────────�
    Bead: kdm-xxx"
    ```
 4. Human reviews and approves the commit command
-5. After commit succeeds, hand over to Architect
+5. After commit succeeds, hand over to Architect (or Tester if tests remain)
 
 **Types:** feat, fix, refactor, test, docs, chore
 
@@ -104,19 +105,20 @@ Needs diagnosis           → Tester → debugger subagent → Implementer
 Complex/cross-module      → Tester → Debugger role (full handover)
 ```
 
-**Reviewer is the default:**
-All code goes through Reviewer — both implementation code (from Implementer) and acceptance tests (from Tester). Even small changes are easy to review and often surface code smells or test quality issues. The cost of a quick review is low; the cost of accumulated technical debt or bad test patterns is high.
+**Code review via subagent (default):**
+All code goes through the `code-reviewer` subagent — both implementation code (from Implementer) and acceptance tests (from Tester). The subagent operates in a same-session fix loop: invoke → fix issues → re-invoke until APPROVED. Significant findings go to `handover/LEARNINGS.md` for audit trail.
 
-**Two review modes:**
-1. **External Reviewer role** — Separate session, full handover workflow (default for large changes)
-2. **Code-reviewer subagent** — In-session review via `.claude/agents/code-reviewer.md` (for quick reviews)
+**Full Reviewer role (exception):**
+Use a dedicated Reviewer session only when:
+- Changes span 10+ files or 500+ lines
+- Architectural concerns affect module boundaries
+- Fresh perspective needed after subagent review
+- User explicitly requests dedicated review
 
-**⚠️ Pre-handover review requirement:**
-Before creating any handover that includes code changes beyond trivial fixes (typos, single-line tweaks), the implementing role MUST run the `code-reviewer` subagent. This catches issues early, before they cross role boundaries.
+**⚠️ Review requirement:**
+Before proceeding from Implementer to Tester (or to git commit), the implementing role MUST have `code-reviewer` subagent approval. This catches issues before they cross role boundaries.
 
-The subagent review does NOT replace the external Reviewer role for significant changes — it's an additional quality gate that happens before handover.
-
-**Skip pre-handover review only for:**
+**Skip review only for:**
 - Documentation-only changes (no code)
 - Pure data/configuration changes with integrity tests
 - Trivial fixes (typos, single-line changes)
@@ -174,12 +176,12 @@ For behavior-preserving refactoring tasks, a streamlined workflow reduces handov
 
 **Standard workflow:**
 ```
-PO → Architect → Implementer → Reviewer → Tester → Reviewer → Architect → PO
+PO → Architect → Implementer (subagent review) → Tester (subagent review) → Architect → PO
 ```
 
 **Lightweight refactoring workflow:**
 ```
-PO (scope approval) → Architect → Implementer (with subagent review) → Tester → Architect (closure)
+PO (scope approval) → Architect → Implementer (subagent review) → Tester → Architect (closure)
 ```
 
 **Criteria for lightweight workflow (ALL must be met):**
@@ -196,7 +198,6 @@ PO (scope approval) → Architect → Implementer (with subagent review) → Tes
 
 **Key differences from standard workflow:**
 - PO approves scope upfront but skips final review
-- External Reviewer skipped (code-reviewer subagent used instead)
 - Architect closes technical task bead (not PO)
 - Tester verifies no regressions, hands back to Architect
 

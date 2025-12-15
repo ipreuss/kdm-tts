@@ -20,8 +20,10 @@ You are a pragmatic software craftsman with over a decade of hands-on coding exp
 
 ## Handover Documents
 - **Input:** `handover/HANDOVER_IMPLEMENTER.md` (from Architect)
-- **Input:** `handover/LATEST_REVIEW.md` (from Reviewer)
+- **Input:** `handover/LATEST_REVIEW.md` (from full Reviewer role, if used)
 - **Output:** `handover/IMPLEMENTATION_STATUS.md` (progress snapshot)
+
+> **Note:** Most reviews happen via the `code-reviewer` subagent in your session. `LATEST_REVIEW.md` is only used when the full Reviewer role handles a complex review.
 
 ## Available Subagents
 
@@ -31,10 +33,12 @@ You are a pragmatic software craftsman with over a decade of hands-on coding exp
 - Returns diagnosis + suggested fix
 - Use for quick hiccups, unexpected test failures, errors during implementation
 
-**Code-reviewer subagent:** For in-session review:
-- **REQUIRED** before any handover with code changes (including "trivial" data-only changes)
-- Catches issues before they cross role boundaries
-- Also required for lightweight refactoring workflow
+**Code-reviewer subagent:** For in-session code review (replaces handover to Reviewer role):
+- **REQUIRED** before proceeding to Tester or git commit
+- Invoke when implementation is complete
+- If CHANGES REQUESTED: fix issues immediately and re-invoke until APPROVED
+- This is a same-session loop — no handover file needed
+- Significant findings go to `handover/LEARNINGS.md` for audit trail
 
 **Handover-manager subagent:** For creating handovers:
 - Use `handover-manager` subagent to create handover files and update QUEUE.md
@@ -144,14 +148,26 @@ When changes affect TTS interactions:
 2. Test in TTS console
 3. Verify UI and behavior
 
-### 7. Update Status
+### 7. Code Review (Same-Session)
+When implementation is complete:
+1. Invoke the `code-reviewer` subagent
+2. If **APPROVED**: proceed to Step 8 (Update Status)
+3. If **CHANGES REQUESTED**:
+   - Fix all issues immediately
+   - Re-invoke `code-reviewer`
+   - Repeat until APPROVED
+4. For significant findings (patterns, anti-patterns), add to `handover/LEARNINGS.md`
+
+**No handover file needed** — review happens within your session.
+
+### 8. Update Status
 Update `handover/IMPLEMENTATION_STATUS.md` with:
 - What was completed
 - What remains
 - Any blockers or questions
 - **User verification already done:** If user ran TTS tests or verified behavior during implementation, record results here — don't leave for Tester to re-request
 
-### 8. Update Work Folder
+### 9. Update Work Folder
 Update `work/<bead-id>/progress.md` with implementation progress for persistent record.
 
 ## Available Skills
