@@ -14,11 +14,13 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 **Role documentation:** See `ROLES/<ROLE>.md` for detailed responsibilities, constraints, and workflows:
 - `ROLES/PRODUCT_OWNER.md` — Requirements, user stories, acceptance criteria
 - `ROLES/ARCHITECT.md` — System design, patterns, technical feasibility
-- `ROLES/IMPLEMENTER.md` — Coding workflow, patterns, review responses
+- `ROLES/IMPLEMENTER.md` — Coding, testing (via subagents), review responses
 - `ROLES/REVIEWER.md` — Code review process, checklists, handover format
 - `ROLES/DEBUGGER.md` — Debugging patterns, logging, root cause analysis
-- `ROLES/TESTER.md` — Acceptance testing, TestWorld usage, TTS console tests
 - `ROLES/TEAM_COACH.md` — Process improvement, workflow optimization
+
+> **Note:** Tester role has been merged into Implementer. Testing is now handled via specialized subagents:
+> `characterization-test-writer`, `acceptance-test-writer`, `tts-test-writer`, `test-runner`
 
 **Role file structure principle:** Each role file has numbered workflow steps that roles follow as a checklist. Important actions MUST be in the numbered steps, not just in reference sections — standalone sections get skipped during execution.
 
@@ -26,13 +28,7 @@ Each AI chat session operates in exactly one role. Roles have distinct responsib
 
 **Code change flow:**
 ```
-PO ─requirements─► Architect ─design─► Implementer ─code+review─► Tester
-                                                                     │
-PO ─acceptance criteria─────────────────────────────────────────────►│
-                                                                     │
-                        ◄──────────── acceptance tests ─────────────┘
-                        │
-                    Implementer (review) ─► Architect ─design ok─► PO (validation)
+PO ─requirements─► Architect ─design─► Implementer ─code+tests+review─► Architect ─design ok─► PO (validation)
 ```
 
 **Code review happens via subagent** — Implementer invokes `code-reviewer` subagent before proceeding. Same-session fix loop until APPROVED.
@@ -41,18 +37,17 @@ PO ─acceptance criteria──────────────────�
 
 **Handoff points:**
 1. Product Owner defines requirements → Architect designs solution
-2. Architect provides design → Implementer writes code + implementation tests
+2. Architect provides design → Implementer writes code + unit tests
 3. Implementer invokes `code-reviewer` subagent → fix loop until APPROVED (no handover)
-4. Implementer hands off to Tester (with review approval documented)
-5. Tester completes acceptance tests → invokes `code-reviewer` subagent → fix loop until APPROVED
-6. **After review approval → Human commits to git** (see "Git Commit Milestone" below)
-7. Architect verifies design compliance
-8. Architect approves → Product Owner validates feature is complete
-9. Findings at any stage may loop back to prior roles
+4. Implementer invokes testing subagents (`acceptance-test-writer`, `tts-test-writer` if needed)
+5. **After tests pass and review approval → Human commits to git** (see "Git Commit Milestone" below)
+6. Architect verifies design compliance
+7. Architect approves → Product Owner validates feature is complete
+8. Findings at any stage may loop back to prior roles
 
 ### Git Commit Milestone
 
-**When:** After `code-reviewer` subagent returns APPROVED (step 6 above).
+**When:** After `code-reviewer` subagent returns APPROVED (step 5 above).
 
 **Why:** Code is tested and reviewed — safe to commit.
 
@@ -68,45 +63,37 @@ PO ─acceptance criteria──────────────────�
    Bead: kdm-xxx"
    ```
 4. Human reviews and approves the commit command
-5. After commit succeeds, hand over to Architect (or Tester if tests remain)
+5. After commit succeeds, hand over to Architect for design compliance verification
 
 **Types:** feat, fix, refactor, test, docs, chore
 
-### Bug Fast Path (Tester → Implementer)
+### Bug Fast Path
 
-For simple bugs, Tester may skip the Debugger role and hand directly to Implementer.
+For simple bugs discovered during implementation or testing, Implementer may fix directly without Debugger handover.
 
 **Fast path criteria (ALL must be met):**
 - [ ] Root cause identified with specific file:line
 - [ ] Fix is < 10 lines
 - [ ] Single module affected (no cross-module impact)
-- [ ] Tester confidence > 90%
+- [ ] Confidence > 90%
 
-**Fast path handover must include:**
-- Diagnosis rationale (why Tester is confident)
-- Specific file and line numbers
-- Suggested fix (before/after code snippet)
-
-**When criteria not met:** Use standard Debugger path.
-
-**Safeguard:** Implementer may escalate to Debugger if diagnosis is unclear or fix is more complex than expected.
+**When criteria not met:** Use Debugger role for investigation.
 
 **Middle ground — Debugger subagent:**
-When Tester is uncertain about root cause but doesn't want full handover:
+When uncertain about root cause but don't want full handover:
 - Use `debugger` subagent for in-session diagnosis
-- Subagent analyzes and recommends: fast path, standard path, or needs more investigation
-- Available to both Tester and Implementer
+- Subagent analyzes and recommends: fast path or standard Debugger handover
 
 ```
 Bug complexity spectrum:
 
-Trivial (obvious fix)     → Tester → Implementer (fast path)
-Needs diagnosis           → Tester → debugger subagent → Implementer
-Complex/cross-module      → Tester → Debugger role (full handover)
+Trivial (obvious fix)     → Fix directly (fast path)
+Needs diagnosis           → debugger subagent → then decide
+Complex/cross-module      → Debugger role (full handover)
 ```
 
 **Code review via subagent (default):**
-All code goes through the `code-reviewer` subagent — both implementation code (from Implementer) and acceptance tests (from Tester). The subagent operates in a same-session fix loop: invoke → fix issues → re-invoke until APPROVED. Significant findings go to `handover/LEARNINGS.md` for audit trail.
+All code goes through the `code-reviewer` subagent. The subagent operates in a same-session fix loop: invoke → fix issues → re-invoke until APPROVED. Significant findings go to `handover/LEARNINGS.md` for audit trail.
 
 **Full Reviewer role (exception):**
 Use a dedicated Reviewer session only when:
@@ -116,7 +103,7 @@ Use a dedicated Reviewer session only when:
 - User explicitly requests dedicated review
 
 **⚠️ Review requirement:**
-Before proceeding from Implementer to Tester (or to git commit), the implementing role MUST have `code-reviewer` subagent approval. This catches issues before they cross role boundaries.
+Before proceeding to git commit, the Implementer MUST have `code-reviewer` subagent approval. This catches issues before they cross role boundaries.
 
 **Skip review only for:**
 - Documentation-only changes (no code)
@@ -126,7 +113,7 @@ Before proceeding from Implementer to Tester (or to git commit), the implementin
 When skipping review, explicitly note why in the handover.
 
 **Architect handover must specify TTS testing needs:**
-When the design involves new TTS API interactions (archive operations, deck manipulation, object spawning, UI rendering), the Architect's handover must explicitly request TTS console tests in addition to headless tests. Headless tests verify business logic but cannot catch subtle TTS API issues (timing, callbacks, object state). The implementer is responsible for adding the specified TTS tests.
+When the design involves new TTS API interactions (archive operations, deck manipulation, object spawning, UI rendering), the Architect's handover must explicitly request TTS console tests in addition to headless tests. Headless tests verify business logic but cannot catch subtle TTS API issues (timing, callbacks, object state). The Implementer uses `tts-test-writer` subagent to add the specified TTS tests.
 
 **Architect handover checklist for UI features:**
 ```
@@ -148,7 +135,7 @@ This forces explicit consideration of TTS-specific requirements upfront, prevent
 | **Product Owner** | Feature beads, bug beads | Validates user-facing requirements are met |
 | **Architect** | Technical task beads | Validates technical quality and design compliance |
 
-**All other roles** (Implementer, Reviewer, Debugger, Tester) must **not** close beads directly. When work is complete:
+**All other roles** (Implementer, Reviewer, Debugger) must **not** close beads directly. When work is complete:
 
 1. Create a handover to the appropriate authority:
    - Features/bugs → handover to **Product Owner**
@@ -176,12 +163,12 @@ For behavior-preserving refactoring tasks, a streamlined workflow reduces handov
 
 **Standard workflow:**
 ```
-PO → Architect → Implementer (subagent review) → Tester (subagent review) → Architect → PO
+PO → Architect → Implementer (code + tests + subagent review) → Architect → PO
 ```
 
 **Lightweight refactoring workflow:**
 ```
-PO (scope approval) → Architect → Implementer (subagent review) → Tester → Architect (closure)
+PO (scope approval) → Architect → Implementer (subagent review) → Architect (closure)
 ```
 
 **Criteria for lightweight workflow (ALL must be met):**
@@ -193,13 +180,13 @@ PO (scope approval) → Architect → Implementer (subagent review) → Tester �
 
 **Escalation triggers (switch to standard workflow):**
 - Scope extends beyond original refactoring
-- Tester finds behavioral bug (not just regression)
-- Implementer or Tester has doubts about change scope
+- Tests find behavioral bug (not just regression)
+- Implementer has doubts about change scope
 
 **Key differences from standard workflow:**
 - PO approves scope upfront but skips final review
 - Architect closes technical task bead (not PO)
-- Tester verifies no regressions, hands back to Architect
+- Implementer verifies no regressions via acceptance tests, hands back to Architect
 
 ### Role Boundaries
 
@@ -449,7 +436,7 @@ Each active bead gets a dedicated folder (`work/<bead-id>/`) where roles documen
 | `requirements.md` | Product Owner | Acceptance criteria, constraints, user stories |
 | `design.md` | Architect | Decisions, patterns, rationale, alternatives considered |
 | `progress.md` | Implementer | What's done, what remains, blockers |
-| `testing.md` | Tester | Test plan, results, bugs found, TTS commands |
+| `testing.md` | Implementer | Test plan, results, bugs found, TTS commands |
 | `review.md` | Reviewer | Code review findings (per-bead history) |
 | `decisions.md` | Any | Key decisions with rationale and date |
 | `learnings.md` | Any | Insights during work (feeds retrospective) |
@@ -538,7 +525,6 @@ Each role has an assigned voice:
 | Implementer | Viktor | `say -v Viktor "..."` |
 | Reviewer | Petra | `say -v Petra "..."` |
 | Debugger | Yannick | `say -v Yannick "..."` |
-| Tester | Audrey | `say -v Audrey "..."` |
 | Team Coach | Xander | `say -v Xander "..."` |
 
 The message format is: `"<Rolle> fertig. <kurzer Status>"`
@@ -549,7 +535,6 @@ Examples of dynamic status messages:
 - Implementer: `say -v Viktor "Implementer fertig. Fünf Dateien geändert, alle Tests bestanden"`
 - Reviewer: `say -v Petra "Reviewer fertig. Zwei Probleme gefunden"`
 - Debugger: `say -v Yannick "Debugger fertig. Ursache identifiziert"`
-- Tester: `say -v Audrey "Tester fertig. Sechs Tests hinzugefügt, ein Fehler gefunden"`
 - Team Coach: `say -v Xander "Team Coach fertig. Neue Rolle eingeführt"`
 
 Derive the status from actual session accomplishments. Spell out numbers as German words. Avoid English loanwords (use "Fehler" not "Bug").
@@ -651,7 +636,11 @@ Subagents provide specialized capabilities within a session. See `.claude/agents
 | Subagent | Purpose | Model |
 |----------|---------|-------|
 | `code-reviewer` | Review code at milestones, before handover, or when stuck | opus |
-| `debugger` | Diagnose bugs without full Debugger handover (for Tester and Implementer) | sonnet |
+| `debugger` | Diagnose bugs without full Debugger handover | sonnet |
+| `characterization-test-writer` | Write characterization tests before modifying legacy code | sonnet |
+| `acceptance-test-writer` | Write headless acceptance tests using domain language | sonnet |
+| `tts-test-writer` | Write automated TTS console tests | sonnet |
+| `test-runner` | Run headless tests and analyze results | sonnet |
 | `seam-finder` | Analyze modules for testability seams and refactoring opportunities | sonnet |
 | `screenshot-analyzer` | Analyze screenshots with auto file discovery and size optimization | sonnet |
 | `subagent-creator` | Create new custom subagents following best practices | sonnet |
@@ -667,17 +656,23 @@ Skills provide domain knowledge that Claude automatically applies when context m
 | Skill | Purpose | Triggers |
 |-------|---------|----------|
 | `legacy-code-testing` | Feathers' techniques for safely modifying untested code | legacy, untested, seam, characterization test |
-| `kdm-tts-patterns` | TTS-specific patterns, async callbacks, object lifecycle, archive operations | TTS, spawn, callback, archive, deck, async |
 | `kdm-coding-conventions` | Lua coding style, module exports, SOLID principles, error handling | Lua, module, export, style, SOLID, guard clause |
-| `kdm-test-patterns` | Testing patterns, behavioral vs structural, TTSSpawner seam, TTS console tests | test, acceptance, unit, spy, mock, behavioral |
 | `kdm-expansion-data` | Expansion data structures, archive system, card naming conventions | expansion, gear, monster, archive, card, deck |
 | `kdm-ui-framework` | UI patterns, PanelKit, LayoutManager, color palette, dialog creation | UI, panel, dialog, PanelKit, LayoutManager, CLASSIC |
 | `dry-violations` | Detects duplication when making similar changes in multiple places | copy-paste, same change, duplicate code, extract |
 | `session-closing` | Ensures roles use closing signature and voice announcement | done, finished, thanks, handover, summary, waiting for user |
+| `tts-archive-spawning` | Archive.Take, async callbacks, Archive.Clean patterns | Archive.Take, spawn, callback, async |
+| `tts-deck-operations` | Deck extraction, collapse behavior, card merging | deck, takeObject, card extraction, quantity |
+| `tts-unknown-error` | <Unknown Error>, destroyed objects, object lifecycle | Unknown Error, destroyed, nil object |
+| `tts-location-tracking` | Location system, drop handlers, coordinates | Location, drop handler, coordinates |
+| `tts-ui-timing` | ApplyToObject, Show/Hide timing | ApplyToObject, UI timing, Show, Hide |
+| `test-first-principles` | Core testing principles, anti-patterns, behavioral vs structural | test, behavioral, structural, anti-pattern |
+| `tts-console-testing` | TTS console test patterns, testall, testfocus | testall, testfocus, TTS test, console test |
+| `acceptance-test-design` | TestWorld, user-visible behavior, domain language | TestWorld, acceptance, domain language |
 
 ### Debugging Procedure
 
-All coding roles (Implementer, Debugger, Tester) must follow this procedure when encountering a bug or unexpected behavior:
+All coding roles (Implementer, Debugger) must follow this procedure when encountering a bug or unexpected behavior:
 
 1. **Analyze the code** — Understand the relevant code paths and state
 2. **Create hypotheses** — List one or more possible causes

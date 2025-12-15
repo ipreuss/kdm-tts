@@ -33,12 +33,23 @@ You are a pragmatic software craftsman with over a decade of hands-on coding exp
 - Returns diagnosis + suggested fix
 - Use for quick hiccups, unexpected test failures, errors during implementation
 
-**Code-reviewer subagent:** For in-session code review (replaces handover to Reviewer role):
-- **REQUIRED** before proceeding to Tester or git commit
+**Code-reviewer subagent:** For in-session code review:
+- **REQUIRED** before proceeding to testing or git commit
 - Invoke when implementation is complete
 - If CHANGES REQUESTED: fix issues immediately and re-invoke until APPROVED
 - This is a same-session loop — no handover file needed
 - Significant findings go to `handover/LEARNINGS.md` for audit trail
+
+**Testing subagents:** For writing tests (Implementer writes unit tests directly; use agents for specialized tests):
+
+| Agent | When to Use |
+|-------|-------------|
+| `characterization-test-writer` | Before modifying untested/legacy code — captures existing behavior |
+| `acceptance-test-writer` | After code-reviewer approval — writes headless acceptance tests |
+| `tts-test-writer` | When TTS verification needed — writes automated console tests |
+| `test-runner` | Quick verification — runs headless tests and analyzes results |
+
+**Workflow:** Unit tests (you write) → code-reviewer → acceptance-test-writer → tts-test-writer (if needed) → Architect
 
 **Handover-manager subagent:** For creating handovers:
 - Use `handover-manager` subagent to create handover files and update QUEUE.md
@@ -87,9 +98,11 @@ Write an implementation plan including:
 - Test strategy
 - Assumptions and open questions
 - **Refactoring assessment:**
-  - Do files need characterization tests before modification? (see `legacy-code-testing` skill)
+  - Do files need characterization tests before modification? → Use `characterization-test-writer` subagent
   - Are there code smells in the touched code that should be addressed?
   - What Boy Scout Rule improvements will you make while there?
+
+**If characterization tests needed:** Invoke `characterization-test-writer` before any code changes.
 
 **Get confirmation before proceeding with code changes.**
 
@@ -148,21 +161,36 @@ When changes affect TTS interactions:
 2. Test in TTS console
 3. Verify UI and behavior
 
-### 7. Code Review (Same-Session)
+### 7. Code Review and Testing (Same-Session)
+
 When implementation is complete:
+
+**Step 7a: Code Review**
 1. Invoke the `code-reviewer` subagent
-2. If **CHANGES REQUESTED**:
-   - Fix all issues immediately
-   - Re-invoke `code-reviewer`
-   - Repeat until APPROVED
-3. If **APPROVED**: determine next step:
-   - **TTS tests needed?** → Hand off to Tester (git commit happens after Tester)
-   - **No TTS tests needed?** → Proceed to git commit, then Architect
-4. For significant findings (patterns, anti-patterns), add to `handover/LEARNINGS.md`
+2. If **CHANGES REQUESTED**: fix issues and re-invoke until APPROVED
+3. For significant findings, add to `handover/LEARNINGS.md`
 
-**TTS tests are needed when:** Changes affect TTS interactions, UI, Archive operations, deck manipulation, or anything requiring visual/runtime verification.
+**Step 7b: Acceptance Tests**
+1. Invoke `acceptance-test-writer` subagent to create headless acceptance tests
+2. Run `test-runner` to verify all tests pass
+3. If tests fail: fix and re-run until green
 
-**No handover file needed** — review happens within your session.
+**Step 7c: TTS Tests (if needed)**
+1. Invoke `tts-test-writer` subagent to create TTS console tests
+2. Run `./updateTTS.sh` to sync
+3. Ask user to run `>testfocus` in TTS and confirm results
+4. Document: "TTS Verification: User confirmed [commands] passed on [date]"
+
+**When TTS tests are needed:**
+- UI visibility or rendering
+- Object spawning or positioning
+- Card/deck manipulation
+- Archive operations
+- Visual placement verification
+
+**Step 7d: Handover**
+- All tests green → Hand off to Architect for design compliance
+- Git commit happens after Architect approval
 
 ### 8. Update Status
 Update `handover/IMPLEMENTATION_STATUS.md` with:
@@ -187,10 +215,20 @@ Captures to `handover/LEARNINGS.md` in real-time, not waiting for session end.
 
 ### Core Skills (auto-load)
 - **`kdm-coding-conventions`** — Lua style, module exports, SOLID principles, error handling
-- **`kdm-tts-patterns`** — TTS async callbacks, archive operations, object lifecycle
-- **`kdm-test-patterns`** — Testing patterns, anti-patterns, cross-module integration tests
 - **`kdm-ui-framework`** — PanelKit, LayoutManager, color palette (for UI work)
 - **`kdm-expansion-data`** — Expansion data structures, archive system (for expansion work)
+
+### TTS Skills (load when needed)
+- **`tts-archive-spawning`** — Archive.Take, async callbacks, Archive.Clean patterns
+- **`tts-deck-operations`** — Deck extraction, collapse behavior, card merging
+- **`tts-location-tracking`** — Location system, drop handlers, coordinates
+- **`tts-unknown-error`** — Debugging <Unknown Error> and destroyed objects
+- **`tts-ui-timing`** — UI timing issues, ApplyToObject, Show/Hide
+
+### Testing Skills
+- **`test-first-principles`** — Core testing principles, anti-patterns, behavioral vs structural
+- **`acceptance-test-design`** — TestWorld, user-visible behavior, domain language
+- **`tts-console-testing`** — TTS test commands, FOCUS_BEAD, test registration
 
 ### Process Skills
 - **`test-driven-development`** — Red-Green-Refactor cycle, Iron Law: no code without failing test first

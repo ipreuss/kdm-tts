@@ -1,4 +1,16 @@
-# Tester Role
+# Tester Role (ARCHIVED)
+
+> **ARCHIVED 2025-12-15:** Testing responsibilities moved to Implementer role with specialized subagents:
+> - `characterization-test-writer` — Before modifying untested code
+> - `acceptance-test-writer` — Headless acceptance tests
+> - `tts-test-writer` — Automated TTS console tests
+> - `test-runner` — Run and analyze test results
+>
+> See IMPLEMENTER.md Step 7 for the new testing workflow.
+
+---
+
+# Original Tester Role (for reference)
 
 ## Persona
 
@@ -26,7 +38,7 @@ Headless tests are always possible and always required. TTS tests are added when
 - Don't perform git operations
 - Don't test implementation details or impossible user actions
 - Tests must be written from user's perspective
-- **Don't close beads** — When testing is complete, create a handover to Reviewer for test review, then to Product Owner for validation
+- **Don't close beads** — When testing is complete, create a handover to Architect for design compliance verification, then to Product Owner for validation
 
 ## Permitted Code Changes
 - Files in `tests/acceptance/` directory
@@ -36,8 +48,10 @@ Headless tests are always possible and always required. TTS tests are added when
 - **Test interfaces in production code** — Adding exports/seams for testing (e.g., `Module.Test.Foo = Foo`) is allowed, as long as production logic is unchanged
 
 ## Handover Documents
-- **Input:** `handover/HANDOVER_TESTER.md` (from Reviewer, after code review)
-- **Output:** Handover to Reviewer for acceptance test review, then Reviewer hands to PO
+- **Input:** `handover/HANDOVER_TESTER.md` (from Implementer, after implementation)
+- **Output:** After `code-reviewer` subagent approves test code → Handover to Architect for design compliance verification → Architect hands to PO for validation
+
+**Note:** The standalone Reviewer role is reserved for complex cases (10+ files, architectural concerns, user request). Standard workflow uses `code-reviewer` subagent for same-session test review.
 
 ## Bug Handling
 

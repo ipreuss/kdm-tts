@@ -136,10 +136,18 @@ For minor improvements or when learnings are few (<5), implement directly:
    - For skills/agents: create or update the file directly
    - For docs: edit the relevant documentation
    - For process: follow standard change workflow
-4. **Log** what was done in the Processing Log table
-5. **Clear** processed learnings from the Unprocessed section
+4. **Clean up queue and handover files** — Remove COMPLETED/SUPERSEDED entries, delete orphaned files
+5. **Archive work folder** — For closed beads, review `work/<bead-id>/` for content to promote, then delete folder (see Step 7 for details)
+6. **Log** what was done in the Processing Log table
+7. **Clear** processed learnings from the Unprocessed section
 
 **Skill/Agent preference:** When a learning indicates process conformance issues (forgetting steps, missing triggers, inconsistent behavior), prefer creating or updating skills/agents over adding documentation. Skills and agents provide automatic enforcement; documentation requires manual compliance.
+
+**Skill design principles:**
+- Skills must be **problem-oriented** (trigger on use case), not domain-oriented (grab-bag of related topics)
+- Keep skills under **300 lines** — split larger skills into focused ones
+- When splitting, ask: "What problem does each piece solve?" not "What domain does it belong to?"
+- See `writing-skills` skill for full guidelines
 
 **Consolidation triggers:**
 - During feature retrospectives
