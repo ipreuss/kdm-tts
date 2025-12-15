@@ -361,17 +361,14 @@ For each refactoring opportunity, assess:
 
 ### Recommended Refactoring Sequence
 
-**Phase 1 (Week 1):** P0 refactorings
-1. [R1]: [Brief description] — [Impact]
-2. [R2]: [Brief description] — [Impact]
+**Do Now (in current session):**
+1. [R1]: [Brief description] — P0/P1/P2 in touched files
+2. [R2]: [Brief description] — P0/P1/P2 in touched files
 
-**Phase 2 (Week 2):** P1 refactorings
-3. [R3]: [Brief description] — [Impact]
+**Create Beads For (outside current scope):**
+3. [R3]: [Brief description] — P3 in untouched files
 
-**Phase 3 (Optional):** P2/P3 refactorings
-4. [R4]: [Brief description] — [Impact]
-
-**Total effort estimate:** [X days/weeks]
+**Total effort estimate:** [X hours for immediate work]
 
 ---
 
@@ -404,14 +401,19 @@ For each refactoring opportunity, assess:
 
 ## Refactoring Decision Framework
 
+**Core principle: Refactorings are never deferred.** Technical debt compounds.
+
 Help roles decide what to do with identified opportunities:
 
 | Priority | Decision | Rationale |
 |----------|----------|-----------|
 | P0 (Critical, <1hr, low risk) | **Do now** | Highest value, minimal cost |
-| P1 (High, related to current work) | **Do now** if tests exist | Prevents technical debt accumulation |
-| P2/P3 (Medium/Low priority) | **Create bead** | Document for future, don't block current work |
+| P1 (High, related to current work) | **Do now** | Prevents technical debt accumulation |
+| P2 (Medium, in touched files) | **Do now** | Boy Scout Rule — leave code better than you found it |
+| P3 (Low, in untouched files) | **Create bead** | Outside current scope, but still needs tracking |
 | Speculative, no current pain | **Skip** | YAGNI - solve real problems, not hypothetical ones |
+
+**Key distinction:** Refactorings in code you're already modifying (P0-P2) happen immediately. Only refactorings in completely unrelated code (P3) get deferred via bead creation.
 
 **For legacy code refactoring:**
 Reference `legacy-code-testing` skill for:
