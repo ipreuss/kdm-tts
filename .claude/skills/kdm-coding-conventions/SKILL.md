@@ -394,3 +394,242 @@ EventManager.ON_PLAYER_COLOR_CHANGED
 - **PROCESS.md** - Role-based workflow, change management
 - **docs/TESTING.md** - Testing infrastructure, integration test strategy
 - **docs/TTS_PATTERNS.md** - TTS-specific patterns, debugging approaches
+
+## Real Code Examples
+
+Copy-paste ready patterns from this codebase. These are production code, not hypotheticals.
+
+### Example 1: Clean Module Structure
+
+From `Trash.ttslua` — a well-structured module under 150 lines:
+
+```lua
+local NamedObject = require("Kdm/NamedObject")
+local Archive = require("Kdm/Archive")
+local Location = require("Kdm/Location")
+local log = require("Kdm/Log").ForModule("Trash")
+
+local Trash = {}
+
+function Trash.IsInTrash(name, type)
+    log:Debugf("Checking if %s '%s' is in trash", type, name)
+    for _, object in ipairs(Trash.getObjects()) do
+        if object.name == name and object.gm_notes == type then
+            log:Debugf("%s '%s' is in trash", type, name)
+            return true
+        end
+    end
+    return false
+end
+
+function Trash.getObjects()
+    return NamedObject.Get("Trash").getObjects()
+end
+
+function Trash.Export()
+    local content = {}
+    for _, object in ipairs(Trash.getObjects()) do
+        table.insert(content, { name = object.name, type = object.gm_notes })
+    end
+    return content
+end
+
+function Trash.Import(content)
+    local trash = NamedObject.Get("Trash")
+    trash.reset()
+    local position = trash.getPosition()
+    position.y = position.y + 2
+    for _, object in ipairs(content or {}) do
+        Archive.TakeObject({ name = object.name, type = object.type, position = position})
+    end
+    Archive.Clean()
+end
+
+return Trash  -- Direct return, not explicit export table
+```
+
+**Key points:**
+- Requires at top, module table declaration, functions, return at bottom
+- `return Trash` (direct) not `return { IsInTrash = Trash.IsInTrash }` (explicit)
+- Log module created with `ForModule("Trash")` for filtered debug output
+- Single responsibility: trash container operations only
+
+### Example 2: OOP with Inheritance
+
+From `Gear.ttslua` and `Weapon.ttslua` — base class and subclass:
+
+```lua
+-- Gear.ttslua (base class)
+local Gear = {}
+local gearByName = {}
+
+function Gear:new(gear)
+    gear = gear or {}
+    self.__index = self
+    setmetatable(gear, self)
+    if gear.name then
+        gear.canonicalName = gear.canonicalName or gear.name
+        Gear.register(gear)
+    end
+    return gear
+end
+
+function Gear.register(gear)
+    log:Debugf("Gear.register(%s)", gear.name)
+    assert(not gearByName[gear.name], string.format("Gear %s was already registered", gear.name))
+    gearByName[gear.name] = gear
+end
+
+function Gear.getByName(name)
+    return gearByName[name]
+end
+
+return Gear
+```
+
+```lua
+-- Weapon.ttslua (subclass)
+local Gear = require("Kdm/Gear")
+local log = require("Kdm/Log").ForModule("Weapon")
+
+local Weapon = Gear:new()  -- Inherit from Gear
+
+function Weapon.Init()
+    for _, expansion in ipairs(Expansion.All()) do
+        for name, stats in pairs(expansion.weaponStats or {}) do
+            stats.isWeapon = true
+            Weapon:new({ name = name, stats = stats })
+        end
+    end
+end
+
+function Weapon:__tostring()
+    return string.format("%s[%s] (%d/%d/%d)",
+        self.name, self.canonicalName,
+        self.stats.speed, self.stats.accuracy, self.stats.strength)
+end
+
+return Weapon
+```
+
+**Key points:**
+- `Gear:new()` pattern with `self.__index = self` for method inheritance
+- Subclass created via `Gear:new()` — inherits all base methods
+- Registry pattern with `gearByName` for lookup by name
+- `__tostring` metamethod for debug output
+
+### Example 3: Check Module for Validation
+
+From `Location.ttslua` — using Check module for assertions:
+
+```lua
+function Location.Get(locationOrName)
+    if type(locationOrName) == "table" then
+        assert(Location.Is(locationOrName))
+        return locationOrName
+    end
+
+    assert(Check.Str(locationOrName))
+    local location = Location.locationsByName[locationOrName:lower()]
+    assert(Check(location, "Unknown location: %s", locationOrName))
+    return location
+end
+
+function Location.ObjectLocations(object)
+    assert(Check.Object(object))
+    return Location.locationsByObject[object]
+end
+
+-- From Timeline.ttslua
+function Timeline.CheckEvent(yearIndex, eventIndex)
+    assert(Check.Num(yearIndex))
+    assert(Check.Num(eventIndex))
+    -- ...
+end
+```
+
+**Key points:**
+- `Check.Str(x)` validates string, returns the value for chaining
+- `Check.Num(x)` validates number
+- `Check.Object(x)` validates TTS object
+- `Check(condition, format, ...)` for custom assertions with messages
+- Fail-fast: invalid input crashes immediately with clear error
+
+### Example 4: Test-Only Helper Pattern
+
+From `Timeline.ttslua` — exposing internals for testing:
+
+```lua
+-- At end of module, before return
+Timeline._test = {
+    -- Expose private functions for unit testing
+    SortedKeys = SortedKeys,
+    AddBaseSearchEntry = AddBaseSearchEntry,
+    NamesEqual = NamesEqual,
+
+    -- Expose public functions that are hard to test via public API
+    RebuildSearchTrie = Timeline.RebuildSearchTrie,
+
+    -- Getter functions for internal state inspection
+    GetTrie = function() return Timeline.trie end,
+    GetCurrentSettlementEventNames = function() return Timeline.currentSettlementEventNames end,
+
+    -- Dependency injection seams for isolation
+    SetLocationGet = TestSetLocationGet,
+    ResetLocationGet = TestResetLocationGet,
+    SetContainerFunction = TestSetContainerFunction,
+    ResetContainerFunction = TestResetContainerFunction,
+}
+
+return Timeline
+```
+
+**Key points:**
+- All test helpers under `Module._test` table
+- Private functions exposed directly: `SortedKeys = SortedKeys`
+- State getters as functions: `GetTrie = function() return Timeline.trie end`
+- Dependency injection seams for stubbing: `SetLocationGet`, `ResetLocationGet`
+- Placed just before `return` statement
+
+### Example 5: Guard Clauses vs Assertions
+
+From `Trash.ttslua` — realistic guard clauses:
+
+```lua
+function Trash.AddCard(cardName, cardType, deckLocation)
+    local trash = NamedObject.Get("Trash")
+    if not trash then
+        log:Errorf("Trash container not found")
+        return false  -- Guard: external dependency might not exist
+    end
+
+    local location = Location.Get(deckLocation)
+    if not location then
+        log:Errorf("Deck location '%s' not found", deckLocation)
+        return false  -- Guard: user-provided location might be invalid
+    end
+
+    local deck = location:FirstObject({ types = { cardType } })
+    if not deck then
+        log:Errorf("No %s deck found at %s", cardType, deckLocation)
+        return false  -- Guard: deck might not exist at location
+    end
+
+    -- ... find card in deck ...
+
+    if not cardIndex then
+        log:Debugf("%s '%s' not found in deck at %s", cardType, cardName, deckLocation)
+        return false  -- Guard: card might not be in deck (not an error)
+    end
+
+    -- ... take and move card ...
+    return true
+end
+```
+
+**Key points:**
+- Guards for external dependencies that might not exist
+- Guards for user-provided data that might be invalid
+- `return false` signals recoverable failure (not crash)
+- `log:Errorf` for unexpected failures, `log:Debugf` for expected "not found"
+- Contrast with assertions: `assert(Check.Str(name))` for programming errors

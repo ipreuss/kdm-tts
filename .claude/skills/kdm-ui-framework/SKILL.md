@@ -318,6 +318,31 @@ Modal blocker automatically shows/hides with dialog.
 
 **Sequential Dependencies:** Pre-calculation MUST happen before UI creation. TTS dialog dimensions are immutable after creation.
 
+## 2D vs 3D Button Decisions
+
+**2D buttons** (via `PanelKit`, `Ui.Get2d()`):
+- Fixed screen position
+- Good for: global/menu actions, settings dialogs, navigation
+- Example: Showdown setup dialog, MessageBox confirmations
+
+**3D buttons** (via `object.createButton()`):
+- Attached to game board objects
+- Position relative to the object (moves with it)
+- Good for: object-contextual actions, board controls
+- Example: Deck reset buttons, card-specific actions, "Next Card" on revealed hunt cards
+
+**Decision criteria:**
+
+| Use Case | Button Type | Rationale |
+|----------|-------------|-----------|
+| Global confirmation | 2D | Not tied to any specific object |
+| Deck reset on board | 3D | Action relates to specific board location |
+| Settings/options | 2D | Menu-style, fixed position |
+| Card action after reveal | 3D | Appears on/near the relevant card |
+| Navigation (jump to board) | 2D | Global action, not contextual |
+
+**Key insight:** If the action is contextual to a specific game board object, use 3D so the relationship is visually obvious.
+
 ## Best Practices
 
 1. **Always use color constants** — Never hardcode color values in UI code
@@ -366,6 +391,253 @@ PanelKit.DialogFromSpec({ ... })
 - `MessageBox.ttslua` — Example of ClassicDialog + custom layout
 - `Strain.ttslua` — Example of DialogFromSpec with LayoutManager
 - `ARCHITECTURE.md` lines 81-165 — UI Framework section
+
+## Real Code Examples
+
+Copy-paste ready patterns from this codebase. These are production code, not hypotheticals.
+
+### Example 1: Modal MessageBox with Manual Layout
+
+From `MessageBox.ttslua` — modal confirmation dialog with custom positioning:
+
+```lua
+function MessageBox.Init()
+    local ui = Ui.Get2d()
+
+    local dialog = PanelKit.Dialog({
+        id = "MessageBox",
+        ui = ui,
+        rectAlignment = "MiddleCenter",
+        width = MessageBox.PANEL_WIDTH,
+        height = MessageBox.MIN_PANEL_HEIGHT,
+        color = "#00000000",  -- Transparent dialog background
+        closeButton = false,
+        perPlayer = false,
+        modal = true,  -- Creates blocking overlay
+    })
+    MessageBox.dialog = dialog
+
+    local panel = dialog:Panel()
+
+    local chrome = PanelKit.ClassicDialog({
+        panel = panel,
+        id = "MessageBoxChrome",
+        width = MessageBox.PANEL_WIDTH,
+        height = MessageBox.MIN_PANEL_HEIGHT,
+        inset = MessageBox.CHROME_PADDING,
+        headerHeight = 0,  -- No title bar
+        contentPadding = MessageBox.CONTENT_PADDING,
+        footerPadding = MessageBox.FOOTER_PADDING,
+        closeButton = false,
+    })
+    MessageBox.chrome = chrome
+
+    -- Content positioned relative to chrome.contentX/Y
+    local contentPanel = panel:Panel({
+        id = "MessageBoxContent",
+        rectAlignment = "UpperLeft",
+        x = chrome.contentX,
+        y = chrome.contentY,
+        width = chrome.contentWidth,
+        height = chrome.contentHeight,
+        color = "#00000000",
+    })
+
+    -- Buttons manually positioned at bottom
+    local totalButtonWidth = MessageBox.BUTTON_WIDTH * 2 + MessageBox.BUTTON_SPACING
+    local firstButtonX = (chrome.contentWidth - totalButtonWidth) / 2
+
+    contentPanel:Button({
+        id = "OK",
+        rectAlignment = "LowerLeft",
+        x = firstButtonX,
+        y = MessageBox.BUTTON_BOTTOM_PADDING,
+        width = MessageBox.BUTTON_WIDTH,
+        height = MessageBox.BUTTON_HEIGHT,
+        text = "OK",
+        textColor = Ui.LIGHT_BROWN,
+        colors = Ui.DARK_BROWN_COLORS,
+        onClick = function()
+            MessageBox.Hide()
+            if MessageBox.func then MessageBox.func() end
+        end,
+    })
+end
+```
+
+**Key points:**
+- `modal = true` creates a blocking overlay behind the dialog
+- `color = "#00000000"` makes dialog transparent (chrome provides visuals)
+- `chrome.contentX/Y/Width/Height` define the usable content area
+- Manual button positioning for precise control
+
+### Example 2: DialogFromSpec with LayoutManager
+
+From `Strain.ttslua` — auto-sized dialog with sections and callbacks:
+
+```lua
+function Strain:InitConfirmationDialog()
+    local width = 650
+
+    local spec = LayoutManager.Specification()
+
+    -- Section with callback to capture element reference
+    spec:AddSection({
+        label = "Story:",
+        contentId = "MilestoneFlavorText",
+        contentStyle = "Italic",
+        contentColor = Ui.DARK_BROWN,
+        indent = 15,
+    }, function(section)
+        -- Callback runs during DialogFromSpec - capture for later updates
+        Strain.confirmationFlavorText = section.content
+    end)
+
+    spec:AddSpacer(10)
+
+    spec:AddSection({
+        label = "Game Effect:",
+        contentId = "MilestoneRulesText",
+        contentColor = Ui.DARK_BROWN,
+        indent = 15,
+    }, function(section)
+        Strain.confirmationRulesText = section.content
+    end)
+
+    spec:AddSpacer(6)
+
+    spec:AddSection({
+        label = "Manual Steps:",
+        contentId = "MilestoneManualText",
+        contentColor = "#CC0000",  -- Red to draw attention
+        indent = 15,
+    }, function(section)
+        Strain.confirmationManualText = section.content
+    end)
+
+    spec:AddSpacer(15)
+
+    spec:AddButtonRow({
+        spacing = 25,
+        buttons = {
+            {
+                id = "MilestoneConfirmOK",
+                text = "Confirm Milestone",
+                width = 160,
+                textColor = Ui.LIGHT_BROWN,
+                colors = Ui.DARK_BROWN_COLORS,
+                onClick = function(_, player)
+                    Strain:ConfirmMilestone(player)
+                end,
+            },
+            {
+                id = "MilestoneConfirmCancel",
+                text = "Cancel",
+                width = 120,
+                textColor = Ui.DARK_BROWN,
+                colors = Ui.MID_BROWN_COLORS,
+                onClick = function(_, player)
+                    Strain:CancelMilestone(player)
+                end,
+            },
+        }
+    })
+
+    local layoutParams = { padding = 12, spacing = 10 }
+
+    local dialogResult = PanelKit.DialogFromSpec({
+        id = "StrainMilestoneConfirmation",
+        width = width,
+        spec = spec,
+        title = "Milestone Reached",
+        subtitle = "A new milestone has been achieved",
+        dialog = { color = "#00000000", closeButton = false },
+        chrome = { closeButton = false },
+        layout = layoutParams,
+    })
+
+    Strain.confirmationDialog = dialogResult.dialog
+    Strain.confirmationPanel = dialogResult.panel
+end
+
+-- Later, update content dynamically:
+Strain.confirmationFlavorText:SetText(milestone.flavorText)
+Strain.confirmationRulesText:SetText(milestone.rulesText)
+```
+
+**Key points:**
+- `spec:AddSection(..., callback)` captures element references during creation
+- Captured elements can be updated later with `:SetText()`
+- `DialogFromSpec` handles height calculation automatically
+- `dialog` and `chrome` sub-tables configure those components
+
+### Example 3: ScrollSelector for Selection Lists
+
+From `Showdown.ttslua` — paired selectors for monster and level:
+
+```lua
+Showdown.monsterList = PanelKit.ScrollSelector({
+    parent = Showdown.panel,
+    id = "Monster",
+    x = 20 + 3,
+    y = -(109 + 3),  -- Negative Y = down from parent top
+    width = 306 - 6,
+    height = 216 - 6,
+    contentWidth = 280,
+    itemHeight = 30,
+    fontSize = 16,
+    textAlignment = "MiddleLeft",
+    onSelect = function(_, option)
+        if option then
+            Showdown.SelectMonster(option)
+        end
+    end,
+})
+
+Showdown.levelList = PanelKit.ScrollSelector({
+    parent = Showdown.panel,
+    id = "Level",
+    x = 341 + 3,
+    y = -(109 + 3),
+    width = 306 - 6,
+    height = 216 - 6,
+    contentWidth = 300,
+    itemHeight = 30,
+    fontSize = 16,
+    textAlignment = "MiddleLeft",
+    maxItems = Showdown.MAX_MONSTER_LEVEL_COUNT,  -- Pre-allocate!
+    onSelect = function(level)
+        if level then
+            log:Debugf("Selected %s, %s", Showdown.monster.name, level.name)
+            Showdown.level = level
+        end
+    end,
+})
+
+-- Populate monster list (with default selection)
+Showdown.monsterList:SetOptionsWithDefault(Util.Map(Showdown.monsters, function(monster)
+    return { text = monster.name, value = monster }
+end), Campaign.data.lastMonster)
+
+-- Update level list when monster changes
+function Showdown.SelectMonster(option)
+    local monster = option:OptionValue()
+    local levelOptions = Util.Map(monster.levels, function(level)
+        return { text = level.name, value = level }
+    end)
+    assert(#levelOptions <= Showdown.MAX_MONSTER_LEVEL_COUNT, "Too many levels")
+    Showdown.levelList:SetOptions(levelOptions)
+    option:Select()
+    Showdown.level = monster.levels[1]
+end
+```
+
+**Key points:**
+- `maxItems` MUST be set to pre-allocate buttons (TTS dynamic creation bug)
+- `SetOptionsWithDefault()` populates list and selects matching value
+- `SetOptions()` for updates without default selection
+- `option:OptionValue()` retrieves the `value` field from option data
+- Negative Y values position elements downward from parent top
 
 ## Quick Reference Card
 

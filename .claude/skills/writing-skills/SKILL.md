@@ -167,6 +167,52 @@ Test with:
 
 ---
 
+## Skill Design: Problem-Oriented, Not Domain-Oriented
+
+**Skills should be organized by WHEN they trigger (use case/problem), not by domain taxonomy.**
+
+### Bad: Domain-Oriented (grab-bag)
+```yaml
+name: kdm-tts-patterns
+description: TTS patterns for KDM mod. Covers async spawn callbacks,
+object lifecycle, deck operations, coordinate system, Archive.Clean timing...
+```
+
+Problem: Triggers on too many unrelated situations. When it loads, most content is irrelevant.
+
+### Good: Problem-Oriented (focused)
+```yaml
+name: tts-unknown-error
+description: Debugging TTS <Unknown Error> messages and destroyed object issues.
+Use when encountering <Unknown Error> in TTS console, nil reference in async callback...
+```
+
+Benefit: Triggers on a specific problem. All content is relevant when loaded.
+
+### Splitting Criteria
+
+**Split a skill when:**
+- It exceeds 300 lines
+- It covers 3+ distinct problem types
+- Different sections would trigger in different situations
+- You find yourself saying "also covers X, Y, and Z"
+
+**Don't split when:**
+- Content is tightly coupled (understanding A requires B)
+- Sections share context that would need repeating
+- The skill is already problem-focused
+
+### Skill Size Guidelines
+
+| Size | Assessment |
+|------|------------|
+| < 150 lines | Good — focused and scannable |
+| 150-300 lines | Acceptable — review for split opportunities |
+| 300-500 lines | Review — likely needs splitting |
+| > 500 lines | Split required — too broad |
+
+---
+
 ## Skill File Organization
 
 ### Self-Contained (preferred)
@@ -178,7 +224,7 @@ SKILL.md + example files. Use when code examples exceed 50 lines.
 ### Heavy Reference
 SKILL.md + reference files. Use for API documentation, large pattern libraries.
 
-**Our convention:** Keep skills under 500 lines. Extract to separate files if larger.
+**Our convention:** Keep skills under 300 lines. Split into problem-oriented skills if larger.
 
 ---
 
@@ -215,7 +261,8 @@ SKILL.md + reference files. Use for API documentation, large pattern libraries.
 - [ ] **REFACTOR:** Tested edge cases
 - [ ] **REFACTOR:** Added rationalization table
 - [ ] **REFACTOR:** Updated description with trigger keywords
-- [ ] **FINAL:** Skill under 500 lines
+- [ ] **DESIGN:** Skill is problem-oriented (not domain grab-bag)
+- [ ] **DESIGN:** Skill under 300 lines (split if larger)
 
 ---
 

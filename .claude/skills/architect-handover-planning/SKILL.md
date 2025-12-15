@@ -15,6 +15,26 @@ Create comprehensive implementation plans with bite-sized tasks, exact file path
 - After using `brainstorming` skill to finalize design
 - When phrases appear: "ready to hand off", "create implementation plan", "detailed tasks"
 
+## Reference Work Folder Design Documents
+
+**Important:** Don't duplicate content from `work/<bead-id>/design.md` in the handover.
+
+Per PROCESS.md, handovers should focus on "what action is needed now" while work folders provide "persistent context." The handover should:
+
+1. **Reference** the design.md file for detailed design decisions
+2. **Summarize** key points (1-3 sentences)
+3. **Focus on** implementation steps and verification
+
+```markdown
+## Design Context
+
+See `work/kdm-xxx/design.md` for full design decisions. Key points:
+- [Summary of architectural approach]
+- [Key pattern or integration point]
+```
+
+**Avoid:** Copying code examples, full data structures, or detailed rationale that's already in design.md.
+
 ## When NOT to Use
 
 - Simple single-file changes
