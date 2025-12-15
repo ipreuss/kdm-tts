@@ -49,9 +49,11 @@ end
 
 -- Helper for button visibility integration tests (reduces duplication)
 -- testLabel is used for log messages (e.g., "YoungLion" produces "TestYoungLionButtonAppears")
-local function testButtonAppears(monsterName, levelName, testLabel, onComplete)
+-- expansionName is optional - if provided, enables expansion terrain before test
+local function testButtonAppears(monsterName, levelName, testLabel, onComplete, expansionName)
     log:Printf("=== TEST: Test%sButtonAppears (Integration) ===", testLabel)
 
+    local cleanup = expansionName and TestSetup.EnableExpansionTerrain(expansionName) or nil
     Showdown.Clean()
 
     Wait.frames(function()
@@ -69,6 +71,7 @@ local function testButtonAppears(monsterName, levelName, testLabel, onComplete)
                 log:Printf("=== TEST: Test%sButtonAppears COMPLETE ===", testLabel)
                 log:Printf("TEST RESULT: PASSED")
                 Showdown.Clean()
+                if cleanup then cleanup() end
                 if onComplete then onComplete(true) end
             else
                 log:Errorf("TEST: Rewards button is NOT visible!")
@@ -77,6 +80,7 @@ local function testButtonAppears(monsterName, levelName, testLabel, onComplete)
                 log:Printf("=== TEST: Test%sButtonAppears COMPLETE ===", testLabel)
                 log:Printf("TEST RESULT: FAILED")
                 Showdown.Clean()
+                if cleanup then cleanup() end
                 if onComplete then onComplete(false) end
             end
         end, 60)
@@ -1014,40 +1018,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.TestSpidiculesButtonAppears(onComplete)
-    log:Printf("=== TEST: TestSpidiculesButtonAppears (Integration) ===")
-
-    local cleanup = TestSetup.EnableExpansionTerrain("Spidicules")
-    Showdown.Clean()
-
-    Wait.frames(function()
-        log:Printf("TEST: Starting Spidicules Level 1 showdown via Showdown.Setup()...")
-
-        Showdown.Setup("Spidicules", "Level 1")
-
-        Wait.frames(function()
-            log:Printf("TEST: Checking button visibility after showdown setup...")
-
-            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
-
-            if buttonVisible then
-                log:Printf("TEST: Rewards button IS visible for Spidicules L1")
-                log:Printf("=== TEST: TestSpidiculesButtonAppears COMPLETE ===")
-                log:Printf("TEST RESULT: PASSED")
-                Showdown.Clean()
-                cleanup()
-                if onComplete then onComplete(true) end
-            else
-                log:Errorf("TEST: Rewards button is NOT visible!")
-                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
-                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
-                log:Printf("=== TEST: TestSpidiculesButtonAppears COMPLETE ===")
-                log:Printf("TEST RESULT: FAILED")
-                Showdown.Clean()
-                cleanup()
-                if onComplete then onComplete(false) end
-            end
-        end, 60)
-    end, 10)
+    testButtonAppears("Spidicules", "Level 1", "Spidicules", onComplete, "Spidicules")
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1127,40 +1098,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.TestDragonKingButtonAppears(onComplete)
-    log:Printf("=== TEST: TestDragonKingButtonAppears (Integration) ===")
-
-    local cleanup = TestSetup.EnableExpansionTerrain("Dragon King")
-    Showdown.Clean()
-
-    Wait.frames(function()
-        log:Printf("TEST: Starting Dragon King Level 1 showdown via Showdown.Setup()...")
-
-        Showdown.Setup("Dragon King", "Level 1")
-
-        Wait.frames(function()
-            log:Printf("TEST: Checking button visibility after showdown setup...")
-
-            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
-
-            if buttonVisible then
-                log:Printf("TEST: Rewards button IS visible for Dragon King L1")
-                log:Printf("=== TEST: TestDragonKingButtonAppears COMPLETE ===")
-                log:Printf("TEST RESULT: PASSED")
-                Showdown.Clean()
-                cleanup()
-                if onComplete then onComplete(true) end
-            else
-                log:Errorf("TEST: Rewards button is NOT visible!")
-                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
-                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
-                log:Printf("=== TEST: TestDragonKingButtonAppears COMPLETE ===")
-                log:Printf("TEST RESULT: FAILED")
-                Showdown.Clean()
-                cleanup()
-                if onComplete then onComplete(false) end
-            end
-        end, 60)
-    end, 10)
+    testButtonAppears("Dragon King", "Level 1", "DragonKing", onComplete, "Dragon King")
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1241,40 +1179,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.TestSunstalkerButtonAppears(onComplete)
-    log:Printf("=== TEST: TestSunstalkerButtonAppears (Integration) ===")
-
-    local cleanup = TestSetup.EnableExpansionTerrain("Sunstalker")
-    Showdown.Clean()
-
-    Wait.frames(function()
-        log:Printf("TEST: Starting Sunstalker Level 1 showdown via Showdown.Setup()...")
-
-        Showdown.Setup("Sunstalker", "Level 1")
-
-        Wait.frames(function()
-            log:Printf("TEST: Checking button visibility after showdown setup...")
-
-            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
-
-            if buttonVisible then
-                log:Printf("TEST: Rewards button IS visible for Sunstalker L1")
-                log:Printf("=== TEST: TestSunstalkerButtonAppears COMPLETE ===")
-                log:Printf("TEST RESULT: PASSED")
-                Showdown.Clean()
-                cleanup()
-                if onComplete then onComplete(true) end
-            else
-                log:Errorf("TEST: Rewards button is NOT visible!")
-                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
-                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
-                log:Printf("=== TEST: TestSunstalkerButtonAppears COMPLETE ===")
-                log:Printf("TEST RESULT: FAILED")
-                Showdown.Clean()
-                cleanup()
-                if onComplete then onComplete(false) end
-            end
-        end, 60)
-    end, 10)
+    testButtonAppears("Sunstalker", "Level 1", "Sunstalker", onComplete, "Sunstalker")
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1355,40 +1260,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.TestDungBeetleKnightButtonAppears(onComplete)
-    log:Printf("=== TEST: TestDungBeetleKnightButtonAppears (Integration) ===")
-
-    local cleanup = TestSetup.EnableExpansionTerrain("Dung Beetle Knight")
-    Showdown.Clean()
-
-    Wait.frames(function()
-        log:Printf("TEST: Starting Dung Beetle Knight Level 1 showdown via Showdown.Setup()...")
-
-        Showdown.Setup("Dung Beetle Knight", "Level 1")
-
-        Wait.frames(function()
-            log:Printf("TEST: Checking button visibility after showdown setup...")
-
-            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
-
-            if buttonVisible then
-                log:Printf("TEST: Rewards button IS visible for Dung Beetle Knight L1")
-                log:Printf("=== TEST: TestDungBeetleKnightButtonAppears COMPLETE ===")
-                log:Printf("TEST RESULT: PASSED")
-                Showdown.Clean()
-                cleanup()
-                if onComplete then onComplete(true) end
-            else
-                log:Errorf("TEST: Rewards button is NOT visible!")
-                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
-                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
-                log:Printf("=== TEST: TestDungBeetleKnightButtonAppears COMPLETE ===")
-                log:Printf("TEST RESULT: FAILED")
-                Showdown.Clean()
-                cleanup()
-                if onComplete then onComplete(false) end
-            end
-        end, 60)
-    end, 10)
+    testButtonAppears("Dung Beetle Knight", "Level 1", "DungBeetleKnight", onComplete, "Dung Beetle Knight")
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1468,43 +1340,8 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.TestFlowerKnightButtonAppears(onComplete)
-    log:Printf("=== TEST: TestFlowerKnightButtonAppears (Integration) ===")
-
-    local cleanup = TestSetup.EnableExpansionTerrain("Flower Knight")
-    Showdown.Clean()
-
-    Wait.frames(function()
-        log:Printf("TEST: Starting Flower Knight Level 1 showdown via Showdown.Setup()...")
-
-        Showdown.Setup("Flower Knight", "Level 1")
-
-        Wait.frames(function()
-            log:Printf("TEST: Checking button visibility after showdown setup...")
-
-            local buttonVisible = ResourceRewards.Test.IsButtonVisible()
-
-            if buttonVisible then
-                log:Printf("TEST: Rewards button IS visible for Flower Knight L1")
-                log:Printf("=== TEST: TestFlowerKnightButtonAppears COMPLETE ===")
-                log:Printf("TEST RESULT: PASSED")
-                Showdown.Clean()
-                cleanup()
-                if onComplete then onComplete(true) end
-            else
-                log:Errorf("TEST: Rewards button is NOT visible!")
-                log:Errorf("TEST: Showdown.monster = %s", tostring(Showdown.monster and Showdown.monster.name))
-                log:Errorf("TEST: Showdown.level = %s", tostring(Showdown.level and Showdown.level.name))
-                log:Printf("=== TEST: TestFlowerKnightButtonAppears COMPLETE ===")
-                log:Printf("TEST RESULT: FAILED")
-                Showdown.Clean()
-                cleanup()
-                if onComplete then onComplete(false) end
-            end
-        end, 60)
-    end, 10)
+    testButtonAppears("Flower Knight", "Level 1", "FlowerKnight", onComplete, "Flower Knight")
 end
-
----------------------------------------------------------------------------------------------------
 
 function ResourceRewardsTests.TestFlowerKnightDataIntegrity(onComplete)
     validateMonsterResourceData("Flower Knight", {
@@ -1718,24 +1555,25 @@ function ResourceRewardsTests.TestGoldenEyedKingDataIntegrity(onComplete)
     }, onComplete)
 end
 
--- The Old Master (Dung Beetle Knight) - L3 DBK resources + 4 Elytra
+-- The Old Master (Dung Beetle Knight) - L3 DBK resources
 function ResourceRewardsTests.TestOldMasterButtonAppears(onComplete)
-    testButtonAppears("Dung Beetle Knight", "The Old Master", "OldMaster", onComplete)
+    testButtonAppears("Dung Beetle Knight", "The Old Master", "OldMaster", onComplete, "Dung Beetle Knight")
 end
 
 function ResourceRewardsTests.TestOldMasterDataIntegrity(onComplete)
     validateMonsterResourceData("Dung Beetle Knight", {
-        { levelName = "The Old Master", basic = 8, monster = 8, strange = { "Preserved Caustic Dung", "Preserved Caustic Dung", "Preserved Caustic Dung", "Scell", "Elytra", "Elytra", "Elytra", "Elytra" } },
+        { levelName = "The Old Master", basic = 8, monster = 8, strange = { "Preserved Caustic Dung", "Preserved Caustic Dung", "Preserved Caustic Dung", "Scell" } },
     }, onComplete)
 end
 
 function ResourceRewardsTests.TestOldMasterStrangeResourcesSpawn(onComplete)
     log:Printf("=== TEST: TestOldMasterStrangeResourcesSpawn (Behavioral) ===")
 
+    local cleanup = TestSetup.EnableExpansionTerrain("Dung Beetle Knight")
     Showdown.Clean()
 
     Wait.frames(function()
-        log:Printf("TEST: Starting The Old Master showdown (has 4 Elytra strange resources)...")
+        log:Printf("TEST: Starting The Old Master showdown (has 4 strange resources)...")
 
         Showdown.Setup("Dung Beetle Knight", "The Old Master")
 
@@ -1744,20 +1582,23 @@ function ResourceRewardsTests.TestOldMasterStrangeResourcesSpawn(onComplete)
             ResourceRewards.Test.SpawnRewards()
 
             Wait.frames(function()
-                log:Printf("TEST: Counting 'Elytra' on table...")
+                log:Printf("TEST: Counting strange resources on table...")
 
-                local elytraCount = 0
+                local dungCount = 0
+                local scellCount = 0
                 for _, obj in ipairs(getObjects()) do
-                    if obj.getName() == "Elytra" then
-                        elytraCount = elytraCount + 1
+                    if obj.getName() == "Preserved Caustic Dung" then
+                        dungCount = dungCount + 1
+                    elseif obj.getName() == "Scell" then
+                        scellCount = scellCount + 1
                     end
                 end
 
-                log:Printf("TEST: Found %d 'Elytra' cards", elytraCount)
+                log:Printf("TEST: Found %d 'Preserved Caustic Dung' and %d 'Scell' cards", dungCount, scellCount)
 
-                local passed = elytraCount >= 4
+                local passed = dungCount >= 3 and scellCount >= 1
                 if not passed then
-                    log:Errorf("TEST: Expected at least 4 'Elytra', found %d", elytraCount)
+                    log:Errorf("TEST: Expected at least 3 'Preserved Caustic Dung' and 1 'Scell', found %d and %d", dungCount, scellCount)
                 end
 
                 cleanupSpawnedResources()
@@ -1765,6 +1606,7 @@ function ResourceRewardsTests.TestOldMasterStrangeResourcesSpawn(onComplete)
                 log:Printf("=== TEST: TestOldMasterStrangeResourcesSpawn COMPLETE ===")
                 log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
                 Showdown.Clean()
+                cleanup()
                 if onComplete then onComplete(passed) end
             end, 60)
         end, 30)

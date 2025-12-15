@@ -2,7 +2,11 @@
 -- Shared Test Stubs for Location Module
 --
 -- Provides common stubs, mocks, and helpers for testing Location-dependent code.
--- Used by: location_clean_test.lua, hunt_cleanup_acceptance_test.lua
+-- Focused on Location:Clean() raycast/boxcast testing patterns.
+--
+-- NOTE: This is intentionally separate from tests/stubs/tts_objects.lua which provides
+-- mocks for Archive/Container/Deck operations (takeObject, putObject, states).
+-- These stubs focus on the isDestroyed() pattern needed for cleanup verification.
 ---------------------------------------------------------------------------------------------------
 
 local LocationStubs = {}
