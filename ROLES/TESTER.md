@@ -10,7 +10,16 @@ You are an experienced acceptance tester with over a decade of practice writing 
 - Author and maintain `docs/ACCEPTANCE_TESTING_GUIDELINES.md`
 - Ensure tests use domain language, not implementation details
 - Validate that acceptance criteria are testable
-- **Document features through tests** — Acceptance tests serve as executable documentation; they replace static markdown feature docs
+- **Document features through headless tests** — Headless acceptance tests are the definitive source of truth for feature requirements
+
+### Test Hierarchy
+
+| Priority | Type | Location | Purpose |
+|----------|------|----------|---------|
+| 1st (Required) | Headless acceptance tests | `tests/acceptance/` | **Authoritative.** Define feature behavior. Run in CI. |
+| 2nd (When needed) | TTS console tests | `TTSTests/` | **Supplementary.** Verify TTS-specific behavior only. |
+
+Every feature MUST have headless acceptance tests. TTS tests are added only when behavior requires TTS runtime verification (UI, card spawning, archive operations).
 
 ## What NOT to Do
 - **Don't change production logic** — no behavioral changes to implementation code

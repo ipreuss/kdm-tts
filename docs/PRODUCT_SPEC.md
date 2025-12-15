@@ -16,9 +16,9 @@ This mod automates campaign management, survivor tracking, and encounter setup f
 
 ## Feature Documentation
 
-**Primary documentation is executable acceptance tests** in `tests/acceptance/`. Tests serve as living documentation that cannot become stale.
+**Primary documentation is headless acceptance tests** in `tests/acceptance/`. These are the definitive source for feature requirements and behavior.
 
-### Acceptance Tests (Living Documentation)
+### Headless Acceptance Tests (Authoritative)
 
 | Feature | Test File | Description |
 |---------|-----------|-------------|
@@ -26,6 +26,16 @@ This mod automates campaign management, survivor tracking, and encounter setup f
 | Pattern Gear | `pattern_gear_acceptance_test.lua` | Pattern and Seed Pattern crafting system from Gambler's Chest |
 | Resource Rewards | `resource_rewards_acceptance_test.lua` | Post-showdown resource spawning (basic, monster, strange) |
 | Weapon Pairing | `weapon_pairing_acceptance_test.lua` | Paired weapon mechanics including cross-name pairing |
+
+### TTS Console Tests (Supplementary)
+
+TTS console tests (`TTSTests/*.ttslua`) verify behavior that requires the TTS runtime environment. They **supplement** headless tests but do not replace them:
+- UI interactions (buttons, dialogs)
+- Card spawning and physical placement
+- Archive/deck operations
+- Visual verification
+
+Every feature should have headless acceptance tests first. TTS tests are added only when behavior cannot be verified headlessly.
 
 ### Static Documentation (Reference Only)
 
@@ -65,14 +75,20 @@ The mod supports official KDM expansions. Expansions are enabled per-campaign du
 
 ## Documentation Philosophy
 
-**Executable tests over static documents.**
+**Headless acceptance tests are the definitive source of truth.**
 
-Acceptance tests are the authoritative source for feature behavior:
+Documentation hierarchy (highest to lowest authority):
+1. **Headless acceptance tests** (`tests/acceptance/`) — Authoritative. Define what the feature does.
+2. **TTS console tests** (`TTSTests/`) — Supplementary. Verify TTS-specific behavior that can't be tested headlessly.
+3. **Static markdown docs** (`docs/features/`) — Reference only. May become stale; defer to tests when in doubt.
+
+Why headless tests are authoritative:
+- They run in ~2 seconds (fast feedback)
 - They cannot become stale (tests fail if behavior changes)
 - They use domain language readable by non-programmers
-- They demonstrate exactly what the feature does
+- They can run in CI (automated verification)
 
-Static markdown docs are reserved for:
-- **Reference tables** (milestone lists, consequence types)
-- **Complex user workflows** that span multiple features
-- **Historical context** when needed
+TTS tests are valuable but secondary because:
+- They require manual execution (~1 min each)
+- They cannot run in CI
+- They're harder to maintain (TTS environment dependencies)
