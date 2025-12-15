@@ -15,104 +15,46 @@
 ---------------------------------------------------------------------------------------------------
 
 local Test = require("tests.framework")
+local LocationStubs = require("tests.support.location_stubs")
+
+-- Import shared stubs and helpers
+local createLocationStubs = LocationStubs.createLocationStubs
+local withStubs = LocationStubs.withStubs
+local createFakeCastFunc = LocationStubs.createFakeCastFunc
 
 ---------------------------------------------------------------------------------------------------
--- Minimal stubs for Location module
+-- Domain-specific mock factories for acceptance tests
 ---------------------------------------------------------------------------------------------------
 
-local function createLocationStubs()
-    return {
-        ["Kdm/Util/Check"] = setmetatable({}, { __call = function() return true end }),
-        ["Kdm/Console"] = { AddCommand = function() end },
-        ["Kdm/Util/Container"] = {},
-        ["Kdm/Util/EventManager"] = { AddHandler = function() end },
-        ["Kdm/Expansion"] = { All = function() return {} end },
-        ["Kdm/LocationData"] = {},
-        ["Kdm/Log"] = { ForModule = function() return { Debugf = function() end, Errorf = function() end } end },
-        ["Kdm/NamedObject"] = { DEFAULT_CAST_HEIGHT = 5 },
-        ["Kdm/Util/Util"] = {
-            ArrayContains = function(array, value)
-                for _, element in ipairs(array) do
-                    if element == value then return true end
-                end
-                return false
-            end,
-        },
-    }
-end
-
-local function withStubs(stubs, fn)
-    local originals = {}
-    for name, mod in pairs(stubs) do
-        originals[name] = package.loaded[name]
-        package.loaded[name] = mod
-    end
-    local ok, err = pcall(fn)
-    for name, orig in pairs(originals) do
-        package.loaded[name] = orig
-    end
-    if not ok then
-        error(err)
-    end
-end
-
----------------------------------------------------------------------------------------------------
--- Mock objects for acceptance tests
----------------------------------------------------------------------------------------------------
-
--- Mock a single hunt event card
+-- Create a hunt event card using domain language
 local function createHuntCard(name, cardType)
-    local destroyed = false
-    return {
+    return LocationStubs.createMockObject({
         tag = "Card",
-        interactable = true,
-        getName = function() return name end,
-        getGUID = function() return "card-" .. name end,
-        getGMNotes = function() return cardType end,
-        destruct = function() destroyed = true end,
-        isDestroyed = function() return destroyed end,
-    }
+        name = name,
+        guid = "card-" .. name,
+        gmNotes = cardType,
+    })
 end
 
--- Mock a deck containing multiple cards (like Herb Gathering + Mineral Gathering stacked)
+-- Create a deck of hunt cards (like Herb Gathering + Mineral Gathering stacked)
 local function createHuntDeck(name, cards)
-    local destroyed = false
-    return {
-        tag = "Deck",
-        interactable = true,
-        getName = function() return name end,
-        getGUID = function() return "deck-" .. name end,
-        getGMNotes = function() return "" end,  -- Decks have empty GMNotes
-        getQuantity = function() return #cards end,
-        getObjects = function()
-            local objects = {}
-            for i, card in ipairs(cards) do
-                table.insert(objects, {
-                    index = i - 1,
-                    name = card.name,
-                    gm_notes = card.type,
-                })
-            end
-            return objects
-        end,
-        destruct = function() destroyed = true end,
-        isDestroyed = function() return destroyed end,
-    }
+    -- Convert domain format { name, type } to stub format { name, gmNotes }
+    local containedCards = {}
+    for _, card in ipairs(cards) do
+        table.insert(containedCards, {
+            name = card.name,
+            gmNotes = card.type,
+        })
+    end
+    return LocationStubs.createMockDeck({
+        name = name,
+        guid = "deck-" .. name,
+        containedCards = containedCards,
+    })
 end
 
 -- Hunt card types (matches Hunt.ttslua HUNT_CARD_TYPES)
 local HUNT_CARD_TYPES = { "Hunt Events", "Monster Hunt Events", "Special Hunt Events" }
-
--- Create fake cast function
-local function createFakeCastFunc(objects)
-    return function(self, params)
-        local hits = {}
-        for _, obj in ipairs(objects) do
-            table.insert(hits, { hit_object = obj })
-        end
-        return hits
-    end
-end
 
 ---------------------------------------------------------------------------------------------------
 -- ACCEPTANCE TESTS: Deck Cleanup Behavior (kdm-0zu)
