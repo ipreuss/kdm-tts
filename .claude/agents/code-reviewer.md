@@ -104,6 +104,16 @@ The parent session has full context of what's being implemented. Use:
 - Deep nesting (prefer early returns)
 - Unclear naming (variables should reveal intent)
 
+### 2b. DRY in Test Code (CRITICAL)
+**Test code is still code.** Check for:
+- Duplicated test setup across test functions
+- Copy-pasted test bodies that could use a parameterized helper
+- New tests that duplicate existing helper patterns
+
+**Common pattern:** If new test code looks nearly identical to existing tests, check if an existing helper can be extended (e.g., adding an optional parameter) instead of duplicating the entire test body.
+
+**Example smell:** 30+ lines of test code copied from another test, differing only in one value → should parameterize the helper instead.
+
 ### 3. Test Quality (from TESTING.md)
 **Behavioral vs structural:**
 - Tests should verify behavior, not implementation details

@@ -151,12 +151,16 @@ When changes affect TTS interactions:
 ### 7. Code Review (Same-Session)
 When implementation is complete:
 1. Invoke the `code-reviewer` subagent
-2. If **APPROVED**: proceed to Step 8 (Update Status)
-3. If **CHANGES REQUESTED**:
+2. If **CHANGES REQUESTED**:
    - Fix all issues immediately
    - Re-invoke `code-reviewer`
    - Repeat until APPROVED
+3. If **APPROVED**: determine next step:
+   - **TTS tests needed?** → Hand off to Tester (git commit happens after Tester)
+   - **No TTS tests needed?** → Proceed to git commit, then Architect
 4. For significant findings (patterns, anti-patterns), add to `handover/LEARNINGS.md`
+
+**TTS tests are needed when:** Changes affect TTS interactions, UI, Archive operations, deck manipulation, or anything requiring visual/runtime verification.
 
 **No handover file needed** — review happens within your session.
 

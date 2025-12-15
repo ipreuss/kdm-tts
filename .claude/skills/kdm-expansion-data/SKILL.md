@@ -488,6 +488,48 @@ Rulebook pages are stored as image URLs in `template_workshop.json`. To verify g
 - `/Users/ilja/Documents/GitHub/kdm/ARCHITECTURE.md` — System overview (section: "Expansion Content Organization")
 - `/Users/ilja/Documents/GitHub/kdm/template_workshop.json` — TTS save file with rulebook image URLs
 
+## Deck Verification for Resource Rewards
+
+**CRITICAL**: Before adding resources to reward configs, verify which deck contains the card.
+
+### Common Mistake
+Rulebook says "Add 4 Elytra to settlement storage" — this does NOT mean Elytra is a strange resource. The rulebook instruction describes the **effect**, not the **deck category**.
+
+### Verification Steps
+
+1. **Check the expansion file** for deck definitions:
+   ```lua
+   components = {
+       ["Monster Resources"] = "Dung Beetle Knight Resources",
+       ["Strange Resources"] = "Dung Beetle Knight Strange Resources",
+   }
+   ```
+
+2. **Search template_workshop.json** for the actual card:
+   ```bash
+   grep -i "elytra" template_workshop.json
+   ```
+   Look at `ContainedObjects` to see which deck contains it.
+
+3. **Use TTS console** to inspect deck contents:
+   ```
+   >interact Dung Beetle Knight Strange Resources
+   ```
+   Then visually inspect what cards are in the deck.
+
+### Resource Category Hints
+
+| Rulebook Language | Likely Category | Verify! |
+|-------------------|-----------------|---------|
+| "Add X to storage" | Could be ANY category | Always check |
+| "Gain X monster resources" | Monster Resources | Usually correct |
+| "Gain X strange resources" | Strange Resources | Usually correct |
+| Named resource (e.g., "Elytra") | Check deck contents | Required |
+
+### Why This Matters
+
+`Archive.TakeFromDeck()` fails silently or errors when the card isn't in the specified deck. TTS testing catches this, but verification upfront is faster.
+
 ## Quick Reference Checklist
 
 When adding new expansion content:
@@ -497,6 +539,7 @@ When adding new expansion content:
 - [ ] Archive entries use correct type strings
 - [ ] Only canonical names (no `[variant]` suffixes) in stats
 - [ ] Verify cards exist in TTS template before adding stats
+- [ ] **Verify resource deck membership** before adding to reward configs
 - [ ] Test with `>debug Archive on` and `>interact <archive>`
 - [ ] Use async callbacks for multi-card operations
 - [ ] Promo content bundled into appropriate expansion
