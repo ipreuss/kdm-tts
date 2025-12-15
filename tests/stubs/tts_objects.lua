@@ -1,5 +1,12 @@
 -- Shared TTS object stubs for testing
 -- Provides mock implementations of TTS game objects (Deck, Card, Container, etc.)
+--
+-- Uses TtsMockBase for common TTS object shape, extends with:
+--   - takeObject/putObject for deck operations
+--   - state support for cards
+--   - Container and Archive patterns
+
+local TtsMockBase = require("tests.support.tts_mock_base")
 
 local tts_objects = {}
 
@@ -11,31 +18,32 @@ function tts_objects.deck(options)
     options = options or {}
     local deckObjects = options.objects or {}
     local insertedCards = {}
-    
+
+    -- Use base deck and extend with archive/container operations
+    local base = TtsMockBase.createBaseDeck({
+        name = options.name,
+        guid = options.guid,
+        position = options.position,
+        containedCards = deckObjects,
+    })
+
     local deck = {
         destroyed = false,
         insertedCards = insertedCards,
         lastTakeParams = nil,
         __objects = deckObjects,  -- For Container compatibility
     }
-    
+
+    -- Copy base methods
+    deck.getName = base.getName
+    deck.getPosition = base.getPosition
+    deck.getObjects = function() return deckObjects end  -- Keep original format
+
     -- Set __takeHandler for Container compatibility
     if options.takeHandler then
         deck.__takeHandler = options.takeHandler
     end
-    
-    deck.getName = function()
-        return options.name or "Test Deck"
-    end
-    
-    deck.getPosition = function()
-        return options.position or { x = 0, y = 0, z = 0 }
-    end
-    
-    deck.getObjects = function()
-        return deckObjects
-    end
-    
+
     deck.takeObject = function(params)
         deck.lastTakeParams = params
         local result
@@ -56,21 +64,21 @@ function tts_objects.deck(options)
         end
         return result
     end
-    
+
     deck.putObject = function(card)
         table.insert(insertedCards, card)
     end
-    
+
     deck.destruct = function()
         deck.destroyed = true
     end
-    
+
     deck.reset = function()
         if options.resetHandler then
             options.resetHandler()
         end
     end
-    
+
     return deck
 end
 
@@ -80,13 +88,27 @@ end
 
 function tts_objects.card(options)
     options = options or {}
-    
+
+    -- Use base card and extend with state support
+    local base = TtsMockBase.createBaseCard({
+        name = options.name,
+        guid = options.guid,
+        gmNotes = options.gm_notes,
+        position = options.position,
+    })
+
     local card = {
         name = options.name or "Test Card",
         gm_notes = options.gm_notes or "",
         currentState = options.currentState or 1,
+        destroyed = false,
     }
-    
+
+    -- Use base methods where applicable
+    card.getGUID = base.getGUID
+    card.getPosition = base.getPosition
+    card.getGMNotes = function() return card.gm_notes end
+
     card.getName = function()
         -- If states are defined, return name based on current state
         if options.states then
@@ -98,15 +120,11 @@ function tts_objects.card(options)
         end
         return card.name
     end
-    
-    card.getGMNotes = function()
-        return card.gm_notes
-    end
-    
+
     card.getStates = function()
         return options.states or {}
     end
-    
+
     card.setState = function(stateId)
         card.currentState = stateId
         if options.onStateChange then
@@ -114,23 +132,15 @@ function tts_objects.card(options)
         end
         return card
     end
-    
-    card.getGUID = function()
-        return options.guid or "card-guid"
-    end
-    
-    card.getPosition = function()
-        return options.position or { x = 0, y = 0, z = 0 }
-    end
-    
+
     card.setRotation = function(rotation)
         card.rotation = rotation
     end
-    
+
     card.destruct = function()
         card.destroyed = true
     end
-    
+
     return card
 end
 

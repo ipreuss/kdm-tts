@@ -4,10 +4,13 @@
 -- Provides common stubs, mocks, and helpers for testing Location-dependent code.
 -- Focused on Location:Clean() raycast/boxcast testing patterns.
 --
--- NOTE: This is intentionally separate from tests/stubs/tts_objects.lua which provides
--- mocks for Archive/Container/Deck operations (takeObject, putObject, states).
--- These stubs focus on the isDestroyed() pattern needed for cleanup verification.
+-- Uses TtsMockBase for common TTS object shape, extends with:
+--   - isDestroyed() method for cleanup verification
+--   - tag property for object type matching
+--   - interactable property for ignore checks
 ---------------------------------------------------------------------------------------------------
+
+local TtsMockBase = require("tests.support.tts_mock_base")
 
 local LocationStubs = {}
 
@@ -54,51 +57,43 @@ function LocationStubs.withStubs(stubs, fn)
 end
 
 ---------------------------------------------------------------------------------------------------
--- Mock Object Factories
+-- Mock Object Factories (extend TtsMockBase with Location-specific behavior)
 ---------------------------------------------------------------------------------------------------
 
 -- Create a mock TTS object (Card, Figurine, etc.)
+-- Extends base with: tag, interactable, isDestroyed()
 function LocationStubs.createMockObject(params)
     params = params or {}
-    local destroyed = false
-    return {
-        tag = params.tag or "Card",
-        interactable = params.interactable ~= false,  -- default true
-        getName = function() return params.name or "Test Object" end,
-        getGUID = function() return params.guid or "abc123" end,
-        getGMNotes = function() return params.gmNotes or "" end,
-        destruct = function() destroyed = true end,
-        isDestroyed = function() return destroyed end,
-    }
+    local base = TtsMockBase.createBaseCard(params)
+
+    -- Location-specific extensions
+    base.tag = params.tag or "Card"
+    base.interactable = params.interactable ~= false  -- default true
+    base.isDestroyed = base._isDestroyed
+
+    -- Override destruct to work without self parameter
+    local setDestroyed = base._setDestroyed
+    base.destruct = function() setDestroyed(true) end
+
+    return base
 end
 
 -- Create a mock TTS Deck object with getObjects() for contained cards
+-- Extends base with: tag, interactable, isDestroyed()
 function LocationStubs.createMockDeck(params)
     params = params or {}
-    local destroyed = false
-    local containedCards = params.containedCards or {}
+    local base = TtsMockBase.createBaseDeck(params)
 
-    return {
-        tag = "Deck",
-        interactable = params.interactable ~= false,
-        getName = function() return params.name or "Test Deck" end,
-        getGUID = function() return params.guid or "deck123" end,
-        getGMNotes = function() return params.gmNotes or "" end,
-        getQuantity = function() return #containedCards end,
-        getObjects = function()
-            local objects = {}
-            for i, card in ipairs(containedCards) do
-                table.insert(objects, {
-                    index = i - 1,
-                    name = card.name or "Card " .. i,
-                    gm_notes = card.gmNotes or "",
-                })
-            end
-            return objects
-        end,
-        destruct = function() destroyed = true end,
-        isDestroyed = function() return destroyed end,
-    }
+    -- Location-specific extensions
+    base.tag = "Deck"
+    base.interactable = params.interactable ~= false
+    base.isDestroyed = base._isDestroyed
+
+    -- Override destruct to work without self parameter
+    local setDestroyed = base._setDestroyed
+    base.destruct = function() setDestroyed(true) end
+
+    return base
 end
 
 ---------------------------------------------------------------------------------------------------
