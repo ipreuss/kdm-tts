@@ -23,7 +23,15 @@ Test.test("Hunt ShowUi/HideUi delegate to dialog per-player", function(t)
         ["Kdm/Util/Container"] = {},
         ["Kdm/Deck"] = {},
         ["Kdm/Expansion"] = { All = function() return {} end },
-        ["Kdm/Location"] = {},
+        ["Kdm/Location"] = {
+            Get = function(name)
+                return {
+                    AddDropHandler = function() end,
+                    BoxClean = function() return {} end,
+                    AllObjects = function() return {} end,
+                }
+            end
+        },
         ["Kdm/Log"] = { ForModule = function() return logStub end },
         ["Kdm/Trash"] = {},
         ["Kdm/Ui"] = { Get2d = function() return {} end },

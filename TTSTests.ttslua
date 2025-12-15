@@ -29,6 +29,7 @@ local ConsequenceTests = require("Kdm/TTSTests/ConsequenceTests")
 local PatternTests = require("Kdm/TTSTests/PatternTests")
 local BattleTests = require("Kdm/TTSTests/BattleTests")
 local ResourceRewardsTests = require("Kdm/TTSTests/ResourceRewardsTests")
+local HuntTests = require("Kdm/TTSTests/HuntTests")
 
 -- Import test infrastructure modules
 local TestRegistry = require("Kdm/TTSTests/TestRegistry")
@@ -80,15 +81,21 @@ function TTSTests.Init()
         log:Printf("    >testrewardshidden  - Test rewards button hidden")
         log:Printf("    >testrewardsspawn   - Test correct resources spawned")
         log:Printf("    >testrewardsstrange - Test strange resources spawn")
+        log:Printf("    >testhuntreveal     - Test hunt party drop triggers reveal")
+        log:Printf("    >testhuntflip       - Test face-down cards flip on reveal")
+        log:Printf("    >testhuntempty      - Test empty space handling")
+        log:Printf("    >testhuntcleanup    - Test cleanup clears revealed cards")
+        log:Printf("    >testhuntvisited    - Test visited position tracking")
+        log:Printf("    >testhunt2cards     - Test two card types at same location")
+        log:Printf("    >testhuntdeck       - Test stacked cards (deck) at location")
+        log:Printf("    >testhuntdeckorder  - Test top card revealed first from deck")
+        log:Printf("    >testhuntindividualorder - Test top card revealed first (individual)")
+        log:Printf("    >testhuntbutton     - Test Next Card button position")
     end, "Show available TTS test commands")
 
     Console.AddCommand("testall", function(args)
         TTSTests.RunAllTests()
     end, "Run all TTS tests")
-
-    Console.AddCommand("testfocus", function(args)
-        TTSTests.RunFocusedTests()
-    end, "Run only tests for current bead (fast)")
 
     Console.AddCommand("testrun", function(args)
         if #args < 2 then
@@ -154,6 +161,7 @@ function TTSTests.Init()
     PatternTests.Register()
     BattleTests.Register()
     ResourceRewardsTests.Register()
+    HuntTests.Register()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -285,12 +293,6 @@ function TTSTests.RunPriorityTests()
             TTSTests.RunTests(regressionTests)
         end, 30)
     end)
-end
-
--- Keep RunFocusedTests as alias for backward compatibility during transition
-function TTSTests.RunFocusedTests()
-    log:Printf("[DEPRECATED] >testfocus is deprecated, use >testpriority instead")
-    TTSTests.RunPriorityTests()
 end
 
 ---------------------------------------------------------------------------------------------------

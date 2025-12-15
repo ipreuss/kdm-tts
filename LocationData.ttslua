@@ -542,15 +542,20 @@ local locationData = {
         size = ElementSizes.CARD,
         board = "Hunt Board",
     },
+    ["Revealed Hunt Cards"] = {
+        center = { x = 6.06, y = 0.860623, z = 7.2 },
+        size = { x = 8, y = 1, z = 3 },
+        board = "Hunt Board",
+    },
 
     --{ x = 7.273605, y = 0.860623, z = 2.921042 }
     ["Random Hunt Events"] = {
-        center = { x = 7.273605, y = 0.860623, z = 12,763126 },
+        center = { x = 7.273605, y = 0.860623, z = 12.763126 },
         size = ElementSizes.CARD,
         board = "Hunt Board",
     },
     ["Evolving Hunt Events"] = {
-        center = { x = 7.273605, y = 0.860623, z = 17,60521 },
+        center = { x = 7.273605, y = 0.860623, z = 17.60521 },
         size = ElementSizes.CARD,
         board = "Hunt Board",
     },
