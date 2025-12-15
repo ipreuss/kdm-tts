@@ -31,11 +31,49 @@ description: Apply role-specific closing signature and voice announcement when e
 **If ANY answer is yes → Write to LEARNINGS.md BEFORE closing signature.**
 
 **EVERY role-based session MUST end with:**
-1. **Learning capture** — Invoke `learning-capture` skill FIRST (write to file, not terminal)
-2. Closing signature block
-3. Voice announcement command (executed via Bash)
+1. **Git commit/push check** — Run the git checklist FIRST (see Step 0)
+2. **Learning capture** — Invoke `learning-capture` skill (write to file, not terminal)
+3. Closing signature block
+4. Voice announcement command (executed via Bash)
 
 **NO EXCEPTIONS.** This is part of the role protocol defined in PROCESS.md.
+
+## Step 0: Git Commit/Push Check (MANDATORY)
+
+**⚠️ CRITICAL: Work is NOT done until it's pushed to remote.**
+
+Before learning capture and closing signature, check for uncommitted changes:
+
+```bash
+git status
+```
+
+**If there are uncommitted changes:**
+
+1. **Stage code changes:**
+   ```bash
+   git add <files>
+   ```
+
+2. **Commit with proper message:**
+   ```bash
+   git commit -m "[type]: [description]
+
+   Bead: kdm-xxx
+
+   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
+   ```
+
+3. **Push to remote:**
+   ```bash
+   git push
+   ```
+
+**Types:** feat, fix, refactor, test, docs, chore
+
+**Why this matters:** Uncommitted code across sessions creates confusion, lost work, and large messy commits later. Every session should leave the repo in a clean state.
 
 ## Step 1: Learning Capture (MANDATORY)
 
@@ -95,7 +133,6 @@ Ask yourself:
 - IMPLEMENTER
 - REVIEWER
 - DEBUGGER
-- TESTER
 - TEAM COACH
 
 **Date Format:**
@@ -114,7 +151,6 @@ Ask yourself:
 | Implementer | Viktor | "Implementierer fertig. Code eingecheckt." |
 | Reviewer | Petra | "Reviewer fertig. Review abgeschlossen." |
 | Debugger | Yannick | "Debugger fertig. Fehler behoben." |
-| Tester | Audrey | "Tester fertig. Tests durchgeführt." |
 | Team Coach | Xander | "Team Coach fertig. Prozess optimiert." |
 
 ### Message Format Rules
@@ -160,7 +196,12 @@ say -v Anna "Product Owner fertig. Benötige Klarstellung."
 
 **Before sending your final message, verify:**
 
-**Step 1 — Learning Capture (DO THIS FIRST):**
+**Step 0 — Git Commit/Push (DO THIS FIRST):**
+- [ ] **Ran `git status`** — checked for uncommitted changes
+- [ ] **If changes exist:** staged, committed with proper message, pushed
+- [ ] **Repo is clean** — `git status` shows "nothing to commit, working tree clean"
+
+**Step 1 — Learning Capture:**
 - [ ] **Used Edit tool to append to `handover/LEARNINGS.md`** — NOT just terminal output
 - [ ] **Entry includes skill/agent usage stats** — Used, Helpful, Should have triggered, Unnecessary
 - [ ] **File was actually modified** — Verify Edit tool succeeded
@@ -254,6 +295,7 @@ say -v Viktor "Implementierer fertig. Handover an Tester erstellt."
 ## Common Mistakes to Avoid
 
 **DON'T:**
+- **Skip git commit/push** — most common mistake, leaves work uncommitted
 - Skip the closing signature
 - Skip the voice announcement
 - Use English in voice message
@@ -264,6 +306,7 @@ say -v Viktor "Implementierer fertig. Handover an Tester erstellt."
 - Wait for user response without closing signature
 
 **DO:**
+- **Always check `git status` first** — commit and push before closing
 - Always include both signature and voice
 - Use specific, concrete status
 - Match voice to current role
