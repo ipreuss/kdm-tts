@@ -1171,6 +1171,15 @@ return {
                         advanced = 5,
                         movement = 5,
                         toughness = 9,
+                        aftermath = {
+                            victory = {
+                                { text = "Survivors with insanity 3+ gain +1 courage" },
+                                { text = "Take Butcher's Cleaver from the archive (if available)" },
+                            },
+                            defeat = {
+                                { text = "Survivors lose all insanity" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1187,6 +1196,15 @@ return {
                         toughness = 12,
                         speed = 1,
                         damage = 1,
+                        aftermath = {
+                            victory = {
+                                { text = "Survivors with insanity 3+ gain +1 courage" },
+                                { text = "Take Butcher's Cleaver from the archive (if available)" },
+                            },
+                            defeat = {
+                                { text = "Survivors lose all insanity" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1205,6 +1223,15 @@ return {
                         speed = 2,
                         damage = 2,
                         accuracy = 2,
+                        aftermath = {
+                            victory = {
+                                { text = "Survivors with insanity 3+ gain +1 courage" },
+                                { text = "Take Butcher's Cleaver from the archive (if available)" },
+                            },
+                            defeat = {
+                                { text = "Survivors lose all insanity" },
+                            },
+                        },
                     },
                 },
             },
@@ -1360,6 +1387,17 @@ return {
                         movement = 8,
                         toughness = 10,
                         resources = { basic = 4, monster = 6 },
+                        aftermath = {
+                            victory = {
+                                { text = "Gain +1 Hunt XP for each survivor" },
+                                { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
+                                { text = "Collect resources (auto-spawned)" },
+                                { text = "First victory: Gain +3 endeavor from Spiral Age" },
+                            },
+                            defeat = {
+                                { text = "Roll 1d10. On 6+, resurrect a dead survivor (new name, reset courage/understanding)" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1380,6 +1418,16 @@ return {
                         speed = 1,
                         damage = 1,
                         resources = { basic = 5, monster = 7 },
+                        aftermath = {
+                            victory = {
+                                { text = "Gain +2 Hunt XP for each survivor" },
+                                { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
+                                { text = "Collect resources (auto-spawned)" },
+                            },
+                            defeat = {
+                                { text = "Roll 1d10. On 6+, resurrect a dead survivor (new name, reset courage/understanding)" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1402,6 +1450,17 @@ return {
                         damage = 3,
                         luck = 2,
                         resources = { basic = 6, monster = 9, strange = { "Phoenix Crest", "Black Lichen" } },
+                        aftermath = {
+                            victory = {
+                                { text = "Gain +2 Hunt XP for each survivor" },
+                                { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
+                                { text = "Collect resources (auto-spawned)" },
+                                { text = "If Saga: Perform stirring tale, gain +2 Endeavor next settlement phase" },
+                            },
+                            defeat = {
+                                { text = "Roll 1d10. On 6+, resurrect a dead survivor (new name, reset courage/understanding)" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1478,6 +1537,18 @@ return {
                         movement = 6,
                         toughness = 8,
                         resources = { basic = 4, monster = 4 },
+                        aftermath = {
+                            victory = {
+                                { text = "WARNING: Non-deaf survivors with 20+ insanity vanish!" },
+                                { text = "Gain +1 Hunt XP for each survivor" },
+                                { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
+                                { text = "Collect resources (auto-spawned)" },
+                                { text = "First victory: Add Stone Circle to settlement locations" },
+                            },
+                            defeat = {
+                                { text = "Nominate a non-deaf survivor: They suffer deaf severe head injury" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1495,6 +1566,17 @@ return {
                         speed = 1,
                         damage = 1,
                         resources = { basic = 4, monster = 6 },
+                        aftermath = {
+                            victory = {
+                                { text = "WARNING: Non-deaf survivors with 20+ insanity vanish!" },
+                                { text = "Gain +2 Hunt XP for each survivor" },
+                                { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
+                                { text = "Collect resources (auto-spawned)" },
+                            },
+                            defeat = {
+                                { text = "Nominate a non-deaf survivor: They suffer deaf severe head injury" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1517,6 +1599,18 @@ return {
                         accuracy = 2,
                         evasion = 1,
                         resources = { basic = 5, monster = 7, vermin = 2, strange = { "Black Lichen" } },
+                        aftermath = {
+                            victory = {
+                                { text = "WARNING: Non-deaf survivors with 20+ insanity vanish!" },
+                                { text = "Gain +2 Hunt XP for each survivor" },
+                                { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
+                                { text = "Collect resources (auto-spawned)" },
+                                { text = "If Pottery: Random survivor gains Astute ability" },
+                            },
+                            defeat = {
+                                { text = "Nominate a non-deaf survivor: They suffer deaf severe head injury" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1781,6 +1875,17 @@ return {
                         movement = 6,
                         toughness = 8,
                         resources = { basic = 4, monster = 4 },
+                        aftermath = {
+                            victory = {
+                                { text = "Gain +1 Hunt XP for each survivor" },
+                                { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
+                                { text = "Collect resources (auto-spawned)" },
+                                { text = "First victory: Add Catarium to settlement locations" },
+                            },
+                            defeat = {
+                                { text = "Roll 1d10. On 6+, archive a jewelry gear of your choice" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1798,6 +1903,16 @@ return {
                         speed = 1,
                         damage = 1,
                         resources = { basic = 4, monster = 6 },
+                        aftermath = {
+                            victory = {
+                                { text = "Gain +2 Hunt XP for each survivor" },
+                                { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
+                                { text = "Collect resources (auto-spawned)" },
+                            },
+                            defeat = {
+                                { text = "Roll 1d10. On 6+, archive a jewelry gear of your choice" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1819,6 +1934,18 @@ return {
                         accuracy = 2,
                         luck = 1,
                         resources = { basic = 4, monster = 8, strange = { "Elder Cat Teeth" } },
+                        aftermath = {
+                            victory = {
+                                { text = "Gain +2 Hunt XP for each survivor" },
+                                { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
+                                { text = "Collect resources (auto-spawned)" },
+                                { text = "If Saga: Perform stirring tale, gain +2 Endeavor next settlement phase" },
+                                { text = "If Saga (first time): Killing blow survivor gains +1 permanent accuracy and strength" },
+                            },
+                            defeat = {
+                                { text = "Roll 1d10. On 6+, archive a jewelry gear of your choice" },
+                            },
+                        },
                     },
                 },
                 {

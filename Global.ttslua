@@ -22,6 +22,7 @@ local NamedObject = require("Kdm/NamedObject")
 local Player = require("Kdm/Player")
 local ResourceRewards = require("Kdm/ResourceRewards")
 local Rules = require("Kdm/Rules")
+local ShowdownAftermath = require("Kdm/ShowdownAftermath")
 local Settlement = require("Kdm/Settlement")
 local Showdown = require("Kdm/Showdown")
 local Strain = require("Kdm/Strain")
@@ -75,6 +76,7 @@ function onLoad(saveJson)
     Archive.Init()
     Location.Init()
     --
+    ShowdownAftermath.Init()  -- Must be before Deck.Init() - both use Showdown Board UI
     Deck.Init()
     Hunt.Init()
     Monster.Init(saveState.Monster or {})
@@ -115,6 +117,7 @@ function onLoad(saveJson)
         Timeline.PostInit()
         BattleUi.PostInit()
         ResourceRewards.PostInit()
+        ShowdownAftermath.PostInit()
         initialized = true
     end, 20)
 end

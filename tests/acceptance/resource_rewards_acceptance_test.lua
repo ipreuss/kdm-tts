@@ -317,10 +317,11 @@ end)
 
 ---------------------------------------------------------------------------------------------------
 
-Test.test("ACCEPTANCE: Rewards button hidden for Prologue (no resource rewards)", function(t)
+Test.test("ACCEPTANCE: Won/Lost buttons shown even for Prologue (no resource rewards)", function(t)
     local modules = loadResourceRewardsModule()
 
     -- Simulate Prologue showdown (no resources)
+    -- Note: Prologue has no resources but you can still win/lose
     modules.Showdown.monster = {
         name = "White Lion",
         resourcesDeck = "White Lion Resources",
@@ -328,14 +329,14 @@ Test.test("ACCEPTANCE: Rewards button hidden for Prologue (no resource rewards)"
     modules.Showdown.level = {
         name = "Prologue",
         showdown = {
-            -- No resources field = no rewards
+            -- No resources field = no rewards, but buttons still shown
         },
     }
 
     modules.EventManager.FireEvent(modules.EventManager.ON_SHOWDOWN_STARTED)
 
-    t:assertFalse(modules.ResourceRewards.Test.IsButtonVisible(),
-        "Button should be hidden for Prologue (no resources)")
+    t:assertTrue(modules.ResourceRewards.Test.IsButtonVisible(),
+        "Won/Lost buttons should be visible even for Prologue (can still win/lose)")
 end)
 
 ---------------------------------------------------------------------------------------------------

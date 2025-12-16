@@ -7,6 +7,7 @@ local MessageBox = require("Kdm/MessageBox")
 local NamedObject = require("Kdm/NamedObject")
 local RulesNavButtonKit = require("Kdm/Util/RulesNavButtonKit")
 local Showdown = require("Kdm/Showdown")
+local ShowdownAftermath = require("Kdm/ShowdownAftermath")
 local Ui = require("Kdm/Ui")
 
 ---------------------------------------------------------------------------------------------------
@@ -14,9 +15,17 @@ local Ui = require("Kdm/Ui")
 local ResourceRewards = {}
 
 local ui = nil
-local rewardsPanel = nil
-local rewardsLabel = nil
-local rewardsButton = nil
+
+-- Won button UI elements
+local wonPanel = nil
+local wonLabel = nil
+local wonButton = nil
+
+-- Lost button UI elements
+local lostPanel = nil
+local lostLabel = nil
+local lostButton = nil
+
 local hasSpawnedThisShowdown = false
 
 ---------------------------------------------------------------------------------------------------
@@ -24,19 +33,35 @@ local hasSpawnedThisShowdown = false
 function ResourceRewards.Init()
     ui = Ui.Create3d("ResourceRewards", NamedObject.Get("Rules Navigation Board"), 0.11)
 
-    local elements = RulesNavButtonKit.CreateStyledButton({
+    -- "Won" button at col 12
+    local wonElements = RulesNavButtonKit.CreateStyledButton({
         ui = ui,
-        id = "SpawnRewards",
-        col = 13,
+        id = "ShowdownWon",
+        col = 12,
         row = 2,
-        label = "Rewards",
-        onClick = function() ResourceRewards.OnClick() end,
+        label = "Won",
+        onClick = function() ResourceRewards.OnWonClick() end,
         active = false,
     })
 
-    rewardsPanel = elements.panel
-    rewardsLabel = elements.text
-    rewardsButton = elements.button
+    wonPanel = wonElements.panel
+    wonLabel = wonElements.text
+    wonButton = wonElements.button
+
+    -- "Lost" button at col 13
+    local lostElements = RulesNavButtonKit.CreateStyledButton({
+        ui = ui,
+        id = "ShowdownLost",
+        col = 13,
+        row = 2,
+        label = "Lost",
+        onClick = function() ResourceRewards.OnLostClick() end,
+        active = false,
+    })
+
+    lostPanel = lostElements.panel
+    lostLabel = lostElements.text
+    lostButton = lostElements.button
 
     ui:ApplyToObject()
 end
@@ -59,40 +84,95 @@ function ResourceRewards.OnShowdownStarted()
     local level = Showdown.level
 
     if not monster or not level then
-        log:Debugf("No monster or level, hiding rewards button")
+        log:Debugf("No monster or level, hiding Won/Lost buttons")
         ResourceRewards.Hide()
         return
     end
 
-    -- Check if monster has resources
-    local hasResources = monster.resourcesDeck ~= false
-    local rewards = level.showdown and level.showdown.resources
-
-    log:Debugf("Monster %s has resources: %s, rewards: %s", monster.name, tostring(hasResources), tostring(rewards ~= nil))
-
-    if hasResources and rewards then
-        ResourceRewards.Show()
-    else
-        ResourceRewards.Hide()
-    end
+    -- Show Won/Lost buttons for all showdowns
+    -- (even nemeses without resources can have aftermath)
+    ResourceRewards.Show()
 end
 
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewards.OnShowdownEnded()
-    log:Debugf("Showdown ended, hiding rewards button")
+    log:Debugf("Showdown ended, hiding Won/Lost buttons")
     ResourceRewards.Hide()
 end
 
 ---------------------------------------------------------------------------------------------------
 
-function ResourceRewards.OnClick()
-    if hasSpawnedThisShowdown then
-        MessageBox.Show("Resources have already been spawned for this showdown. Spawn again?", function()
+function ResourceRewards.OnWonClick()
+    local monster = Showdown.monster
+    local level = Showdown.level
+
+    if not monster or not level then
+        log:Errorf("No monster or level when Won clicked")
+        return
+    end
+
+    log:Printf("Victory! %s %s", monster.name, level.name)
+
+    -- Check if we need to spawn resources
+    local hasResources = monster.resourcesDeck ~= false
+    local rewards = level.showdown and level.showdown.resources
+
+    if hasResources and rewards then
+        if hasSpawnedThisShowdown then
+            MessageBox.Show("Resources have already been spawned for this showdown. Spawn again?", function()
+                ResourceRewards.SpawnRewards()
+                ResourceRewards.ShowAftermathChecklist("won")
+            end)
+        else
             ResourceRewards.SpawnRewards()
-        end)
+            ResourceRewards.ShowAftermathChecklist("won")
+        end
     else
-        ResourceRewards.SpawnRewards()
+        -- No resources, just show aftermath checklist
+        ResourceRewards.ShowAftermathChecklist("won")
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewards.OnLostClick()
+    local monster = Showdown.monster
+    local level = Showdown.level
+
+    if not monster or not level then
+        log:Errorf("No monster or level when Lost clicked")
+        return
+    end
+
+    log:Printf("Defeat! %s %s", monster.name, level.name)
+
+    -- Check if monster has defeat aftermath
+    local aftermath = level.showdown and level.showdown.aftermath
+    local hasDefeatAftermath = aftermath and aftermath.defeat and #aftermath.defeat > 0
+
+    if hasDefeatAftermath then
+        ResourceRewards.ShowAftermathChecklist("lost")
+    else
+        -- No defeat aftermath, just cleanup
+        log:Debugf("No defeat aftermath, cleaning up showdown")
+        ResourceRewards.Hide()
+        Showdown.Clean()
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewards.ShowAftermathChecklist(outcome)
+    local monster = Showdown.monster
+    local level = Showdown.level
+
+    local shown = ShowdownAftermath.Show(outcome, monster, level)
+    if not shown then
+        -- No aftermath data, just cleanup
+        log:Debugf("No aftermath data for %s, cleaning up showdown", outcome)
+        ResourceRewards.Hide()
+        Showdown.Clean()
     end
 end
 
@@ -240,31 +320,52 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewards.Show()
-    if rewardsPanel then rewardsPanel:Show() end
-    if rewardsLabel then rewardsLabel:Show() end
-    if rewardsButton then rewardsButton:Show() end
+    if wonPanel then wonPanel:Show() end
+    if wonLabel then wonLabel:Show() end
+    if wonButton then wonButton:Show() end
+    if lostPanel then lostPanel:Show() end
+    if lostLabel then lostLabel:Show() end
+    if lostButton then lostButton:Show() end
 end
 
 ---------------------------------------------------------------------------------------------------
 
 function ResourceRewards.Hide()
-    if rewardsPanel then rewardsPanel:Hide() end
-    if rewardsLabel then rewardsLabel:Hide() end
-    if rewardsButton then rewardsButton:Hide() end
+    if wonPanel then wonPanel:Hide() end
+    if wonLabel then wonLabel:Hide() end
+    if wonButton then wonButton:Hide() end
+    if lostPanel then lostPanel:Hide() end
+    if lostLabel then lostLabel:Hide() end
+    if lostButton then lostButton:Hide() end
 end
 
 ---------------------------------------------------------------------------------------------------
 
 -- Test interface
 ResourceRewards.Test = {
+    -- Backward compatible: returns true if either button is visible
     IsButtonVisible = function()
-        return rewardsButton and rewardsButton:GetAttribute("active") == true
+        local wonVisible = wonButton and wonButton:GetAttribute("active") == true
+        local lostVisible = lostButton and lostButton:GetAttribute("active") == true
+        return wonVisible or lostVisible
+    end,
+    IsWonButtonVisible = function()
+        return wonButton and wonButton:GetAttribute("active") == true
+    end,
+    IsLostButtonVisible = function()
+        return lostButton and lostButton:GetAttribute("active") == true
     end,
     HasSpawnedThisShowdown = function()
         return hasSpawnedThisShowdown
     end,
     SpawnRewards = function()
         return ResourceRewards.SpawnRewards()
+    end,
+    OnWonClick = function()
+        return ResourceRewards.OnWonClick()
+    end,
+    OnLostClick = function()
+        return ResourceRewards.OnLostClick()
     end,
 }
 
