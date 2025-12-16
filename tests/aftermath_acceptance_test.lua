@@ -151,3 +151,38 @@ Test.test("Monsters with aftermath count", function(t)
 end)
 
 --------------------------------------------------------------------------------
+
+Test.test("All Core monsters have both victory and defeat aftermath", function(t)
+    local monstersWithAftermath = collectMonsterAftermath()
+
+    -- Core quarries and nemesis that should have both victory AND defeat
+    local coreMonsters = {
+        ["White Lion"] = { "Level 1", "Level 2", "Level 3" },
+        ["Screaming Antelope"] = { "Level 1", "Level 2", "Level 3" },
+        ["Phoenix"] = { "Level 1", "Level 2", "Level 3" },
+        ["Butcher"] = { "Level 1", "Level 2", "Level 3" },
+    }
+
+    for monsterName, levels in pairs(coreMonsters) do
+        for _, levelName in ipairs(levels) do
+            local found = nil
+            for _, entry in ipairs(monstersWithAftermath) do
+                if entry.monster == monsterName and entry.level == levelName then
+                    found = entry.aftermath
+                    break
+                end
+            end
+
+            local desc = string.format("%s %s", monsterName, levelName)
+            t:assertNotNil(found, desc .. " should have aftermath data")
+            if found then
+                t:assertNotNil(found.victory, desc .. " should have victory aftermath")
+                t:assertNotNil(found.defeat, desc .. " should have defeat aftermath")
+                t:assertTrue(#found.victory >= 1, desc .. " victory should have at least 1 item")
+                t:assertTrue(#found.defeat >= 1, desc .. " defeat should have at least 1 item")
+            end
+        end
+    end
+end)
+
+--------------------------------------------------------------------------------

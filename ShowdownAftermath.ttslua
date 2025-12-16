@@ -253,15 +253,9 @@ ShowdownAftermath.Test = {
         end
         return count
     end,
-    Show = function(outcome, monster, level)
-        return ShowdownAftermath.Show(outcome, monster, level)
-    end,
-    Hide = function()
-        return ShowdownAftermath.Hide()
-    end,
-    OnDoneClick = function()
-        return ShowdownAftermath.OnDoneClick()
-    end,
+    Show = ShowdownAftermath.Show,
+    Hide = ShowdownAftermath.Hide,
+    OnDoneClick = ShowdownAftermath.OnDoneClick,
 }
 
 ---------------------------------------------------------------------------------------------------
