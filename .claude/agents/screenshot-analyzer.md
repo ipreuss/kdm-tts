@@ -1,6 +1,6 @@
 ---
 name: screenshot-analyzer
-description: Use this agent when the user wants to analyze, describe, or extract information from screenshots on their Desktop. Use PROACTIVELY when user mentions taking a screenshot or says "I see" followed by visual descriptions. This includes requests to see what's in a screenshot, identify UI elements, read text from images, understand visual content, or compare multiple screenshots.
+description: Use this agent when the user wants to analyze, describe, or extract information from screenshots on their Desktop. Use PROACTIVELY when user mentions taking a screenshot, says "I see" followed by visual descriptions, or says "see screenshot". This includes requests to see what's in a screenshot, identify UI elements, read text from images, understand visual content, or compare multiple screenshots.
 
 <example>
 Context: User wants to know what's in their latest screenshot without specifying a file.
