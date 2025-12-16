@@ -217,9 +217,13 @@ When implementation is complete:
 - Archive operations
 - Visual placement verification
 
-**Step 7d: Handover**
-- All tests green → Hand off to Architect for design compliance
-- Git commit happens after Architect approval
+**Step 7d: Git Commit (BEFORE handover)**
+1. All tests green AND code-reviewer APPROVED
+2. Run `git add <files>` and `git commit` (human approval required)
+3. Run `git push`
+4. **Only after push succeeds** → Hand off to Architect for design compliance
+
+⚠️ **Never hand off without committing.** The Architect and PO assume code is already in the repository.
 
 ### 8. Update Status
 Update `handover/IMPLEMENTATION_STATUS.md` with:
