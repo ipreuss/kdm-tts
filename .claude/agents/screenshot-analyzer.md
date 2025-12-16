@@ -83,11 +83,25 @@ stat -f%z "/path/to/screenshot.png"
 
 If size exceeds 5,000,000 bytes (5 MB), proceed to Step 3. Otherwise, skip to Step 4.
 
-### Step 3: Convert Large Files to JPEG
+### Step 3: Verify File Type and Convert if Needed
 
+**Check actual file type** (extensions can lie):
+```bash
+file "/path/to/screenshot.png"
+```
+
+**If type doesn't match extension**, rename first:
+```bash
+# If file says "JPEG image data" but extension is .png:
+mv "/path/to/screenshot.png" "/path/to/screenshot.jpg"
+```
+
+**Convert large files to JPEG:**
 ```bash
 sips -s format jpeg "/path/to/screenshot.png" --out "/path/to/screenshot.jpg"
 ```
+
+**CRITICAL:** Output filename MUST have `.jpg` suffix when converting to JPEG. The Read tool requires the file extension to match the actual content type.
 
 Use the converted file for reading. Inform user of the conversion.
 
