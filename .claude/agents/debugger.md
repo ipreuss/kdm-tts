@@ -1,6 +1,6 @@
 ---
 name: debugger
-description: Use this agent for quick diagnostic analysis without switching to full Debugger role. Use PROACTIVELY when Tester or Implementer encounters errors, unexpected behavior, or needs to validate a bug hypothesis. Provides fast root cause analysis and complexity assessment to determine best next step (fast path vs full Debugger handover).
+description: Use this agent for quick diagnostic analysis without switching to full Debugger role. **MUST USE after 2 failed attempts** at fixing the same issue. Use PROACTIVELY when Implementer encounters errors, unexpected behavior, UI not showing, objects not spawning, or any "it should work but doesn't" situation. Triggers on error, nil value, not showing, not working, doesn't work, failed attempt, still broken, same issue.
 
 <example>
 Context: Tester found a bug but is unsure of root cause
@@ -35,6 +35,14 @@ user: "I tried fixing the nil error but it's still happening"
 assistant: "Let me use the debugger agent to get a fresh perspective on the root cause."
 <commentary>
 Fix failed. Fresh diagnostic analysis needed.
+</commentary>
+</example>
+
+<example>
+Context: Implementer has tried multiple approaches without success
+assistant: [after 2nd failed attempt] "This is my second failed attempt. Per process rules, I must invoke the debugger agent for a fresh diagnostic perspective."
+<commentary>
+MANDATORY trigger: 2 failed attempts on same issue requires debugger invocation. Don't keep guessing.
 </commentary>
 </example>
 
