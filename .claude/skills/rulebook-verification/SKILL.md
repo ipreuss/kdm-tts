@@ -49,9 +49,42 @@ Look for the `States` object within the rulebook. Each state number corresponds 
 }
 ```
 
-### Step 4: View the Image
+### Step 4: Download and View the Image
 
-Download or view the `ImageURL` to see the actual rulebook page content.
+**CRITICAL: Image handling requirements:**
+
+1. **Download the image** using curl:
+   ```bash
+   curl -o /tmp/rulebook_page_raw "https://..."
+   ```
+
+2. **Check actual file type** (URLs often lie about extension):
+   ```bash
+   file /tmp/rulebook_page_raw
+   ```
+
+3. **Rename with correct extension**:
+   ```bash
+   # If file says "JPEG image data":
+   mv /tmp/rulebook_page_raw /tmp/rulebook_page.jpg
+   # If file says "PNG image data":
+   mv /tmp/rulebook_page_raw /tmp/rulebook_page.png
+   ```
+
+4. **Check file size** (Read tool limit is 5MB):
+   ```bash
+   ls -lh /tmp/rulebook_page.*
+   ```
+
+5. **If >5MB or PNG, convert to compressed JPEG**:
+   ```bash
+   sips -s format jpeg -s formatOptions 70 /tmp/rulebook_page.png --out /tmp/rulebook_page.jpg
+   ```
+   Note: Output filename MUST have `.jpg` suffix when converting to JPEG.
+
+6. **Read the image** using Read tool on the correctly-named file:
+   - Filename suffix MUST match actual content type
+   - File MUST be <5MB
 
 ## Example: Beast of Sorrow Rewards
 
@@ -98,5 +131,5 @@ The KDM wiki often has incomplete reward tables, especially for:
 
 ## Key Files
 
-- `/Users/ilja/Documents/GitHub/kdm/template_workshop.json` — TTS save with rulebook images
-- `/Users/ilja/Documents/GitHub/kdm/Expansion/*.ttslua` — Monster `rules` references
+- `template_workshop.json` — TTS save with rulebook images (project root)
+- `Expansion/*.ttslua` — Monster `rules` references
