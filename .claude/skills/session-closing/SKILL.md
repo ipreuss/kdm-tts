@@ -40,15 +40,16 @@ description: Apply role-specific closing signature and voice announcement when e
 
 ## Step 0: Git Status Check (MANDATORY)
 
-**Before closing, always check for uncommitted changes:**
+**Before closing, always run these checks:**
 
 ```bash
 git status
+bd list --status=closed | head -5   # Recently closed beads
 ```
 
-### If uncommitted changes exist:
+### Check 1: Uncommitted Changes
 
-**Evaluate whether to commit based on these criteria:**
+**If uncommitted changes exist, evaluate whether to commit:**
 
 | Condition | Action |
 |-----------|--------|
@@ -57,7 +58,18 @@ git status
 | Tests failing or incomplete | ⚠️ Flag in closing — work in progress |
 | Process/doc changes only (no code) | ✅ Commit and push (no review needed) |
 
-**When committing:**
+### Check 2: Closed Beads Without Commits (CRITICAL)
+
+**⛔ NEVER close a bead without committing its code first.**
+
+If `git status` shows uncommitted changes AND a bead was closed this session:
+1. The bead was closed prematurely
+2. Commit the code NOW with the bead ID
+3. Then push
+
+**Why this matters:** Closed beads signal "work complete" but uncommitted code means the work isn't actually saved. This creates confusion and lost work.
+
+### When committing:
 ```bash
 git add <files>
 git commit -m "[type]: [description]
@@ -204,6 +216,8 @@ say -v Anna "Product Owner fertig. Benötige Klarstellung."
 
 **Step 0 — Git Status Check (DO THIS FIRST):**
 - [ ] **Ran `git status`** — checked for uncommitted changes
+- [ ] **Ran `bd list --status=closed | head -5`** — checked recently closed beads
+- [ ] **If closed bead + uncommitted code:** commit and push NOW (bead closed prematurely)
 - [ ] **If changes exist, evaluated commit criteria:**
   - Tests pass AND code-reviewer approved → commit and push
   - Otherwise → document uncommitted work in closing summary
@@ -303,6 +317,7 @@ say -v Viktor "Implementierer fertig. Handover an Tester erstellt."
 ## Common Mistakes to Avoid
 
 **DON'T:**
+- **Close a bead without committing its code** — closed bead + uncommitted code = lost work
 - **Skip `git status` check** — must always check for uncommitted changes
 - **Commit without tests passing and code-reviewer approval** — unreviewed code is worse than uncommitted
 - **Leave uncommitted work undocumented** — next session won't know what's pending
@@ -316,6 +331,7 @@ say -v Viktor "Implementierer fertig. Handover an Tester erstellt."
 - Wait for user response without closing signature
 
 **DO:**
+- **Check `bd list --status=closed`** — verify closed beads have their code committed
 - **Always run `git status` first** — know what's uncommitted
 - **Only commit when tests pass AND code-reviewer approved** (or for process/doc-only changes)
 - **Document uncommitted work** when not committing
