@@ -19,10 +19,17 @@ Test.test("Showdown ShowUi/HideUi delegate to dialog per-player", function(t)
     local logStub = { Debugf = function() end, Errorf = function() end }
     withStubs({
         ["Kdm/Archive"] = {},
+        ["Kdm/Util/array"] = {
+            filter = function(arr, fn) local out = {} for i,v in ipairs(arr or {}) do if fn(v) then table.insert(out, v) end end return out end,
+        },
         ["Kdm/Util/Check"] = setmetatable({}, { __call = function() return true end }),
         ["Kdm/Util/Container"] = {},
         ["Kdm/Util/EventManager"] = { AddHandler = function() end },
-        ["Kdm/Expansion"] = { All = function() return {} end },
+        ["Kdm/Expansion"] = {
+            All = function() return {} end,
+            IsUnlockedMode = function() return false end,
+            IsEnabled = function() return true end,
+        },
         ["Kdm/Util/Grid"] = { Create = function() return {} end },
         ["Kdm/Log"] = { ForModule = function() return logStub end },
         ["Kdm/Location"] = { Get = function() return { Position = function() end } end },

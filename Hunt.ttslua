@@ -1,4 +1,5 @@
 local Archive = require("Kdm/Archive")
+local array = require("Kdm/Util/array")
 local Check = require("Kdm/Util/Check")
 local Container = require("Kdm/Util/Container")
 local Deck = require("Kdm/Deck")
@@ -24,6 +25,18 @@ Hunt.remainingCards = {}        -- Cards at current position waiting to be revea
 Hunt.revealedCardCount = 0      -- For stacking offset when multiple cards revealed
 Hunt.nextCardButtonCard = nil   -- Card object with "Next Card" button attached
 Hunt.dropHandlersRegistered = false  -- Ensure handlers only registered once
+
+---------------------------------------------------------------------------------------------------
+
+local function FilterEnabledMonsters(monsters, expansionsByMonsterName)
+    if Expansion.IsUnlockedMode() then
+        return monsters  -- Show all in unlocked mode
+    end
+    return array.filter(monsters, function(monster)
+        local expansion = expansionsByMonsterName[monster.name]
+        return Expansion.IsEnabled(expansion.name)
+    end)
+end
 
 ---------------------------------------------------------------------------------------------------
 
@@ -117,9 +130,10 @@ function Hunt.Init()
         end
     })
 
-    Hunt.monsterList:SetOptionsWithDefault(Util.Map(Hunt.monsters, function(monster)
-        return { text = monster.name, value = monster }
-    end), true)
+    Hunt.monsterList:SetOptionsWithDefault(Util.Map(
+        FilterEnabledMonsters(Hunt.monsters, Hunt.expansionsByMonsterName),
+        function(monster) return { text = monster.name, value = monster } end
+    ), true)
 
     Hunt.panel:Button({ id = "Begin", x = 183, y = -345, width = 301, height = 60, onClick = function(mouseButton, player)
         if not Hunt.monster or not Hunt.level then
@@ -557,5 +571,9 @@ function Hunt.SelectMonsterInternal(option)
 end
 
 ---------------------------------------------------------------------------------------------------
+
+Hunt._test = {
+    FilterEnabledMonsters = FilterEnabledMonsters,
+}
 
 return Hunt

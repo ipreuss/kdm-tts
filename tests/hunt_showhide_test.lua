@@ -19,10 +19,17 @@ Test.test("Hunt ShowUi/HideUi delegate to dialog per-player", function(t)
     local logStub = { Debugf = function() end, Errorf = function() end, Broadcastf = function() end }
     withStubs({
         ["Kdm/Archive"] = {},
+        ["Kdm/Util/array"] = {
+            filter = function(arr, fn) local out = {} for i,v in ipairs(arr or {}) do if fn(v) then table.insert(out, v) end end return out end,
+        },
         ["Kdm/Util/Check"] = setmetatable({}, { __call = function() return true end }),
         ["Kdm/Util/Container"] = {},
         ["Kdm/Deck"] = {},
-        ["Kdm/Expansion"] = { All = function() return {} end },
+        ["Kdm/Expansion"] = {
+            All = function() return {} end,
+            IsUnlockedMode = function() return false end,
+            IsEnabled = function() return true end,
+        },
         ["Kdm/Location"] = {
             Get = function(name)
                 return {

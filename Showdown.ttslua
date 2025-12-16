@@ -1,4 +1,5 @@
 local Archive = require("Kdm/Archive")
+local array = require("Kdm/Util/array")
 local Check = require("Kdm/Util/Check")
 local Container = require("Kdm/Util/Container")
 local EventManager = require("Kdm/Util/EventManager")
@@ -80,6 +81,18 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+local function FilterEnabledMonsters(monsters, expansionsByMonsterName)
+    if Expansion.IsUnlockedMode() then
+        return monsters  -- Show all in unlocked mode
+    end
+    return array.filter(monsters, function(monster)
+        local expansion = expansionsByMonsterName[monster.name]
+        return Expansion.IsEnabled(expansion.name)
+    end)
+end
+
+---------------------------------------------------------------------------------------------------
+
 function Showdown.InitUi()
     local dialog = PanelKit.Dialog({
         id = "Showdown",
@@ -130,9 +143,10 @@ function Showdown.InitUi()
         end,
     })
 
-    Showdown.monsterList:SetOptionsWithDefault(Util.Map(Showdown.monsters, function(monster)
-        return { text = monster.name, value = monster }
-    end), true)
+    Showdown.monsterList:SetOptionsWithDefault(Util.Map(
+        FilterEnabledMonsters(Showdown.monsters, Showdown.expansionsByMonsterName),
+        function(monster) return { text = monster.name, value = monster } end
+    ), true)
 
     Showdown.panel:Button({ id = "Begin", x = 183, y = -345, width = 301, height = 60, onClick = function(mouseButton, player)
         if not Showdown.monster or not Showdown.level then
@@ -867,6 +881,10 @@ end
 -- Test interface (kept for backward compatibility)
 Showdown.Test = {
     MonsterByName = Showdown.MonsterByNameForShowdown,
+}
+
+Showdown._test = {
+    FilterEnabledMonsters = FilterEnabledMonsters,
 }
 
 return Showdown

@@ -47,6 +47,7 @@ local testFiles = {
     "tests.rules_nav_button_kit_test",
     "tests.rules_add_to_history_test",
     "tests.location_clean_test",
+    "tests.hunt_showdown_filter_test",
 }
 
 for _, file in ipairs(testFiles) do
