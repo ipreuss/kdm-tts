@@ -784,7 +784,7 @@ function Showdown.OnObjectPickUp(_, object)
     log:Debugf("overlay: %s", Util.TabStr(overlay))
     if type == "Player Figurine" then
         log:Debugf("Player figurine [%s] %s picked up", object.getGUID(), object.getName())
-        log:Debugf("Player table: %s", Util.TabStr(Player))
+        -- Removed: log:Debugf("Player table: %s", Util.TabStr(Player)) -- causes TTS crash in new version
 
         local player = Player.ForFigurine(object)
         log:Debugf("Player")
