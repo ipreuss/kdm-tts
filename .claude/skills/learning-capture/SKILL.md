@@ -137,6 +137,22 @@ This data is critical for retrospectives to evaluate which skills/agents need im
 - **Don't interrupt workflow** — add entry and continue
 - **All roles use this** — Product Owner through Tester
 
+## ⛔ STOP: Capture ≠ Implement
+
+**Your job is to CAPTURE the learning, not to CREATE skills or agents.**
+
+When you categorize a learning as `skill` or `agent`:
+- ✅ **DO:** Write the entry to LEARNINGS.md with `Category: skill`
+- ❌ **DON'T:** Use skill-manager or subagent-creator to implement it yourself
+
+**Creating/updating skills and agents is Team Coach's responsibility.** They process LEARNINGS.md during retrospectives and decide what to implement.
+
+**Why this matters:**
+- Team Coach sees patterns across multiple learnings
+- They evaluate if a skill already exists that could be updated
+- They ensure skills follow project conventions
+- Roles that implement their own skills bypass this oversight
+
 ## Meta-Learning Check
 
 **After capturing a learning, ask yourself two questions:**

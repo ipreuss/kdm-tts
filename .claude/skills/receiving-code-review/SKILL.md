@@ -146,6 +146,20 @@ Avoid:
 | Assuming reviewer correctness | Even experts make mistakes |
 | Avoiding pushback | Valid concerns get buried |
 | Proceeding without clarity | Wastes effort on wrong thing |
+| **Skipping comments after commit** | Commit is checkpoint, not completion |
+
+## ⛔ STOP: "APPROVED WITH COMMENTS" Means Fix Them
+
+When you receive "APPROVED WITH MINOR FINDINGS" or "APPROVED WITH COMMENTS":
+
+1. **Commit** current working code (safety checkpoint)
+2. **Address ALL comments** — this is mandatory, not optional
+3. **Re-invoke reviewer** to verify fixes
+4. **Repeat** until pure APPROVED (no comments)
+
+**The commit is a safety net, NOT permission to skip remaining work.**
+
+If you disagree with a comment, push back with evidence (see "When to Push Back"). But you cannot simply ignore it.
 
 ---
 

@@ -44,6 +44,8 @@ When creating beads:
 
 Captures to `handover/LEARNINGS.md` in real-time, not waiting for session end.
 
+**⚠️ Capture ≠ Create:** When categorizing a learning as `skill` or `agent`, your job is to WRITE the entry to LEARNINGS.md — NOT to create/update skills yourself. Skill creation is Team Coach's responsibility during retrospectives.
+
 ### backlog-prioritization
 Core principle: **Technical debt cleanup always takes precedence over new features.**
 

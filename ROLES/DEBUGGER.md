@@ -125,6 +125,8 @@ log:Debugf("Function exists: %s", tostring(SomeModule.SomeFunction ~= nil))
 
 Captures to `handover/LEARNINGS.md` in real-time, not waiting for session end.
 
+**⚠️ Capture ≠ Create:** When categorizing a learning as `skill` or `agent`, your job is to WRITE the entry to LEARNINGS.md — NOT to create/update skills yourself. Skill creation is Team Coach's responsibility during retrospectives.
+
 ### Primary Debugging Skills
 - **`systematic-debugging`** — Four-phase methodology: investigate → analyze → hypothesis → implement. Iron Law: NO FIXES WITHOUT ROOT CAUSE FIRST
 - **`root-cause-tracing`** — Trace bugs backward through call stack to find source of invalid data

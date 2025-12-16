@@ -95,6 +95,16 @@ Complex/cross-module      → Debugger role (full handover)
 **Code review via subagent (default):**
 All code goes through the `code-reviewer` subagent. The subagent operates in a same-session fix loop: invoke → fix issues → re-invoke until APPROVED. Significant findings go to `handover/LEARNINGS.md` for audit trail.
 
+**Review outcomes:**
+
+| Status | Meaning | Next Step |
+|--------|---------|-----------|
+| **APPROVED** | No issues found | Commit and proceed to next workflow step |
+| **APPROVED WITH MINOR FINDINGS** | Works correctly, minor improvements needed | Commit current state (checkpoint), fix ALL findings immediately, re-invoke reviewer until pure APPROVED |
+| **MAJOR FINDINGS** | Blocking issues | Fix all issues, re-invoke reviewer. Cannot commit until resolved. |
+
+**⛔ "APPROVED WITH MINOR FINDINGS" is NOT done.** The commit is a safety checkpoint, not permission to skip the remaining work. Implementer must fix all findings and re-invoke until pure APPROVED.
+
 **Full Reviewer role (exception):**
 Use a dedicated Reviewer session only when:
 - Changes span 10+ files or 500+ lines

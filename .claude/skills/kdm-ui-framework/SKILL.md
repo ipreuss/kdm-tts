@@ -343,6 +343,45 @@ Modal blocker automatically shows/hides with dialog.
 
 **Key insight:** If the action is contextual to a specific game board object, use 3D so the relationship is visually obvious.
 
+## 3D UI Coordinate System (Board-Relative)
+
+When using `Ui.Create3d()` on game boards (e.g., Showdown Board), coordinates map differently than world coordinates:
+
+### Coordinate Mapping
+
+| Board Coordinate | World Effect |
+|------------------|--------------|
+| More negative X | Higher world X (east/right) |
+| More negative Y | Higher world Z (south) |
+| Ratio | ~4x (Δboard × 4 ≈ Δworld) |
+
+**Calibration reference points (Showdown Board):**
+- Board (x=-8, y=-4) → World (x=33.8, z=13.2)
+- Board (x=-24, y=-9) → World (x=97.8, z=33.2)
+
+### Debugging 3D UI Position
+
+**When UI elements appear in the wrong location:**
+
+1. **Place reference object** at the current (wrong) UI position
+2. **Place target object** where you want the UI to appear
+3. **Get world coordinates** of both objects via TTS console
+4. **Calculate delta:** `Δworld_x`, `Δworld_z`
+5. **Apply inverse mapping:** `Δboard ≈ Δworld / 4` (adjust sign per axis)
+
+This technique gives precise adjustments rather than trial-and-error.
+
+### Text Overflow in 3D UI
+
+For long text in 3D UI elements:
+```lua
+ui:Text({
+    ...
+    horizontalOverflow = "Wrap",
+    verticalOverflow = "Truncate",
+})
+```
+
 ## Best Practices
 
 1. **Always use color constants** — Never hardcode color values in UI code
