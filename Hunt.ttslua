@@ -4,6 +4,7 @@ local Check = require("Kdm/Util/Check")
 local Container = require("Kdm/Util/Container")
 local Deck = require("Kdm/Deck")
 local Expansion = require("Kdm/Expansion")
+local HuntParty = require("Kdm/HuntParty")
 local Location = require("Kdm/Location")
 local log = require("Kdm/Log").ForModule("Hunt")
 local Trash = require("Kdm/Trash")
@@ -209,6 +210,9 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Hunt.CleanInternal()
+    -- Clean up dynamic hunt party first (before Archive.Clean)
+    HuntParty.Cleanup()
+
     Archive.Clean()
 
     local blocking = Location.Get("Hunt Cards"):BoxClean({ types = HUNT_CARD_TYPES })
@@ -501,12 +505,8 @@ function Hunt.Setup(monsterOrName, levelOrName)
     })
     monsterFigurine.use_snap_points = true
 
-    Archive.Take({
-        name = "Hunt Party",
-        type = "Hunt Party",
-        location = level.partyHuntPosition and "Hunt Track "..level.partyHuntPosition or "Hunt Track Start",
-        rotation = { x = 0, y = 90, z =0 },
-    })
+    local partyLocation = level.partyHuntPosition and "Hunt Track "..level.partyHuntPosition or "Hunt Track Start"
+    HuntParty.Create(partyLocation)
 
     Archive.Clean()
     Survivor.ClearSkipNextHunt()

@@ -533,6 +533,7 @@ return {
             { "Weapon Crafter Gear", "Gear" },
 
             { "Hunt Party", "Hunt Party" },
+            { "Hunt Party Base", "Hunt Party" },
             { "Core Hunt Events", "Hunt Events" },
             { "The Forest Gate", "Special Hunt Events" },
             { "Herb Gathering", "Special Hunt Events" },

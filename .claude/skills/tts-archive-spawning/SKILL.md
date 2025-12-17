@@ -1,6 +1,6 @@
 ---
 name: tts-archive-spawning
-description: Spawning objects from TTS archives with async callbacks and cleanup. Use when working with Archive.Take, spawn callbacks, async operations, or Archive.Clean. Triggers on Archive.Take, spawn, spawnFunc, callback, async, Archive.Clean, infinite archive.
+description: Spawning objects from TTS archives with async callbacks and cleanup. Use when working with Archive.Take, spawn callbacks, async operations, or Archive.Clean. Triggers on Archive.Take, spawn, spawnFunc, callback, async, Archive.Clean, infinite archive, "not found in archive", "object not found", "card not found", second spawn fails, re-spawning same object.
 ---
 
 # TTS Archive Spawning
@@ -59,6 +59,32 @@ The Archive system has a two-level structure:
 1. Check `savefile_backup.json` for exact `Nickname` and `GMNotes` values
 2. Trace whether the code passes an explicit `archive` parameter (usually wrong) or lets auto-resolution work (usually right)
 3. If taking the same object twice, ensure `Archive.Clean()` is called between takes
+
+## ⚠️ "Object Not Found" After Previous Success
+
+**Symptom:** `Archive.Take()` worked the first time but fails on subsequent calls with "object not found" or returns nil.
+
+**Root cause:** Archive containers are cached after first spawn. If the container only has one instance of an object (like "Hunt Party Base"), subsequent `Take()` calls fail because the cached container is now empty.
+
+**Solution:** Call `Archive.Clean()` before re-taking the same object:
+
+```lua
+-- WRONG - second Take fails because cached container is depleted
+local obj1 = Archive.Take({ name = "Hunt Party Base", ... })
+obj1.destruct()
+local obj2 = Archive.Take({ name = "Hunt Party Base", ... })  -- FAILS!
+
+-- CORRECT - clean cache to spawn fresh container
+local obj1 = Archive.Take({ name = "Hunt Party Base", ... })
+obj1.destruct()
+Archive.Clean()  -- Clears cached container
+local obj2 = Archive.Take({ name = "Hunt Party Base", ... })  -- Works!
+```
+
+**When this happens:**
+- Re-spawning an object after destroying the previous one (e.g., `Recreate()` functions)
+- Taking multiple copies of a single-instance object
+- Any "take, destroy, take again" pattern
 
 ## Archive.Clean() Patterns
 

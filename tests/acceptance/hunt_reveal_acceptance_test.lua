@@ -129,6 +129,8 @@ local function createHuntTestEnvironment()
     -- Other required stubs
     package.loaded["Kdm/Util/Check"] = {
         Fail = function(msg) error(msg) end,
+        Str = function(v) return type(v) == "string" end,
+        Func = function(v) return type(v) == "function" end,
     }
     package.loaded["Kdm/Util/Container"] = function(obj)
         return {
@@ -152,6 +154,11 @@ local function createHuntTestEnvironment()
     package.loaded["Kdm/Survivor"] = {
         DepartingSurvivorNeedsToSkipNextHunt = function() return false end,
         ClearSkipNextHunt = function() end,
+        GetDepartingSurvivors = function() return pairs({}) end,
+    }
+    package.loaded["Kdm/HuntParty"] = {
+        Create = function() return {} end,
+        Cleanup = function() end,
     }
     package.loaded["Kdm/Ui"] = {
         Get2d = function() return {

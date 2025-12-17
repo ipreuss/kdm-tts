@@ -1,0 +1,337 @@
+---------------------------------------------------------------------------------------------------
+-- HuntParty Module (kdm-gmk)
+--
+-- Manages the dynamic hunt party that displays scaled-down survivor figurine copies
+-- as a group that moves together on the hunt track.
+--
+-- Design: Uses TTS addAttachment() to group figurines with a base token.
+-- The base token has GM Notes "Hunt Party" for drop handler compatibility.
+---------------------------------------------------------------------------------------------------
+
+local HuntParty = {}
+
+local Archive = require("Kdm/Archive")
+local EventManager = require("Kdm/Util/EventManager")
+local Location = require("Kdm/Location")
+local Survivor = require("Kdm/Survivor")
+local log = require("Kdm/Log").ForModule("HuntParty")
+
+---------------------------------------------------------------------------------------------------
+-- Constants
+---------------------------------------------------------------------------------------------------
+
+local SCALE_FACTOR = 0.5  -- Multiply original figurine scale by this factor
+local FIGURINE_HEIGHT_OFFSET = 0.1  -- Height above base token
+
+-- Formation positions relative to base center (in TTS units)
+-- Hunt party faces east (y rotation = 90), so:
+-- Negative Z = toward monster (front)
+-- Positive Z = away from monster (back)
+local FORMATIONS = {
+    [1] = {
+        { x = 0, z = 0 }  -- centered
+    },
+    [2] = {
+        { x = 0, z = -0.5 },  -- left (when facing east)
+        { x = 0, z = 0.5 }    -- right (when facing east)
+    },
+    [3] = {
+        { x = 0, z = -0.5 },     -- front (toward monster)
+        { x = -0.5, z = 0.5 },   -- back left
+        { x = 0.5, z = 0.5 }     -- back right
+    },
+    [4] = {
+        { x = -0.5, z = -0.5 },  -- front left
+        { x = 0.5, z = -0.5 },   -- front right
+        { x = -0.5, z = 0.5 },   -- back left
+        { x = 0.5, z = 0.5 }     -- back right
+    }
+}
+
+---------------------------------------------------------------------------------------------------
+-- Module State
+---------------------------------------------------------------------------------------------------
+
+HuntParty.baseObject = nil
+HuntParty.figurinesBySurvivorId = {}
+HuntParty.survivors = {}  -- Store actual survivor objects for recreation
+HuntParty.currentLocation = nil
+
+---------------------------------------------------------------------------------------------------
+-- Internal Functions
+---------------------------------------------------------------------------------------------------
+
+function HuntParty.GetFormation(count)
+    return FORMATIONS[count] or FORMATIONS[1]
+end
+
+function HuntParty.CollectFigurines(survivors)
+    local collected = {}
+    for _, survivor in ipairs(survivors) do
+        if survivor:FigurineJSON() then
+            table.insert(collected, survivor)
+        end
+    end
+    return collected
+end
+
+function HuntParty.SpawnFigurinesOnBase(baseObject, survivors, rotation)
+    local formation = HuntParty.GetFormation(#survivors)
+    local basePos = baseObject.getPosition()
+
+    for i, survivor in ipairs(survivors) do
+        local offset = formation[i]
+        local figurinePos = {
+            x = basePos.x + offset.x,
+            y = basePos.y + FIGURINE_HEIGHT_OFFSET,
+            z = basePos.z + offset.z
+        }
+
+        spawnObjectJSON({
+            json = survivor:FigurineJSON(),
+            position = figurinePos,
+            rotation = rotation,
+            callback_function = function(obj)
+                -- Guard: Cleanup may have been called while figurine was spawning
+                if HuntParty.baseObject == nil or HuntParty.baseObject.isDestroyed() then
+                    obj.destruct()  -- Clean up orphaned figurine
+                    return
+                end
+
+                -- Scale down relative to original size (preserve custom figurine proportions)
+                local originalScale = obj.getScale()
+                obj.setScale({
+                    x = originalScale.x * SCALE_FACTOR,
+                    y = originalScale.y * SCALE_FACTOR,
+                    z = originalScale.z * SCALE_FACTOR
+                })
+                baseObject.addAttachment(obj)
+                HuntParty.figurinesBySurvivorId[survivor.id] = obj
+                log:Debugf("Attached figurine for survivor %d", survivor.id)
+            end
+        })
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+-- Public API
+---------------------------------------------------------------------------------------------------
+
+function HuntParty.Create(location)
+    -- Collect survivors with figurines
+    local survivors = {}
+    for survivor in Survivor.GetDepartingSurvivors() do
+        table.insert(survivors, survivor)
+    end
+
+    local withFigurines = HuntParty.CollectFigurines(survivors)
+
+    -- Fallback to standard token if no figurines
+    if #withFigurines == 0 then
+        log:Debugf("No figurines found, using standard Hunt Party token")
+        return Archive.Take({
+            name = "Hunt Party",
+            type = "Hunt Party",
+            location = location,
+            rotation = { x = 0, y = 90, z = 0 },
+        })
+    end
+
+    -- Spawn the dedicated base token for dynamic party (not the full Hunt Party token)
+    local baseObject = Archive.Take({
+        name = "Hunt Party Base",
+        type = "Hunt Party",
+        location = location,
+        rotation = { x = 0, y = 90, z = 0 },
+    })
+
+    -- Rename to "Hunt Party" for consistency
+    baseObject.setName("Hunt Party")
+
+    HuntParty.baseObject = baseObject
+    HuntParty.figurinesBySurvivorId = {}
+    HuntParty.survivors = {}
+    HuntParty.currentLocation = location
+
+    -- Track survivors for recreation
+    for _, survivor in ipairs(withFigurines) do
+        table.insert(HuntParty.survivors, survivor)
+    end
+
+    HuntParty.SpawnFigurinesOnBase(baseObject, withFigurines, { x = 0, y = 90, z = 0 })
+
+    log:Printf("Created dynamic hunt party with %d figurines", #withFigurines)
+    return baseObject
+end
+
+function HuntParty.Remove(survivor)
+    log:Debugf("Remove called for survivor id=%s, tracking %d survivors", tostring(survivor.id), #HuntParty.survivors)
+
+    -- Check if we're tracking survivors
+    if not HuntParty.survivors or #HuntParty.survivors == 0 then
+        log:Debugf("No survivors tracked")
+        return
+    end
+
+    -- Find and remove this survivor from the list
+    local found = false
+    for i, s in ipairs(HuntParty.survivors) do
+        if s.id == survivor.id then
+            table.remove(HuntParty.survivors, i)
+            found = true
+            break
+        end
+    end
+
+    if not found then
+        log:Debugf("Survivor %s not found in party", tostring(survivor.id))
+        return
+    end
+
+    local remainingCount = #HuntParty.survivors
+
+    if remainingCount == 0 then
+        log:Debugf("Last figurine removed, cleaning up party")
+        HuntParty.Cleanup()
+    else
+        -- Recreate the party with remaining survivors, excluding the one being removed
+        HuntParty.Recreate(survivor.id)
+    end
+
+    log:Printf("Removed figurine for survivor %d, %d remaining", survivor.id, remainingCount)
+end
+
+function HuntParty.Recreate(excludeSurvivorId)
+    if not HuntParty.baseObject then
+        log:Debugf("Recreate: no base object")
+        return
+    end
+
+    -- Save current position
+    local currentPos = HuntParty.baseObject.getPosition()
+    local currentRot = HuntParty.baseObject.getRotation()
+
+    -- Destroy the old party and clean archive cache so we can spawn a new base
+    HuntParty.baseObject.destruct()
+    HuntParty.baseObject = nil
+    HuntParty.figurinesBySurvivorId = {}
+    Archive.Clean()
+
+    -- Get current departing survivors with figurines, excluding the one being removed
+    local survivors = {}
+    for survivor in Survivor.GetDepartingSurvivors() do
+        if survivor:FigurineJSON() and survivor.id ~= excludeSurvivorId then
+            table.insert(survivors, survivor)
+        end
+    end
+
+    if #survivors == 0 then
+        log:Debugf("Recreate: no survivors with figurines remaining")
+        HuntParty.survivors = {}
+        return
+    end
+
+    HuntParty.survivors = survivors
+
+    -- Spawn new base at current position
+    local baseObject = Archive.Take({
+        name = "Hunt Party Base",
+        type = "Hunt Party",
+        position = currentPos,
+        rotation = currentRot,
+    })
+
+    baseObject.setName("Hunt Party")
+
+    HuntParty.baseObject = baseObject
+    HuntParty.figurinesBySurvivorId = {}
+
+    HuntParty.SpawnFigurinesOnBase(baseObject, survivors, currentRot)
+
+    log:Debugf("Recreated hunt party with %d figurines", #survivors)
+end
+
+function HuntParty.RearrangeFormation()
+    if not HuntParty.baseObject or HuntParty.baseObject.isDestroyed() then
+        log:Debugf("RearrangeFormation: base object missing or destroyed")
+        return
+    end
+
+    -- Collect remaining figurines
+    local figurines = {}
+    for survivorId, figurine in pairs(HuntParty.figurinesBySurvivorId) do
+        local destroyed = figurine.isDestroyed()
+        log:Debugf("RearrangeFormation: survivor %s figurine isDestroyed=%s", tostring(survivorId), tostring(destroyed))
+        if not destroyed then
+            table.insert(figurines, { survivorId = survivorId, obj = figurine })
+        end
+    end
+
+    -- Get new formation
+    local formation = HuntParty.GetFormation(#figurines)
+    local basePos = HuntParty.baseObject.getPosition()
+
+    -- Reposition figurines
+    for i, data in ipairs(figurines) do
+        local offset = formation[i]
+        data.obj.setPosition({
+            x = basePos.x + offset.x,
+            y = basePos.y + FIGURINE_HEIGHT_OFFSET,
+            z = basePos.z + offset.z
+        })
+    end
+
+    log:Debugf("Rearranged %d figurines to new formation", #figurines)
+end
+
+function HuntParty.Cleanup()
+    if HuntParty.baseObject and not HuntParty.baseObject.isDestroyed() then
+        HuntParty.baseObject.destruct()
+        log:Debugf("Destroyed hunt party base object")
+    end
+    HuntParty.baseObject = nil
+    HuntParty.figurinesBySurvivorId = {}
+    HuntParty.survivors = {}
+    HuntParty.currentLocation = nil
+end
+
+function HuntParty.GetBaseObject()
+    return HuntParty.baseObject
+end
+
+function HuntParty.GetFigurineCount()
+    local count = 0
+    for _ in pairs(HuntParty.figurinesBySurvivorId) do
+        count = count + 1
+    end
+    return count
+end
+
+function HuntParty.GetTrackedIds()
+    local ids = {}
+    for id, _ in pairs(HuntParty.figurinesBySurvivorId) do
+        table.insert(ids, tostring(id))
+    end
+    return table.concat(ids, ", ")
+end
+
+---------------------------------------------------------------------------------------------------
+-- Event Handlers
+---------------------------------------------------------------------------------------------------
+
+-- Register event handlers for dynamic party updates
+EventManager.AddHandler(EventManager.ON_SURVIVOR_DESTROYED, function(survivor)
+    if HuntParty.baseObject then
+        HuntParty.Remove(survivor)
+    end
+end)
+
+EventManager.AddHandler(EventManager.ON_SURVIVOR_BACK_TO_SETTLEMENT, function(survivor)
+    if HuntParty.baseObject then
+        HuntParty.Remove(survivor)
+    end
+end)
+
+---------------------------------------------------------------------------------------------------
+
+return HuntParty

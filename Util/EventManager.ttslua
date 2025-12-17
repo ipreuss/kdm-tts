@@ -4,6 +4,10 @@ local Check = require("Kdm/Util/Check")
 
 local EventManager = {}
 
+-- Debug flag for diagnosing TTS array index errors (2025-12-16)
+-- Uses TTS built-in log() to avoid circular dependency with Log module
+EventManager.DEBUG = false
+
 EventManager.ON_SURVIVOR_DESTROYED = "onSurvivorDestroyed"
 EventManager.ON_SURVIVOR_STAT_CHANGED = "onSurvivorStatChanged"
 EventManager.ON_SURVIVOR_CARDS_CHANGED = "onSurvivorCardsChanged"
@@ -35,20 +39,30 @@ function EventManager.AddHandler(event, handler)
     EventManager.globalHandlers[event] = _G[event]
 
     _G[event] = function(...)
+        if EventManager.DEBUG then log("[EventManager] Event triggered: " .. event) end
         local globalHandler = EventManager.globalHandlers[event]
         local returnValue
         if globalHandler then
+            if EventManager.DEBUG then log("[EventManager] Calling global handler for: " .. event) end
             returnValue = globalHandler(...)
+            if EventManager.DEBUG then log("[EventManager] Global handler returned for: " .. event) end
         end
 
-        local args = table.pack(...)
+        -- Avoid table.pack which creates hidden 'n' field that can cause
+        -- TTS C# interop issues with table.unpack in newer TTS versions
+        local args = {...}
         local n = #args
-        table.insert(args, returnValue)
+        if EventManager.DEBUG then log("[EventManager] Args count: " .. n .. " for event: " .. event) end
+        local handlerIndex = 0
         for _, handler in ipairs(EventManager.handlers[event]) do
+            handlerIndex = handlerIndex + 1
+            if EventManager.DEBUG then log("[EventManager] Calling handler " .. handlerIndex .. " for: " .. event) end
             args[n + 1] = returnValue
-            returnValue = handler(table.unpack(args))
+            returnValue = handler(table.unpack(args, 1, n + 1))
+            if EventManager.DEBUG then log("[EventManager] Handler " .. handlerIndex .. " returned for: " .. event) end
         end
 
+        if EventManager.DEBUG then log("[EventManager] Event complete: " .. event) end
         return returnValue
     end
 
