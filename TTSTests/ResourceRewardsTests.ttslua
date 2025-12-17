@@ -119,9 +119,9 @@ function ResourceRewardsTests.Register()
         ResourceRewardsTests.TestScreamingAntelopeDataIntegrity()
     end, "Test Screaming Antelope resource data for all levels")
 
-    Console.AddCommand("testantelopevermin", function(args)
-        ResourceRewardsTests.TestScreamingAntelopeVerminSpawn()
-    end, "Test Screaming Antelope L3 spawns vermin resources")
+    Console.AddCommand("testantelopenovermin", function(args)
+        ResourceRewardsTests.TestScreamingAntelopeNoVermin()
+    end, "Test Screaming Antelope L3 has no vermin (Core Rules p88)")
 
     -- Phoenix tests
     Console.AddCommand("testphoenixbutton", function(args)
@@ -703,22 +703,23 @@ function ResourceRewardsTests.TestScreamingAntelopeDataIntegrity(onComplete)
     validateMonsterResourceData("Screaming Antelope", {
         { levelName = "Level 1", basic = 4, monster = 4 },
         { levelName = "Level 2", basic = 4, monster = 6 },
-        { levelName = "Level 3", basic = 5, monster = 7, vermin = 2, strange = { "Black Lichen" } },
+        { levelName = "Level 3", basic = 5, monster = 7, strange = { "Black Lichen" } },  -- no vermin per Core Rules p88
     }, onComplete)
 end
 
 ---------------------------------------------------------------------------------------------------
 
-function ResourceRewardsTests.TestScreamingAntelopeVerminSpawn(onComplete)
-    log:Printf("=== TEST: TestScreamingAntelopeVerminSpawn (Behavioral) ===")
+function ResourceRewardsTests.TestScreamingAntelopeNoVermin(onComplete)
+    log:Printf("=== TEST: TestScreamingAntelopeNoVermin (Behavioral) ===")
 
     -- Ensure clean state before starting
     Showdown.Clean()
 
     Wait.frames(function()
-        log:Printf("TEST: Starting Screaming Antelope Level 3 showdown (has vermin resources)...")
+        log:Printf("TEST: Starting Screaming Antelope Level 3 showdown (no vermin per Core Rules p88)...")
 
-        -- Screaming Antelope Level 3 has: basic = 5, monster = 7, vermin = 2, strange = { "Black Lichen" }
+        -- Screaming Antelope Level 3 has: basic = 5, monster = 7, strange = { "Black Lichen" }
+        -- Note: NO vermin resources per Core Rules page 88
         Showdown.Setup("Screaming Antelope", "Level 3")
 
         Wait.frames(function()
@@ -757,16 +758,16 @@ function ResourceRewardsTests.TestScreamingAntelopeVerminSpawn(onComplete)
             log:Printf("TEST: Vermin deck now has %d cards (drew %d)", finalVerminCount, verminDrawn)
 
             local passed = true
-            if verminDrawn < 2 then
-                log:Errorf("TEST FAILED: Expected to draw 2 vermin, but only drew %d", verminDrawn)
+            if verminDrawn ~= 0 then
+                log:Errorf("TEST FAILED: Expected to draw 0 vermin (Core Rules p88), but drew %d", verminDrawn)
                 passed = false
             else
-                log:Printf("TEST PASSED: Correctly drew %d vermin resources from deck", verminDrawn)
+                log:Printf("TEST PASSED: Correctly drew 0 vermin resources (per Core Rules p88)")
             end
 
             cleanupSpawnedResources()
 
-            log:Printf("=== TEST: TestScreamingAntelopeVerminSpawn COMPLETE ===")
+            log:Printf("=== TEST: TestScreamingAntelopeNoVermin COMPLETE ===")
             log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
             Showdown.Clean()
             if onComplete then onComplete(passed) end

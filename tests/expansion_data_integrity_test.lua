@@ -351,11 +351,11 @@ Test.test("Screaming Antelope has resource rewards for L1-L3", function(t)
     t:assertEqual(antelopeRewards["Level 2"].basic, 4, "Screaming Antelope L2 basic should be 4")
     t:assertEqual(antelopeRewards["Level 2"].monster, 6, "Screaming Antelope L2 monster should be 6")
 
-    -- L3: 5 basic, 7 monster, 2 vermin, strange = { "Black Lichen" }
+    -- L3: 5 basic, 7 monster, strange = { "Black Lichen" } (no vermin per Core Rules p88)
     t:assertNotNil(antelopeRewards["Level 3"], "Screaming Antelope L3 should have rewards")
     t:assertEqual(antelopeRewards["Level 3"].basic, 5, "Screaming Antelope L3 basic should be 5")
     t:assertEqual(antelopeRewards["Level 3"].monster, 7, "Screaming Antelope L3 monster should be 7")
-    t:assertEqual(antelopeRewards["Level 3"].vermin, 2, "Screaming Antelope L3 vermin should be 2")
+    t:assertNil(antelopeRewards["Level 3"].vermin, "Screaming Antelope L3 should NOT have vermin (Core Rules p88)")
     t:assertNotNil(antelopeRewards["Level 3"].strange, "Screaming Antelope L3 should have strange resources")
     t:assertEqual(#antelopeRewards["Level 3"].strange, 1, "Screaming Antelope L3 should have 1 strange resource")
     t:assertEqual(antelopeRewards["Level 3"].strange[1], "Black Lichen", "Screaming Antelope L3 strange should be Black Lichen")

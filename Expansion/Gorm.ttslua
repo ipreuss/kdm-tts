@@ -140,6 +140,16 @@ return {
                         movement = 6,
                         toughness = 8,
                         resources = { basic = 4, monster = 4 },
+                        aftermath = {
+                            victory = {
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency (if eligible)" },
+                                { text = "Collect resources" },
+                            },
+                            defeat = {
+                                { text = "Archive all consumable gear from deceased survivors' grids" },
+                            },
+                        },
                     },
                 },
                 {
@@ -157,6 +167,16 @@ return {
                         speed = 1,
                         damage = 1,
                         resources = { basic = 4, monster = 6 },
+                        aftermath = {
+                            victory = {
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency (if eligible)" },
+                                { text = "Collect resources" },
+                            },
+                            defeat = {
+                                { text = "Archive all consumable gear from deceased survivors' grids" },
+                            },
+                        },
                     },
                 },
                 {
@@ -176,6 +196,16 @@ return {
                         damage = 2,
                         luck = 1,
                         resources = { basic = 4, monster = 8, strange = { "Stomach Lining" } },
+                        aftermath = {
+                            victory = {
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency (if eligible)" },
+                                { text = "Collect resources" },
+                            },
+                            defeat = {
+                                { text = "Archive all consumable gear from deceased survivors' grids" },
+                            },
+                        },
                     },
                 },
             },

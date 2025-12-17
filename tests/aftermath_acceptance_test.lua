@@ -124,20 +124,29 @@ end)
 Test.test("Butcher (nemesis) has aftermath data", function(t)
     local monstersWithAftermath = collectMonsterAftermath()
 
-    local butcherL1 = nil
-    for _, entry in ipairs(monstersWithAftermath) do
-        if entry.monster == "Butcher" and entry.level == "Level 1" then
-            butcherL1 = entry.aftermath
-            break
+    -- Test all 3 Butcher levels have correct aftermath structure
+    for _, levelName in ipairs({ "Level 1", "Level 2", "Level 3" }) do
+        local butcher = nil
+        for _, entry in ipairs(monstersWithAftermath) do
+            if entry.monster == "Butcher" and entry.level == levelName then
+                butcher = entry.aftermath
+                break
+            end
         end
+
+        local desc = "Butcher " .. levelName
+        t:assertNotNil(butcher, desc .. " should have aftermath data")
+        t:assertNotNil(butcher.victory, desc .. " should have victory aftermath")
+        t:assertNotNil(butcher.defeat, desc .. " should have defeat aftermath")
+
+        -- Victory: Axe proficiency, Hunt XP, Weapon Prof Level, d10 roll = 4 items
+        t:assertEqual(#butcher.victory, 4,
+            string.format("%s victory should have exactly 4 items, found %d", desc, #butcher.victory))
+
+        -- Defeat: Lose all resources = 1 item
+        t:assertEqual(#butcher.defeat, 1,
+            string.format("%s defeat should have exactly 1 item, found %d", desc, #butcher.defeat))
     end
-
-    t:assertNotNil(butcherL1, "Butcher L1 should have aftermath data")
-    t:assertNotNil(butcherL1.victory, "Butcher L1 should have victory aftermath")
-    t:assertNotNil(butcherL1.defeat, "Butcher L1 should have defeat aftermath")
-
-    -- Victory should include courage gain and cleaver
-    t:assertTrue(#butcherL1.victory >= 2, "Butcher L1 victory should have at least 2 items")
 end)
 
 --------------------------------------------------------------------------------
@@ -182,6 +191,121 @@ Test.test("All Core monsters have both victory and defeat aftermath", function(t
                 t:assertTrue(#found.defeat >= 1, desc .. " defeat should have at least 1 item")
             end
         end
+    end
+end)
+
+--------------------------------------------------------------------------------
+
+Test.test("Expansion monsters have aftermath data", function(t)
+    local monstersWithAftermath = collectMonsterAftermath()
+
+    -- Expansion monsters that should have aftermath
+    local expansionMonsters = {
+        ["Gorm"] = { "Level 1", "Level 2", "Level 3" },
+        ["Dragon King"] = { "Level 1", "Level 2", "Level 3" },
+        ["Spidicules"] = { "Level 1", "Level 2", "Level 3" },
+        ["Dung Beetle Knight"] = { "Level 1", "Level 2", "Level 3" },
+        ["Flower Knight"] = { "Level 1", "Level 2", "Level 3" },
+    }
+
+    for monsterName, levels in pairs(expansionMonsters) do
+        for _, levelName in ipairs(levels) do
+            local found = nil
+            for _, entry in ipairs(monstersWithAftermath) do
+                if entry.monster == monsterName and entry.level == levelName then
+                    found = entry.aftermath
+                    break
+                end
+            end
+
+            local desc = string.format("%s %s", monsterName, levelName)
+            t:assertNotNil(found, desc .. " should have aftermath data")
+            if found then
+                t:assertNotNil(found.victory, desc .. " should have victory aftermath")
+                t:assertNotNil(found.defeat, desc .. " should have defeat aftermath")
+                t:assertTrue(#found.victory >= 3, desc .. " victory should have at least 3 items")
+                t:assertTrue(#found.defeat >= 1, desc .. " defeat should have at least 1 item")
+            end
+        end
+    end
+end)
+
+--------------------------------------------------------------------------------
+
+Test.test("Dragon King L3 has extra victory item", function(t)
+    local monstersWithAftermath = collectMonsterAftermath()
+
+    local dragonKingL3 = nil
+    for _, entry in ipairs(monstersWithAftermath) do
+        if entry.monster == "Dragon King" and entry.level == "Level 3" then
+            dragonKingL3 = entry.aftermath
+            break
+        end
+    end
+
+    t:assertNotNil(dragonKingL3, "Dragon King L3 should have aftermath data")
+    -- L3 has extra item: "If Sculpture: gain Radiant Claw strange resource"
+    t:assertEqual(#dragonKingL3.victory, 4,
+        string.format("Dragon King L3 victory should have 4 items (extra for Sculpture), found %d", #dragonKingL3.victory))
+end)
+
+--------------------------------------------------------------------------------
+
+Test.test("Spidicules L3 has extra victory item", function(t)
+    local monstersWithAftermath = collectMonsterAftermath()
+
+    local spidiculesL3 = nil
+    for _, entry in ipairs(monstersWithAftermath) do
+        if entry.monster == "Spidicules" and entry.level == "Level 3" then
+            spidiculesL3 = entry.aftermath
+            break
+        end
+    end
+
+    t:assertNotNil(spidiculesL3, "Spidicules L3 should have aftermath data")
+    -- L3 has extra item: "If Scarification: Killing blow survivor gains ability"
+    t:assertEqual(#spidiculesL3.victory, 4,
+        string.format("Spidicules L3 victory should have 4 items (extra for Scarification), found %d", #spidiculesL3.victory))
+end)
+
+--------------------------------------------------------------------------------
+
+Test.test("Flower Knight L3 has extra victory items", function(t)
+    local monstersWithAftermath = collectMonsterAftermath()
+
+    local flowerKnightL3 = nil
+    for _, entry in ipairs(monstersWithAftermath) do
+        if entry.monster == "Flower Knight" and entry.level == "Level 3" then
+            flowerKnightL3 = entry.aftermath
+            break
+        end
+    end
+
+    t:assertNotNil(flowerKnightL3, "Flower Knight L3 should have aftermath data")
+    -- L3 has 2 extra items: "Sleeping Virus Flower" and "If Petal Spiral"
+    t:assertEqual(#flowerKnightL3.victory, 5,
+        string.format("Flower Knight L3 victory should have 5 items (2 extra for L3), found %d", #flowerKnightL3.victory))
+end)
+
+--------------------------------------------------------------------------------
+
+Test.test("Dung Beetle Knight defeat has 4 items", function(t)
+    local monstersWithAftermath = collectMonsterAftermath()
+
+    for _, levelName in ipairs({ "Level 1", "Level 2", "Level 3" }) do
+        local dbk = nil
+        for _, entry in ipairs(monstersWithAftermath) do
+            if entry.monster == "Dung Beetle Knight" and entry.level == levelName then
+                dbk = entry.aftermath
+                break
+            end
+        end
+
+        local desc = "Dung Beetle Knight " .. levelName
+        t:assertNotNil(dbk, desc .. " should have aftermath data")
+        -- DBK defeat has 4 items about nominated survivors
+        t:assertEqual(#dbk.defeat, 4,
+            string.format("%s defeat should have 4 items, found %d", desc, #dbk.defeat))
     end
 end)
 

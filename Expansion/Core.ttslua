@@ -1174,11 +1174,13 @@ return {
                         toughness = 9,
                         aftermath = {
                             victory = {
-                                { text = "Survivors with insanity 3+ gain +1 courage" },
-                                { text = "Take Butcher's Cleaver from the archive (if available)" },
+                                { text = "Any survivor may select Axe as weapon proficiency." },
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency Level (monster level for Axe proficiency)" },
+                                { text = "Roll 1d10 + Butcher level for rewards." },
                             },
                             defeat = {
-                                { text = "Survivors lose all insanity" },
+                                { text = "Lose all resources in settlement storage" },
                             },
                         },
                     },
@@ -1199,11 +1201,13 @@ return {
                         damage = 1,
                         aftermath = {
                             victory = {
-                                { text = "Survivors with insanity 3+ gain +1 courage" },
-                                { text = "Take Butcher's Cleaver from the archive (if available)" },
+                                { text = "Any survivor may select Axe as weapon proficiency." },
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency Level (monster level for Axe proficiency)" },
+                                { text = "Roll 1d10 + Butcher level for rewards." },
                             },
                             defeat = {
-                                { text = "Survivors lose all insanity" },
+                                { text = "Lose all resources in settlement storage" },
                             },
                         },
                     },
@@ -1226,11 +1230,13 @@ return {
                         accuracy = 2,
                         aftermath = {
                             victory = {
-                                { text = "Survivors with insanity 3+ gain +1 courage" },
-                                { text = "Take Butcher's Cleaver from the archive (if available)" },
+                                { text = "Any survivor may select Axe as weapon proficiency." },
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency Level (monster level for Axe proficiency)" },
+                                { text = "Roll 1d10 + Butcher level for rewards." },
                             },
                             defeat = {
-                                { text = "Survivors lose all insanity" },
+                                { text = "Lose all resources in settlement storage" },
                             },
                         },
                     },
@@ -1599,7 +1605,7 @@ return {
                         damage = 2,
                         accuracy = 2,
                         evasion = 1,
-                        resources = { basic = 5, monster = 7, vermin = 2, strange = { "Black Lichen" } },
+                        resources = { basic = 5, monster = 7, strange = { "Black Lichen" } },
                         aftermath = {
                             victory = {
                                 { text = "WARNING: Non-deaf survivors with 20+ insanity vanish!" },

@@ -56,7 +56,7 @@ TestRegistry.ALL_TESTS = {
     -- Resource Rewards Expansion tests (showdown domain)
     { name = "Screaming Antelope Button Visible", bead = { "kdm-w1k.3", "kdm-rhc" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeButtonAppears(onComplete) end },
     { name = "Screaming Antelope Data Integrity", bead = { "kdm-w1k.3", "kdm-rhc" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeDataIntegrity(onComplete) end },
-    { name = "Screaming Antelope Vermin Spawn", bead = { "kdm-w1k.3", "kdm-rhc" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeVerminSpawn(onComplete) end },
+    { name = "Screaming Antelope No Vermin", bead = { "kdm-w1k.3", "kdm-rhc", "kdm-sey" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestScreamingAntelopeNoVermin(onComplete) end },
     { name = "Phoenix Button Visible", bead = { "kdm-w1k.3", "kdm-rhc" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestPhoenixButtonAppears(onComplete) end },
     { name = "Phoenix Data Integrity", bead = { "kdm-w1k.3", "kdm-rhc" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestPhoenixDataIntegrity(onComplete) end },
     { name = "Phoenix Strange Resources Spawn", bead = { "kdm-w1k.3", "kdm-rhc" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestPhoenixStrangeResourcesSpawn(onComplete) end },

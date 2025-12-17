@@ -179,6 +179,19 @@ return {
                         movement = 7,
                         toughness = 12,
                         resources = { basic = 6, monster = 4, strange = { "Preserved Caustic Dung", "Preserved Caustic Dung" } },
+                        aftermath = {
+                            victory = {
+                                { text = "+1/+2 Hunt XP" },
+                                { text = "+1 Weapon Proficiency (if eligible)" },
+                                { text = "Collect resources" },
+                            },
+                            defeat = {
+                                { text = "Nominated survivors discover corpses outside settlement" },
+                                { text = "Nominated survivors gain +1 insanity" },
+                                { text = "Nominated survivors gain random disorder" },
+                                { text = "Nominated survivors must depart next settlement phase" },
+                            },
+                        },
                     },
                 },
                 {
@@ -197,6 +210,19 @@ return {
                         speed = 1,
                         damage = 1,
                         resources = { basic = 7, monster = 6, strange = { "Preserved Caustic Dung", "Preserved Caustic Dung", "Preserved Caustic Dung", "Scell" } },
+                        aftermath = {
+                            victory = {
+                                { text = "+1/+2 Hunt XP" },
+                                { text = "+1 Weapon Proficiency (if eligible)" },
+                                { text = "Collect resources" },
+                            },
+                            defeat = {
+                                { text = "Nominated survivors discover corpses outside settlement" },
+                                { text = "Nominated survivors gain +1 insanity" },
+                                { text = "Nominated survivors gain random disorder" },
+                                { text = "Nominated survivors must depart next settlement phase" },
+                            },
+                        },
                     },
                 },
                 {
@@ -217,6 +243,19 @@ return {
                         accuracy = 1,
                         evasion = 1,
                         resources = { basic = 8, monster = 8, strange = { "Preserved Caustic Dung", "Preserved Caustic Dung", "Preserved Caustic Dung", "Scell" } },
+                        aftermath = {
+                            victory = {
+                                { text = "+1/+2 Hunt XP" },
+                                { text = "+1 Weapon Proficiency (if eligible)" },
+                                { text = "Collect resources" },
+                            },
+                            defeat = {
+                                { text = "Nominated survivors discover corpses outside settlement" },
+                                { text = "Nominated survivors gain +1 insanity" },
+                                { text = "Nominated survivors gain random disorder" },
+                                { text = "Nominated survivors must depart next settlement phase" },
+                            },
+                        },
                     },
                 },
                 {
