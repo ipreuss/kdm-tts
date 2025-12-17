@@ -124,6 +124,14 @@ The parent session has full context of what's being implemented. Use:
 - Tests using expansion data should use REAL data from Core.ttslua
 - Mock data only for unit tests of pure logic
 
+### 3b. Test Archaeology (when data changes)
+**When reviewing data definition changes** (aftermath, gear stats, resource rewards, monster levels):
+- Search test files for hardcoded values matching the OLD data
+- Flag tests that may have been written to validate *incorrect* data
+- Recommend: convert obsolete tests to negative tests or delete
+
+**Search command:** `grep -r "old_data_value" tests/`
+
 **TTS integration tests checklist:**
 - [ ] Entry point: Does test call real public API?
 - [ ] Event flow: Do events fire naturally, not manually?
