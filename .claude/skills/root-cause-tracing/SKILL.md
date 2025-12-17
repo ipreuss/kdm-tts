@@ -190,4 +190,4 @@ UI.OnButtonClick()           ← User clicked before data loaded
 - Feeds into `defense-in-depth` for multi-layer validation
 - Document findings in Debugger handover
 - Write regression test after fix
-- Human maintainer handles git commits
+- Git commits require human approval

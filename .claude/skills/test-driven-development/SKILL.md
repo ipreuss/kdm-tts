@@ -199,4 +199,4 @@ Can't check all boxes? You skipped TDD. Restart.
 - Tester writes acceptance tests (TDD applies to test code too)
 - Links to `verification-before-completion` for final check
 - Links to `kdm-test-patterns` for test type guidance
-- Human maintainer handles git commits
+- Git commits require human approval

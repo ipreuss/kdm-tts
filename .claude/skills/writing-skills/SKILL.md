@@ -167,9 +167,49 @@ Test with:
 
 ---
 
-## Skill Design: Problem-Oriented, Not Domain-Oriented
+## Skill Design: Use-Case Driven
 
-**Skills should be organized by WHEN they trigger (use case/problem), not by domain taxonomy.**
+**The First Question:** "In which situation would someone need this skill? What question would they have?"
+
+That question becomes the trigger. The skill answers that question.
+
+### The Use-Case Principle
+
+**Organize by user situation, not technical cause.**
+
+When multiple technical causes produce the same symptom, they belong in ONE skill:
+
+```
+User situation: "Archive.Take returned nil"
+
+Possible causes:
+1. Cache depletion (worked before, now fails)
+2. Name/type mismatch (never worked)
+3. Wrong archive parameter
+4. Object doesn't exist
+
+→ ALL go in ONE skill: "archive-take-fails"
+→ NOT separate skills for each cause
+```
+
+### Bad: Cause-Oriented (fragmented)
+```yaml
+# Three separate skills for same user situation
+name: archive-cache-depletion
+name: archive-name-mismatch
+name: archive-missing-object
+```
+
+Problem: User has to guess which cause applies. Wrong skill = wrong answer.
+
+### Good: Use-Case Driven (unified)
+```yaml
+name: archive-take-fails
+description: Why did Archive.Take fail? Diagnose and fix when Archive.Take
+returns nil, "object not found", or "card not found"...
+```
+
+Benefit: User's question triggers the right skill. Skill helps diagnose cause.
 
 ### Bad: Domain-Oriented (grab-bag)
 ```yaml
@@ -281,4 +321,4 @@ For detailed guidance on specific topics:
 - **Team Coach** uses this when creating/editing skills
 - **skill-manager** subagent follows these patterns
 - Links to `test-driven-development` skill for TDD concepts
-- Human maintainer handles git commits
+- Git commits require human approval

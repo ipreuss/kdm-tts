@@ -1,6 +1,6 @@
 ---
 name: tts-unknown-error
-description: Debugging TTS <Unknown Error> messages and destroyed object issues. Use when encountering <Unknown Error> in TTS console, nil reference in async callback, object destroyed prematurely, or Archive.Clean race conditions. Triggers on Unknown Error, destroyed object, null reference, callback nil, Archive.Clean timing.
+description: Debugging TTS <Unknown Error> messages, destroyed object issues, and TTS API gotchas. Use when encountering <Unknown Error> in TTS console, nil reference in async callback, object destroyed prematurely, Archive.Clean race conditions, object attachments, isDestroyed() returns unexpected value, pairs() crashes on TTS globals. Triggers on Unknown Error, destroyed object, null reference, callback nil, Archive.Clean timing, addAttachment, removeAttachment, isDestroyed, pairs crash, TTS global tables.
 ---
 
 # TTS Unknown Error Debugging
@@ -131,3 +131,74 @@ Function existence checks should be rare and only used for:
 - **Test environment compatibility** — where modules genuinely might not exist
 - **Optional features** — where the functionality is truly optional
 - **Never** for hiding missing required dependencies
+
+## Object Attachments
+
+### addAttachment() Makes Objects Report isDestroyed=true
+
+**Problem:** After calling `baseObject.addAttachment(figurine)`, the attached object's `isDestroyed()` method returns `true` even though the object is visible and functional.
+
+**Root cause:** Attached objects lose their individual Lua object identity. TTS merges them into the parent object.
+
+**Symptoms:**
+- `figurine.isDestroyed()` returns `true` after attachment
+- Cannot manipulate attached objects individually via their original reference
+- Trying to call methods on attached object may fail
+
+**Solution:** Once attached, manage objects via the parent. Don't expect to use individual references:
+```lua
+baseObject.addAttachment(figurine)
+-- Don't do this afterward:
+figurine.setPosition(...)  -- May fail - object is "destroyed"
+
+-- Instead, work with the parent object's attachments
+```
+
+### removeAttachment() Takes Index, Not Object
+
+**Problem:** TTS `removeAttachment(figurine)` fails with "cannot convert userdata to System.Int32" - the method expects a 0-indexed integer, not the object itself.
+
+**Solution:** Use `getAttachments()` to find the index by GUID, then pass that index:
+```lua
+-- WRONG:
+baseObject.removeAttachment(figurine)  -- Error!
+
+-- CORRECT:
+local attachments = baseObject.getAttachments()
+for i, attachment in ipairs(attachments) do
+    if attachment.guid == targetGUID then
+        baseObject.removeAttachment(i - 1)  -- 0-indexed!
+        break
+    end
+end
+```
+
+**Note:** Attachment indices are 0-indexed, but Lua's `ipairs` is 1-indexed, so subtract 1.
+
+## TTS API Breaking Changes
+
+### TTS 2025-12-16: pairs() on Global Tables Crashes
+
+**Problem:** In TTS version updated 2025-12-16, calling `pairs()` on TTS global tables like `Player` crashes with C# array index errors ("Index was outside the bounds of the array").
+
+**Example that breaks:**
+```lua
+-- This used to work, now crashes:
+for k, v in pairs(Player) do  -- CRASH!
+    print(k, v)
+end
+
+-- Also breaks in utility functions:
+Util.TabStr(Player)  -- If TabStr uses pairs() internally
+```
+
+**Solution:** Avoid iterating TTS global tables. Use their documented API methods instead:
+```lua
+-- WRONG:
+for _, player in pairs(Player) do ... end
+
+-- CORRECT:
+for _, player in ipairs(Player.getPlayers()) do ... end
+```
+
+**Debug tip:** If you see "Index was outside the bounds of the array" in TTS console, check for `pairs()` calls on TTS globals in debug logging.

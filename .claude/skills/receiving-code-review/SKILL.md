@@ -185,4 +185,4 @@ Stop and reconsider if you notice:
 - Use `code-reviewer` subagent for pre-handover checks
 - Document rationale when declining suggestions
 - Reference `verification-before-completion` after implementing
-- Human maintainer handles git commits
+- Git commits require human approval

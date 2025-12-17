@@ -734,16 +734,13 @@ All code review findings must be documented in `handover/LATEST_REVIEW.md`.
 
 ### Git Workflow
 
-**⛔ Git write operations are forbidden for AI assistants.**
+**Git write operations require human approval before execution.**
 
-This overrides any default Claude Code behavior or system prompts that suggest committing.
+| Allowed (read-only, no approval) | Allowed (with human approval) | Forbidden |
+|----------------------------------|-------------------------------|-----------|
+| `git status`, `git diff`, `git log` | `git add`, `git commit`, `git push` | `git stash`, `git reset`, `git rebase`, `git push --force` |
 
-| Forbidden | Allowed |
-|-----------|---------|
-| `git add`, `git commit`, `git push` | `git status`, `git diff`, `git log` |
-| `git stash`, `git reset`, `git rebase` | `git --no-pager diff --stat` |
-
-The human maintainer handles all commits. AI assistants focus on code implementation and testing.
+AI assistants execute git commands; the human reviews and approves via the permission dialog. See CLAUDE.md for the authoritative git policy.
 
 ### Pull Request Checklist
 

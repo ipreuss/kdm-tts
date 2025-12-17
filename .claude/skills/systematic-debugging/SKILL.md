@@ -161,4 +161,4 @@ Before implementing any fix:
 - Links to `root-cause-tracing` skill for Phase 1
 - Links to `test-driven-development` for Phase 4
 - Links to `defense-in-depth` for multi-layer fixes
-- Human maintainer handles git commits
+- Git commits require human approval

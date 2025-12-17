@@ -1,6 +1,6 @@
 ---
 name: tts-archive-spawning
-description: Spawning objects from TTS archives with async callbacks and cleanup. Use when working with Archive.Take, spawn callbacks, async operations, or Archive.Clean. Triggers on Archive.Take, spawn, spawnFunc, callback, async, Archive.Clean, infinite archive, "not found in archive", "object not found", "card not found", second spawn fails, re-spawning same object.
+description: How do I use Archive.Take correctly? Spawning objects from TTS archives with async callbacks, cleanup, and proper patterns. Use when working with Archive.Take, spawn callbacks, async operations, Archive.Clean, understanding archive structure, or chaining archive operations. Triggers on Archive.Take, spawn, spawnFunc, callback, async, Archive.Clean, infinite archive, archive caching, two-level structure, onComplete, chain operations.
 ---
 
 # TTS Archive Spawning
@@ -49,42 +49,44 @@ The Archive system has a two-level structure:
 - `Container:Take({ name = "Card Name", type = "Card Type" })` searches inside the spawned deck
 - **Critical**: Search requires BOTH `name` AND `gm_notes` (type) to match exactly
 
-**Common failure modes:**
-1. **Archive name mismatch**: Passing an explicit `archive` parameter that doesn't exist as a TTS object
-2. **Card name typo**: Card names in the TTS save file must match exactly what the code expects
-3. **Type mismatch**: A deck's `gm_notes` differs from its cards' `gm_notes`
-4. **Cached container depletion**: `Archive.Take` removes objects from cached containers. Multiple calls for the same object fail unless `Archive.Clean()` is called between them to spawn a fresh container.
+**If Archive.Take fails:** See `archive-take-fails` skill for diagnosis (cache depletion, name mismatch, wrong archive parameter).
 
-**Debugging steps:**
-1. Check `savefile_backup.json` for exact `Nickname` and `GMNotes` values
-2. Trace whether the code passes an explicit `archive` parameter (usually wrong) or lets auto-resolution work (usually right)
-3. If taking the same object twice, ensure `Archive.Clean()` is called between takes
+## Chaining Archive Operations
 
-## ⚠️ "Object Not Found" After Previous Success
+**Problem:** `Archive.Take()` caches spawned containers. Multiple async operations can conflict if run in parallel.
 
-**Symptom:** `Archive.Take()` worked the first time but fails on subsequent calls with "object not found" or returns nil.
-
-**Root cause:** Archive containers are cached after first spawn. If the container only has one instance of an object (like "Hunt Party Base"), subsequent `Take()` calls fail because the cached container is now empty.
-
-**Solution:** Call `Archive.Clean()` before re-taking the same object:
-
+**Wrong pattern:**
 ```lua
--- WRONG - second Take fails because cached container is depleted
-local obj1 = Archive.Take({ name = "Hunt Party Base", ... })
-obj1.destruct()
-local obj2 = Archive.Take({ name = "Hunt Party Base", ... })  -- FAILS!
-
--- CORRECT - clean cache to spawn fresh container
-local obj1 = Archive.Take({ name = "Hunt Party Base", ... })
-obj1.destruct()
-Archive.Clean()  -- Clears cached container
-local obj2 = Archive.Take({ name = "Hunt Party Base", ... })  -- Works!
+Archive.Take({ name = "Card 1", type = "Gear" })  -- Spawns & caches container
+Archive.Take({ name = "Card 2", type = "Gear" })  -- Reuses cached container
+-- If first operation is async, second fails: "card not found"
 ```
 
-**When this happens:**
-- Re-spawning an object after destroying the previous one (e.g., `Recreate()` functions)
-- Taking multiple copies of a single-instance object
-- Any "take, destroy, take again" pattern
+**Correct pattern** (chain via callbacks):
+```lua
+Archive.Take({
+    name = "Card 1",
+    type = "Gear",
+    onComplete = function()
+        Archive.Take({
+            name = "Card 2",
+            type = "Gear",
+        })
+    end,
+})
+```
+
+**For card transfers:**
+```lua
+Archive.TransferCardBetweenDecks({
+    sourceDeckName = "Source",
+    targetArchiveName = "Target Archive",
+    cardName = "Card Name",
+    onComplete = function()
+        -- Next operation here
+    end,
+})
+```
 
 ## Archive.Clean() Patterns
 

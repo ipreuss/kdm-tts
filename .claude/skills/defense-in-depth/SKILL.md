@@ -184,4 +184,4 @@ Stop and add validation if you notice:
 - Uses guard clause pattern from `kdm-coding-conventions`
 - Apply after `root-cause-tracing` identifies gaps
 - Verify with `verification-before-completion`
-- Human maintainer handles git commits
+- Git commits require human approval

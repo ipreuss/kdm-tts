@@ -278,7 +278,7 @@ Stop and add more detail if you notice:
 2. Update `handover/QUEUE.md` with PENDING entry
 3. Summarize handover in response (key points, task count)
 
-Human maintainer handles git commits.
+Git commits require human approval.
 
 ### Implementer Workflow
 

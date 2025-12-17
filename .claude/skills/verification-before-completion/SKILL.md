@@ -151,4 +151,4 @@ Historical failures from skipping verification:
 
 - Works with `session-closing` skill
 - Pre-check for `handover-manager` subagent
-- Human maintainer handles git commits
+- Git commits require human approval
