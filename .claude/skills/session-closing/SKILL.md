@@ -47,6 +47,19 @@ git status
 bd list --status=closed | head -5   # Recently closed beads
 ```
 
+### What Needs Commits vs What Doesn't
+
+| Directory | Tracked | Needs Commit? |
+|-----------|---------|---------------|
+| `*.ttslua`, `tests/` | ✅ Yes | Code changes need commit |
+| `.claude/agents/`, `.claude/skills/` | ✅ Yes | Agent/skill updates need commit |
+| `handover/` (LEARNINGS.md, QUEUE.md, HANDOVER_*.md) | ❌ No (gitignored) | Never commit — local only |
+| `.beads/` | ✅ Yes | Auto-synced by bd hooks |
+
+**Key insights:**
+- When `git status` shows no changes but you updated `handover/` files, that's correct — they're gitignored and don't need commits.
+- **Ignore `bd sync`** — This is a single working copy project. The beads prime hook mentions it, but it's unnecessary and will error. Just use `git add/commit/push` directly.
+
 ### Check 1: Uncommitted Changes
 
 **If uncommitted changes exist, evaluate whether to commit:**
