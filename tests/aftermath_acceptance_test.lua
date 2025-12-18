@@ -311,11 +311,11 @@ end)
 
 --------------------------------------------------------------------------------
 
-Test.test("Sunstalker has aftermath data for all levels", function(t)
+Test.test("Sunstalker has aftermath data for L1/L2/L3 (not Great Devourer)", function(t)
     local monstersWithAftermath = collectMonsterAftermath()
 
-    -- Test L1, L2, L3, and Great Devourer
-    local sunstalkerLevels = { "Level 1", "Level 2", "Level 3", "The Great Devourer" }
+    -- Test L1, L2, L3 (Great Devourer is campaign finale with no aftermath)
+    local sunstalkerLevels = { "Level 1", "Level 2", "Level 3" }
 
     for _, levelName in ipairs(sunstalkerLevels) do
         local found = nil
@@ -362,27 +362,39 @@ end)
 
 --------------------------------------------------------------------------------
 
-Test.test("Sunstalker L3 and Great Devourer victory has 5 items", function(t)
+Test.test("Sunstalker L3 victory has 5 items", function(t)
     local monstersWithAftermath = collectMonsterAftermath()
 
-    for _, levelName in ipairs({ "Level 3", "The Great Devourer" }) do
-        local found = nil
-        for _, entry in ipairs(monstersWithAftermath) do
-            if entry.monster == "Sunstalker" and entry.level == levelName then
-                found = entry.aftermath
-                break
-            end
+    local found = nil
+    for _, entry in ipairs(monstersWithAftermath) do
+        if entry.monster == "Sunstalker" and entry.level == "Level 3" then
+            found = entry.aftermath
+            break
         end
-
-        local desc = "Sunstalker " .. levelName
-        t:assertNotNil(found, desc .. " should have aftermath data")
-        -- Victory: +1 Hunt XP, +1 WP, Collect resources, First victory Skyreef, If Storytelling Edged Tonometry
-        t:assertEqual(#found.victory, 5,
-            string.format("%s victory should have 5 items (extra for Storytelling), found %d", desc, #found.victory))
-        -- Defeat: If Graves -> Shadow Dance
-        t:assertEqual(#found.defeat, 1,
-            string.format("%s defeat should have 1 item, found %d", desc, #found.defeat))
     end
+
+    t:assertNotNil(found, "Sunstalker Level 3 should have aftermath data")
+    -- Victory: +1 Hunt XP, +1 WP, Collect resources, First victory Skyreef, If Storytelling Edged Tonometry
+    t:assertEqual(#found.victory, 5,
+        string.format("Sunstalker Level 3 victory should have 5 items, found %d", #found.victory))
+    -- Defeat: If Graves -> Shadow Dance
+    t:assertEqual(#found.defeat, 1,
+        string.format("Sunstalker Level 3 defeat should have 1 item, found %d", #found.defeat))
+end)
+
+Test.test("Sunstalker Great Devourer has no aftermath (campaign finale)", function(t)
+    local monstersWithAftermath = collectMonsterAftermath()
+
+    local found = nil
+    for _, entry in ipairs(monstersWithAftermath) do
+        if entry.monster == "Sunstalker" and entry.level == "The Great Devourer" then
+            found = entry.aftermath
+            break
+        end
+    end
+
+    -- Campaign finale has no aftermath - victory ends campaign, defeat means everyone dies
+    t:assertNil(found, "Sunstalker Great Devourer should have no aftermath (campaign finale)")
 end)
 
 --------------------------------------------------------------------------------

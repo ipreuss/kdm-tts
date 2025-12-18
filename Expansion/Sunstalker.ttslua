@@ -452,18 +452,6 @@ return {
                                 rotations = { { x = 0, y = 180, z = 0 }, { x = 0, y = 90, z = 0 }, { x = 0, y = 180, z = 0 } },
                             },
                         },
-                        aftermath = {
-                            victory = {
-                                { text = "+1 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible)" },
-                                { text = "Collect resources" },
-                                { text = "First victory: Gain Skyreef Sanctuary settlement location" },
-                                { text = "If Storytelling (first L3 victory): Add Edged Tonometry to timeline next year" },
-                            },
-                            defeat = {
-                                { text = "If Graves: Gain Shadow Dance innovation" },
-                            },
-                        },
                     },
                 },
             },
