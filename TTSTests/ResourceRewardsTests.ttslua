@@ -1188,8 +1188,8 @@ end
 function ResourceRewardsTests.TestSunstalkerDataIntegrity(onComplete)
     validateMonsterResourceData("Sunstalker", {
         { levelName = "Level 1", basic = 4, monster = 4, strange = { "Sunstones" } },
-        { levelName = "Level 2", basic = 4, monster = 6, strange = { "1,000 Year Sunspot" } },
-        { levelName = "Level 3", basic = 7, monster = 8, strange = { "3,000 Year Sunspot" } },
+        { levelName = "Level 2", basic = 4, monster = 6, strange = { "1,000 Year Old Sunspot" } },
+        { levelName = "Level 3", basic = 7, monster = 8, strange = { "3,000 Year Old Sunspot" } },
     }, onComplete)
 end
 
@@ -1388,7 +1388,7 @@ function ResourceRewardsTests.TestFlowerKnightNoStrangeResources(onComplete)
                 local knownStrangeResources = {
                     "Black Lichen", "Elder Cat Teeth", "Phoenix Crest",
                     "Silken Nervous System", "Pituitary Gland", "Shining Liver",
-                    "Sunstones", "1,000 Year Sunspot", "3,000 Year Sunspot",
+                    "Sunstones", "1,000 Year Old Sunspot", "3,000 Year Old Sunspot",
                     "Preserved Caustic Dung", "Scell", "Stomach Lining"
                 }
 

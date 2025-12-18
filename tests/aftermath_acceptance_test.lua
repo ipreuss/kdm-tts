@@ -310,3 +310,79 @@ Test.test("Dung Beetle Knight defeat has 4 items", function(t)
 end)
 
 --------------------------------------------------------------------------------
+
+Test.test("Sunstalker has aftermath data for all levels", function(t)
+    local monstersWithAftermath = collectMonsterAftermath()
+
+    -- Test L1, L2, L3, and Great Devourer
+    local sunstalkerLevels = { "Level 1", "Level 2", "Level 3", "The Great Devourer" }
+
+    for _, levelName in ipairs(sunstalkerLevels) do
+        local found = nil
+        for _, entry in ipairs(monstersWithAftermath) do
+            if entry.monster == "Sunstalker" and entry.level == levelName then
+                found = entry.aftermath
+                break
+            end
+        end
+
+        local desc = "Sunstalker " .. levelName
+        t:assertNotNil(found, desc .. " should have aftermath data")
+        if found then
+            t:assertNotNil(found.victory, desc .. " should have victory aftermath")
+            t:assertNotNil(found.defeat, desc .. " should have defeat aftermath")
+        end
+    end
+end)
+
+--------------------------------------------------------------------------------
+
+Test.test("Sunstalker L1/L2 victory has 4 items", function(t)
+    local monstersWithAftermath = collectMonsterAftermath()
+
+    for _, levelName in ipairs({ "Level 1", "Level 2" }) do
+        local found = nil
+        for _, entry in ipairs(monstersWithAftermath) do
+            if entry.monster == "Sunstalker" and entry.level == levelName then
+                found = entry.aftermath
+                break
+            end
+        end
+
+        local desc = "Sunstalker " .. levelName
+        t:assertNotNil(found, desc .. " should have aftermath data")
+        -- Victory: +1 Hunt XP, +1 WP, Collect resources, First victory Skyreef
+        t:assertEqual(#found.victory, 4,
+            string.format("%s victory should have 4 items, found %d", desc, #found.victory))
+        -- Defeat: If Graves -> Shadow Dance
+        t:assertEqual(#found.defeat, 1,
+            string.format("%s defeat should have 1 item, found %d", desc, #found.defeat))
+    end
+end)
+
+--------------------------------------------------------------------------------
+
+Test.test("Sunstalker L3 and Great Devourer victory has 5 items", function(t)
+    local monstersWithAftermath = collectMonsterAftermath()
+
+    for _, levelName in ipairs({ "Level 3", "The Great Devourer" }) do
+        local found = nil
+        for _, entry in ipairs(monstersWithAftermath) do
+            if entry.monster == "Sunstalker" and entry.level == levelName then
+                found = entry.aftermath
+                break
+            end
+        end
+
+        local desc = "Sunstalker " .. levelName
+        t:assertNotNil(found, desc .. " should have aftermath data")
+        -- Victory: +1 Hunt XP, +1 WP, Collect resources, First victory Skyreef, If Storytelling Edged Tonometry
+        t:assertEqual(#found.victory, 5,
+            string.format("%s victory should have 5 items (extra for Storytelling), found %d", desc, #found.victory))
+        -- Defeat: If Graves -> Shadow Dance
+        t:assertEqual(#found.defeat, 1,
+            string.format("%s defeat should have 1 item, found %d", desc, #found.defeat))
+    end
+end)
+
+--------------------------------------------------------------------------------

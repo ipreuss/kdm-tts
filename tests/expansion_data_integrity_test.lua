@@ -525,21 +525,21 @@ Test.test("Sunstalker has resource rewards for L1-L3", function(t)
     t:assertEqual(#rewards["Level 1"].strange, 1, "Sunstalker L1 should have 1 strange resource")
     t:assertEqual(rewards["Level 1"].strange[1], "Sunstones", "Sunstalker L1 strange should be Sunstones")
 
-    -- L2: 4 basic, 6 monster, strange = { "1,000 Year Sunspot" }
+    -- L2: 4 basic, 6 monster, strange = { "1,000 Year Old Sunspot" }
     t:assertNotNil(rewards["Level 2"], "Sunstalker L2 should have rewards")
     t:assertEqual(rewards["Level 2"].basic, 4, "Sunstalker L2 basic should be 4")
     t:assertEqual(rewards["Level 2"].monster, 6, "Sunstalker L2 monster should be 6")
     t:assertNotNil(rewards["Level 2"].strange, "Sunstalker L2 should have strange resources")
     t:assertEqual(#rewards["Level 2"].strange, 1, "Sunstalker L2 should have 1 strange resource")
-    t:assertEqual(rewards["Level 2"].strange[1], "1,000 Year Sunspot", "Sunstalker L2 strange should be 1,000 Year Sunspot")
+    t:assertEqual(rewards["Level 2"].strange[1], "1,000 Year Old Sunspot", "Sunstalker L2 strange should be 1,000 Year Old Sunspot")
 
-    -- L3: 7 basic, 8 monster, strange = { "3,000 Year Sunspot" }
+    -- L3: 7 basic, 8 monster, strange = { "3,000 Year Old Sunspot" }
     t:assertNotNil(rewards["Level 3"], "Sunstalker L3 should have rewards")
     t:assertEqual(rewards["Level 3"].basic, 7, "Sunstalker L3 basic should be 7")
     t:assertEqual(rewards["Level 3"].monster, 8, "Sunstalker L3 monster should be 8")
     t:assertNotNil(rewards["Level 3"].strange, "Sunstalker L3 should have strange resources")
     t:assertEqual(#rewards["Level 3"].strange, 1, "Sunstalker L3 should have 1 strange resource")
-    t:assertEqual(rewards["Level 3"].strange[1], "3,000 Year Sunspot", "Sunstalker L3 strange should be 3,000 Year Sunspot")
+    t:assertEqual(rewards["Level 3"].strange[1], "3,000 Year Old Sunspot", "Sunstalker L3 strange should be 3,000 Year Old Sunspot")
 end)
 
 Test.test("Dung Beetle Knight has resource rewards for L1-L3", function(t)
