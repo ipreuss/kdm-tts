@@ -1801,6 +1801,17 @@ return {
                         toughness = 10,
                         speed = 1,
                         damage = 1,
+                        resources = { basic = 5, monster = 7, strange = { "Hooked Claw" } },
+                        aftermath = {
+                            victory = {
+                                { text = "+2 Hunt XP" },
+                                { text = "+1 Weapon Proficiency" },
+                                { text = "Add Giga Catarium settlement location" },
+                            },
+                            defeat = {
+                                { text = "Archive a piece of head armor gear from dead survivors" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1823,6 +1834,18 @@ return {
                         speed = 2,
                         damage = 2,
                         luck = 1,
+                        resources = { basic = 6, monster = 9, strange = { "Hooked Claw", "Hooked Claw", "Elder Cat Teeth", "Black Lichen" } },
+                        aftermath = {
+                            victory = {
+                                { text = "+2 Hunt XP" },
+                                { text = "+1 Weapon Proficiency" },
+                                { text = "Add Giga Catarium settlement location" },
+                                { text = "If Family (first time defeating L3+): Killing blow survivor gains Secretive disorder and Gigaslayer ability" },
+                            },
+                            defeat = {
+                                { text = "Archive a piece of head armor gear from dead survivors" },
+                            },
+                        },
                     },
                 },
             },
