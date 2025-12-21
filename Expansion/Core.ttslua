@@ -1234,6 +1234,8 @@ return {
                                 { text = "+1 Hunt XP" },
                                 { text = "+1 Weapon Proficiency Level (monster level for Axe proficiency)" },
                                 { text = "Roll 1d10 + Butcher level for rewards." },
+                                { text = "If Memento Mori: Gain Forsaker Mask rare gear" },
+                                { text = "Otherwise: Roll 1d10, on 4+ gain Forsaker Mask (once per campaign)" },
                             },
                             defeat = {
                                 { text = "Lose all resources in settlement storage" },
