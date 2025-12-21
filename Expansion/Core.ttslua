@@ -1546,7 +1546,7 @@ return {
                         resources = { basic = 4, monster = 4 },
                         aftermath = {
                             victory = {
-                                { text = "WARNING: Non-deaf survivors with 20+ insanity vanish!" },
+                                { text = "Non-deaf survivors with 20+ insanity vanish" },
                                 { text = "Gain +1 Hunt XP for each survivor" },
                                 { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
                                 { text = "Collect resources (auto-spawned)" },
@@ -1575,7 +1575,7 @@ return {
                         resources = { basic = 4, monster = 6 },
                         aftermath = {
                             victory = {
-                                { text = "WARNING: Non-deaf survivors with 20+ insanity vanish!" },
+                                { text = "Non-deaf survivors with 20+ insanity vanish" },
                                 { text = "Gain +2 Hunt XP for each survivor" },
                                 { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
                                 { text = "Collect resources (auto-spawned)" },
@@ -1608,7 +1608,7 @@ return {
                         resources = { basic = 5, monster = 7, strange = { "Black Lichen" } },
                         aftermath = {
                             victory = {
-                                { text = "WARNING: Non-deaf survivors with 20+ insanity vanish!" },
+                                { text = "Non-deaf survivors with 20+ insanity vanish" },
                                 { text = "Gain +2 Hunt XP for each survivor" },
                                 { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
                                 { text = "Collect resources (auto-spawned)" },
