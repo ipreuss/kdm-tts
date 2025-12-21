@@ -1305,6 +1305,17 @@ return {
                         topHitLocationCards = { "Battle Pressure", "Battle Pressure", "Battle Pressure" },
                         movement = 5,
                         toughness = 12,
+                        aftermath = {
+                            victory = {
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency (monster level for Spear)" },
+                                { text = "King's Curse story event" },
+                                { text = "Roll d10 for rewards (see rules)" },
+                            },
+                            defeat = {
+                                { text = "Return Pottery to innovation deck" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1324,6 +1335,17 @@ return {
                         toughness = 15,
                         speed = 1,
                         damage = 1,
+                        aftermath = {
+                            victory = {
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency (monster level for Spear)" },
+                                { text = "King's Curse story event" },
+                                { text = "Roll d10 for rewards (see rules)" },
+                            },
+                            defeat = {
+                                { text = "Return Pottery to innovation deck" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1345,6 +1367,18 @@ return {
                         speed = 2,
                         damage = 2,
                         accuracy = 2,
+                        aftermath = {
+                            victory = {
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency (monster level for Spear)" },
+                                { text = "King's Curse story event" },
+                                { text = "Roll d10 for rewards (see rules)" },
+                                { text = "If Nightmare Training: Each survivor rolls d10, on 3+ gain King's Step secret fighting art" },
+                            },
+                            defeat = {
+                                { text = "Return Pottery to innovation deck" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1361,6 +1395,19 @@ return {
                         movement = 6,
                         toughness = 11,
                         life = 10,
+                        aftermath = {
+                            victory = {
+                                { text = "Restore all survivors" },
+                                { text = "Heal all permanent injuries suffered" },
+                                { text = "If no Twilight Sword rare gear: Nominate survivor to gain it" },
+                                { text = "Nominated survivor gains Twilight Succession ability" },
+                            },
+                            defeat = {
+                                { text = "Restore all perished survivors" },
+                                { text = "Heal all permanent injuries suffered" },
+                                { text = "Archive Twilight Sword" },
+                            },
+                        },
                     },
                 },
             },
