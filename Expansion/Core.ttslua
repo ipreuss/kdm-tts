@@ -1745,6 +1745,16 @@ return {
                         bottomAiCards = { "Applause" },
                         movement = 5,
                         toughness = 14,
+                        aftermath = {
+                            victory = {
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency (monster level for Fist & Tooth)" },
+                                { text = "Roll d10 and consult table" },
+                            },
+                            defeat = {
+                                { text = "If no Guidepost: Slaughter all retired survivors in settlement" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1763,6 +1773,16 @@ return {
                         toughness = 15,
                         speed = 1,
                         damage = 1,
+                        aftermath = {
+                            victory = {
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency (monster level for Fist & Tooth)" },
+                                { text = "Roll d10 and consult table" },
+                            },
+                            defeat = {
+                                { text = "If no Guidepost: Slaughter all retired survivors in settlement" },
+                            },
+                        },
                     },
                 },
                 {
@@ -1782,6 +1802,17 @@ return {
                         toughness = 30,
                         speed = 3,
                         damage = 6,
+                        aftermath = {
+                            victory = {
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency (monster level for Fist & Tooth)" },
+                                { text = "Roll d10 and consult table" },
+                                { text = "If Sword Mastery: Roll d10 for each survivor, on 3+ gain Swordsman's Promise secret fighting art" },
+                            },
+                            defeat = {
+                                { text = "If no Guidepost: Slaughter all retired survivors in settlement" },
+                            },
+                        },
                     },
                 },
             },
