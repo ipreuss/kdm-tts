@@ -1973,6 +1973,14 @@ return {
                         movement = 7,
                         toughness = 8,
                         resources = { basic = 4, monster = 4 },
+                        aftermath = {
+                            victory = {
+                                { text = "Gain Cola Bottle Lantern rare gear" },
+                            },
+                            defeat = {
+                                { text = "Archive all Cloth gear in gear grids" },
+                            },
+                        },
                     },
                 },
                 {
@@ -2075,6 +2083,16 @@ return {
                         speed = 1,
                         damage = 1,
                         resources = { basic = 4, monster = 6 },
+                        aftermath = {
+                            victory = {
+                                { text = "Add 'White Speaker - Story of the Goblin' story event to next year" },
+                                { text = "After that story: Gain Arm of the First Tree rare gear" },
+                            },
+                            defeat = {
+                                { text = "Choose 4 survivors to depart on a special showdown against the Radiant Lion" },
+                                { text = "If those win: L2 White Lion rewards + 1 Broken Lantern basic resource" },
+                            },
+                        },
                     },
                 },
                 {
