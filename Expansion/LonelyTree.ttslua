@@ -112,6 +112,18 @@ return {
                         legendary = 1,
                         toughness = 10,
                         damage = -1,
+                        aftermath = {
+                            victory = {
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency" },
+                                { text = "1 basic resource per Nightmare Fruit on showdown board" },
+                                { text = "Gain Jagged Marrow Fruit strange resource" },
+                                { text = "If Cooking: All victorious survivors gain Super Hairy ability" },
+                            },
+                            defeat = {
+                                { text = "Gain Lonely Fruit strange resource" },
+                            },
+                        },
                     },
                 },
                 {
@@ -125,6 +137,18 @@ return {
                         advanced = 5,
                         legendary = 1,
                         toughness = 13,
+                        aftermath = {
+                            victory = {
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency" },
+                                { text = "1 basic resource per Nightmare Fruit on showdown board" },
+                                { text = "Gain Festering Blood Fruit strange resource" },
+                                { text = "If Cooking: All victorious survivors gain Super Hairy ability" },
+                            },
+                            defeat = {
+                                { text = "Gain Lonely Fruit strange resource" },
+                            },
+                        },
                     },
                 },
                 {
@@ -141,6 +165,18 @@ return {
                         toughness = 17,
                         speed = 1,
                         damage = 1,
+                        aftermath = {
+                            victory = {
+                                { text = "+1 Hunt XP" },
+                                { text = "+1 Weapon Proficiency" },
+                                { text = "1 basic resource per Nightmare Fruit on showdown board" },
+                                { text = "Gain Porous Flesh Fruit strange resource" },
+                                { text = "If Cooking: All victorious survivors gain Super Hairy ability" },
+                            },
+                            defeat = {
+                                { text = "Gain Lonely Fruit strange resource" },
+                            },
+                        },
                     },
                 },
             },
