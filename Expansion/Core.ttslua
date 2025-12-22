@@ -1944,6 +1944,15 @@ return {
                         life = 15,
                         movement = 0,
                         toughness = 20,
+                        aftermath = {
+                            victory = {
+                                { text = "All survivors gain +1 strength" },
+                                { text = "Blackout story event" },
+                            },
+                            defeat = {
+                                { text = "Game Over story event" },
+                            },
+                        },
                     },
                 },
             },
