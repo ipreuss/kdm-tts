@@ -271,12 +271,13 @@ local function collectMonsterResourceRewards()
         for _, monster in ipairs(expansion.monsters or {}) do
             if monster.levels then
                 for _, level in ipairs(monster.levels) do
-                    if level.showdown and level.showdown.resources then
+                    local victory = level.showdown and level.showdown.aftermath and level.showdown.aftermath.victory
+                    if victory and victory.resources then
                         table.insert(monsters, {
                             expansion = expansion.name,
                             monster = monster.name,
                             level = level.name,
-                            resources = level.showdown.resources,
+                            resources = victory.resources,
                         })
                     end
                 end

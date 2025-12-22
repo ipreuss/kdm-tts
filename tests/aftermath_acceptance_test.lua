@@ -92,10 +92,10 @@ Test.test("White Lion Level 1 has aftermath data", function(t)
     t:assertNotNil(whiteLionL1.defeat, "White Lion L1 should have defeat aftermath")
 
     -- Victory should have standard items
-    t:assertTrue(#whiteLionL1.victory >= 3, "White Lion L1 victory should have at least 3 items")
+    t:assertTrue(#whiteLionL1.victory.checklist >= 3, "White Lion L1 victory should have at least 3 items")
 
     -- Defeat should have jewelry loss
-    t:assertTrue(#whiteLionL1.defeat >= 1, "White Lion L1 defeat should have at least 1 item")
+    t:assertTrue(#whiteLionL1.defeat.checklist >= 1, "White Lion L1 defeat should have at least 1 item")
 end)
 
 --------------------------------------------------------------------------------
@@ -116,7 +116,7 @@ Test.test("Screaming Antelope Level 1 has aftermath data", function(t)
     t:assertNotNil(antelopeL1.defeat, "Screaming Antelope L1 should have defeat aftermath")
 
     -- Victory should include warning about insanity vanishing
-    t:assertTrue(#antelopeL1.victory >= 4, "Screaming Antelope L1 victory should have at least 4 items")
+    t:assertTrue(#antelopeL1.victory.checklist >= 4, "Screaming Antelope L1 victory should have at least 4 items")
 end)
 
 --------------------------------------------------------------------------------
@@ -140,12 +140,14 @@ Test.test("Butcher (nemesis) has aftermath data", function(t)
         t:assertNotNil(butcher.defeat, desc .. " should have defeat aftermath")
 
         -- Victory: Axe proficiency, Hunt XP, Weapon Prof Level, d10 roll = 4 items
-        t:assertEqual(#butcher.victory, 4,
-            string.format("%s victory should have exactly 4 items, found %d", desc, #butcher.victory))
+        -- Level 3 has 2 extra items for Forsaker Mask (Memento Mori check + fallback)
+        local expectedVictoryItems = (levelName == "Level 3") and 6 or 4
+        t:assertEqual(#butcher.victory.checklist, expectedVictoryItems,
+            string.format("%s victory should have exactly %d items, found %d", desc, expectedVictoryItems, #butcher.victory.checklist))
 
         -- Defeat: Lose all resources = 1 item
-        t:assertEqual(#butcher.defeat, 1,
-            string.format("%s defeat should have exactly 1 item, found %d", desc, #butcher.defeat))
+        t:assertEqual(#butcher.defeat.checklist, 1,
+            string.format("%s defeat should have exactly 1 item, found %d", desc, #butcher.defeat.checklist))
     end
 end)
 
@@ -187,8 +189,8 @@ Test.test("All Core monsters have both victory and defeat aftermath", function(t
             if found then
                 t:assertNotNil(found.victory, desc .. " should have victory aftermath")
                 t:assertNotNil(found.defeat, desc .. " should have defeat aftermath")
-                t:assertTrue(#found.victory >= 1, desc .. " victory should have at least 1 item")
-                t:assertTrue(#found.defeat >= 1, desc .. " defeat should have at least 1 item")
+                t:assertTrue(#found.victory.checklist >= 1, desc .. " victory should have at least 1 item")
+                t:assertTrue(#found.defeat.checklist >= 1, desc .. " defeat should have at least 1 item")
             end
         end
     end
@@ -223,8 +225,8 @@ Test.test("Expansion monsters have aftermath data", function(t)
             if found then
                 t:assertNotNil(found.victory, desc .. " should have victory aftermath")
                 t:assertNotNil(found.defeat, desc .. " should have defeat aftermath")
-                t:assertTrue(#found.victory >= 3, desc .. " victory should have at least 3 items")
-                t:assertTrue(#found.defeat >= 1, desc .. " defeat should have at least 1 item")
+                t:assertTrue(#found.victory.checklist >= 3, desc .. " victory should have at least 3 items")
+                t:assertTrue(#found.defeat.checklist >= 1, desc .. " defeat should have at least 1 item")
             end
         end
     end
@@ -245,8 +247,8 @@ Test.test("Dragon King L3 has extra victory item", function(t)
 
     t:assertNotNil(dragonKingL3, "Dragon King L3 should have aftermath data")
     -- L3 has extra item: "If Sculpture: gain Radiant Claw strange resource"
-    t:assertEqual(#dragonKingL3.victory, 4,
-        string.format("Dragon King L3 victory should have 4 items (extra for Sculpture), found %d", #dragonKingL3.victory))
+    t:assertEqual(#dragonKingL3.victory.checklist, 4,
+        string.format("Dragon King L3 victory should have 4 items (extra for Sculpture), found %d", #dragonKingL3.victory.checklist))
 end)
 
 --------------------------------------------------------------------------------
@@ -264,8 +266,8 @@ Test.test("Spidicules L3 has extra victory item", function(t)
 
     t:assertNotNil(spidiculesL3, "Spidicules L3 should have aftermath data")
     -- L3 has extra item: "If Scarification: Killing blow survivor gains ability"
-    t:assertEqual(#spidiculesL3.victory, 4,
-        string.format("Spidicules L3 victory should have 4 items (extra for Scarification), found %d", #spidiculesL3.victory))
+    t:assertEqual(#spidiculesL3.victory.checklist, 4,
+        string.format("Spidicules L3 victory should have 4 items (extra for Scarification), found %d", #spidiculesL3.victory.checklist))
 end)
 
 --------------------------------------------------------------------------------
@@ -283,8 +285,8 @@ Test.test("Flower Knight L3 has extra victory items", function(t)
 
     t:assertNotNil(flowerKnightL3, "Flower Knight L3 should have aftermath data")
     -- L3 has 2 extra items: "Sleeping Virus Flower" and "If Petal Spiral"
-    t:assertEqual(#flowerKnightL3.victory, 5,
-        string.format("Flower Knight L3 victory should have 5 items (2 extra for L3), found %d", #flowerKnightL3.victory))
+    t:assertEqual(#flowerKnightL3.victory.checklist, 5,
+        string.format("Flower Knight L3 victory should have 5 items (2 extra for L3), found %d", #flowerKnightL3.victory.checklist))
 end)
 
 --------------------------------------------------------------------------------
@@ -304,8 +306,8 @@ Test.test("Dung Beetle Knight defeat has 4 items", function(t)
         local desc = "Dung Beetle Knight " .. levelName
         t:assertNotNil(dbk, desc .. " should have aftermath data")
         -- DBK defeat has 4 items about nominated survivors
-        t:assertEqual(#dbk.defeat, 4,
-            string.format("%s defeat should have 4 items, found %d", desc, #dbk.defeat))
+        t:assertEqual(#dbk.defeat.checklist, 4,
+            string.format("%s defeat should have 4 items, found %d", desc, #dbk.defeat.checklist))
     end
 end)
 
@@ -352,11 +354,11 @@ Test.test("Sunstalker L1/L2 victory has 4 items", function(t)
         local desc = "Sunstalker " .. levelName
         t:assertNotNil(found, desc .. " should have aftermath data")
         -- Victory: +1 Hunt XP, +1 WP, Collect resources, First victory Skyreef
-        t:assertEqual(#found.victory, 4,
-            string.format("%s victory should have 4 items, found %d", desc, #found.victory))
+        t:assertEqual(#found.victory.checklist, 4,
+            string.format("%s victory should have 4 items, found %d", desc, #found.victory.checklist))
         -- Defeat: If Graves -> Shadow Dance
-        t:assertEqual(#found.defeat, 1,
-            string.format("%s defeat should have 1 item, found %d", desc, #found.defeat))
+        t:assertEqual(#found.defeat.checklist, 1,
+            string.format("%s defeat should have 1 item, found %d", desc, #found.defeat.checklist))
     end
 end)
 
@@ -375,11 +377,11 @@ Test.test("Sunstalker L3 victory has 5 items", function(t)
 
     t:assertNotNil(found, "Sunstalker Level 3 should have aftermath data")
     -- Victory: +1 Hunt XP, +1 WP, Collect resources, First victory Skyreef, If Storytelling Edged Tonometry
-    t:assertEqual(#found.victory, 5,
-        string.format("Sunstalker Level 3 victory should have 5 items, found %d", #found.victory))
+    t:assertEqual(#found.victory.checklist, 5,
+        string.format("Sunstalker Level 3 victory should have 5 items, found %d", #found.victory.checklist))
     -- Defeat: If Graves -> Shadow Dance
-    t:assertEqual(#found.defeat, 1,
-        string.format("Sunstalker Level 3 defeat should have 1 item, found %d", #found.defeat))
+    t:assertEqual(#found.defeat.checklist, 1,
+        string.format("Sunstalker Level 3 defeat should have 1 item, found %d", #found.defeat.checklist))
 end)
 
 Test.test("Sunstalker Great Devourer has no aftermath (campaign finale)", function(t)

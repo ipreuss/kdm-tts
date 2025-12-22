@@ -329,15 +329,19 @@ return {
                         },
                         movement = 10,
                         toughness = 13,
-                        resources = { basic = 4, monster = 4 },
                         aftermath = {
                             victory = {
-                                { text = "+1/+2 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible)" },
-                                { text = "Collect resources" },
+                                resources = { basic = 4, monster = 4 },
+                                checklist = {
+                                    { text = "+1/+2 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible)" },
+                                    { text = "Collect resources" },
+                                },
                             },
                             defeat = {
-                                { text = "Choose: Leave (no Death Principle) OR Recover (Death Principle, but survivor becomes sick, -1 population)" },
+                                checklist = {
+                                    { text = "Choose: Leave (no Death Principle) OR Recover (Death Principle, but survivor becomes sick, -1 population)" },
+                                },
                             },
                         },
                     },
@@ -357,15 +361,19 @@ return {
                         toughness = 15,
                         speed = 1,
                         damage = 1,
-                        resources = { basic = 4, monster = 6, strange = { "Pituitary Gland" } },
                         aftermath = {
                             victory = {
-                                { text = "+1/+2 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible)" },
-                                { text = "Collect resources" },
+                                resources = { basic = 4, monster = 6, strange = { "Pituitary Gland" } },
+                                checklist = {
+                                    { text = "+1/+2 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible)" },
+                                    { text = "Collect resources" },
+                                },
                             },
                             defeat = {
-                                { text = "Choose: Leave (no Death Principle) OR Recover (Death Principle, but survivor becomes sick, -1 population)" },
+                                checklist = {
+                                    { text = "Choose: Leave (no Death Principle) OR Recover (Death Principle, but survivor becomes sick, -1 population)" },
+                                },
                             },
                         },
                     },
@@ -386,16 +394,20 @@ return {
                         speed = 2,
                         damage = 2,
                         luck = 1,
-                        resources = { basic = 4, monster = 8, strange = { "Shining Liver" } },
                         aftermath = {
                             victory = {
-                                { text = "+1/+2 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible)" },
-                                { text = "Collect resources" },
-                                { text = "If Sculpture: gain Radiant Claw strange resource" },
+                                resources = { basic = 4, monster = 8, strange = { "Shining Liver" } },
+                                checklist = {
+                                    { text = "+1/+2 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible)" },
+                                    { text = "Collect resources" },
+                                    { text = "If Sculpture: gain Radiant Claw strange resource" },
+                                },
                             },
                             defeat = {
-                                { text = "Choose: Leave (no Death Principle) OR Recover (Death Principle, but survivor becomes sick, -1 population)" },
+                                checklist = {
+                                    { text = "Choose: Leave (no Death Principle) OR Recover (Death Principle, but survivor becomes sick, -1 population)" },
+                                },
                             },
                         },
                     },
