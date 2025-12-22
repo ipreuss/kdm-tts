@@ -1474,10 +1474,11 @@ return {
                             victory = {
                                 resources = { basic = 4, monster = 6 },
                                 checklist = {
-                                    { text = "Gain +1 Hunt XP for each survivor" },
-                                    { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
+                                    { text = "+1 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if wounded monster with weapon type)" },
+                                    { text = "Survivors with age tokens gain +1 understanding" },
                                     { text = "Collect resources (auto-spawned)" },
-                                    { text = "First victory: Gain +3 endeavor from Spiral Age" },
+                                    { text = "First victory: Gain Plumery settlement location" },
                                 },
                             },
                             defeat = {
@@ -1509,8 +1510,9 @@ return {
                             victory = {
                                 resources = { basic = 5, monster = 7 },
                                 checklist = {
-                                    { text = "Gain +2 Hunt XP for each survivor" },
-                                    { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
+                                    { text = "+2 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if wounded monster with weapon type)" },
+                                    { text = "Survivors with age tokens gain +1 understanding" },
                                     { text = "Collect resources (auto-spawned)" },
                                 },
                             },
@@ -1545,10 +1547,11 @@ return {
                             victory = {
                                 resources = { basic = 6, monster = 9, strange = { "Phoenix Crest", "Black Lichen" } },
                                 checklist = {
-                                    { text = "Gain +2 Hunt XP for each survivor" },
-                                    { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
+                                    { text = "+2 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if wounded monster with weapon type)" },
+                                    { text = "Survivors with age tokens gain +1 understanding" },
                                     { text = "Collect resources (auto-spawned)" },
-                                    { text = "If Saga: Perform stirring tale, gain +2 Endeavor next settlement phase" },
+                                    { text = "If Face Painting: Roll 1d10 and consult rules" },
                                 },
                             },
                             defeat = {
@@ -1585,10 +1588,19 @@ return {
                         aftermath = {
                             victory = {
                                 resources = { basic = 6, monster = 9, strange = { "Phoenix Crest", "Black Lichen" } },
-                                checklist = {},
+                                checklist = {
+                                    { text = "+1 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if wounded monster with weapon type)" },
+                                    { text = "Survivors with age tokens gain +1 understanding" },
+                                    { text = "Collect resources (auto-spawned)" },
+                                    { text = "If Face Painting: Roll 1d10 and consult rules" },
+                                    { text = "Killing blow survivor gains +1,000 insanity and King of a Thousand Battles secret fighting art" },
+                                },
                             },
                             defeat = {
-                                checklist = {},
+                                checklist = {
+                                    { text = "Roll 1d10. On 6+, resurrect a dead survivor (new name, reset courage/understanding)" },
+                                },
                             },
                         },
                     },
