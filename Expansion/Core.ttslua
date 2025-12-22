@@ -1281,6 +1281,14 @@ return {
                             special = { "Blacken", "Frustration", "Mauler", "Secondary Forge" },
                             misc = { "Indomitable" },
                         },
+                        aftermath = {
+                            victory = {
+                                { text = "Game Over story event" },
+                            },
+                            defeat = {
+                                { text = "Game Over story event" },
+                            },
+                        },
                     },
                 },
             },
