@@ -27,6 +27,10 @@
         "matcher": "",
         "hooks": [
           {
+            "type": "prompt",
+            "prompt": "You are validating whether the session-closing protocol was followed. Check the transcript for these requirements:\n\n1. **Git status check**: Was `git status` actually executed (not just mentioned)?\n2. **Bead check**: Was `bd list --status=closed` executed to check for recently closed beads?\n3. **Learning capture**: Was the Edit tool used to append content to `handover/LEARNINGS.md`? (Terminal output doesn't count)\n4. **Closing signature**: Is there a closing signature block with ═══════════════════════════════════════ and ROLE END?\n5. **Voice announcement**: Was a `say -v` command executed with a German message?\n\nIMPORTANT EXCEPTIONS - Allow session to end WITHOUT these checks if:\n- This is a research/exploration session (no code changes made)\n- User explicitly said to skip closing protocol\n- Session is just starting (minimal transcript)\n- User is asking a quick question\n\nIf requirements are missing AND this appears to be a substantive work session, respond with:\n- decision: block\n- reason: List what's missing and remind to invoke the session-closing skill\n\nIf requirements are met OR this is a lightweight session, respond with:\n- decision: approve"
+          },
+          {
             "type": "command",
             "command": "say -v Anna Fertig"
           }
