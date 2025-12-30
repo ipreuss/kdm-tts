@@ -360,14 +360,11 @@ function Archive.Take(params)
             position = Archive.NextContainerPosition(),
             smooth = false,
         })
+        assert(containerObject ~= nil,
+            string.format("Archive.ensureContainer: TakeFromArchive returned nil for archive '%s'", archive))
         log:Debugf("[DEBUG] ensureContainer: containerObject=%s", tostring(containerObject))
         container = Container(containerObject)
         log:Debugf("[DEBUG] ensureContainer: container=%s", tostring(container))
-        if not container then
-            log:Errorf("Couldn't take from archive [%s] %s.", archiveObject.getGUID(), archiveObject.getName())
-            Util.Highlight(archiveObject)
-            return nil
-        end
 
         log:Debugf("Spawned archive container %s at (%f, %f) for %s (%s)", "", Archive.containerX, Archive.containerZ, resolvedName, type)
         Archive.containers[archive] = container
@@ -382,9 +379,6 @@ function Archive.Take(params)
     log:Debugf("Taking item %s (%s) in archive %s to %s", resolvedName or "<nil>", type, archive, position)
     local container = ensureContainer()
     log:Debugf("[DEBUG] After ensureContainer: container=%s", tostring(container))
-    if not container then
-        return nil
-    end
 
     local attemptedNames = {}
     local function queueName(candidate)

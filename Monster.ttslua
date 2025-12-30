@@ -145,6 +145,12 @@ function Monster.UpdateStats()
         end
     end
 
+    -- Invariant: all accumulated stats must be valid stat types
+    for stat, _ in pairs(tokenStats) do
+        assert(Monster.STATS[stat],
+            string.format("Monster.UpdateStats: unknown stat '%s' accumulated (check TOKEN_STATS mapping)", stat))
+    end
+
     Monster.UpdateTokenStats(tokenStats)
 end
 
