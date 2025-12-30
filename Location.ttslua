@@ -181,6 +181,13 @@ function Location.OnEnter(object)
         location.objects[object] = true
     end
 
+    -- Invariant: bidirectional consistency - each location must have object registered
+    for _, location in ipairs(locations) do
+        assert(location.objects[object] == true,
+            string.format("Location.OnEnter: bidirectional inconsistency - [%s] %s not in %s.objects",
+                object.getGUID(), object.getName(), location:Name()))
+    end
+
     for _, location in ipairs(locations) do
         for _, dropHandler in ipairs(location.dropHandlers) do
             dropHandler(object)

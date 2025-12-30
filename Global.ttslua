@@ -136,11 +136,9 @@ function getPlayerInfo(ordinal)
         log("[DEBUG] getPlayerInfo: ordinal = " .. tostring(ordinal))
         local player = players[ordinal]
         log("[DEBUG] getPlayerInfo: player = " .. tostring(player))
-        
-        if not player then
-            log("[ERROR] getPlayerInfo: No player found at ordinal " .. tostring(ordinal))
-            return nil
-        end
+
+        assert(player ~= nil,
+            string.format("Global.getPlayerInfo: No player at ordinal %d (players count: %d)", ordinal, #players))
         
         if not player.survivorSheet then
             log("[ERROR] getPlayerInfo: player.survivorSheet is nil for ordinal " .. tostring(ordinal))
