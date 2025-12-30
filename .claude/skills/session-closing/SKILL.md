@@ -38,14 +38,36 @@ description: Apply role-specific closing signature and voice announcement when e
 
 **NO EXCEPTIONS.** This is part of the role protocol defined in PROCESS.md.
 
+## Remote Session Handling
+
+When running in remote environments (GitHub Codespaces, Claude Code Web, Linux servers), some commands may not be available:
+
+| Command | Available | Fallback |
+|---------|-----------|----------|
+| `git` | ✅ Always | — |
+| `say` | ❌ macOS only | Use `echo "[Voice] message"` for text-based announcement |
+| `bd` (beads) | ❌ Local only | Skip bead checks entirely |
+
+**Detection:** If a command fails with "command not found", you're in a remote session.
+
+**Remote Session Protocol:**
+1. ✅ Git status check — **always required**
+2. ⏭️ Bead check — **skip if `bd` not available**
+3. ✅ Learning capture — **always required** (if handover/ directory exists)
+4. ✅ Closing signature — **always required**
+5. ⏭️ Voice announcement — **use text fallback** `echo "[Voice] message"`
+
 ## Step 0: Git Status Check (MANDATORY)
 
 **Before closing, always run these checks:**
 
 ```bash
 git status
-bd list --status=closed | head -5   # Recently closed beads
+# Only if bd command is available (local session):
+command -v bd >/dev/null 2>&1 && bd list --status=closed | head -5
 ```
+
+> **Remote Session Note:** The `bd` (beads) command may not be available in remote sessions (GitHub Codespaces, Claude Code Web). Skip the bead check if `bd` is not installed.
 
 ### What Needs Commits vs What Doesn't
 
@@ -173,7 +195,9 @@ Ask yourself:
 
 ## Voice Announcement
 
-### Voice Mapping
+> **Remote Session Note:** The `say` command is macOS-specific and not available in remote sessions (Linux servers, GitHub Codespaces, Claude Code Web). In remote sessions, skip voice announcements or use the text-based fallback shown below.
+
+### Voice Mapping (Local macOS Sessions)
 
 | Role | Voice | Sample Message |
 |------|-------|----------------|
@@ -197,8 +221,15 @@ Ask yourself:
 
 ### Command Format
 
+**Local (macOS) — with voice:**
 ```bash
 say -v [Voice] "[Rolle] fertig. [Status]"
+```
+
+**Remote (Linux/Web) — fallback:**
+```bash
+# Check if say is available, use text fallback if not
+command -v say >/dev/null 2>&1 && say -v [Voice] "[message]" || echo "[Voice] [message]"
 ```
 
 **Examples:**
@@ -229,7 +260,7 @@ say -v Anna "Product Owner fertig. Benötige Klarstellung."
 
 **Step 0 — Git Status Check (DO THIS FIRST):**
 - [ ] **Ran `git status`** — checked for uncommitted changes
-- [ ] **Ran `bd list --status=closed | head -5`** — checked recently closed beads
+- [ ] **Ran `bd list --status=closed | head -5`** — checked recently closed beads *(skip if `bd` not available in remote session)*
 - [ ] **If closed bead + uncommitted code:** commit and push NOW (bead closed prematurely)
 - [ ] **If changes exist, evaluated commit criteria:**
   - Tests pass AND code-reviewer approved → commit and push
@@ -245,7 +276,7 @@ say -v Anna "Product Owner fertig. Benötige Klarstellung."
 - [ ] Closing signature block is present
 - [ ] Signature uses correct role name
 - [ ] Timestamp is current UTC time
-- [ ] Voice announcement command is included
+- [ ] Voice announcement command is included *(use text fallback if `say` not available in remote session)*
 - [ ] Voice command uses correct voice for role
 - [ ] Status message is in German
 - [ ] Status reflects actual session accomplishments
