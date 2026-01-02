@@ -9,7 +9,7 @@
 -- With this seam, integration tests catch export issues in seconds via `lua tests/run.lua`.
 ---------------------------------------------------------------------------------------------------
 
-local log = require("Kdm/Log").ForModule("TTSSpawner")
+local log = require("Kdm/Core/Log").ForModule("TTSSpawner")
 
 ---------------------------------------------------------------------------------------------------
 

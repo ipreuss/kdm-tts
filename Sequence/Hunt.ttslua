@@ -1,0 +1,579 @@
+local Archive = require("Kdm/Archive/Archive")
+local array = require("Kdm/Util/array")
+local Check = require("Kdm/Util/Check")
+local Container = require("Kdm/Util/Container")
+local Deck = require("Kdm/Data/Deck")
+local Expansion = require("Kdm/Expansion")
+local HuntParty = require("Kdm/Entity/HuntParty")
+local Location = require("Kdm/Location/Location")
+local log = require("Kdm/Core/Log").ForModule("Hunt")
+local Trash = require("Kdm/Data/Trash")
+local Ui = require("Kdm/Ui")
+local Util = require("Kdm/Util/Util")
+local Survivor = require("Kdm/Entity/Survivor")
+local PanelKit = require("Kdm/Ui/PanelKit")
+
+---------------------------------------------------------------------------------------------------
+
+local Hunt = {}
+
+-- Card types used for hunt event cards
+local HUNT_CARD_TYPES = { "Hunt Events", "Monster Hunt Events", "Special Hunt Events" }
+
+-- State for hunt card auto-reveal feature
+Hunt.visitedPositions = {}      -- Track positions already visited this hunt
+Hunt.remainingCards = {}        -- Cards at current position waiting to be revealed
+Hunt.revealedCardCount = 0      -- For stacking offset when multiple cards revealed
+Hunt.nextCardButtonCard = nil   -- Card object with "Next Card" button attached
+Hunt.dropHandlersRegistered = false  -- Ensure handlers only registered once
+
+---------------------------------------------------------------------------------------------------
+
+local function FilterEnabledMonsters(monsters, expansionsByMonsterName)
+    if Expansion.IsUnlockedMode() then
+        return monsters  -- Show all in unlocked mode
+    end
+    return array.filter(monsters, function(monster)
+        local expansion = expansionsByMonsterName[monster.name]
+        return Expansion.IsEnabled(expansion.name)
+    end)
+end
+
+---------------------------------------------------------------------------------------------------
+
+-- Global function required for TTS button callback (function_owner = Global).
+-- TTS buttons cannot call local module functions directly.
+function Hunt_RevealNextCard()
+    Hunt.RevealNextCard()
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Hunt.Init()
+    Hunt.monsters = {}
+    Hunt.expansionsByMonsterName = {}
+    Hunt.monstersByMonsterName = {}
+    Hunt.levelsByMonsterLevelName = {}
+    for _, expansion in ipairs(Expansion.All()) do
+        for _, monster in ipairs(expansion.monsters or {}) do
+            Hunt.monstersByMonsterName[monster.name] = monster
+            if monster.huntTrack then
+                local levels = {}
+                for _, level in ipairs(monster.levels) do
+                    if level.monsterHuntPosition then
+                        table.insert(levels, level)
+                    end
+                    Hunt.levelsByMonsterLevelName[monster.name..level.name] = level
+                end
+                local huntSetup = {
+                    name = monster.name,
+                    huntTrack = monster.huntTrack,
+                    huntEventsDeck = monster.huntEventsDeck or monster.name.." Hunt Events",
+                    levels = levels,
+                }
+                if monster.resourcesDeck ~= false then
+                    huntSetup.resourcesDeck = monster.resourcesDeck or monster.name.." Resources"
+                end
+                table.insert(Hunt.monsters, huntSetup)
+                Hunt.expansionsByMonsterName[monster.name] = expansion
+            end
+        end
+    end
+    table.sort(Hunt.monsters, function(x, y) return x.name < y.name end)
+
+    -----------------------------------------------------------------------------------------------
+
+    local dialog = PanelKit.Dialog({
+        id = "Hunt",
+        ui = Ui.Get2d(),
+        rectAlignment = "MiddleCenter",
+        width = 667,
+        height = 632,
+        image = "Hunt",
+        closeButton = { x = 627, y = -10, width = 30, height = 30 },
+    })
+    Hunt.dialog = dialog
+    Hunt.panel = dialog:Panel()
+
+    Hunt.monsterList = PanelKit.ScrollSelector({
+        parent = Hunt.panel,
+        id = "Monster",
+        x = 20 + 3,
+        y = -(109 + 3),
+        width = 306 - 6,
+        height = 216 - 6,
+        contentWidth = 280,
+        itemHeight = 30,
+        fontSize = 16,
+        textAlignment = "MiddleLeft",
+        onSelect = function(_, option)
+            if option then
+                Hunt.SelectMonsterInternal(option)
+            end
+        end,
+    })
+    Hunt.levelList = PanelKit.ScrollSelector({
+        parent = Hunt.panel,
+        id = "Level",
+        x = 341 + 3,
+        y = -(109 + 3),
+        width = 306 - 6,
+        height = 216 - 6,
+        contentWidth = 300,
+        itemHeight = 30,
+        fontSize = 16,
+        textAlignment = "MiddleLeft",
+        onSelect = function(level)
+            if level then
+                log:Debugf("Selected %s, %s", Hunt.monster.name, level.name)
+                Hunt.level = level
+            end
+        end
+    })
+
+    Hunt.monsterList:SetOptionsWithDefault(Util.Map(
+        FilterEnabledMonsters(Hunt.monsters, Hunt.expansionsByMonsterName),
+        function(monster) return { text = monster.name, value = monster } end
+    ), true)
+
+    Hunt.panel:Button({ id = "Begin", x = 183, y = -345, width = 301, height = 60, onClick = function(mouseButton, player)
+        if not Hunt.monster or not Hunt.level then
+            log:Broadcastf("Please select a monster and level")
+            return
+        end
+
+        --log:Printf("Checking if isUnlockedMode")
+        if Expansion.IsUnlockedMode() ~= true then
+            local expansion = Hunt.expansionsByMonsterName[Hunt.monster.name]
+            if not Expansion.IsEnabled(expansion.name) then
+                return log:Broadcastf("Requires %s expansion.", expansion.name)
+            end
+        end
+
+
+        log:Debugf("Begin hunt clicked for monster %s, level %s", Hunt.monster.name, Hunt.level.level)
+        Hunt.HideUi(player)
+        Hunt.Setup(Hunt.monster, Hunt.level)
+    end })
+
+    Hunt.panel:Button({ id = "Cleanup", x = 183, y = -552, width = 301, height = 60, onClick = function(mouseButton, player)
+        log:Debugf("Cleanup hunt clicked")
+        Hunt.Clean()
+        Hunt.HideUi(player)
+    end })
+
+    -- Register drop handlers for hunt card auto-reveal (only once)
+    if not Hunt.dropHandlersRegistered then
+        -- Hunt Track Start
+        Location.Get("Hunt Track Start"):AddDropHandler(function(object)
+            if object.getGMNotes() == "Hunt Party" then
+                Hunt.OnPartyArrival("Start")
+            end
+        end)
+        -- Hunt Track 1-11
+        for i = 1, 11 do
+            local trackPos = i
+            Location.Get("Hunt Track " .. i):AddDropHandler(function(object)
+                if object.getGMNotes() == "Hunt Party" then
+                    Hunt.OnPartyArrival(trackPos)
+                end
+            end)
+        end
+        Hunt.dropHandlersRegistered = true
+        log:Debugf("Hunt card reveal drop handlers registered")
+    end
+end
+
+function Hunt.Import(data)
+    log:Debugf("Importing hunt data")
+    Location.Get("Random Hunt Events"):BoxClean({ types = { "Hunt Events" } })
+    log:Debugf("cleaned Random Hunt Events")
+    local randomHuntEventsDeck = Archive.Take({ name = "Random Hunt Events", type = "Hunt Events", location = "Random Hunt Events", rotation = { x = 0, y = 180, z = 180 } })
+    log:Debugf("took Random Hunt Events")
+    Location.Get("Evolving Hunt Events"):BoxClean({ types = { "Hunt Events" } })
+    log:Debugf("cleaned Evolving Hunt Events")
+    Archive.Take({ name = "Evolving Hunt Events", type = "Hunt Events", location = "Evolving Hunt Events", rotation = { x = 0, y = 180, z = 180 } })
+    log:Debugf("took Evolving Hunt Events")
+    if data and data.randomHuntEvents then
+        Deck.AdjustToTrash(randomHuntEventsDeck, data.randomHuntEvents, { "Evolving Hunt Events" }, "Hunt Events")
+    end
+    log:Debugf("shuffle randomHuntEventsDeck")
+    randomHuntEventsDeck:Shuffle()
+    log:Debugf("shuffle randomHuntEventsDeck done")
+end
+
+function Hunt.Export()
+    return {
+        randomHuntEvents = Location.ExportDeck("Random Hunt Events", "Hunt Events"),
+    }
+end
+---------------------------------------------------------------------------------------------------
+
+function Hunt.CleanInternal()
+    -- Clean up dynamic hunt party first (before Archive.Clean)
+    HuntParty.Cleanup()
+
+    Archive.Clean()
+
+    local blocking = Location.Get("Hunt Cards"):BoxClean({ types = HUNT_CARD_TYPES })
+    blocking = Util.ConcatArrays(blocking, Location.Get("Hunt Track"):BoxClean({ types = Util.ConcatArrays(
+        Util.CopyArray(HUNT_CARD_TYPES),
+        { "Monster Figurine", "Minion Figurine", "Hunt Party" }
+    ) }))
+
+    -- Clean revealed hunt cards area
+    blocking = Util.ConcatArrays(blocking, Location.Get("Revealed Hunt Cards"):BoxClean({ types = HUNT_CARD_TYPES }))
+
+    -- Reset hunt card reveal state
+    Hunt.visitedPositions = {}
+    Hunt.remainingCards = {}
+    Hunt.revealedCardCount = 0
+    Hunt.HideNextCardButton()
+
+    return blocking
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Hunt.Clean()
+    Hunt.CleanInternal()
+    log:Printf("Cleaned up hunt.")
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Hunt.OnPartyArrival(trackPos)
+    local locationName = (trackPos == "Start") and "Hunt Track Start" or ("Hunt Track " .. trackPos)
+    log:Debugf("OnPartyArrival called for position: %s (location: %s)", tostring(trackPos), locationName)
+
+    -- Skip if already visited this position (prevents duplicate reveals)
+    if Hunt.visitedPositions[trackPos] then
+        log:Debugf("Track position %s already visited, skipping reveal", tostring(trackPos))
+        return
+    end
+    Hunt.visitedPositions[trackPos] = true
+
+    -- Find all hunt event cards at this location
+    local location = Location.Get(locationName)
+    local allObjects = location:AllObjects()
+    local deckCards = {}      -- Cards extracted from decks (already in correct order)
+    local individualCards = {} -- Individual card objects (need Y-sorting)
+
+    -- First pass: extract cards from any decks (must happen first to avoid
+    -- disturbing cards underneath when we move individual cards later)
+    for _, obj in ipairs(allObjects) do
+        if obj.tag == "Deck" then
+            -- When multiple cards of the same type stack, TTS merges them into a Deck
+            log:Debugf("Found deck at location with %d cards", obj.getQuantity())
+            local deckObjects = obj.getObjects()
+            local huntCardIndices = {}
+
+            -- Identify all hunt cards in the deck
+            for _, cardData in ipairs(deckObjects) do
+                if Util.ArrayContains(HUNT_CARD_TYPES, cardData.gm_notes) then
+                    table.insert(huntCardIndices, { index = cardData.index, name = cardData.name })
+                end
+            end
+            log:Debugf("Found %d hunt cards in deck", #huntCardIndices)
+
+            -- Extract hunt cards from top of deck one at a time
+            -- takeObject() without index takes the top card
+            for _ = 1, #huntCardIndices do
+                -- Check if deck collapsed to a single card
+                if obj.tag == "Card" then
+                    log:Debugf("Deck collapsed to card, adding remaining card")
+                    local gmNotes = obj.getGMNotes()
+                    if Util.ArrayContains(HUNT_CARD_TYPES, gmNotes) then
+                        table.insert(deckCards, obj)
+                    end
+                    break
+                end
+
+                local extractedCard = obj.takeObject({ smooth = false })
+                if extractedCard then
+                    local gmNotes = extractedCard.getGMNotes()
+                    if Util.ArrayContains(HUNT_CARD_TYPES, gmNotes) then
+                        log:Debugf("Extracted hunt card '%s' from deck", extractedCard.getName())
+                        table.insert(deckCards, extractedCard)
+                    else
+                        -- Not a hunt card, put it back (at bottom)
+                        obj.putObject(extractedCard)
+                    end
+                end
+            end
+        end
+    end
+
+    -- Second pass: collect individual cards (after deck extraction is complete)
+    for _, obj in ipairs(allObjects) do
+        if obj.tag == "Card" then
+            local gmNotes = obj.getGMNotes()
+            local isHuntCard = Util.ArrayContains(HUNT_CARD_TYPES, gmNotes)
+            if isHuntCard then
+                table.insert(individualCards, obj)
+            end
+        end
+    end
+
+    -- Sort individual cards by Y position (descending) so top card is revealed first
+    -- Guard: only sort if cards have getPosition (TTS environment)
+    if #individualCards > 1 and individualCards[1].getPosition then
+        table.sort(individualCards, function(a, b)
+            return a.getPosition().y > b.getPosition().y
+        end)
+    end
+
+    -- Combine: deck cards first (they were on top), then individual cards
+    local cards = Util.ConcatArrays(deckCards, individualCards)
+
+    if #cards == 0 then
+        log:Debugf("No hunt cards at %s", locationName)
+        return
+    end
+
+    log:Debugf("Found %d hunt card(s) at %s", #cards, locationName)
+
+    -- Store remaining cards for multi-card handling
+    Hunt.remainingCards = cards
+
+    -- Reveal the first card
+    Hunt.RevealNextCard()
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Hunt.RevealNextCard()
+    if #Hunt.remainingCards == 0 then
+        log:Debugf("No more cards to reveal")
+        return
+    end
+
+    -- Hide button from previous card if any
+    Hunt.HideNextCardButton()
+
+    -- Get the next card (remove from remaining)
+    local card = table.remove(Hunt.remainingCards, 1)
+
+    -- Calculate destination with offset for stacking
+    local destination = Location.Get("Revealed Hunt Cards"):Position()
+    destination.x = destination.x + (Hunt.revealedCardCount * 1.2)
+    Hunt.revealedCardCount = Hunt.revealedCardCount + 1
+
+    -- Flip if face-down
+    if Util.IsFaceDown(card) then
+        card.setRotation({ x = 0, y = 180, z = 0 })
+        log:Debugf("Flipped card '%s' face-up", card.getName())
+    end
+
+    -- Move to revealed area
+    card.setPositionSmooth(destination, false, true)
+    log:Debugf("Moved card '%s' to Revealed Hunt Cards area", card.getName())
+
+    -- Show "Next Card" button if more cards remain
+    if #Hunt.remainingCards > 0 then
+        -- Small delay to let card settle before adding button
+        Wait.frames(function()
+            Hunt.ShowNextCardButton(card)
+        end, 30)
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Hunt.ShowNextCardButton(card)
+    if not card or card.isDestroyed() then
+        return
+    end
+
+    Hunt.nextCardButtonCard = card
+    card.createButton({
+        click_function = "Hunt_RevealNextCard",
+        function_owner = Global,
+        label = "Next Card",
+        position = { 0, 0.5, 2.5 },   -- Below the card (positive Z extends past card edge)
+        rotation = { 0, 0, 0 },       -- No rotation - aligns with card's face-up orientation
+        width = 800,
+        height = 300,
+        font_size = 150,
+        color = { 0.2, 0.2, 0.2 },
+        font_color = { 1, 1, 1 },
+    })
+    log:Debugf("Showing 'Next Card' button on '%s'", card.getName())
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Hunt.HideNextCardButton()
+    if Hunt.nextCardButtonCard and not Hunt.nextCardButtonCard.isDestroyed() then
+        Hunt.nextCardButtonCard.clearButtons()
+        log:Debugf("Cleared buttons from '%s'", Hunt.nextCardButtonCard.getName())
+    end
+    Hunt.nextCardButtonCard = nil
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Hunt.MonsterByNameForHunt(monsterName)
+    for _, monster in ipairs(Hunt.monsters) do
+        if monster.name == monsterName then
+            return monster
+        end
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Hunt.Setup(monsterOrName, levelOrName)
+    if Hunt.settingUpHunt == true then
+        log:Errorf("Hunt setup currently in progress, please wait until finished before setting up another hunt. If the hunt appears to be stuck, click 'Cleanup Hunt' from the 'Cleanup' menu to reset.")
+        return
+    end
+    if Survivor.DepartingSurvivorNeedsToSkipNextHunt() then
+        return
+    end
+
+    local monster = nil
+    if type(monsterOrName) == "string" then
+        monster = Hunt.MonsterByNameForHunt(monsterOrName)
+        assert(Check(monster, "Unknown monster %s", monsterOrName))
+    else
+        monster = monsterOrName
+    end
+
+    local level = nil
+    if type(levelOrName) == "string" then
+        level = Hunt.levelsByMonsterLevelName[monster.name..levelOrName]
+        assert(Check(level, "Unknown level %s for monster %s", levelOrName, monster.name))
+    else
+        level = levelOrName
+    end
+
+    local blocking = Hunt.CleanInternal()
+    blocking = Util.ConcatArrays(blocking, Location.Get("Monster Resources"):RayClean({ types = { "Monster Resources" } }))
+    if #blocking > 0 then
+        log:Broadcastf("Something is blocking hunt setup. Please move the highlighted objects out of the way and try again.")
+        Util.HighlightAll(blocking)
+        return
+    end
+
+    log:Printf("Setting up hunt for %s %s...", monster.name, level.name)
+
+    Hunt.settingUpHunt = true
+
+    -- Reset hunt card reveal state for new hunt
+    Hunt.visitedPositions = {}
+    Hunt.remainingCards = {}
+    Hunt.revealedCardCount = 0
+    Hunt.HideNextCardButton()
+
+    local huntEventsDeck = Container(Archive.Take({ name = "Hunt Events", type = "Hunt Events", location = "Hunt Events", rotation = { x = 0, y = 180, z = 180 } }))
+    Deck.Remove(huntEventsDeck:Object(), function(name) return Trash.IsInTrash(name, "Hunt Events") end)
+    huntEventsDeck:Shuffle()
+    local monsterHuntEventsDeck = Container(Archive.Take({ name = monster.huntEventsDeck, type = "Monster Hunt Events",  location = "Monster Hunt Events", rotation = { x = 0, y = 180, z = 180 } }))
+    Deck.Remove(monsterHuntEventsDeck:Object(), function(name) return Trash.IsInTrash(name, "Monster Hunt Events") end)
+    monsterHuntEventsDeck:Shuffle()
+    Archive.Take({ name = "Herb Gathering", type = "Special Hunt Events", location = "Herb Gathering" })
+    Archive.Take({ name = "Mineral Gathering", type = "Special Hunt Events", location = "Mineral Gathering" })
+    Archive.Take({ name = "Sky Fishing", type = "Special Hunt Events", location = "Sky Fishing" })
+
+    if monster.resourcesDeck then
+        local monsterResourcesDeck = Archive.Take({ name = monster.resourcesDeck, type = "Monster Resources", location = "Monster Resources", rotation = { x = 0, y = 180, z = 180 } })
+        monsterResourcesDeck.shuffle()
+    end
+
+    for i, c in ipairs(monster.huntTrack) do
+        local huntTrackLocation = "Hunt Track " .. i
+        if c == 'H' or c == 'M' then
+            local deck = (c == 'H') and huntEventsDeck or monsterHuntEventsDeck
+            deck:Take({ position = Location.Get(huntTrackLocation):Position(), rotation = { x = 0, y = 180, z = 180 } })
+        elseif c == 'O' then
+            -- Overwhelming Darkness, no card
+        elseif c == 'F' or c == 'L' then
+            local names = { F = "The Forest Gate", L = "Underground Labyrinth" }
+            Archive.Take({ name = names[c], type = "Special Hunt Events", location = huntTrackLocation })
+        else
+            assert(Check.Fail("Unrecognized setup element %s at position %d in hunt setup %s %s", c, i, monster.name, level.name))
+        end
+    end
+
+    local monsterFigurine = Archive.Take({
+        name = monster.name,
+        type = "Monster Figurine",
+        location = "Hunt Track "..level.monsterHuntPosition,
+        rotation = { x = 0, y = -90, z = 0 },
+        height = 5,
+    })
+    monsterFigurine.use_snap_points = true
+
+    local partyLocation = level.partyHuntPosition and "Hunt Track "..level.partyHuntPosition or "Hunt Track Start"
+    HuntParty.Create(partyLocation)
+
+    Archive.Clean()
+    Survivor.ClearSkipNextHunt()
+
+    log:Printf("Hunt ready. May your lanterns guide you in the darkness.")
+
+    Hunt.settingUpHunt = false
+
+    Location.Get("Hunt Track"):LookAt({ distance = 30 })
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Hunt.ShowUi(player)
+    log:Debugf("Showing Hunt UI for " .. player.steam_name)
+
+    local str = Hunt.dialog:ShowForPlayer(player)
+
+    if str == player.color then
+        log:Debugf("Hunt UI now visible for %s", player.color)
+    else
+        log:Errorf(str .. " is already looking at the Hunt UI", player.steam_name, player.color)
+    end
+end
+
+function Hunt.HideUi(player)
+    log:Debugf("Hiding Hunt UI for " .. player.steam_name)
+
+    local str = Hunt.dialog:HideForPlayer(player)
+
+    if str == "None" or str == player.color then
+        log:Debugf("Hunt UI closed for %s", player.color)
+    else
+        log:Errorf(str .. " is already looking at the Hunt UI", player.steam_name, player.color)
+    end
+end
+
+function Hunt.IsUiOpen()
+    return Hunt.dialog:IsOpen()
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Hunt.SelectMonsterInternal(option)
+    local monster = option:OptionValue()
+    log:Debugf("Selected %s", monster.name)
+    Hunt.monster = monster
+
+    local levelOptions = {}
+    for i, level in ipairs(monster.levels) do
+        levelOptions[i] = {
+            text = level.name,
+            value = level,
+            selected = (i == 1),
+        }
+    end
+    Hunt.levelList:SetOptions(levelOptions)
+
+    option:Select()
+
+    Hunt.level = monster.levels[1]
+end
+
+---------------------------------------------------------------------------------------------------
+
+Hunt._test = {
+    FilterEnabledMonsters = FilterEnabledMonsters,
+}
+
+return Hunt

@@ -1,0 +1,941 @@
+local PanelKit = require("Kdm/Ui/PanelKit")
+local Ui = require("Kdm/Ui")
+local Archive = require("Kdm/Archive/Archive")
+local Check = require("Kdm/Util/Check")
+local Location = require("Kdm/Location/Location")
+local Container = require("Kdm/Util/Container")
+local NamedObject = require("Kdm/Location/NamedObject")
+local ObjectState = require("Kdm/Util/ObjectState")
+local Deck = require("Kdm/Data/Deck")
+local LayoutManager = require("Kdm/Ui/LayoutManager")
+local FightingArtsArchive = require("Kdm/Archive/FightingArtsArchive")
+local VerminArchive = require("Kdm/Archive/VerminArchive")
+local BasicResourcesArchive = require("Kdm/Archive/BasicResourcesArchive")
+local Trash = require("Kdm/Data/Trash")
+local Timeline = require("Kdm/Sequence/Timeline")
+local Util = require("Kdm/Util/Util")
+local log = require("Kdm/Core/Log").ForModule("Strain")
+local StrainMilestones = require("Kdm/GameData/StrainMilestones")
+local ConsequenceApplicator = require("Kdm/Data/ConsequenceApplicator")
+
+---------------------------------------------------------------------------------------------------
+
+local Strain = {}
+
+Strain.REWARD_DECK_NAME = FightingArtsArchive.REWARD_DECK_NAME
+Strain.REWARD_DECK_TYPE = FightingArtsArchive.REWARD_DECK_TYPE
+Strain.REWARD_DECK_STAGING_POSITION = FightingArtsArchive.REWARD_DECK_STAGING_POSITION
+Strain.REWARD_SPAWN_LOCATION = "South of Showdown Board"
+Strain.FIGHTING_ART_TYPE = FightingArtsArchive.FIGHTING_ART_TYPE
+Strain.FIGHTING_ART_LOCATION = FightingArtsArchive.FIGHTING_ART_LOCATION
+Strain.FIGHTING_ART_ARCHIVE = FightingArtsArchive.FIGHTING_ART_ARCHIVE
+
+-- Core deck names for spawning disorder/injury/resource cards
+-- These cards already exist in their respective Core decks and just need to be spawned
+Strain.CORE_DISORDERS_DECK = "Core Disorders"
+Strain.CORE_SEVERE_INJURIES_DECK = "Core Severe Injuries"
+Strain.CORE_STRANGE_RESOURCES_DECK = "Core Strange Resources"
+Strain.CORE_DECK_STAGING_POSITION = { x = -150, y = 15, z = 110 }
+
+Strain.TITLE_HEIGHT = 26
+Strain.CONDITION_HEIGHT = 70
+Strain.ROW_PADDING = 24
+Strain.ROW_HEIGHT = Strain.TITLE_HEIGHT + Strain.CONDITION_HEIGHT + Strain.ROW_PADDING
+Strain.ROW_GAP = 6
+
+Strain.MILESTONE_CARDS = StrainMilestones
+
+---------------------------------------------------------------------------------------------------
+
+function Strain:_HydrateMilestones(saveState)
+    saveState = saveState or {}
+    local reachedByTitle = saveState.reached or {}
+
+    Strain.milestones = {}
+    for i, milestone in ipairs(Strain.MILESTONE_CARDS) do
+        Strain.milestones[i] = {
+            title = milestone.title,
+            condition = milestone.condition,
+            flavorText = milestone.flavorText,
+            rulesText = milestone.rulesText,
+            consequences = milestone.consequences,
+            reached = reachedByTitle[milestone.title] or false,
+        }
+    end
+end
+
+function Strain.Init(saveState)
+    log:Debugf("Initializing strain milestones UI")
+
+    Strain:_HydrateMilestones(saveState)
+
+    Strain.milestoneRows = {}
+    Strain:InitUi()
+    Strain:InitConfirmationDialog()
+    Strain:InitUncheckDialog()
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Strain:InitUi()
+    local width = 540
+    local height = 540
+    local dialog = PanelKit.Dialog({
+        id = "StrainMilestones",
+        ui = Ui.Get2d(),
+        rectAlignment = "MiddleCenter",
+        width = width,
+        height = height,
+        color = "#00000000",
+        closeButton = false,
+    })
+    Strain.dialog = dialog
+    local panel = dialog:Panel()
+    Strain.panel = panel
+    local chrome = PanelKit.ClassicDialog({
+        panel = panel,
+        id = "StrainMilestones",
+        width = width,
+        height = height,
+        title = "Strain Milestones",
+        subtitle = "Track the strain milestones you unlocked during your campaigns.",
+        closeButton = {
+            onClick = function(_, player)
+                Strain.HideUi(player)
+            end,
+        },
+    })
+    Strain.listWidth = chrome.contentWidth
+
+    Strain.listArea = PanelKit.ScrollArea({
+        parent = panel,
+        id = "StrainMilestonesScroll",
+        x = chrome.contentX,
+        y = chrome.contentY,
+        width = chrome.contentWidth,
+        height = chrome.contentHeight,
+        contentWidth = chrome.contentWidth,
+    })
+    Strain.listPanel = Strain.listArea:Panel()
+
+    Strain:RefreshMilestones()
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Strain:InitConfirmationDialog()
+    local width = 650
+
+    local spec = LayoutManager.Specification()
+    spec:AddTitle({
+        id = "MilestoneTitleText",
+    }, function(element)
+        Strain.confirmationTitle = element
+    end)
+
+    spec:AddSpacer(6)
+
+    spec:AddSection({
+        labelId = "FlavorLabel",
+        label = "Story:",
+        contentId = "MilestoneFlavorText",
+        contentStyle = "Italic",
+        contentColor = Ui.DARK_BROWN,
+        indent = 15,
+    }, function(section)
+        Strain.confirmationFlavorText = section.content
+    end)
+
+    spec:AddSpacer(10)
+
+    spec:AddSection({
+        labelId = "RulesLabel",
+        label = "Game Effect:",
+        contentId = "MilestoneRulesText",
+        contentColor = Ui.DARK_BROWN,
+        indent = 15,
+    }, function(section)
+        Strain.confirmationRulesText = section.content
+    end)
+
+    spec:AddSpacer(6)
+
+    spec:AddSection({
+        labelId = "ManualLabel",
+        label = "Manual Steps:",
+        contentId = "MilestoneManualText",
+        contentColor = "#CC0000",  -- Red to draw attention
+        indent = 15,
+    }, function(section)
+        Strain.confirmationManualText = section.content
+    end)
+
+    spec:AddSpacer(15)
+
+    spec:AddButtonRow({
+        spacing = 25,
+        buttons = {
+            {
+                id = "MilestoneConfirmOK",
+                text = "Confirm Milestone",
+                width = 160,
+                textColor = Ui.LIGHT_BROWN,
+                colors = Ui.DARK_BROWN_COLORS,
+                onClick = function(_, player)
+                    Strain:ConfirmMilestone(player)
+                end,
+            },
+            {
+                id = "MilestoneConfirmCancel",
+                text = "Cancel",
+                width = 120,
+                textColor = Ui.DARK_BROWN,
+                colors = Ui.MID_BROWN_COLORS,
+                onClick = function(_, player)
+                    Strain:CancelMilestone(player)
+                end,
+            },
+        }
+    })
+
+    local layoutParams = {
+        padding = 12,
+        spacing = 10,
+    }
+
+    local dialogResult = PanelKit.DialogFromSpec({
+        id = "StrainMilestoneConfirmation",
+        width = width,
+        spec = spec,
+        title = "Milestone Reached",
+        subtitle = "A new milestone has been achieved",
+        dialog = {
+            color = "#00000000",
+            closeButton = false,
+        },
+        chrome = {
+            closeButton = false,
+        },
+        layout = layoutParams,
+    })
+    log:Debugf("Dialog: height=%d, content=%d", dialogResult.height, dialogResult.contentHeight)
+
+    Strain.confirmationDialog = dialogResult.dialog
+    Strain.confirmationPanel = dialogResult.panel
+end
+
+function Strain:InitUncheckDialog()
+    local width = 540
+    local layoutParams = {
+        padding = 12,
+        spacing = 15,
+    }
+    local messageHeight = 120
+
+    local spec = LayoutManager.Specification()
+    spec:AddCustom({
+        height = messageHeight,
+        render = function(context)
+            local text = context.parent:Text({
+                id = "UncheckMessage",
+                x = context.x,
+                y = context.y,
+                width = context.width,
+                height = context.height,
+                text = "",
+                fontSize = 16,
+                color = Ui.DARK_BROWN,
+                alignment = "MiddleCenter",
+                horizontalOverflow = "Wrap",
+                verticalOverflow = "Truncate",
+            })
+            return text
+        end,
+    }, function(element)
+        Strain.uncheckMessage = element
+    end)
+
+    spec:AddSpacer(15)
+
+    spec:AddButtonRow({
+        spacing = 25,
+        buttons = {
+            {
+                id = "UncheckConfirm",
+                text = "Remove Rewards",
+                width = 210,
+                textColor = Ui.LIGHT_BROWN,
+                colors = Ui.DARK_BROWN_COLORS,
+                onClick = function(_, player)
+                    Strain:ConfirmUncheckMilestone(player)
+                end,
+            },
+            {
+                id = "UncheckCancel",
+                text = "Keep Rewards",
+                width = 210,
+                textColor = Ui.DARK_BROWN,
+                colors = Ui.MID_BROWN_COLORS,
+                onClick = function(_, player)
+                    Strain:CancelUncheckMilestone(player)
+                end,
+            },
+        },
+    })
+
+    local dialogResult = PanelKit.DialogFromSpec({
+        id = "StrainMilestoneUncheck",
+        width = width,
+        spec = spec,
+        title = "Undo Milestone",
+        subtitle = "This removes the milestone's rewards from the settlement deck.",
+        dialog = {
+            color = "#00000000",
+            closeButton = false,
+            modal = true,
+        },
+        chrome = {
+            closeButton = false,
+        },
+        layout = layoutParams,
+    })
+    log:Debugf("Strain undo dialog: content=%d total=%d", dialogResult.contentHeight, dialogResult.height)
+
+    Strain.uncheckDialog = dialogResult.dialog
+    Strain.uncheckTitleText = dialogResult.chrome.elements and dialogResult.chrome.elements.titleText
+    if not Strain.uncheckMessage then
+        Strain.uncheckMessage = dialogResult.panel:Text({
+            id = "UncheckMessage",
+            x = dialogResult.chrome.contentX,
+            y = dialogResult.chrome.contentY,
+            width = dialogResult.chrome.contentWidth,
+            height = messageHeight,
+            text = "",
+            fontSize = 16,
+            color = Ui.DARK_BROWN,
+            alignment = "MiddleCenter",
+        })
+    end
+end
+
+function Strain.BuildUndoMessage(milestone)
+    local consequences = milestone and milestone.consequences
+    if not consequences then
+        return "This will undo the milestone."
+    end
+    
+    local parts = {}
+    
+    if consequences.fightingArt then
+        table.insert(parts, string.format(
+            "removes %s from the Fighting Arts deck",
+            consequences.fightingArt
+        ))
+    end
+    
+    if consequences.vermin then
+        table.insert(parts, string.format(
+            "removes %s from the Vermin deck",
+            consequences.vermin
+        ))
+    end
+    
+    if consequences.timelineEvent then
+        table.insert(parts, string.format(
+            "removes %s from the timeline",
+            consequences.timelineEvent.name
+        ))
+    end
+    
+    if consequences.trashSettlementEvent then
+        table.insert(parts, string.format(
+            "restores %s to the Settlement Events deck",
+            consequences.trashSettlementEvent
+        ))
+    end
+    
+    if consequences.addBasicResource then
+        table.insert(parts, string.format(
+            "removes %s from the Basic Resources deck",
+            consequences.addBasicResource
+        ))
+    end
+    
+    if #parts == 0 then
+        return "This will undo the milestone."
+    end
+    
+    local message = "This " .. table.concat(parts, " and ") .. "."
+    
+    if consequences.fightingArt then
+        message = message .. " Remove it from any survivor who gained it."
+    end
+    
+    return message
+end
+
+function Strain:ShowUncheckDialog(milestone)
+    if not Strain.uncheckDialog then
+        return
+    end
+    local title = milestone and milestone.title or "this milestone"
+    if Strain.uncheckTitleText then
+        Strain.uncheckTitleText:SetText(string.format("Undo: %s", title))
+    end
+    local message = Strain.BuildUndoMessage(milestone)
+    Strain.uncheckMessage:SetText(message)
+    Strain.uncheckDialog:ShowForAll()
+end
+
+function Strain:ConfirmUncheckMilestone(player)
+    local index = Strain.pendingMilestoneIndex
+    if not index then
+        return
+    end
+    local milestone = Strain.milestones[index]
+    if milestone then
+        milestone.reached = false
+        local row = Strain.milestoneRows[index]
+        if row then
+            row.checkBox:Check(false)
+        end
+        Strain:ReverseConsequences(milestone)
+    end
+    if Strain.uncheckDialog then
+        Strain.uncheckDialog:HideForAll()
+    end
+    Strain.pendingMilestoneIndex = nil
+end
+
+function Strain:CancelUncheckMilestone(player)
+    if Strain.uncheckDialog then
+        Strain.uncheckDialog:HideForAll()
+    end
+    Strain.pendingMilestoneIndex = nil
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Strain:_FightingArtsDeck()
+    local location = Location.Get(Strain.FIGHTING_ART_LOCATION)
+    assert(location, Util.SafeFormat("Fighting Arts location '%s' not found - mod setup error", Strain.FIGHTING_ART_LOCATION))
+    
+    local deck = location:FirstObject({ types = { Strain.FIGHTING_ART_TYPE } })
+    if not deck then
+        log:Errorf("Fighting Arts deck not found at %s", Strain.FIGHTING_ART_LOCATION)
+        return nil
+    end
+    return deck
+end
+
+function Strain:SpawnFightingArtForSurvivor(cardName)
+    local takeParams = {
+        name = cardName,
+        type = Strain.FIGHTING_ART_TYPE,
+        rotation = { x = 0, y = 180, z = 0 },
+        spawnFunc = function()
+            log:Printf("Spawned %s near the showdown board. Give this card to the triggering survivor.", cardName)
+        end,
+    }
+
+    local location = Location.Get(Strain.REWARD_SPAWN_LOCATION)
+    if location then
+        takeParams.location = Strain.REWARD_SPAWN_LOCATION
+    else
+        takeParams.position = { x = 0, y = 15, z = -15 }
+    end
+
+    Strain:_TakeRewardCard(takeParams)
+    -- Note: _TakeRewardCard -> _TakeFromRewardsDeck -> Archive.TakeFromDeck already calls Archive.Clean() internally
+end
+
+function Strain:SpawnDisorder(cardName)
+    local position = Strain:_ResolveSpawnPosition({ location = Strain.REWARD_SPAWN_LOCATION })
+    Archive.TakeFromDeck({
+        deckName = Strain.CORE_DISORDERS_DECK,
+        deckType = "Disorders",
+        deckStagingPosition = Strain.CORE_DECK_STAGING_POSITION,
+        name = cardName,
+        cardType = "Disorders",
+        position = position,
+        rotation = { x = 0, y = 180, z = 0 },
+        spawnFunc = function()
+            log:Printf("Spawned %s near the showdown board. Give this card to the triggering survivor.", cardName)
+            Archive.Clean()
+        end,
+    })
+end
+
+function Strain:SpawnSevereInjury(cardName)
+    local position = Strain:_ResolveSpawnPosition({ location = Strain.REWARD_SPAWN_LOCATION })
+    Archive.TakeFromDeck({
+        deckName = Strain.CORE_SEVERE_INJURIES_DECK,
+        deckType = "Severe Injuries",
+        deckStagingPosition = Strain.CORE_DECK_STAGING_POSITION,
+        name = cardName,
+        cardType = "Severe Injuries",
+        position = position,
+        rotation = { x = 0, y = 180, z = 0 },
+        spawnFunc = function()
+            log:Printf("Spawned %s near the showdown board. Give this card to the triggering survivor.", cardName)
+            Archive.Clean()
+        end,
+    })
+end
+
+function Strain:SpawnStrangeResource(cardName)
+    local position = Strain:_ResolveSpawnPosition({ location = Strain.REWARD_SPAWN_LOCATION })
+    Archive.TakeFromDeck({
+        deckName = Strain.CORE_STRANGE_RESOURCES_DECK,
+        deckType = "Strange Resources",
+        deckStagingPosition = Strain.CORE_DECK_STAGING_POSITION,
+        name = cardName,
+        cardType = "Strange Resources",
+        position = position,
+        rotation = { x = 0, y = 180, z = 0 },
+        spawnFunc = function()
+            log:Printf("Spawned %s near the showdown board. Add to settlement storage.", cardName)
+            Archive.Clean()
+        end,
+    })
+end
+
+function Strain:_ResolveSpawnPosition(params)
+    if params.position then
+        return params.position
+    end
+
+    local locationName = params.location
+    if not locationName then
+        return { x = 0, y = 15, z = -15 }
+    end
+
+    local location = Location.Get(locationName)
+    if not location then
+        return { x = 0, y = 15, z = -15 }
+    end
+
+    local position = location:Center()
+    position.y = position.y + (params.height or 2)
+    return position
+end
+
+function Strain:_TakeFromRewardsDeck(params)
+    log:Debugf("_TakeFromRewardsDeck START, params.name=%s", tostring(params.name))
+    log:Debugf("Archive.TakeFromDeck exists: %s", tostring(Archive.TakeFromDeck ~= nil))
+    return Archive.TakeFromDeck({
+        deckName = Strain.REWARD_DECK_NAME,
+        deckType = Strain.REWARD_DECK_TYPE,
+        deckStagingPosition = Strain.REWARD_DECK_STAGING_POSITION,
+        name = params.name,
+        cardType = params.type,
+        position = Strain:_ResolveSpawnPosition(params),
+        rotation = params.rotation,
+        spawnFunc = params.spawnFunc,
+    })
+end
+
+function Strain:_TakeRewardCard(params)
+    log:Debugf("_TakeRewardCard START, params=%s", tostring(params))
+    return Strain:_TakeFromRewardsDeck(params)
+end
+
+function Strain:ExecuteConsequences(milestone)
+    local consequences = milestone and milestone.consequences
+    if not consequences then
+        return
+    end
+
+    -- Helper to execute spawn-only consequences (these don't need async waiting)
+    local function executeSpawnConsequences()
+        if consequences.disorder then
+            Strain:SpawnDisorder(consequences.disorder)
+        end
+        if consequences.severeInjury then
+            Strain:SpawnSevereInjury(consequences.severeInjury)
+        end
+        if consequences.strangeResource then
+            Strain:SpawnStrangeResource(consequences.strangeResource)
+        end
+    end
+
+    -- Execute synchronous consequences first
+    if consequences.vermin then
+        ConsequenceApplicator.ApplyVermin(consequences.vermin)
+    end
+    if consequences.timelineEvent then
+        ConsequenceApplicator.ApplyTimelineEvent(consequences.timelineEvent)
+    end
+    if consequences.trashSettlementEvent then
+        ConsequenceApplicator.TrashSettlementEvent(consequences.trashSettlementEvent)
+    end
+    if consequences.addBasicResource then
+        ConsequenceApplicator.AddBasicResource(consequences.addBasicResource)
+    end
+
+    -- FightingArt is async - chain spawn consequences after it completes
+    -- to avoid concurrent Archive.Clean() calls destroying shared objects
+    if consequences.fightingArt then
+        ConsequenceApplicator.ApplyFightingArt(consequences.fightingArt, function()
+            Strain:SpawnFightingArtForSurvivor(consequences.fightingArt)
+            -- Execute spawn consequences after fightingArt completes
+            executeSpawnConsequences()
+        end)
+    else
+        -- No fightingArt, execute spawn consequences immediately
+        executeSpawnConsequences()
+    end
+end
+
+function Strain:ReverseConsequences(milestone)
+    local consequences = milestone and milestone.consequences
+    if not consequences then
+        return
+    end
+
+    if consequences.fightingArt then
+        ConsequenceApplicator.RemoveFightingArt(consequences.fightingArt)
+    end
+    if consequences.vermin then
+        ConsequenceApplicator.RemoveVermin(consequences.vermin)
+    end
+    if consequences.timelineEvent then
+        ConsequenceApplicator.RemoveTimelineEvent(consequences.timelineEvent.name, consequences.timelineEvent.type)
+    end
+    if consequences.trashSettlementEvent then
+        ConsequenceApplicator.RestoreSettlementEvent(consequences.trashSettlementEvent)
+    end
+    if consequences.addBasicResource then
+        ConsequenceApplicator.RemoveBasicResource(consequences.addBasicResource)
+    end
+    -- Spawned cards (disorder, severeInjury, strangeResource) cannot be auto-removed
+    -- The player must manually return them to the archive
+    if consequences.disorder then
+        log:Printf("Manually return the %s disorder card to the Disorders Archive.", consequences.disorder)
+    end
+    if consequences.severeInjury then
+        log:Printf("Manually return the %s severe injury card to the Severe Injuries Archive.", consequences.severeInjury)
+    end
+    if consequences.strangeResource then
+        log:Printf("Manually return the %s strange resource to the Strange Resources Archive.", consequences.strangeResource)
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+-- Pure consequence computation (no TTS side effects)
+-- Used by acceptance tests to verify logic without spawning cards
+---------------------------------------------------------------------------------------------------
+
+function Strain.ComputeConsequenceChanges(milestone, currentYear)
+    local consequences = milestone and milestone.consequences
+    if not consequences then
+        return { fightingArts = {}, vermin = {}, timelineEvents = {}, trashSettlementEvents = {}, addBasicResources = {} }
+    end
+
+    local changes = {
+        fightingArts = {},
+        vermin = {},
+        timelineEvents = {},
+        trashSettlementEvents = {},
+        addBasicResources = {},
+    }
+
+    if consequences.fightingArt then
+        table.insert(changes.fightingArts, consequences.fightingArt)
+    end
+
+    if consequences.vermin then
+        table.insert(changes.vermin, consequences.vermin)
+    end
+
+    if consequences.timelineEvent then
+        local event = consequences.timelineEvent
+        local targetYear = (currentYear or 1) + (event.offset or 0)
+        table.insert(changes.timelineEvents, {
+            year = targetYear,
+            name = event.name,
+            type = event.type,
+        })
+    end
+
+    if consequences.trashSettlementEvent then
+        table.insert(changes.trashSettlementEvents, consequences.trashSettlementEvent)
+    end
+
+    if consequences.addBasicResource then
+        table.insert(changes.addBasicResources, consequences.addBasicResource)
+    end
+
+    return changes
+end
+
+function Strain.FindMilestone(title)
+    for _, milestone in ipairs(Strain.MILESTONE_CARDS) do
+        if milestone.title == title then
+            return milestone
+        end
+    end
+    return nil
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Strain:RefreshMilestones()
+    if not Strain.listPanel then
+        return
+    end
+
+    local listWidth = Strain.listWidth or 500
+    local layout = LayoutManager.VerticalLayout({
+        parent = Strain.listPanel,
+        contentArea = { contentX = 0, contentY = 0, contentWidth = listWidth, contentHeight = 0 },
+        padding = 0,
+        spacing = Strain.ROW_GAP,
+    })
+
+    for i, milestone in ipairs(Strain.milestones) do
+        layout:AddCustom({
+            height = Strain.ROW_HEIGHT,
+            render = function(context)
+                return Strain:_RenderMilestoneRow(i, milestone, context)
+            end,
+        })
+    end
+
+    local usedHeight = layout:GetUsedHeight()
+    Strain.listPanel:SetHeight(usedHeight)
+    Strain.listArea:SetContentHeight(usedHeight)
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Strain:ToggleMilestone(index, player)
+    local milestone = Strain.milestones[index]
+    if not milestone then
+        return
+    end
+
+    -- If milestone is already reached, uncheck immediately
+    if milestone.reached then
+        local row = Strain.milestoneRows[index]
+        if row then
+            row.checkBox:Check(true)
+        end
+        Strain.pendingMilestoneIndex = index
+        Strain:ShowUncheckDialog(milestone)
+        return
+    end
+
+    -- If milestone is not reached, show confirmation dialog
+    -- TTS has already auto-toggled the checkbox, so revert it back to unchecked
+    local row = Strain.milestoneRows[index]
+    if row then
+        row.checkBox:Check(false)
+    end
+    
+    Strain.pendingMilestoneIndex = index
+    Strain:ShowConfirmationDialog(milestone)
+end
+
+function Strain:_RenderMilestoneRow(index, milestone, context)
+    local rowSpacing = Strain.ROW_GAP or 0
+    local backgroundA = "#f1e6d4ff"
+    local backgroundB = "#e9dcc9ff"
+    local panelHeight = math.max(10, context.height - rowSpacing)
+    local panelY = context.y - (rowSpacing / 2)
+    local row = Strain.milestoneRows[index]
+    if not row then
+        row = {}
+        row.panel = context.parent:Panel({
+            id = string.format("StrainMilestoneRow%d", index),
+            x = context.x,
+            y = panelY,
+            width = context.width,
+            height = panelHeight,
+            color = (index % 2 == 0) and backgroundA or backgroundB,
+        })
+        row.checkBox = row.panel:CheckBox({
+            id = string.format("StrainMilestoneCheck%d", index),
+            x = 15,
+            y = -20,
+            width = 24,
+            height = 24,
+            uncheckedImage = "CheckBoxEmpty",
+            onClick = function(_, player)
+                Strain:ToggleMilestone(index, player)
+            end,
+        })
+        row.title = row.panel:Text({
+            id = string.format("StrainMilestoneTitle%d", index),
+            x = 50,
+            y = -18,
+            width = context.width - 70,
+            height = Strain.TITLE_HEIGHT,
+            fontSize = 18,
+            fontStyle = "Bold",
+            color = Ui.DARK_BROWN,
+            alignment = "UpperLeft",
+            horizontalOverflow = "Wrap",
+            verticalOverflow = "Truncate",
+        })
+        row.condition = row.panel:Text({
+            id = string.format("StrainMilestoneCondition%d", index),
+            x = 50,
+            y = -46,
+            width = context.width - 70,
+            height = Strain.CONDITION_HEIGHT,
+            fontSize = 14,
+            color = Ui.MID_BROWN,
+            alignment = "UpperLeft",
+            horizontalOverflow = "Wrap",
+            verticalOverflow = "Truncate",
+        })
+        Strain.milestoneRows[index] = row
+    else
+        row.panel:SetOffsetXY(string.format("%d %d", context.x, panelY))
+        row.panel:SetWidth(context.width)
+        row.panel:SetHeight(panelHeight)
+        row.panel:SetColor((index % 2 == 0) and backgroundA or backgroundB)
+        row.title:SetWidth(context.width - 70)
+        row.title:SetHeight(Strain.TITLE_HEIGHT)
+        row.condition:SetWidth(context.width - 70)
+        row.condition:SetHeight(Strain.CONDITION_HEIGHT)
+    end
+
+    row.checkBox:Check(milestone.reached)
+    row.title:SetText(milestone.title)
+    row.condition:SetText(milestone.condition)
+
+    return row
+end
+
+function Strain:ShowConfirmationDialog(milestone)
+    if not Strain.confirmationDialog then
+        return
+    end
+
+    -- Update texts
+    Strain.confirmationTitle:SetText(milestone.title)
+    Strain.confirmationFlavorText:SetText(milestone.flavorText)
+    Strain.confirmationRulesText:SetText(milestone.rulesText)
+    
+    -- Format manual steps if present
+    if milestone.consequences and milestone.consequences.manual and #milestone.consequences.manual > 0 then
+        local manualText = "• " .. table.concat(milestone.consequences.manual, "\n• ")
+        Strain.confirmationManualText:SetText(manualText)
+    else
+        Strain.confirmationManualText:SetText("(None)")
+    end
+
+    -- Show dialog for all players
+    Strain.confirmationDialog:ShowForAll()
+end
+
+function Strain:ConfirmMilestone(player)
+    if Strain.pendingMilestoneIndex then
+        local milestone = Strain.milestones[Strain.pendingMilestoneIndex]
+        if milestone then
+            milestone.reached = true
+            log:Debugf("Checking milestone '%s'", milestone.title)
+            
+            local row = Strain.milestoneRows[Strain.pendingMilestoneIndex]
+            if row then
+                row.checkBox:Check(true)
+            end
+            Strain:ExecuteConsequences(milestone)
+        end
+    end
+    
+    Strain.confirmationDialog:HideForAll()
+    Strain.pendingMilestoneIndex = nil
+end
+
+function Strain:CancelMilestone(player)
+    -- Ensure checkbox stays unchecked
+    if Strain.pendingMilestoneIndex then
+        local row = Strain.milestoneRows[Strain.pendingMilestoneIndex]
+        if row then
+            row.checkBox:Check(false)
+        end
+    end
+    
+    Strain.confirmationDialog:HideForAll()
+    Strain.pendingMilestoneIndex = nil
+end
+
+---------------------------------------------------------------------------------------------------
+-- Test helpers for injecting reached milestones state
+---------------------------------------------------------------------------------------------------
+
+local _testReachedOverride = nil
+
+function Strain.Test_SetReachedMilestones(reached)
+    _testReachedOverride = reached
+end
+
+function Strain.Test_ResetReachedMilestones()
+    _testReachedOverride = nil
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Strain.Save()
+    -- Allow tests to override reached state
+    if _testReachedOverride then
+        return { reached = _testReachedOverride }
+    end
+    
+    local state = { reached = {} }
+    if not Strain.milestones then
+        return state
+    end
+
+    for _, milestone in ipairs(Strain.milestones) do
+        if milestone.reached then
+            state.reached[milestone.title] = true
+        end
+    end
+
+    return state
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Strain.LoadState(saveState)
+    Strain:_HydrateMilestones(saveState)
+    Strain:RefreshMilestones()
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Strain.ShowUi(player)
+    local result = Strain.dialog:ShowForPlayer(player)
+    if result == player.color then
+        log:Debugf("Opened strain milestones for %s", player.color)
+    else
+        log:Errorf("%s is already viewing strain milestones", result)
+    end
+end
+
+function Strain.HideUi(player)
+    local result = Strain.dialog:HideForPlayer(player)
+    if result == "None" or result == player.color then
+        log:Debugf("Closed strain milestones for %s", player.color)
+    else
+        log:Errorf("%s is already viewing strain milestones", result)
+    end
+end
+
+function Strain.IsUiOpen()
+    return Strain.dialog and Strain.dialog:IsOpen()
+end
+
+Strain.Test = {
+    _TakeRewardCard = Strain._TakeRewardCard,
+    SetReachedMilestones = Strain.Test_SetReachedMilestones,
+    ResetReachedMilestones = Strain.Test_ResetReachedMilestones,
+    ExecuteConsequences = function(milestone) return Strain:ExecuteConsequences(milestone) end,
+    ReverseConsequences = function(milestone) return Strain:ReverseConsequences(milestone) end,
+}
+
+return Strain

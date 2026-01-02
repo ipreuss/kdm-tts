@@ -1,10 +1,10 @@
 -- TTS Milestone Tests
 -- Tests for milestone execution (AddCard + SpawnForSurvivor, Plot Twist)
 
-local Console = require("Kdm/Console")
-local Strain = require("Kdm/Strain")
-local FightingArtsArchive = require("Kdm/FightingArtsArchive")
-local log = require("Kdm/Log").ForModule("TTSTests")
+local Console = require("Kdm/Core/Console")
+local Strain = require("Kdm/Sequence/Strain")
+local FightingArtsArchive = require("Kdm/Archive/FightingArtsArchive")
+local log = require("Kdm/Core/Log").ForModule("TTSTests")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -166,7 +166,7 @@ function MilestoneTests.TestPlotTwistMilestone()
 end
 
 function MilestoneTests.GetFightingArtsDeckCount(cardName)
-    local Location = require("Kdm/Location")
+    local Location = require("Kdm/Location/Location")
     local location = Location.Get(FightingArtsArchive.FIGHTING_ART_LOCATION)
     if not location then
         return 0

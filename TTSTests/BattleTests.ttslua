@@ -1,12 +1,12 @@
 -- TTS Battle UI Tests
 -- Tests for weapon pairing behavior in BattleUi
 
-local Archive = require("Kdm/Archive")
-local Console = require("Kdm/Console")
-local Location = require("Kdm/Location")
-local log = require("Kdm/Log").ForModule("TTSTests")
-local Player = require("Kdm/Player")
-local Survivor = require("Kdm/Survivor")
+local Archive = require("Kdm/Archive/Archive")
+local Console = require("Kdm/Core/Console")
+local Location = require("Kdm/Location/Location")
+local log = require("Kdm/Core/Log").ForModule("TTSTests")
+local Player = require("Kdm/Entity/Player")
+local Survivor = require("Kdm/Entity/Survivor")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -156,7 +156,7 @@ local function getWeaponResults(player)
     player:UpdateGear()
 
     -- Use BattleUi test interface to calculate weapons
-    local BattleUi = require("Kdm/BattleUi")
+    local BattleUi = require("Kdm/Ui/BattleUi")
     return BattleUi.Test.CalcWeapons(player, survivor)
 end
 

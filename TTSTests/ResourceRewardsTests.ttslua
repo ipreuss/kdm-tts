@@ -7,13 +7,13 @@
 -- user-visible outcomes (button visibility, resource spawning). This catches
 -- integration bugs that data-only tests miss.
 
-local Console = require("Kdm/Console")
+local Console = require("Kdm/Core/Console")
 local Container = require("Kdm/Util/Container")
 local EventManager = require("Kdm/Util/EventManager")
-local Location = require("Kdm/Location")
-local log = require("Kdm/Log").ForModule("TTSTests")
-local ResourceRewards = require("Kdm/ResourceRewards")
-local Showdown = require("Kdm/Showdown")
+local Location = require("Kdm/Location/Location")
+local log = require("Kdm/Core/Log").ForModule("TTSTests")
+local ResourceRewards = require("Kdm/Data/ResourceRewards")
+local Showdown = require("Kdm/Sequence/Showdown")
 local TestSetup = require("Kdm/TTSTests/TestSetup")
 
 ---------------------------------------------------------------------------------------------------

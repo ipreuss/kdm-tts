@@ -1,0 +1,50 @@
+local Check = require("Kdm/Util/Check")
+local Expansion = require("Kdm/Expansion")
+local log = require("Kdm/Core/Log").ForModule("Terrain")
+local Util = require("Kdm/Util/Util")
+
+---------------------------------------------------------------------------------------------------
+
+local Terrain = {}
+
+---------------------------------------------------------------------------------------------------
+
+function Terrain.Init()
+    Terrain.dataByName = {}
+    Terrain.tileSizesByName = {}
+    for _, expansion in ipairs(Expansion.All()) do
+        for name, data in pairs(expansion.terrain or {}) do
+            assert(Check(not Terrain.dataByName[name], "Terrain %s is already registered", name))
+            Terrain.dataByName[name] = data
+            log:Debugf("[TERRAIN INIT] Registered terrain '%s' from expansion '%s'", name, expansion.name or "?")
+        end
+
+        for terrainTile, size in pairs(expansion.terrainTileSizes or {}) do
+            assert(Check, not Terrain.tileSizesByName[terrainTile], "Terrain tile %s is already registered", terrainTile)
+            Terrain.tileSizesByName[terrainTile] = size
+        end
+    end
+    local count = 0
+    for _ in pairs(Terrain.dataByName) do count = count + 1 end
+    log:Debugf("[TERRAIN INIT] Total terrain cards registered: %d", count)
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Terrain.Data(name)
+    local data = Terrain.dataByName[name]
+    assert(Check(data, "Unrecognized terrain '%s", name))
+    return data
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Terrain.TileSize(name)
+    local tileSize = Terrain.tileSizesByName[name]
+    assert(Check(tileSize, "Unrecognized terrain tile '%s'", name))
+    return tileSize
+end
+
+---------------------------------------------------------------------------------------------------
+
+return Terrain

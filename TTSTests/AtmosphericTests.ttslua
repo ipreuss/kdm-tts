@@ -1,10 +1,10 @@
 -- TTS Atmospheric Tests
 -- Tests for Atmospheric Change milestone (trash Heat Wave, add Lump of Atnas)
 
-local Console = require("Kdm/Console")
-local Trash = require("Kdm/Trash")
-local BasicResourcesArchive = require("Kdm/BasicResourcesArchive")
-local log = require("Kdm/Log").ForModule("TTSTests")
+local Console = require("Kdm/Core/Console")
+local Trash = require("Kdm/Data/Trash")
+local BasicResourcesArchive = require("Kdm/Archive/BasicResourcesArchive")
+local log = require("Kdm/Core/Log").ForModule("TTSTests")
 
 ---------------------------------------------------------------------------------------------------
 

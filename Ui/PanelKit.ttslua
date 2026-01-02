@@ -1,7 +1,7 @@
 local Check = require("Kdm/Util/Check")
 local Ui = require("Kdm/Ui")
 local LayoutManager = require("Kdm/Ui/LayoutManager")
-local log = require("Kdm/Log").ForModule("PanelKit")
+local log = require("Kdm/Core/Log").ForModule("PanelKit")
 
 ---------------------------------------------------------------------------------------------------
 

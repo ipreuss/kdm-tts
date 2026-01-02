@@ -1,0 +1,1007 @@
+local ElementSizes = require("Kdm/Data/ElementSizes")
+local LocationGrid = require("Kdm/Location/LocationGrid")
+local log = require("Kdm/Core/Log").ForModule("LocationData")
+
+local locationData = {
+    ["Rules Board"] = {
+        p1 = { x = -8.277505, y = 5, z = 8.241768 },
+        p2 = { x = 8.277505, y = -5, z = -8.241768 },
+        board = "Rules Board",
+    },
+
+    -----------------------------------------------------------------------------------------------
+
+    ["Showdown Board"] = {
+        p1 = { x = 11.951257, y = 10.741001, z = -5.955478 },
+        p2 = { x = -11.816689, y = 10.741001, z = 7.323251 },
+        board = "Showdown Board",
+    },
+
+    -----------------------------------------------------------------------------------------------
+
+    ["Deck Board"] = {
+        p1 = { x = 6.607502, y = 10.741001, z = 4.154560 },
+        p2 = { x = 9.370266, y = 10.741003, z = -2.04 },
+        board = "Showdown Board",
+    },
+
+    -- Deck Grid Layout (looking at the table from above, positive X is left, positive Z is down)
+    -- Each row shares the same Z coordinate, columns share X coordinates
+    -- Column X positions: 9.015150 (right), 7.998055 (middle), 6.980959 (left)
+    -- Row Z positions: -2.020570 (top), -0.620570, 0.785908, 2.192385, 3.598863 (bottom)
+    --
+    -- Row 0 (z=-2.02): Seed Patterns | Patterns        | (unused)
+    -- Row 1 (z=-0.62): Abilities     | Fighting Arts   | Secret Fighting Arts
+    -- Row 2 (z=0.79):  Disorders     | Severe Injuries | Tactics
+    -- Row 3 (z=2.19):  Weapon Prof.  | Armor Sets      | Vermin
+    -- Row 4 (z=3.60):  Strange Res.  | Basic Resources | Monster Resources
+    --
+    -- Note: Pattern Gear is on the Settlement Board, not the Deck Grid
+
+    ["Seed Patterns"] = {
+        center = { x = 9.015150, y = 10.741002, z = -2.020570 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Patterns"] = {
+        center = { x = 7.998055, y = 10.741002, z = -2.020570 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Abilities"] = {
+        center = { x = 9.015150, y = 10.741002, z = -0.620570 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Fighting Arts"] = {
+        center = { x = 7.998055, y = 10.741000, z = -0.620570 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Secret Fighting Arts"] = {
+        center = { x = 6.980959, y = 10.741003, z = -0.620570 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Disorders"] = {
+        center = { x = 9.015150, y = 10.741000, z = 0.785908 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Severe Injuries"] = {
+        center = { x = 7.998055, y = 10.741001, z = 0.785908 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Tactics"] = {
+        center = { x = 6.980959, y = 10.741001, z = 0.785908 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Weapon Proficiencies"] = {
+        center = { x = 9.015150, y = 10.741002, z = 2.192385 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Armor Sets"] = {
+        center = { x = 7.998055, y = 10.741001, z = 2.192385 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Vermin"] = {
+        center = { x = 6.980959, y = 10.741001, z = 2.192385 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Strange Resources"] = {
+        center = { x = 9.015150, y = 10.741002, z = 3.598863 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Basic Resources"] = {
+        center = { x = 7.998055, y = 10.741001, z = 3.598863 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Monster Resources"] = {
+        center = { x = 6.980959, y = 10.741002, z = 3.598863 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["South of Showdown Board"] = {
+        center = { x = 0, y = 10.741001, z = 7.5 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Resource Rewards"] = {
+        -- Left of Settlement Board (board x range is -8.09 to 8.08, y ~0.6)
+        -- x = -10 places it clearly to the left of settlement board
+        -- y = 2 ensures cards spawn above the table surface and fall down
+        center = { x = -10, y = 2, z = 0 },
+        size = { x = 4, y = 1, z = 10 },
+    },
+    -----------------------------------------------------------------------------------------------
+
+    ["Terrain Board"] = {
+        p1 = { x = 5.097445, y = 10.741002, z = -3.411523 },
+        p2 = { x = -4.970578, y = 10.741001, z = -4.551477 },
+        board = "Showdown Board",
+    },
+    ["Terrain"] = {
+        center = { x = 4.741388, y = 10.741003, z = -3.967755 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Terrain 1"] = {
+        center = { x = 3.904032, y = 10.741002, z = -3.967755 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Terrain 2"] = {
+        center = { x = 3.066676, y = 10.741000, z = -3.967755 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Terrain 3"] = {
+        center = { x = 2.229320, y = 10.741000, z = -3.967755 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Terrain 4"] = {
+        center = { x = 1.391964, y = 10.741002, z = -3.967755 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Terrain 5"] = {
+        center = { x = 0.554608, y = 10.741001, z = -3.967755 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Terrain 6"] = {
+        center = { x = -0.282748, y = 10.741001, z = -3.967755 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Terrain 7"] = {
+        center = { x = -1.120104, y = 10.741002, z = -3.967755 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Terrain 8"] = {
+        center = { x = -1.957460, y = 10.741003, z = -3.967755 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Terrain 9"] = {
+        center = { x = -2.794816, y = 10.741002, z = -3.967755 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Terrain 10"] = {
+        center = { x = -3.632172, y = 10.741000, z = -3.967755 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Terrain Tiles"] = {
+        center = { x = -4.515556, y = 10.741003, z = -3.970696 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+
+    -----------------------------------------------------------------------------------------------
+
+    ["Misc"] = {
+        center = { x = 4.741388, y = 10.741003, z = -5.395621 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Misc 1"] = {
+        center = { x = 3.904032, y = 10.741002, z = -5.395621 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Misc 2"] = {
+        center = { x = 3.066676, y = 10.741000, z = -5.395621 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Misc 3"] = {
+        center = { x = 2.229320, y = 10.741000, z = -5.395621 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Misc 4"] = {
+        center = { x = 1.391964, y = 10.741002, z = -5.395621 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Misc 5"] = {
+        center = { x = 0.554608, y = 10.741001, z = -5.395621 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Misc 6"] = {
+        center = { x = -0.282748, y = 10.741001, z = -5.395621 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Misc 7"] = {
+        center = { x = -1.120104, y = 10.741002, z = -5.395621 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Misc 8"] = {
+        center = { x = -1.957460, y = 10.741003, z = -5.395621 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Misc 9"] = {
+        center = { x = -2.794816, y = 10.741002, z = -5.395621 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Misc 10"] = {
+        center = { x = -3.632172, y = 10.741000, z = -5.395621 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+
+    -----------------------------------------------------------------------------------------------
+
+    ["Monster Board"] = {
+        p1 = { x = -6.927796, y = 10.741002, z = 5.043711 },
+        p2 = { x = -11.358661, y = 10.741003, z = -2.601561 },
+        board = "Showdown Board",
+    },
+    ["Monster Tokens"] = {
+        p1 = { x = -6.236383, y = 10.750100, z = -2.637769 },
+        p2 = { x = -6.632036, y = 10.750100, z = 1.044209 },
+        board = "Showdown Board",
+    },
+    ["Monster Token 1"] = {
+        center = { x = -6.446431, y = 10.741002, z = -2.413854 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Monster Token 2"] = {
+        center = { x = -6.446431, y = 10.741002, z = -1.945359 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Monster Token 3"] = {
+        center = { x = -6.446431, y = 10.741001, z = -1.476864 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Monster Token 4"] = {
+        center = { x = -6.446431, y = 10.741001, z = -1.008369 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Monster Token 5"] = {
+        center = { x = -6.446431, y = 10.741000, z = -0.539874 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Monster Token 6"] = {
+        center = { x = -6.446431, y = 10.741000, z = -0.071379 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Monster Token 7"] = {
+        center = { x = -6.446431, y = 10.741000, z = 0.397116 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Monster Token 8"] = {
+        center = { x = -6.446431, y = 10.741000, z = 0.865611 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    -- traits/moods aren't listed in top-down, left-to-right
+    ["Trait/Mood 1"] = {
+        center = { x = -7.280050, y = 10.741001, z = 0.415547 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Trait/Mood 2"] = {
+        center = { x = -7.280050, y = 10.741002, z = -0.812282 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Trait/Mood 3"] = {
+        center = { x = -7.280050, y = 10.741000, z = -2.040111 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Trait/Mood 4"] = {
+        center = { x = -8.116979, y = 10.741001, z = 0.415547 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Trait/Mood 5"] = {
+        center = { x = -8.116979, y = 10.741001, z = -0.812282 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Trait/Mood 6"] = {
+        center = { x = -8.116979, y = 10.741000, z = -2.040111 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Trait/Mood 7"] = {
+        center = { x = -8.953908, y = 10.741001, z = 1.643376 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Trait/Mood 8"] = {
+        center = { x = -8.953908, y = 10.741002, z = 0.415547 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Trait/Mood 9"] = {
+        center = { x = -8.953908, y = 10.741001, z = -0.812282 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Trait/Mood 10"] = {
+        center = { x = -8.953908, y = 10.741001, z = -2.040111 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Trait/Mood 11"] = {
+        center = { x = -9.790837, y = 10.741000, z = 1.643376 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Trait/Mood 12"] = {
+        center = { x = -9.790837, y = 10.741002, z = 0.415547 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Trait/Mood 13"] = {
+        center = { x = -9.790837, y = 10.741003, z = -0.812282 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Trait/Mood 14"] = {
+        center = { x = -9.790837, y = 10.741002, z = -2.040111 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Basic Action"] = {
+        center = { x = -7.280050, y = 10.741002, z = 1.643376 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Monster Info"] = {
+        center = { x = -8.116979, y = 10.741001, z = 1.643376 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["AI"] = {
+        center = { x = -7.458938, y = 10.741000, z = 3.058557 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["AI Discard"] = {
+        center = { x = -8.625810, y = 10.741002, z = 3.058557 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Wound Stack"] = {
+        center = { x = -9.786024, y = 10.741003, z = 3.058821 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["HL"] = {
+        center = { x = -7.458938, y = 10.741002, z = 4.473865 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["HL Discard"] = {
+        center = { x = -8.625810, y = 10.741003, z = 4.473865 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Unused HL"] = {
+        center = { x = -9.786024, y = 10.741003, z = 4.475617 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Unused Basic AI"] = {
+        center = { x = -10.986748, y = 10.741000, z = -2.038309 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Unused Advanced AI"] = {
+        center = { x = -10.986748, y = 10.741002, z = -0.410267 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Unused Legendary AI"] = {
+        center = { x = -10.986748, y = 10.741002, z = 1.217774 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Unused Special AI"] = {
+        center = { x = -10.986748, y = 10.741003, z = 2.845815 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+    ["Unused Misc AI"] = {
+        center = { x = -10.986748, y = 10.741002, z = 4.473855 },
+        size = ElementSizes.CARD,
+        board = "Showdown Board",
+    },
+
+    -----------------------------------------------------------------------------
+
+    ["Hunt Cards"] = {
+        p1 = { x = 3.833936, y = 6, z = -7.537293 },
+        p2 = { x = -3.839113, y = -4, z = -2.886444 },
+        board = "Hunt Board",
+    },
+    ["Hunt Track"] = {
+        p1 = { x = 7.85826, y = 6, z = -0.780489 },
+        p2 = { x = -7.831961, y = -4, z = 6.639576 },
+        board = "Hunt Board",
+    },
+    ["Hunt Events"] = {
+        center = { x = 3.375038, y = 0.860623, z = -5.170869 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Monster Hunt Events"] = {
+        center = { x = 2.357527, y = 0.860623, z = -5.170869 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["The Forest Gate"] = {
+        center = { x = 1.340017, y = 0.860623, z = -5.170868 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Herb Gathering"] = {
+        center = { x = -1.338467, y = 0.860623, z = -5.170869 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Mineral Gathering"] = {
+        center = { x = -2.357022, y = 0.860623, z = -5.170869 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Sky Fishing"] = {
+        center = { x = -3.375580, y = 0.860623, z = -5.170869 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Hunt Track Start"] = {
+        center = { x = 7.273605, y = 0.860623, z = 2.921042 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Hunt Track 1"] = {
+        center = { x = 6.059363, y = 0.860623, z = 2.921042 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Hunt Track 2"] = {
+        center = { x = 4.845125, y = 0.860623, z = 2.921042 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Hunt Track 3"] = {
+        center = { x = 3.630886, y = 0.860623, z = 2.921042 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Hunt Track 4"] = {
+        center = { x = 2.416644, y = 0.860623, z = 2.921042 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Hunt Track 5"] = {
+        center = { x = 1.202405, y = 0.860623, z = 2.921042 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Hunt Track 6"] = {
+        center = { x = -0.011834, y = 0.860623, z = 2.921042 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Hunt Track 7"] = {
+        center = { x = -1.226075, y = 0.860623, z = 2.921042 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Hunt Track 8"] = {
+        center = { x = -2.440314, y = 0.860623, z = 2.921042 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Hunt Track 9"] = {
+        center = { x = -3.654553, y = 0.860623, z = 2.921042 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Hunt Track 10"] = {
+        center = { x = -4.868794, y = 0.860623, z = 2.921042 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Hunt Track 11"] = {
+        center = { x = -6.083034, y = 0.860623, z = 2.921042 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Hunt Track Starvation"] = {
+        center = { x = -7.297274, y = 0.860623, z = 2.921042 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Revealed Hunt Cards"] = {
+        center = { x = 6.06, y = 0.860623, z = 7.2 },
+        size = { x = 8, y = 1, z = 3 },
+        board = "Hunt Board",
+    },
+
+    --{ x = 7.273605, y = 0.860623, z = 2.921042 }
+    ["Random Hunt Events"] = {
+        center = { x = 7.273605, y = 0.860623, z = 12.763126 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+    ["Evolving Hunt Events"] = {
+        center = { x = 7.273605, y = 0.860623, z = 17.60521 },
+        size = ElementSizes.CARD,
+        board = "Hunt Board",
+    },
+
+
+    -----------------------------------------------------------------------------
+
+    ["Settlement Board"] = {
+        p1 = { x = 8.086164, y = 0.602996, z = -8.141978 },
+        p2 = { x = -8.090731, y = 0.602995, z = 8.148751 },
+        board = "Settlement Board",
+    },
+    ["Innovation Deck"] = {
+        center = { x = 3.051355, y = 0.595169, z = -7.423294 },
+        size = ElementSizes.CARD,
+        board = "Settlement Board",
+    },
+    ["Principle: Death"] = {
+        center = { x = 2.179312, y = 0.595169, z = -7.423294 },
+        size = ElementSizes.CARD,
+        board = "Settlement Board",
+    },
+    ["Principle: New Life"] = {
+        center = { x = 1.307268, y = 0.595169, z = -7.423294 },
+        size = ElementSizes.CARD,
+        board = "Settlement Board",
+    },
+    ["Principle: Bonding"] = {
+        center = { x = 0.435224, y = 0.595169, z = -7.423294 },
+        size = ElementSizes.CARD,
+        board = "Settlement Board",
+    },
+    ["Principle: Society"] = {
+        center = { x = -1.308862, y = 0.595169, z = -7.423294 },
+        size = ElementSizes.CARD,
+        board = "Settlement Board",
+    },
+    ["Principle: Conviction"] = {
+        center = { x = -2.180904, y = 0.595169, z = -7.423294 },
+        size = ElementSizes.CARD,
+        board = "Settlement Board",
+    },
+    ["Innovation Archive"] = {
+        center = { x = -3.052947, y = 0.595169, z = -7.423294 },
+        size = ElementSizes.CARD,
+        board = "Settlement Board",
+    },
+    ["Starting Gear"] = {
+        center = { x = 7.415189, y = 0.595169, z = 4.248330 },
+        size = ElementSizes.GEAR,
+        board = "Settlement Board",
+    },
+    ["Rare Gear"] = {
+        center = { x = 7.415191, y = 0.595169, z = 4.949259 },
+        size = ElementSizes.GEAR,
+        board = "Settlement Board",
+    },
+    ["Promo Gear"] = {
+        center = { x = 7.415189, y = 0.595169, z = 5.650189 },
+        size = ElementSizes.GEAR,
+        board = "Settlement Board",
+    },
+    ["Seed Pattern Gear"] = {
+        center = { x = 7.415189, y = 0.595169, z = 6.351118 },
+        size = ElementSizes.GEAR,
+        board = "Settlement Board",
+    },
+    ["Pattern Gear"] = {
+        center = { x = 7.415189, y = 0.595169, z = 7.052047 },
+        size = ElementSizes.GEAR,
+        board = "Settlement Board",
+    },
+    
+    -----------------------------------------------------------------------------
+
+    ["Survivor Box Spawn 1"] = {
+        center = { x = -44.900000, y = 1.7, z = -61.12 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 2"] = {
+        center = { x = -34.922222, y = 1.7, z = -61.12 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 3"] = {
+        center = { x = -24.944444, y = 1.7, z = -61.12 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 4"] = {
+        center = { x = -14.966667, y = 1.7, z = -61.12 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 5"] = {
+        center = { x = -4.9888889, y = 1.7, z = -61.12 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 6"] = {
+        center = { x = 4.9888889, y = 1.7, z = -61.12 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 7"] = {
+        center = { x = 14.966667, y = 1.7, z = -61.12 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 8"] = {
+        center = { x = 24.944444, y = 1.7, z = -61.12 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 9"] = {
+        center = { x = 34.922222, y = 1.7, z = -61.12 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 10"] = {
+        center = { x = 44.900000, y = 1.7, z = -61.12 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 11"] = {
+        center = { x = -44.900000, y = 1.7, z = -67.3 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 12"] = {
+        center = { x = -34.922222, y = 1.7, z = -67.3 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 13"] = {
+        center = { x = -24.944444, y = 1.7, z = -67.3 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 14"] = {
+        center = { x = -14.966667, y = 1.7, z = -67.3 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 15"] = {
+        center = { x = -4.9888889, y = 1.7, z = -67.3 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 16"] = {
+        center = { x = 4.9888889, y = 1.7, z = -67.3 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 17"] = {
+        center = { x = 14.966667, y = 1.7, z = -67.3 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 18"] = {
+        center = { x = 24.944444, y = 1.7, z = -67.3 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 19"] = {
+        center = { x = 34.922222, y = 1.7, z = -67.3 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+    ["Survivor Box Spawn 20"] = {
+        center = { x = 44.900000, y = 1.7, z = -67.3 },
+        size = { x = 6, y = 5, z = 6 },
+    },
+
+    ["Reference 1"] = {
+        center = { x = 75.894806, y = 1.730176, z = -65.893570 },
+        size = ElementSizes.REFERENCE,
+    },
+    ["Reference 2"] = {
+        center = { x = 96.894814, y = 1.730182, z = -65.893570 },
+        size = ElementSizes.REFERENCE,
+    },
+    ["Reference 3"] = {
+        center = { x = 75.894806, y = 1.730211, z = -82.679756 },
+        size = ElementSizes.REFERENCE,
+    },
+    ["Reference 4"] = {
+        center = { x = 96.894806, y = 1.730218, z = -82.679756 },
+        size = ElementSizes.REFERENCE,
+    },
+    ["Reference 5"] = {
+        center = { x = 117.894814, y = 1.730189, z = -65.893570 },
+        size = ElementSizes.REFERENCE,
+    },
+
+    ["Character Deck"] = {
+        center = { x = 58, y = 1.730189, z = -77.679756 },
+        size = ElementSizes.CARD,
+    },
+    ["Temp Deck"] = {
+        center = { x = 62, y = 1.730189, z = -77.679756 },
+        size = ElementSizes.CARD,
+    },
+
+    -----------------------------------------------------------------------------
+
+    ["Campaign Orb"] = {
+        p1 = { x =  0.339170, y = 0.15, z = -0.166400 },
+        p2 = { x = -0.342977, y = 0.15, z =  0.515850 },
+        board = "Export/Import Board",
+    },
+
+    -----------------------------------------------------------------------------
+    -- Temporary hacks until we get art locations for these
+    ["Settlement Events"] = {
+        center = { x = -14.360849, y = 10.801341, z = -4.955215 },
+        size = ElementSizes.SETTLEMENT_EVENT,
+        board = "Showdown Board",
+    },
+    ["Drawn Settlement Events"] = {
+        center = { x = -13.125675, y = 10.801341, z = -4.955215 },
+        size = ElementSizes.SETTLEMENT_EVENT,
+        board = "Showdown Board",
+    },
+    ["Settlement Locations"] = {
+        center = { x = -10.137783, y = -0.039099, z = 4.920703 },
+        size = ElementSizes.SETTLEMENT_LOCATION,
+        board = "Settlement Board",
+    }
+}
+
+-----------------------------------------------------------------------------------------------
+-- Showdown board grid locations
+
+local MAX_SHOWDOWN_GRID_COLS = 22
+local MAX_SHOWDOWN_GRID_ROWS = 16
+
+local gridLeft   = 6.0804635
+local gridRight  = -5.735014
+local gridTop    = -2.8629885
+local gridBottom =  5.5242755
+local y = 10.741001
+local cellWidth  = (gridRight - gridLeft) / (MAX_SHOWDOWN_GRID_COLS - 1)
+local cellHeight = (gridBottom - gridTop) / (MAX_SHOWDOWN_GRID_ROWS - 1)
+local size = { x = cellWidth, y = cellWidth, z = cellHeight }
+for col = 1, 22 do
+    for row = 1, 16 do
+        local x = gridLeft + ((col - 1) * cellWidth)
+        local xHalf = x + (cellWidth / 2)
+        local z = gridTop + ((row - 1) * cellHeight)
+        local zHalf = z + (cellHeight / 2)
+        locationData[string.format("(%d, %d)", col, row)] = {
+            center = { x = x, y = y, z = z },
+            size = size,
+            board = "Showdown Board",
+        }
+        locationData[string.format("(%d, %d.5)", col, row)] = {
+            center = { x = x, y = y, z = zHalf },
+            size = size,
+            board = "Showdown Board",
+        }
+        locationData[string.format("(%d.5, %d)", col, row)] = {
+            center = { x = xHalf, y = y, z = z },
+            size = size,
+            board = "Showdown Board",
+        }
+        locationData[string.format("(%d.5, %d.5)", col, row)] = {
+            center = { x = xHalf, y = y, z = zHalf },
+            size = size,
+            board = "Showdown Board",
+        }
+    end
+end
+
+-----------------------------------------------------------------------------------------------
+
+log:Debugf("creating grids")
+for gridname, locationGrid in pairs(LocationGrid.GRIDS) do
+    log:Debugf("creating grid %s", gridname)
+    local cols, rows = locationGrid.cols, locationGrid.rows
+    local tl, br = locationGrid.topLeft, locationGrid.bottomRight
+    log:Debugf("grid %s: cols=%d, rows=%d, tl=(%f, %f), br=(%f, %f)", gridname, cols, rows, tl.x, tl.z, br.x, br.z)
+    local dx = (cols > 1) and ((br.x - tl.x) / (cols - 1)) or 0
+    local dz = (rows > 1) and ((br.z - tl.z) / (rows - 1)) or 0
+    for col = 1, cols do
+        for row = 1, rows do
+            local i = (row - 1) * cols + col
+            local name = gridname.." "..i
+            log:Debugf("creating grid cell %s", name)
+            locationData[name] = {
+                center = {
+                    x = tl.x + (col - 1) * dx,
+                    y = tl.y,
+                    z = tl.z + (row - 1) * dz,
+                },
+                size = locationGrid.size, 
+                board = locationGrid.board,
+            }
+        end
+    end
+end
+log:Debugf("created grids")
+-----------------------------------------------------------------------------------------------
+-- Player board locations
+
+for playerNumber = 1, 4 do
+    local prefix = "Player "..playerNumber
+    local playerBoard = prefix.." Board"
+
+    locationData[playerBoard] = {
+        p1 = { x =  1, y = 0.15, z = -1 },
+        p2 = { x = -1, y = 0.15, z =  1 },
+        board = playerBoard,
+    }
+
+    locationData[prefix.." Survival Tokens"] = {
+        p1 = { x = 0.933703, y = 0.048755, z = -0.973658 },
+        p2 = { x = 0.682291, y = 0.123307, z = -0.451157 },
+        board = playerBoard,
+    }
+
+    local survivalTokenPositions = {
+        { x = 0.850232, y = 0.15, z = -0.891268 },
+        { x = 0.761600, y = 0.15, z = -0.802621 },
+        { x = 0.850232, y = 0.15, z = -0.714050 },
+        { x = 0.761599, y = 0.15, z = -0.625594 },
+        { x = 0.850232, y = 0.15, z = -0.536831 },
+    }
+    for i, pos in ipairs(survivalTokenPositions) do
+        locationData[string.format("%s Survival Token %d", prefix, i)] = {
+            center = pos,
+            size = ElementSizes.SURVIVAL_TOKEN,
+            board = playerBoard,
+        }
+    end
+
+    locationData[prefix.." Marker"] = {
+        fromObject = prefix.." Marker"
+    }
+
+    -- includes armor set as well
+    locationData[prefix.." Gear"] = {
+        p1 = { x = -0.118880, y = 0.15, z = -0.684474 },
+        p2 = { x = -0.975374, y = 0.15, z = -0.05188 },
+        board = playerBoard,
+    }
+
+    locationData[prefix.." Armor Set"] = {
+        p1 = { x = -0.118880, y = 0.15, z = -0.582369 },
+        p2 = { x = -0.324753, y = 0.15, z = -0.267203 },
+        board = playerBoard,
+    }
+
+    local left1 = -0.340440
+    local top1 = -0.684474
+    local right1 = -0.541104
+    local bottom1 = -0.484544
+    local left9 = -0.774710
+    local top9 = -0.251810
+    local width = right1 - left1
+    local height = bottom1 - top1
+    local dx = (left9 - left1) / 2
+    local dz = (top9 - top1) / 2
+    for col = 1, 3 do
+        for row = 1, 3 do
+            local x = left1 + ((col - 1) * dx)
+            local z = top1 + ((row - 1) * dz)
+            local index = ((row - 1) * 3) + col
+            locationData[prefix.." Gear "..index] = {
+                p1 = { x = x,         y = 0.15, z = z },
+                p2 = { x = x + width, y = 0.15, z = z + height },
+                board = playerBoard,
+            }
+        end
+    end
+
+    locationData[prefix.." Fist & Tooth"] = {
+        p1 = { x = -0.121898, y = 0.15, z = -0.251264 },
+        p2 = { x = -0.324531, y = 0.15, z = -0.047824 },
+        board = playerBoard,
+    }
+
+    locationData[prefix.." Cards"] = {
+        p1 = { x = 0.965569, y = 0.15, z = 0.034588 },
+        p2 = { x = -0.978594, y = 0.15, z = 0.611414 },
+        board = playerBoard,
+    }
+
+    local cards = {
+        { "Fighting Art 1", "Fighting Art 2", "Fighting Art 3", "Weapon Proficiency",   "Ability/Impairment 1", "Ability/Impairment 2", "Ability/Impairment 3", "Ability/Impairment 4",  "Ability/Impairment 5"  },
+        { "Disorder 1",     "Disorder 2",     "Disorder 3",     "Ability/Impairment 6", "Ability/Impairment 7", "Ability/Impairment 8", "Ability/Impairment 9", "Ability/Impairment 10", "Ability/Impairment 11" },
+    }
+
+    local left1 = 0.965569
+    local top1 = -0.034588
+    local right1 = 0.763898
+    local bottom1 = 0.281171
+    local left18 = -0.776778
+    local top18 = 0.296603
+    local width = right1 - left1
+    local height = bottom1 - top1
+    local dx = (left18 - left1) / 8
+    local dz = top18 - top1
+    for col = 1, 9 do
+        local x = left1 + ((col - 1) * dx)
+        for row = 1, 2 do
+            local z = top1 + ((row - 1) * dz)
+            locationData[prefix.." "..cards[row][col]] = {
+                p1 = { x = x,         y = 0.15, z = z },
+                p2 = { x = x + width, y = 0.15, z = z + height },
+                board = playerBoard,
+            }
+        end
+    end
+
+    locationData[prefix.." Temporary Tokens"] = {
+        p1 = { x = 0.874169, y = 0.15, z = 0.756863 },
+        p2 = { x = 0.118669, y = 0.15, z = 0.974659 },
+
+        board = playerBoard,
+    }
+
+    locationData[prefix.." Permanent Tokens"] = {
+        p1 = { x = -0.122188, y = 0.15, z = 0.762676 },
+        p2 = { x = -0.878822, y = 0.15, z = 0.976487 },
+
+        board = playerBoard,
+    }
+
+    locationData[prefix.." Survivor Sheet"] = {
+        p1 = { x = 0.621183, y = 0.15, z = -0.996270 },
+        p2 = { x = -0.107580, y = 0.15, z = -0.050389 },
+        board = playerBoard,
+    }
+
+    locationData[prefix.." Status"] = {
+        center = { x = 0, y = 0.5, z = -1.220065 },
+        size = ElementSizes.CARD,
+        board = playerBoard,
+    }
+
+    locationData[prefix.." Monster Controller"] = {
+        center = { x = 0.805916, y = 0.5, z = -1.220065 },
+        size = ElementSizes.CARD,
+        board = playerBoard,
+    }
+
+    locationData[prefix.." Portrait"] = {
+        center = { x = -0.802958, y = 0.5, z = -1.220065 },
+        size = ElementSizes.CARD,
+        board = playerBoard,
+    }
+
+    locationData[prefix.." Bingo"] = {
+        center = { x = 0.302958, y = 0.5, z = -1.220065 },
+        size = ElementSizes.CARD,
+        board = playerBoard,
+    }
+
+    locationData[prefix.." Upper"] = {
+        p1 = { x = -1, y = 0.5, z = -1 },
+        p2 = { x = 1, y = 0.5, z = -1.45 },
+        board = playerBoard,
+    }
+end
+
+return locationData

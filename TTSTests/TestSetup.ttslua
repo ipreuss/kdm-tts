@@ -3,12 +3,12 @@
 -- Provides utilities for setting up test preconditions that can't be
 -- achieved through normal test save file state.
 
-local Archive = require("Kdm/Archive")
+local Archive = require("Kdm/Archive/Archive")
 local Container = require("Kdm/Util/Container")
 local Expansion = require("Kdm/Expansion")
-local Location = require("Kdm/Location")
-local log = require("Kdm/Log").ForModule("TestSetup")
-local NamedObject = require("Kdm/NamedObject")
+local Location = require("Kdm/Location/Location")
+local log = require("Kdm/Core/Log").ForModule("TestSetup")
+local NamedObject = require("Kdm/Location/NamedObject")
 
 ---------------------------------------------------------------------------------------------------
 

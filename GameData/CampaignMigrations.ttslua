@@ -1,4 +1,4 @@
-local log = require("Kdm/Log").ForModule("CampaignMigrations")
+local log = require("Kdm/Core/Log").ForModule("CampaignMigrations")
 
 local CampaignMigrations = {}
 

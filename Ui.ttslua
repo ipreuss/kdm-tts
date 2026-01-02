@@ -1,5 +1,5 @@
 local Check = require("Kdm/Util/Check")
-local log = require("Kdm/Log").ForModule("Ui")
+local log = require("Kdm/Core/Log").ForModule("Ui")
 local Util = require("Kdm/Util/Util")
 
 ---------------------------------------------------------------------------------------------------

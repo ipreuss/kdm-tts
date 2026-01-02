@@ -1,11 +1,11 @@
 -- TTS Consequence Tests
 -- Tests for ConsequenceApplicator operations
 
-local Console = require("Kdm/Console")
-local Location = require("Kdm/Location")
-local ConsequenceApplicator = require("Kdm/ConsequenceApplicator")
-local FightingArtsArchive = require("Kdm/FightingArtsArchive")
-local log = require("Kdm/Log").ForModule("TTSTests")
+local Console = require("Kdm/Core/Console")
+local Location = require("Kdm/Location/Location")
+local ConsequenceApplicator = require("Kdm/Data/ConsequenceApplicator")
+local FightingArtsArchive = require("Kdm/Archive/FightingArtsArchive")
+local log = require("Kdm/Core/Log").ForModule("TTSTests")
 
 ---------------------------------------------------------------------------------------------------
 
