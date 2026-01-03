@@ -303,7 +303,15 @@ Test.test("ACCEPTANCE: Rewards button appears when showdown starts with resource
     modules.Showdown.level = {
         name = "Level 1",
         showdown = {
-            resources = { basic = 4, monster = 4 },
+            aftermath = {
+                victory = {
+                    resources = { basic = 4, monster = 4 },
+                    checklist = {},
+                },
+                defeat = {
+                    checklist = {},
+                },
+            },
         },
     }
 
@@ -352,7 +360,15 @@ Test.test("ACCEPTANCE: Rewards button hidden when showdown ends", function(t)
     modules.Showdown.level = {
         name = "Level 1",
         showdown = {
-            resources = { basic = 4, monster = 4 },
+            aftermath = {
+                victory = {
+                    resources = { basic = 4, monster = 4 },
+                    checklist = {},
+                },
+                defeat = {
+                    checklist = {},
+                },
+            },
         },
     }
     modules.EventManager.FireEvent(modules.EventManager.ON_SHOWDOWN_STARTED)
@@ -388,7 +404,15 @@ Test.test("ACCEPTANCE: Strange resources spawn from archive using Archive.TakeFr
     modules.Showdown.level = {
         name = "Level 3",
         showdown = {
-            resources = { basic = 4, monster = 8, strange = { "Elder Cat Teeth" } },
+            aftermath = {
+                victory = {
+                    resources = { basic = 4, monster = 8, strange = { "Elder Cat Teeth" } },
+                    checklist = {},
+                },
+                defeat = {
+                    checklist = {},
+                },
+            },
         },
     }
     modules.EventManager.FireEvent(modules.EventManager.ON_SHOWDOWN_STARTED)
@@ -427,7 +451,15 @@ Test.test("ACCEPTANCE: Multiple strange resources spawn in correct grid order", 
     modules.Showdown.level = {
         name = "Level X",
         showdown = {
-            resources = { basic = 2, monster = 2, strange = { "Card A", "Card B", "Card C" } },
+            aftermath = {
+                victory = {
+                    resources = { basic = 2, monster = 2, strange = { "Card A", "Card B", "Card C" } },
+                    checklist = {},
+                },
+                defeat = {
+                    checklist = {},
+                },
+            },
         },
     }
     modules.EventManager.FireEvent(modules.EventManager.ON_SHOWDOWN_STARTED)
@@ -469,7 +501,15 @@ Test.test("ACCEPTANCE: Second press shows confirmation dialog", function(t)
     modules.Showdown.level = {
         name = "Level 1",
         showdown = {
-            resources = { basic = 4, monster = 4 },
+            aftermath = {
+                victory = {
+                    resources = { basic = 4, monster = 4 },
+                    checklist = {},
+                },
+                defeat = {
+                    checklist = {},
+                },
+            },
         },
     }
     modules.EventManager.FireEvent(modules.EventManager.ON_SHOWDOWN_STARTED)
@@ -518,7 +558,15 @@ Test.test("ACCEPTANCE: Resources drawn from existing showdown board decks", func
     modules.Showdown.level = {
         name = "Level 1",
         showdown = {
-            resources = { basic = 4, monster = 4 },
+            aftermath = {
+                victory = {
+                    resources = { basic = 4, monster = 4 },
+                    checklist = {},
+                },
+                defeat = {
+                    checklist = {},
+                },
+            },
         },
     }
     modules.EventManager.FireEvent(modules.EventManager.ON_SHOWDOWN_STARTED)
@@ -571,7 +619,15 @@ Test.test("ACCEPTANCE: Resources spawn to grid layout positions", function(t)
     modules.Showdown.level = {
         name = "Level 1",
         showdown = {
-            resources = { basic = 2, monster = 2 },
+            aftermath = {
+                victory = {
+                    resources = { basic = 2, monster = 2 },
+                    checklist = {},
+                },
+                defeat = {
+                    checklist = {},
+                },
+            },
         },
     }
     modules.EventManager.FireEvent(modules.EventManager.ON_SHOWDOWN_STARTED)
@@ -667,7 +723,8 @@ Test.test("E2E: White Lion Level 3 has strange resources in real expansion data"
     t:assertNotNil(level3, "White Lion Level 3 should exist")
 
     -- Verify strange resources field exists
-    local resources = level3.showdown and level3.showdown.resources
+    local victory = level3.showdown and level3.showdown.aftermath and level3.showdown.aftermath.victory
+    local resources = victory and victory.resources
     t:assertNotNil(resources, "Level 3 should have resources")
     t:assertNotNil(resources.strange, "Level 3 should have strange resources field")
     t:assertEqual("table", type(resources.strange), "strange should be a table")

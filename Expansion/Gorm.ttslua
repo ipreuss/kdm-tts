@@ -139,15 +139,19 @@ return {
                         advanced = 2,
                         movement = 6,
                         toughness = 8,
-                        resources = { basic = 4, monster = 4 },
                         aftermath = {
                             victory = {
-                                { text = "+1 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible)" },
-                                { text = "Collect resources" },
+                                resources = { basic = 4, monster = 4 },
+                                checklist = {
+                                    { text = "+1 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible)" },
+                                    { text = "Collect resources" },
+                                },
                             },
                             defeat = {
-                                { text = "Archive all consumable gear from deceased survivors' grids" },
+                                checklist = {
+                                    { text = "Archive all consumable gear from deceased survivors' grids" },
+                                },
                             },
                         },
                     },
@@ -166,15 +170,19 @@ return {
                         toughness = 11,
                         speed = 1,
                         damage = 1,
-                        resources = { basic = 4, monster = 6 },
                         aftermath = {
                             victory = {
-                                { text = "+1 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible)" },
-                                { text = "Collect resources" },
+                                resources = { basic = 4, monster = 6 },
+                                checklist = {
+                                    { text = "+1 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible)" },
+                                    { text = "Collect resources" },
+                                },
                             },
                             defeat = {
-                                { text = "Archive all consumable gear from deceased survivors' grids" },
+                                checklist = {
+                                    { text = "Archive all consumable gear from deceased survivors' grids" },
+                                },
                             },
                         },
                     },
@@ -195,15 +203,19 @@ return {
                         speed = 2,
                         damage = 2,
                         luck = 1,
-                        resources = { basic = 4, monster = 8, strange = { "Stomach Lining" } },
                         aftermath = {
                             victory = {
-                                { text = "+1 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible)" },
-                                { text = "Collect resources" },
+                                resources = { basic = 4, monster = 8, strange = { "Stomach Lining" } },
+                                checklist = {
+                                    { text = "+1 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible)" },
+                                    { text = "Collect resources" },
+                                },
                             },
                             defeat = {
-                                { text = "Archive all consumable gear from deceased survivors' grids" },
+                                checklist = {
+                                    { text = "Archive all consumable gear from deceased survivors' grids" },
+                                },
                             },
                         },
                     },

@@ -183,15 +183,19 @@ return {
                             }
                         },
                         randomTerrain = 2,
-                        resources = { basic = 4, monster = 4 },
                         aftermath = {
                             victory = {
-                                { text = "+1/+2 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible — killing Spidicules does NOT make survivor eligible)" },
-                                { text = "Collect resources" },
+                                resources = { basic = 4, monster = 4 },
+                                checklist = {
+                                    { text = "+1/+2 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible — killing Spidicules does NOT make survivor eligible)" },
+                                    { text = "Collect resources" },
+                                },
                             },
                             defeat = {
-                                { text = "Do not gain Death Principle benefits for last survivor killed" },
+                                checklist = {
+                                    { text = "Do not gain Death Principle benefits for last survivor killed" },
+                                },
                             },
                         },
                     },
@@ -224,15 +228,19 @@ return {
                             }
                         },
                         randomTerrain = 2,
-                        resources = { basic = 4, monster = 6 },
                         aftermath = {
                             victory = {
-                                { text = "+1/+2 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible — killing Spidicules does NOT make survivor eligible)" },
-                                { text = "Collect resources" },
+                                resources = { basic = 4, monster = 6 },
+                                checklist = {
+                                    { text = "+1/+2 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible — killing Spidicules does NOT make survivor eligible)" },
+                                    { text = "Collect resources" },
+                                },
                             },
                             defeat = {
-                                { text = "Do not gain Death Principle benefits for last survivor killed" },
+                                checklist = {
+                                    { text = "Do not gain Death Principle benefits for last survivor killed" },
+                                },
                             },
                         },
                     },
@@ -266,16 +274,20 @@ return {
                             }
                         },
                         randomTerrain = 2,
-                        resources = { basic = 4, monster = 8, strange = { "Silken Nervous System" } },
                         aftermath = {
                             victory = {
-                                { text = "+1/+2 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible — killing Spidicules does NOT make survivor eligible)" },
-                                { text = "Collect resources" },
-                                { text = "If Scarification: Killing blow survivor gains ability" },
+                                resources = { basic = 4, monster = 8, strange = { "Silken Nervous System" } },
+                                checklist = {
+                                    { text = "+1/+2 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible — killing Spidicules does NOT make survivor eligible)" },
+                                    { text = "Collect resources" },
+                                    { text = "If Scarification: Killing blow survivor gains ability" },
+                                },
                             },
                             defeat = {
-                                { text = "Do not gain Death Principle benefits for last survivor killed" },
+                                checklist = {
+                                    { text = "Do not gain Death Principle benefits for last survivor killed" },
+                                },
                             },
                         },
                     },

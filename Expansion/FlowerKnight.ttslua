@@ -157,15 +157,19 @@ return {
                         },
                         movement = 7,
                         toughness = 6,
-                        resources = { basic = 4, monster = 4 },
                         aftermath = {
                             victory = {
-                                { text = "+1/+2 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible)" },
-                                { text = "Collect resources" },
+                                resources = { basic = 4, monster = 4 },
+                                checklist = {
+                                    { text = "+1/+2 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible)" },
+                                    { text = "Collect resources" },
+                                },
                             },
                             defeat = {
-                                { text = "No Death Principle benefits from losing these survivors" },
+                                checklist = {
+                                    { text = "No Death Principle benefits from losing these survivors" },
+                                },
                             },
                         },
                     },
@@ -185,15 +189,19 @@ return {
                         movement = 8,
                         toughness = 8,
                         damage = 1,
-                        resources = { basic = 4, monster = 6 },
                         aftermath = {
                             victory = {
-                                { text = "+1/+2 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible)" },
-                                { text = "Collect resources" },
+                                resources = { basic = 4, monster = 6 },
+                                checklist = {
+                                    { text = "+1/+2 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible)" },
+                                    { text = "Collect resources" },
+                                },
                             },
                             defeat = {
-                                { text = "No Death Principle benefits from losing these survivors" },
+                                checklist = {
+                                    { text = "No Death Principle benefits from losing these survivors" },
+                                },
                             },
                         },
                     },
@@ -213,17 +221,21 @@ return {
                         toughness = 11,
                         speed = 1,
                         damage = 2,
-                        resources = { basic = 4, monster = 8 },
                         aftermath = {
                             victory = {
-                                { text = "+1/+2 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible)" },
-                                { text = "Collect resources" },
-                                { text = "Gain 1 Sleeping Virus Flower rare gear" },
-                                { text = "If Petal Spiral: All survivors gain Ghastly Beauty + Narcissistic disorders" },
+                                resources = { basic = 4, monster = 8 },
+                                checklist = {
+                                    { text = "+1/+2 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible)" },
+                                    { text = "Collect resources" },
+                                    { text = "Gain 1 Sleeping Virus Flower rare gear" },
+                                    { text = "If Petal Spiral: All survivors gain Ghastly Beauty + Narcissistic disorders" },
+                                },
                             },
                             defeat = {
-                                { text = "No Death Principle benefits from losing these survivors" },
+                                checklist = {
+                                    { text = "No Death Principle benefits from losing these survivors" },
+                                },
                             },
                         },
                     },

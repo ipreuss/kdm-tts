@@ -141,7 +141,8 @@ function ShowdownAftermath.Show(outcome, monster, level)
     local aftermath = level.showdown.aftermath
 
     -- Determine which checklist to show
-    local items = (outcome == "won") and aftermath.victory or aftermath.defeat
+    local outcomeData = (outcome == "won") and aftermath.victory or aftermath.defeat
+    local items = outcomeData and outcomeData.checklist
     if not items or #items == 0 then
         log:Printf("No %s aftermath items for %s %s", outcome, monster.name, level.name)
         return false

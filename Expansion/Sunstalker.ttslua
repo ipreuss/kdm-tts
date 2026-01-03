@@ -348,16 +348,20 @@ return {
                         },
                         movement = 16,
                         toughness = 10,
-                        resources = { basic = 4, monster = 4, strange = { "Sunstones" } },
                         aftermath = {
                             victory = {
-                                { text = "+1 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible)" },
-                                { text = "Collect resources" },
-                                { text = "First victory: Gain Skyreef Sanctuary settlement location" },
+                                resources = { basic = 4, monster = 4, strange = { "Sunstones" } },
+                                checklist = {
+                                    { text = "+1 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible)" },
+                                    { text = "Collect resources" },
+                                    { text = "First victory: Gain Skyreef Sanctuary settlement location" },
+                                },
                             },
                             defeat = {
-                                { text = "If Graves: Gain Shadow Dance innovation" },
+                                checklist = {
+                                    { text = "If Graves: Gain Shadow Dance innovation" },
+                                },
                             },
                         },
                     },
@@ -377,16 +381,20 @@ return {
                         toughness = 12,
                         speed = 1,
                         damage = 1,
-                        resources = { basic = 4, monster = 6, strange = { "1,000 Year Old Sunspot" } },
                         aftermath = {
                             victory = {
-                                { text = "+1 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible)" },
-                                { text = "Collect resources" },
-                                { text = "First victory: Gain Skyreef Sanctuary settlement location" },
+                                resources = { basic = 4, monster = 6, strange = { "1,000 Year Old Sunspot" } },
+                                checklist = {
+                                    { text = "+1 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible)" },
+                                    { text = "Collect resources" },
+                                    { text = "First victory: Gain Skyreef Sanctuary settlement location" },
+                                },
                             },
                             defeat = {
-                                { text = "If Graves: Gain Shadow Dance innovation" },
+                                checklist = {
+                                    { text = "If Graves: Gain Shadow Dance innovation" },
+                                },
                             },
                         },
                     },
@@ -408,17 +416,21 @@ return {
                         damage = 2,
                         accuracy = 1,
                         luck = 1,
-                        resources = { basic = 7, monster = 8, strange = { "3,000 Year Old Sunspot" } },
                         aftermath = {
                             victory = {
-                                { text = "+1 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible)" },
-                                { text = "Collect resources" },
-                                { text = "First victory: Gain Skyreef Sanctuary settlement location" },
-                                { text = "If Storytelling (first L3 victory): Add Edged Tonometry to timeline next year" },
+                                resources = { basic = 7, monster = 8, strange = { "3,000 Year Old Sunspot" } },
+                                checklist = {
+                                    { text = "+1 Hunt XP" },
+                                    { text = "+1 Weapon Proficiency (if eligible)" },
+                                    { text = "Collect resources" },
+                                    { text = "First victory: Gain Skyreef Sanctuary settlement location" },
+                                    { text = "If Storytelling (first L3 victory): Add Edged Tonometry to timeline next year" },
+                                },
                             },
                             defeat = {
-                                { text = "If Graves: Gain Shadow Dance innovation" },
+                                checklist = {
+                                    { text = "If Graves: Gain Shadow Dance innovation" },
+                                },
                             },
                         },
                     },
@@ -450,18 +462,6 @@ return {
                                 terrain = "3 Stone Columns",
                                 positions = { "(4, 11.5)", "(11.5, 14)", "(18, 11.5)" },
                                 rotations = { { x = 0, y = 180, z = 0 }, { x = 0, y = 90, z = 0 }, { x = 0, y = 180, z = 0 } },
-                            },
-                        },
-                        aftermath = {
-                            victory = {
-                                { text = "+1 Hunt XP" },
-                                { text = "+1 Weapon Proficiency (if eligible)" },
-                                { text = "Collect resources" },
-                                { text = "First victory: Gain Skyreef Sanctuary settlement location" },
-                                { text = "If Storytelling (first L3 victory): Add Edged Tonometry to timeline next year" },
-                            },
-                            defeat = {
-                                { text = "If Graves: Gain Shadow Dance innovation" },
                             },
                         },
                     },

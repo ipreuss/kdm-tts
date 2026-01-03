@@ -367,7 +367,8 @@ local function validateMonsterResourceData(monsterName, expectedLevels, onComple
             log:Errorf("TEST: %s %s not found", monsterName, expected.levelName)
             passed = false
         else
-            local rewards = level.showdown and level.showdown.resources
+            local victory = level.showdown and level.showdown.aftermath and level.showdown.aftermath.victory
+            local rewards = victory and victory.resources
             if not rewards then
                 log:Errorf("TEST: %s has no resources data", expected.levelName)
                 passed = false
