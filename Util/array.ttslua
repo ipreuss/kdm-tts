@@ -1,4 +1,4 @@
-local log = require("KDM/Log").ForModule("array")
+local log = require("Kdm/Core/Log").ForModule("array")
 
 local array = {}
 
