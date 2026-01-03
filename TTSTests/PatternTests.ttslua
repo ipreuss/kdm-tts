@@ -1,10 +1,10 @@
 -- TTS Pattern Tests
 -- Tests for Pattern deck spawning and Seed Patterns shuffle
 
-local Console = require("Kdm/Console")
-local Location = require("Kdm/Location")
-local Archive = require("Kdm/Archive")
-local log = require("Kdm/Log").ForModule("TTSTests")
+local Console = require("Kdm/Core/Console")
+local Location = require("Kdm/Location/Location")
+local Archive = require("Kdm/Archive/Archive")
+local log = require("Kdm/Core/Log").ForModule("TTSTests")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -133,7 +133,7 @@ function PatternTests.TestSeedPatternsShuffle(onComplete)
     log:Printf("TEST: TTS integration test - verifies deck order actually differs after shuffle")
     log:Printf("TEST: (Headless tests verify shuffle=true is passed; this verifies TTS actually shuffles)")
 
-    local Campaign = require("Kdm/Campaign")
+    local Campaign = require("Kdm/Sequence/Campaign")
     local Expansion = require("Kdm/Expansion")
 
     local function getCardOrder(deckObj)

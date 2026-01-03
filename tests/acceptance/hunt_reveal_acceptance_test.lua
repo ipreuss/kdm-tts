@@ -65,7 +65,7 @@ local function createHuntTestEnvironment()
     local locationObjects = {}
 
     -- Location stub with configurable objects
-    package.loaded["Kdm/Location"] = {
+    package.loaded["Kdm/Location/Location"] = {
         Get = function(name)
             return {
                 Position = function() return { x = 0, y = 0, z = 0 } end,
@@ -121,7 +121,7 @@ local function createHuntTestEnvironment()
     }
 
     -- Archive stub (minimal)
-    package.loaded["Kdm/Archive"] = {
+    package.loaded["Kdm/Archive/Archive"] = {
         Take = function() return {} end,
         Clean = function() end,
     }
@@ -139,7 +139,7 @@ local function createHuntTestEnvironment()
             Take = function() return {} end,
         }
     end
-    package.loaded["Kdm/Deck"] = {
+    package.loaded["Kdm/Data/Deck"] = {
         Remove = function() end,
         AdjustToTrash = function() end,
     }
@@ -148,15 +148,15 @@ local function createHuntTestEnvironment()
         IsUnlockedMode = function() return false end,
         IsEnabled = function() return true end,
     }
-    package.loaded["Kdm/Trash"] = {
+    package.loaded["Kdm/Data/Trash"] = {
         IsInTrash = function() return false end,
     }
-    package.loaded["Kdm/Survivor"] = {
+    package.loaded["Kdm/Entity/Survivor"] = {
         DepartingSurvivorNeedsToSkipNextHunt = function() return false end,
         ClearSkipNextHunt = function() end,
         GetDepartingSurvivors = function() return pairs({}) end,
     }
-    package.loaded["Kdm/HuntParty"] = {
+    package.loaded["Kdm/Entity/HuntParty"] = {
         Create = function() return {} end,
         Cleanup = function() end,
     }
@@ -182,7 +182,7 @@ local function createHuntTestEnvironment()
 
     return {
         createMockCard = createMockCard,
-        Location = package.loaded["Kdm/Location"],
+        Location = package.loaded["Kdm/Location/Location"],
     }
 end
 
@@ -201,7 +201,7 @@ local function loadHuntModule()
     local env = createHuntTestEnvironment()
 
     -- Load Hunt module
-    local Hunt = require("Kdm/Hunt")
+    local Hunt = require("Kdm/Sequence/Hunt")
     Hunt.Init()
 
     return {

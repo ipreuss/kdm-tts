@@ -2,7 +2,7 @@
 -- Showdown Module Export Bug Test
 --
 -- Bug: Showdown.monster and Showdown.level are assigned to the internal module table
--- but not exported. Other modules that require("Kdm/Showdown") get nil.
+-- but not exported. Other modules that require("Kdm/Sequence/Showdown") get nil.
 --
 -- This test documents the bug (kdm-w1k.1) and will pass once the bug is fixed.
 ---------------------------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ Test.test("Showdown module exports monster and level fields", function(t)
     setupMinimalStubs()
 
     -- Clear any cached module
-    package.loaded["Kdm/Showdown"] = nil
+    package.loaded["Kdm/Sequence/Showdown"] = nil
 
     -- This simulates what the module returns
     -- We test the STRUCTURE of the return value, not the runtime behavior

@@ -19,7 +19,7 @@
 ---------------------------------------------------------------------------------------------------
 
 local Test = require("tests.framework")
-local HuntParty = require("Kdm/HuntParty")
+local HuntParty = require("Kdm/Entity/HuntParty")
 
 ---------------------------------------------------------------------------------------------------
 -- Formation Acceptance Tests

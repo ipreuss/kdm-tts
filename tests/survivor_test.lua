@@ -12,10 +12,10 @@ local function withStubbedModules(fn)
         package.loaded[name] = value
     end
 
-    stub("Kdm/Archive", {})
-    stub("Kdm/Location", {})
-    stub("Kdm/MessageBox", {})
-    stub("Kdm/NamedObject", {})
+    stub("Kdm/Archive/Archive", {})
+    stub("Kdm/Location/Location", {})
+    stub("Kdm/Ui/MessageBox", {})
+    stub("Kdm/Location/NamedObject", {})
     stub("Kdm/Ui", {})
     stub("Kdm/Util/EventManager", {
         FireEvent = function()
@@ -31,7 +31,7 @@ local function withStubbedModules(fn)
         Str = function() return true end,
     })
 
-    stub("Kdm/Log", {
+    stub("Kdm/Core/Log", {
         ForModule = function()
             return {
                 Debugf = function() end,
@@ -51,8 +51,8 @@ local function withStubbedModules(fn)
     }
     stub("Kdm/Util/Names", namesModule)
 
-    package.loaded["Kdm/Survivor"] = nil
-    local Survivor = require("Kdm/Survivor")
+    package.loaded["Kdm/Entity/Survivor"] = nil
+    local Survivor = require("Kdm/Entity/Survivor")
 
     Survivor.InitSaveState({})
     Survivor.SetInnovationsChecker(function()
@@ -73,7 +73,7 @@ local function withStubbedModules(fn)
 
     local ok, err = pcall(fn, Survivor, captured)
 
-    package.loaded["Kdm/Survivor"] = originals["Kdm/Survivor"]
+    package.loaded["Kdm/Entity/Survivor"] = originals["Kdm/Entity/Survivor"]
     for name, value in pairs(originals) do
         package.loaded[name] = value
     end

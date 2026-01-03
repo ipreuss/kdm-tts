@@ -32,16 +32,16 @@ local function buildTimelineStubs()
     local logStub = { Debugf = function() end, Errorf = function() end, Printf = function() end, Broadcastf = function() end }
 
     return {
-        ["Kdm/Archive"] = {},
+        ["Kdm/Archive/Archive"] = {},
         ["Kdm/Util/Check"] = checkStub,
         ["Kdm/Util/Container"] = {},
         ["Kdm/Expansion"] = {},
-        ["Kdm/Hunt"] = {},
-        ["Kdm/Location"] = {},
-        ["Kdm/Log"] = { ForModule = function() return logStub end },
-        ["Kdm/MessageBox"] = {},
-        ["Kdm/Rules"] = {},
-        ["Kdm/Showdown"] = {},
+        ["Kdm/Sequence/Hunt"] = {},
+        ["Kdm/Location/Location"] = {},
+        ["Kdm/Core/Log"] = { ForModule = function() return logStub end },
+        ["Kdm/Ui/MessageBox"] = {},
+        ["Kdm/Ui/Rules"] = {},
+        ["Kdm/Sequence/Showdown"] = {},
         ["Kdm/Ui"] = {
             LIGHT_BROWN = "#aaa",
             IMAGE_COLORS = {},
@@ -121,8 +121,8 @@ end
 
 Test.test("Timeline.ScheduleEvent inserts into next unchecked year", function(t)
     withStubs(buildTimelineStubs(), function()
-        package.loaded["Kdm/Timeline"] = nil
-        local Timeline = require("Kdm/Timeline")
+        package.loaded["Kdm/Sequence/Timeline"] = nil
+        local Timeline = require("Kdm/Sequence/Timeline")
         local timelineTable = getInternalTimeline(Timeline)
         t:assertTrue(timelineTable ~= nil, "expected timeline table")
         prepareYears(timelineTable, Timeline, {})
@@ -139,8 +139,8 @@ end)
 
 Test.test("Timeline.ScheduleEvent respects offset", function(t)
     withStubs(buildTimelineStubs(), function()
-        package.loaded["Kdm/Timeline"] = nil
-        local Timeline = require("Kdm/Timeline")
+        package.loaded["Kdm/Sequence/Timeline"] = nil
+        local Timeline = require("Kdm/Sequence/Timeline")
         local timelineTable = getInternalTimeline(Timeline)
         prepareYears(timelineTable, Timeline, {})
 
@@ -154,8 +154,8 @@ end)
 
 Test.test("Timeline.ScheduleEvent fails when target year full", function(t)
     withStubs(buildTimelineStubs(), function()
-        package.loaded["Kdm/Timeline"] = nil
-        local Timeline = require("Kdm/Timeline")
+        package.loaded["Kdm/Sequence/Timeline"] = nil
+        local Timeline = require("Kdm/Sequence/Timeline")
         local timelineTable = getInternalTimeline(Timeline)
         prepareYears(timelineTable, Timeline, { prefilled = true })
 
@@ -166,8 +166,8 @@ end)
 
 Test.test("Timeline.RemoveEventByName clears existing event", function(t)
     withStubs(buildTimelineStubs(), function()
-        package.loaded["Kdm/Timeline"] = nil
-        local Timeline = require("Kdm/Timeline")
+        package.loaded["Kdm/Sequence/Timeline"] = nil
+        local Timeline = require("Kdm/Sequence/Timeline")
         local timelineTable = getInternalTimeline(Timeline)
         prepareYears(timelineTable, Timeline, {})
         timelineTable.years[2].events[1].event = { name = "Acid Storm", type = "SettlementEvent" }

@@ -65,8 +65,8 @@ Test.test("ACCEPTANCE: Cleanup removes deck of stacked Special Hunt Events", fun
     -- This happens when e.g., Herb Gathering and Mineral Gathering land on the same space
 
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local stackedDeck = createHuntDeck("Stacked Special Hunt Events", {
             { name = "Herb Gathering", type = "Special Hunt Events" },
@@ -94,8 +94,8 @@ Test.test("ACCEPTANCE: Cleanup removes deck with mixed hunt card types", functio
     -- (e.g., a Hunt Event and a Special Hunt Event on the same space)
 
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local mixedHuntDeck = createHuntDeck("Mixed Hunt Cards", {
             { name = "Abandoned Lair", type = "Hunt Events" },
@@ -123,8 +123,8 @@ Test.test("ACCEPTANCE: Cleanup preserves deck containing non-hunt cards", functi
     -- (This should be preserved as blocking to avoid accidental data loss)
 
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local mixedDeck = createHuntDeck("Mixed with Non-Hunt", {
             { name = "Herb Gathering", type = "Special Hunt Events" },
@@ -151,8 +151,8 @@ Test.test("ACCEPTANCE: Cleanup handles individual cards alongside decks", functi
     -- GIVEN: A mix of individual cards and a deck at the same location
 
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local individualCard = createHuntCard("Lonely Hunt Event", "Hunt Events")
         local stackedDeck = createHuntDeck("Stacked Cards", {
@@ -182,8 +182,8 @@ Test.test("ACCEPTANCE: Original card cleanup behavior unchanged", function(t)
     -- This ensures the fix for decks didn't break existing card cleanup
 
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local huntEvent = createHuntCard("Abandoned Lair", "Hunt Events")
         local specialEvent = createHuntCard("Herb Gathering", "Special Hunt Events")

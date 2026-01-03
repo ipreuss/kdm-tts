@@ -12,7 +12,7 @@ This document captures the current architecture, major systems, and design conve
 | --- | --- |
 | Entry point | `Global.ttslua` compiled/bundled into the mod (`updateTTS.sh`). |
 | Language | Lua 5.1 with Tabletop Simulator APIs. |
-| Module layout | Files require via `require("Kdm/<Module>")` and are bundled with `luabundler`. |
+| Module layout | Files require via `require("Kdm/<Domain>/<Module>")` and are bundled with `luabundler`. Domain directories: Core/, Location/, Archive/, Entity/, Equipment/, Sequence/, Ui/, Data/. |
 | Persistence | `onSave` aggregates per-module `Save()` payloads into one JSON blob (`Global.ttslua:35-47`). |
 | UI stack | Custom DSL in `Ui.ttslua` builds XML trees for 2D (global) and 3D (object) UI roots (`Ui.ttslua:31-188`). |
 | Events | `EventManager` wraps TTS globals to provide pub/sub hooks plus synthetic events (`Util/EventManager.ttslua:7-70`). |
@@ -58,7 +58,7 @@ Y = height above table (positive = up)
 **Tips:**
 - Use `>showpos` command to get coordinates of selected objects
 - Use `>showloc <name>` to highlight a named location
-- LocationData.ttslua contains all defined locations with coordinates
+- `Location/LocationData.ttslua` contains all defined locations with coordinates
 
 ## Lifecycle At A Glance
 `Global.onLoad` is the single boot script and is responsible for both dependency ordering and state hydration (`Global.ttslua:51-109`).
@@ -92,15 +92,22 @@ The skill covers:
 **Key files:** `Ui.ttslua`, `Kdm/Ui/PanelKit.ttslua`, `Kdm/Ui/LayoutManager.ttslua`
 
 ## Module Map
-| Category | Modules | Responsibilities |
+
+The codebase is organized into domain directories, each with its own CLAUDE.md documentation:
+
+| Directory | Modules | Responsibilities |
 | --- | --- | --- |
-| Infrastructure | `Util/*`, `Log`, `Console`, `EventManager`, `Ui` | Safety helpers, logging, chat console, event bus, UI builder. |
-| Board & Assets | `NamedObject`, `Location`, `LocationData`, `Archive`, `Deck`, `Expansion` | Locate physical objects, describe board regions, index archive bags, spawn decks, enable expansions. |
-| Domain: Campaign & Timeline | `Campaign`, `Timeline`, `Timeline/Hunt/Showdown ties` | Configure campaigns, enable expansions, drive settlement timeline UI, manage survival actions/milestones. |
-| Domain: Survivors & Players | `Survivor`, `Player`, `BattleUi`, `MilestoneBoard`, `GlobalUi` | Survivor records, survivor boxes/sheets, player board linkage, battle HUD, quick navigation buttons. |
-| Domain: Encounters | `Hunt`, `Showdown`, `Monster`, `Settlement`, `Terrain`, `Weapon`, `Gear`, `Armor` | Hunt flow, showdown setup, monster stats/decks, settlement locations, terrain and gear metadata. |
-| UI Components | `Ui`, `GlobalUi`, `MessageBox`, `BattleUi`, `Rules`, `Bookmarks` | Low-level UI DSL plus composable panels and overlays. |
-| Tooling | `updateTTS.sh`, `restoreBackup.sh`, `template_workshop.json` | Bundle scripts, push backups, generate workshop template. |
+| `Core/` | `Console`, `Log` | Chat console commands, per-module logging. |
+| `Location/` | `Location`, `LocationData`, `LocationGrid`, `NamedObject` | Board positions, spawn locations, TTS object GUID registry. |
+| `Archive/` | `Archive`, `*Archive` (7 modules) | Object spawning system, deck-specific archive managers. |
+| `Entity/` | `Monster`, `Survivor`, `Player`, `HuntParty` | Game entity state, stats, persistence. |
+| `Equipment/` | `Armor`, `Weapon`, `Gear` | Equipment stat registration for BattleUi. |
+| `Sequence/` | `Campaign`, `Hunt`, `Showdown`, `ShowdownAftermath`, `Settlement`, `Timeline`, `Strain` | Game flow phases, state machines. |
+| `Ui/` | `BattleUi`, `GlobalUi`, `MessageBox`, `MilestoneBoard`, `Rules`, `Bookmarks`, `PanelKit`, `LayoutManager` | UI components and framework. |
+| `Data/` | `Deck`, `Terrain`, `ResourceRewards`, `ConsequenceApplicator`, `Trash`, etc. | Game data manipulation and constants. |
+| `Util/` | `Check`, `Container`, `EventManager`, `Grid`, etc. | Low-level utilities with no domain knowledge. |
+| `Expansion/` | Per-expansion modules | Monster definitions, campaigns, archive entries, gear stats. |
+| Root | `Global.ttslua`, `Ui.ttslua`, `Expansion.ttslua`, `TTSTests.ttslua` | Entry point and orchestrator modules. |
 
 ### Gear Variant Handling
 

@@ -18,23 +18,23 @@ end
 Test.test("Timeline ShowUi/HideUi use global dialog", function(t)
     local logStub = { Debugf = function() end, Errorf = function() end, Broadcastf = function() end }
     withStubs({
-        ["Kdm/Archive"] = {},
+        ["Kdm/Archive/Archive"] = {},
         ["Kdm/Util/Check"] = setmetatable({}, { __call = function() return true end }),
         ["Kdm/Util/Container"] = {},
         ["Kdm/Expansion"] = {},
-        ["Kdm/Hunt"] = {},
-        ["Kdm/Location"] = {},
-        ["Kdm/Log"] = { ForModule = function() return logStub end },
-        ["Kdm/MessageBox"] = {},
-        ["Kdm/Rules"] = {},
-        ["Kdm/Showdown"] = {},
+        ["Kdm/Sequence/Hunt"] = {},
+        ["Kdm/Location/Location"] = {},
+        ["Kdm/Core/Log"] = { ForModule = function() return logStub end },
+        ["Kdm/Ui/MessageBox"] = {},
+        ["Kdm/Ui/Rules"] = {},
+        ["Kdm/Sequence/Showdown"] = {},
         ["Kdm/Ui"] = {},
         ["Kdm/Util/Util"] = {},
         ["Kdm/Ui/PanelKit"] = {},
         ["Kdm/Util/Trie"] = function() return {} end,
     }, function()
-        package.loaded["Kdm/Timeline"] = nil
-        local Timeline = require("Kdm/Timeline")
+        package.loaded["Kdm/Sequence/Timeline"] = nil
+        local Timeline = require("Kdm/Sequence/Timeline")
 
         -- Reach into the local Timeline table captured by ShowUi to set dialog
         local timelineTable

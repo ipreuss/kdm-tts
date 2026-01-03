@@ -1,6 +1,6 @@
 local Check = require("Kdm/Util/Check")
 local Grid = require("Kdm/Util/Grid")
-local log = require("Kdm/Log").ForModule("Overlay")
+local log = require("Kdm/Core/Log").ForModule("Overlay")
 local Util = require("Kdm/Util/Util")
 
 ---------------------------------------------------------------------------------------------------

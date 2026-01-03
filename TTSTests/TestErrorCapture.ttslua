@@ -3,7 +3,7 @@
 -- Captures log:Errorf() calls during test execution to detect
 -- unexpected errors that should cause test failure.
 
-local Log = require("Kdm/Log")
+local Log = require("Kdm/Core/Log")
 
 ---------------------------------------------------------------------------------------------------
 

@@ -1,8 +1,8 @@
 -- TTS Dialog Tests
 -- Tests for DialogFromSpec callback timing issues
 
-local Console = require("Kdm/Console")
-local log = require("Kdm/Log").ForModule("TTSTests")
+local Console = require("Kdm/Core/Console")
+local log = require("Kdm/Core/Log").ForModule("TTSTests")
 
 ---------------------------------------------------------------------------------------------------
 

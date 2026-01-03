@@ -1,13 +1,13 @@
 -- TTS Strain Tests
 -- Tests for Strain system: Fighting Arts, Vermin, Card State fallback
 
-local Console = require("Kdm/Console")
-local Location = require("Kdm/Location")
-local Archive = require("Kdm/Archive")
-local Strain = require("Kdm/Strain")
-local FightingArtsArchive = require("Kdm/FightingArtsArchive")
-local VerminArchive = require("Kdm/VerminArchive")
-local log = require("Kdm/Log").ForModule("TTSTests")
+local Console = require("Kdm/Core/Console")
+local Location = require("Kdm/Location/Location")
+local Archive = require("Kdm/Archive/Archive")
+local Strain = require("Kdm/Sequence/Strain")
+local FightingArtsArchive = require("Kdm/Archive/FightingArtsArchive")
+local VerminArchive = require("Kdm/Archive/VerminArchive")
+local log = require("Kdm/Core/Log").ForModule("TTSTests")
 
 ---------------------------------------------------------------------------------------------------
 

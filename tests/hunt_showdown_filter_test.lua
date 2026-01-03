@@ -10,8 +10,8 @@ local Expansion = require("Kdm/Expansion")
 Expansion.Init({})
 
 -- Import production filter functions via _test interface
-local Hunt = require("Kdm/Hunt")
-local Showdown = require("Kdm/Showdown")
+local Hunt = require("Kdm/Sequence/Hunt")
+local Showdown = require("Kdm/Sequence/Showdown")
 
 local HuntFilterEnabledMonsters = Hunt._test.FilterEnabledMonsters
 local ShowdownFilterEnabledMonsters = Showdown._test.FilterEnabledMonsters

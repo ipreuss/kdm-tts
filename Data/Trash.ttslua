@@ -1,0 +1,149 @@
+local NamedObject = require("Kdm/Location/NamedObject")
+local Archive = require("Kdm/Archive/Archive")
+local Location = require("Kdm/Location/Location")
+local log = require("Kdm/Core/Log").ForModule("Trash")
+
+local Trash = {}
+
+function Trash.IsInTrash(name, type)
+    log:Debugf("Checking if %s '%s' is in trash", type, name)
+    for _, object in ipairs(Trash.getObjects()) do
+        if object.name == name and object.gm_notes == type then
+            log:Debugf("%s '%s' is in trash", type, name)
+            return true
+        end
+    end
+    return false
+end
+
+function Trash.getObjects()
+    return NamedObject.Get("Trash").getObjects()
+end
+
+function Trash.Export()
+    local content = {}
+    for _, object in ipairs(Trash.getObjects()) do
+        table.insert(content, { name = object.name, type = object.gm_notes })
+    end
+    return content
+end
+
+function Trash.Import(content)
+    local trash = NamedObject.Get("Trash")
+    trash.reset()
+    local position = trash.getPosition()
+    position.y = position.y + 2
+    for _, object in ipairs(content or {}) do
+        Archive.TakeObject({ name = object.name, type = object.type, position = position})
+    end
+    Archive.Clean()
+end
+
+---------------------------------------------------------------------------------------------------
+-- Programmatic Trash management for milestone consequences
+---------------------------------------------------------------------------------------------------
+
+function Trash.AddCard(cardName, cardType, deckLocation)
+    local trash = NamedObject.Get("Trash")
+    if not trash then
+        log:Errorf("Trash container not found")
+        return false
+    end
+
+    local location = Location.Get(deckLocation)
+    if not location then
+        log:Errorf("Deck location '%s' not found", deckLocation)
+        return false
+    end
+
+    local deck = location:FirstObject({ types = { cardType } })
+    if not deck then
+        log:Errorf("No %s deck found at %s", cardType, deckLocation)
+        return false
+    end
+
+    local cardIndex
+    for _, obj in ipairs(deck.getObjects()) do
+        if obj.name == cardName and obj.gm_notes == cardType then
+            cardIndex = obj.index
+            break
+        end
+    end
+
+    if not cardIndex then
+        log:Debugf("%s '%s' not found in deck at %s", cardType, cardName, deckLocation)
+        return false
+    end
+
+    -- Take card to staging position above trash, then put into trash
+    local trashPos = trash.getPosition()
+    local card = deck.takeObject({
+        index = cardIndex,
+        position = { x = trashPos.x, y = trashPos.y + 3, z = trashPos.z },
+        smooth = false,
+    })
+    if card then
+        -- putObject moves the card into the container
+        trash.putObject(card)
+        log:Printf("Moved %s to Trash", cardName)
+        return true
+    end
+
+    return false
+end
+
+function Trash.RemoveCard(cardName, cardType, deckLocation)
+    local trash = NamedObject.Get("Trash")
+    if not trash then
+        log:Errorf("Trash container not found")
+        return false
+    end
+
+    local cardIndex
+    for _, obj in ipairs(trash.getObjects()) do
+        if obj.name == cardName and obj.gm_notes == cardType then
+            cardIndex = obj.index
+            break
+        end
+    end
+
+    if not cardIndex then
+        log:Debugf("%s '%s' not found in Trash", cardType, cardName)
+        return false
+    end
+
+    local card = trash.takeObject({
+        index = cardIndex,
+        smooth = false,
+    })
+    if not card then
+        log:Errorf("Failed to take %s from Trash", cardName)
+        return false
+    end
+
+    -- If deckLocation provided, restore card to deck
+    if deckLocation then
+        local location = Location.Get(deckLocation)
+        if not location then
+            log:Errorf("Failed to restore %s: Location '%s' not found", cardName, deckLocation)
+            trash.putObject(card)
+            return false
+        end
+        local deck = location:FirstObject({ types = { cardType } })
+        if not deck then
+            log:Errorf("Failed to restore %s: No %s deck found at '%s'", cardName, cardType, deckLocation)
+            trash.putObject(card)
+            return false
+        end
+        deck.putObject(card)
+        log:Printf("Restored %s to %s deck", cardName, deckLocation)
+        return true
+    end
+
+    -- No deckLocation: just remove from trash (destroy)
+    card.destruct()
+    log:Printf("Removed %s from Trash", cardName)
+    return true
+end
+
+return Trash

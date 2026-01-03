@@ -1,0 +1,55 @@
+local Archive = require("Kdm/Archive/Archive")
+local StrainRewardsConstants = require("Kdm/Data/StrainRewardsConstants")
+
+---------------------------------------------------------------------------------------------------
+-- StrangeResourcesArchive: Transfers strange resource cards between Strain Rewards deck and Strange Resources deck
+--
+-- Note: For SPAWNING resources from Core Strange Resources deck, use Archive.TakeFromDeck() directly.
+-- This module is for transferring cards that exist in the Strain Rewards deck.
+---------------------------------------------------------------------------------------------------
+
+local StrangeResourcesArchive = {}
+
+-- Import shared Strain Rewards constants
+StrangeResourcesArchive.REWARD_DECK_NAME = StrainRewardsConstants.REWARD_DECK_NAME
+StrangeResourcesArchive.REWARD_DECK_TYPE = StrainRewardsConstants.REWARD_DECK_TYPE
+StrangeResourcesArchive.REWARD_DECK_STAGING_POSITION = StrainRewardsConstants.REWARD_DECK_STAGING_POSITION
+
+-- Strange Resources specific constants
+StrangeResourcesArchive.CARD_TYPE = "Strange Resources"
+StrangeResourcesArchive.DECK_LOCATION = "Strange Resources"
+StrangeResourcesArchive.ARCHIVE_NAME = "Strange Resources Archive"
+
+---------------------------------------------------------------------------------------------------
+
+function StrangeResourcesArchive.AddCard(cardName, onComplete)
+    return Archive.TransferCardBetweenDecks({
+        sourceDeckName = StrangeResourcesArchive.REWARD_DECK_NAME,
+        sourceDeckType = StrangeResourcesArchive.REWARD_DECK_TYPE,
+        targetArchiveName = StrangeResourcesArchive.ARCHIVE_NAME,
+        targetDeckLocation = StrangeResourcesArchive.DECK_LOCATION,
+        stagingPosition = StrangeResourcesArchive.REWARD_DECK_STAGING_POSITION,
+        cardName = cardName,
+        cardType = StrangeResourcesArchive.CARD_TYPE,
+        logMessage = "Added " .. cardName .. " to the Strange Resources deck.",
+        onComplete = onComplete,
+    })
+end
+
+---------------------------------------------------------------------------------------------------
+
+function StrangeResourcesArchive.RemoveCard(cardName, onComplete)
+    return Archive.RemoveCardFromDeck({
+        archiveName = StrangeResourcesArchive.ARCHIVE_NAME,
+        deckLocation = StrangeResourcesArchive.DECK_LOCATION,
+        stagingPosition = StrangeResourcesArchive.REWARD_DECK_STAGING_POSITION,
+        cardName = cardName,
+        cardType = StrangeResourcesArchive.CARD_TYPE,
+        logMessage = "Removed " .. cardName .. " from the Strange Resources deck.",
+        onComplete = onComplete,
+    })
+end
+
+---------------------------------------------------------------------------------------------------
+
+return StrangeResourcesArchive

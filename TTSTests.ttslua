@@ -15,8 +15,8 @@
 --   TestRegistry.ttslua     - Test registry with bead tags
 --   TestErrorCapture.ttslua - Error capture for test framework
 
-local Console = require("Kdm/Console")
-local Log = require("Kdm/Log")
+local Console = require("Kdm/Core/Console")
+local Log = require("Kdm/Core/Log")
 local log = Log.ForModule("TTSTests")
 
 -- Import test modules

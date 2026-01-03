@@ -1,0 +1,890 @@
+local Archive = require("Kdm/Archive/Archive")
+local array = require("Kdm/Util/array")
+local Check = require("Kdm/Util/Check")
+local Container = require("Kdm/Util/Container")
+local EventManager = require("Kdm/Util/EventManager")
+local Expansion = require("Kdm/Expansion")
+local Grid = require("Kdm/Util/Grid")
+local log = require("Kdm/Core/Log").ForModule("Showdown")
+local Location = require("Kdm/Location/Location")
+local Monster = require("Kdm/Entity/Monster")
+local NamedObject = require("Kdm/Location/NamedObject")
+local Overlay = require("Kdm/Util/Overlay")
+local Player = require("Kdm/Entity/Player")
+local Rules = require("Kdm/Ui/Rules")
+local Terrain = require("Kdm/Data/Terrain")
+local Ui = require("Kdm/Ui")
+local Util = require("Kdm/Util/Util")
+local Survivor = require("Kdm/Entity/Survivor")
+local PanelKit = require("Kdm/Ui/PanelKit")
+
+---------------------------------------------------------------------------------------------------
+
+local Showdown = {}
+Showdown.MAX_TRAITS_MOODS = 14
+Showdown.MAX_TERRAIN = 10
+Showdown.MAX_MONSTER_LEVEL_COUNT = 8
+
+---------------------------------------------------------------------------------------------------
+
+function Showdown.Init()
+    Showdown.settingUp = false
+    Showdown.InitExpansions()
+    Showdown.InitUi()
+    Showdown.InitOverlay()
+
+    EventManager.AddHandler("onObjectPickUp", Showdown.OnObjectPickUp)
+    EventManager.AddHandler("onObjectDrop", Showdown.OnObjectDrop)
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Showdown.InitExpansions()
+    Showdown.monsters = {}
+    Showdown.monstersByName = {}
+    Showdown.expansionsByMonsterName = {}
+    Showdown.sizesByMonsterName = {}
+    Showdown.levelsByMonsterLevelName = {}
+    Showdown.minionsByName = {}
+
+    for _, expansion in ipairs(Expansion.All()) do
+        for _, monster in ipairs(expansion.monsters or {}) do
+            monster.resourcesDeck = monster.resourcesDeck or (monster.name.." Resources")
+            monster.info = monster.info or (monster.name.." Info")
+            monster.basicAction = monster.basicAction or (monster.name.." Basic Action")
+            monster.basicAiDeck = monster.basicAiDeck or (monster.name.." Basic AI")
+            monster.advancedAiDeck = monster.advancedAiDeck or (monster.name.." Advanced AI")
+            monster.legendaryAiDeck = monster.legendaryAiDeck or (monster.name.." Legendary AI")
+            monster.specialAiDeck = monster.specialAiDeck or (monster.name.." Special AI")
+            monster.hitLocationsDeck = monster.hitLocationsDeck or (monster.name.." Hit Locations")
+            monster.trapsDeck = monster.trapsDeck or (monster.name.." Traps")
+            monster.expansion = expansion
+            table.insert(Showdown.monsters, monster)
+            Showdown.monstersByName[monster.name] = monster
+            Showdown.expansionsByMonsterName[monster.name] = expansion
+            Showdown.sizesByMonsterName[monster.name] = { x = monster.size.x, y = monster.size.y }
+
+            for _, level in ipairs(monster.levels) do
+                Showdown.levelsByMonsterLevelName[monster.name..level.name] = level
+                if level.showdown.figurine then
+                    Showdown.sizesByMonsterName[level.showdown.figurine] = { x = monster.size.x, y = monster.size.y }
+                end
+            end
+        end
+
+        for _, minion in ipairs(expansion.minions or {}) do
+            Showdown.minionsByName[minion.name] = minion
+        end
+    end
+    table.sort(Showdown.monsters, function(x, y) return x.name < y.name end)
+end
+
+---------------------------------------------------------------------------------------------------
+
+local function FilterEnabledMonsters(monsters, expansionsByMonsterName)
+    if Expansion.IsUnlockedMode() then
+        return monsters  -- Show all in unlocked mode
+    end
+    return array.filter(monsters, function(monster)
+        local expansion = expansionsByMonsterName[monster.name]
+        return Expansion.IsEnabled(expansion.name)
+    end)
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Showdown.InitUi()
+    local dialog = PanelKit.Dialog({
+        id = "Showdown",
+        ui = Ui.Get2d(),
+        rectAlignment = "MiddleCenter",
+        width = 667,
+        height = 632,
+        image = "Showdown",
+        closeButton = { x = 627, y = -10, width = 30, height = 30 },
+    })
+    Showdown.dialog = dialog
+    Showdown.panel = dialog:Panel()
+
+    Showdown.monsterList = PanelKit.ScrollSelector({
+        parent = Showdown.panel,
+        id = "Monster",
+        x = 20 + 3,
+        y = -(109 + 3),
+        width = 306 - 6,
+        height = 216 - 6,
+        contentWidth = 280,
+        itemHeight = 30,
+        fontSize = 16,
+        textAlignment = "MiddleLeft",
+        onSelect = function(_, option)
+            if option then
+                Showdown.SelectMonster(option)
+            end
+        end,
+    })
+    Showdown.levelList = PanelKit.ScrollSelector({
+        parent = Showdown.panel,
+        id = "Level",
+        x = 341 + 3,
+        y = -(109 + 3),
+        width = 306 - 6,
+        height = 216 - 6,
+        contentWidth = 300,
+        itemHeight = 30,
+        fontSize = 16,
+        textAlignment = "MiddleLeft",
+        maxItems = Showdown.MAX_MONSTER_LEVEL_COUNT,  -- Pre-create buttons to avoid dynamic creation bug
+        onSelect = function(level)
+            if level then
+                log:Debugf("Selected %s, %s", Showdown.monster.name, level.name)
+                Showdown.level = level
+            end
+        end,
+    })
+
+    Showdown.monsterList:SetOptionsWithDefault(Util.Map(
+        FilterEnabledMonsters(Showdown.monsters, Showdown.expansionsByMonsterName),
+        function(monster) return { text = monster.name, value = monster } end
+    ), true)
+
+    Showdown.panel:Button({ id = "Begin", x = 183, y = -345, width = 301, height = 60, onClick = function(mouseButton, player)
+        if not Showdown.monster or not Showdown.level then
+            return log:Broadcastf("Please select a monster and level")
+        end
+
+        --log:Printf("Checking if isUnlockedMode")
+        if Expansion.IsUnlockedMode() ~= true then
+            local expansion = Showdown.expansionsByMonsterName[Showdown.monster.name]
+            if not Expansion.IsEnabled(expansion.name) then
+                return log:Broadcastf("Requires %s expansion.", expansion.name)
+            end
+        end
+
+        log:Debugf("Begin showdown clicked for monster %s, level %s", Showdown.monster.name, Showdown.level.name)
+        Showdown.HideUi(player)
+        Showdown.Setup(Showdown.monster, Showdown.level)
+    end })
+
+    Showdown.panel:Button({ id = "Clean", x = 183, y = -552, width = 301, height = 60, onClick = function(mouseButton, player)
+        log:Debugf("Clean showdown clicked")
+        Showdown.Clean()
+        Showdown.HideUi(player)
+    end })
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Showdown.InitOverlay()
+    local overlayObject = NamedObject.Get("Overlay")
+    log:Debugf("Overlay object: %s", Util.TabStr(overlayObject))
+    local left = 27.011892
+    local top = -15.859633
+    local right = 76.526237
+    local bottom  = -51.838516
+    local width = right - left
+    local cellWidth = width / 21
+    local height = bottom - top
+    local cellHeight = height / 15
+
+    Showdown.grid = Grid.Create({
+        object = overlayObject,
+        left = left + cellWidth / 2,
+        right = right - cellWidth / 2,
+        top = top + cellHeight / 2,
+        bottom = bottom - cellHeight / 2,
+        cols = 22,
+        rows = 16,
+    })
+    Showdown.overlay = {}
+end
+
+function Showdown.getOverlay(object)
+    if not Showdown.overlay[object] then
+        Showdown.overlay[object] = Overlay.Create({
+            object = NamedObject.Get("Overlay"),
+            grid = Showdown.grid,
+            height = 11.750850,
+        })
+    end
+    return Showdown.overlay[object]
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Showdown.ShowUi(player)
+    log:Debugf("Showing showdown UI for ".. player.steam_name)
+
+    local str = Showdown.dialog:ShowForPlayer(player)
+
+    if str == player.color then
+        log:Debugf("Showdown UI now visible for %s", player.color)
+    else
+        log:Errorf(str .. "is already looking at the Showdown UI", player.steam_name, player.color)
+    end
+end
+
+function Showdown.HideUi(player)
+    log:Debugf("Hiding showdown UI for ".. player.steam_name)
+
+    local str = Showdown.dialog:HideForPlayer(player)
+
+    if str == "None" or str == player.color then
+        log:Debugf("Showdown UI closed for %s", player.color)
+    else
+        log:Errorf(str .. "is already looking at the Showdown UI", player.steam_name, player.color)
+    end
+end
+
+function Showdown.IsUiOpen()
+    return Showdown.dialog:IsOpen()
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Showdown.SelectMonster(option)
+    local monster = option:OptionValue()
+    log:Debugf("Selected %s", monster.name)
+    Showdown.monster = monster
+    local levelOptions = {}
+    for i, level in ipairs(monster.levels) do
+        levelOptions[i] = {
+            text = level.name,
+            value = level,
+            selected = (i == 1),
+        }
+    end
+    assert(Check(#levelOptions <= Showdown.MAX_MONSTER_LEVEL_COUNT, "Too many levels for monster %s: %d", monster.name, #levelOptions))
+    Showdown.levelList:SetOptions(levelOptions)
+
+    option:Select()
+
+    Showdown.level = monster.levels[1]
+end
+
+-------------------------------------------------------------------------------------------------
+
+function Showdown.MonsterByNameForShowdown(monsterName)
+    for _, monster in ipairs(Showdown.monsters) do
+        if monster.name == monsterName then
+            return monster
+        end
+    end
+end
+
+-------------------------------------------------------------------------------------------------
+
+function Showdown.Setup(monsterOrName, levelOrName)
+    if Showdown.settingUp then
+        log:Errorf("Showdown setup currently in progress, please wait until finished before setting up another hunt. If the showdown appears to be stuck, click 'Cleanup Showdown' from the 'Cleanup' menu to reset.")
+        return
+    end
+
+    local monster = nil
+    if type(monsterOrName) == "string" then
+        monster = Showdown.MonsterByNameForShowdown(monsterOrName)
+        assert(Check(monster, "Unknown monster %s", monsterOrName))
+    else
+        monster = monsterOrName
+    end
+    log:Debugf("checking for skip next hunt")
+    if monster.nemesis and Survivor.DepartingSurvivorNeedsToSkipNextHunt() then
+        return
+    end
+    log:Debugf("no skip next hunt")
+    local level = nil
+    if levelOrName == nil then -- Security check for Showdowns such as Watcher when launched from the Timeline.
+        levelOrName = "Level 1"
+    end
+    if type(levelOrName) == "string" then
+        -- Todo: FIX IT
+        level = Showdown.levelsByMonsterLevelName[monster.name..levelOrName]
+        assert(Check(level, "Unknown level %s for monster %s", levelOrName, monster.name))
+    else
+        level = levelOrName
+    end
+
+    local showdownSetup = level.showdown
+    assert(Check(showdownSetup, "No showdown setup for %s, %s", monster.name, level.name))
+
+    local blocking = Showdown.CleanInternal()
+    if #blocking > 0 then
+        log:Broadcastf("Something is blocking showdown setup. Please move the highlighted objects out of the way and try again.")
+        Util.HighlightAll(blocking)
+        return
+    end
+
+    log:Printf("Setting up showdown against %s %s...", monster.name, level.name)
+
+    Showdown.settingUp = true
+
+    local success, err = pcall(function()
+        -----------------------------------------------------------------------------------------------
+        -- Rules
+
+        local rules = showdownSetup.rules or monster.rules
+        Rules.SpawnRules(rules[1], rules[2])
+
+    -----------------------------------------------------------------------------------------------
+    -- Resources
+
+    local monsterResourcesLocation = Location.Get("Monster Resources")
+    if not monster.resourcesDeck then
+        monsterResourcesLocation:BoxClean({ types = { "Monster Resources" } })
+
+    else
+        local monsterResourcesAlreadyExist = false
+        local hits = monsterResourcesLocation:RayCast()
+        for _, hit in ipairs(hits) do
+            local obj = hit.hit_object
+            if obj.getGMNotes() == "Monster Resources" then
+                if obj.getName() == monster.resourcesDeck then
+                    log:Debugf("Found monster resources: %s (%s), skipping spawn", obj.getName(), obj.getGUID())
+                    monsterResourcesAlreadyExist = true
+                    break
+                else
+                    log:Debugf("Deleting old monster resources deck %s (%s)", obj.getName(), obj.getGUID())
+                    obj.destruct()
+                end
+            end
+        end
+
+        if not monsterResourcesAlreadyExist then
+            local monsterResourcesDeck = Archive.Take({ name = monster.resourcesDeck, type = "Monster Resources", lenient = true, location = monsterResourcesLocation, rotation = { x = 0, y = 180, z = 180 }})
+            if monsterResourcesDeck then monsterResourcesDeck.shuffle() end
+        end
+    end
+
+    -----------------------------------------------------------------------------------------------
+    -- AI
+
+    Archive.Take({ name = showdownSetup.info or monster.info, type = "AI", location = "Monster Info" })
+    local basicAction = Archive.Take({ name = showdownSetup.basicAction or monster.basicAction, type = "AI", location = "Basic Action" })
+    log:Debugf("Basic action type: %s", basicAction.type)
+    if basicAction.type == "Deck" then
+        basicAction.shuffle()
+        while basicAction.getQuantity() > 1 do
+            basicAction.takeObject().destroy()
+        end
+    end
+    
+
+    local basicAiDeck = Container(Archive.Take({ name = monster.basicAiDeck, type = "AI", location = "Unused Basic AI", rotation = { x = 0, y = 180, z = 180 } }))
+    basicAiDeck:Shuffle()
+
+    local advancedAiDeck = Container(Archive.Take({ name = monster.advancedAiDeck, type = "AI", location =
+    "Unused Advanced AI", rotation = { x = 0, y = 180, z = 180 } }))
+    advancedAiDeck:Shuffle()
+
+    local legendaryAiDeck = Archive.Take({ name = monster.legendaryAiDeck, type = "AI", lenient = true, location =
+    "Unused Legendary AI", rotation = { x = 0, y = 180, z = 180 } })
+    if legendaryAiDeck then
+        legendaryAiDeck = Container(legendaryAiDeck)
+        log:Debugf("Shuffling legendary AI deck")
+        legendaryAiDeck:Shuffle()
+    end
+
+    log:Debugf("Monster special AI deck: %s", monster.specialAiDeck)
+    local specialAiDeck = Container(Archive.Take({ name = monster.specialAiDeck, type = "AI", location =
+    "Unused Special AI", rotation = { x = 0, y = 180, z = 180 } }))
+
+    local miscAiDeck = Container(Archive.Take({ name = "Misc AI", type = "AI", location = "Unused Misc AI", rotation = { x = 0, y = 180, z = 180 } }))
+
+    local nextStartingLocation = 1
+    local function NextStartingLocation()
+        if nextStartingLocation <= Showdown.MAX_TRAITS_MOODS then
+            local location = "Trait/Mood "..nextStartingLocation
+            nextStartingLocation = nextStartingLocation + 1
+            return location
+        end
+    end
+    local function AddStartingCard(card, deck)
+        local location = NextStartingLocation()
+        if not location then
+            return log:Errorf("Not enough trait/mood slots for starting card %s from deck %s; please place this card manually", card, deck)
+        end
+        return deck:Take({ name = card, type = "AI", position = Location.Get(location):Position() })
+    end
+
+    -- starting cards
+    if showdownSetup.starting then
+        for _, card in ipairs(showdownSetup.starting.basic or {}) do
+            AddStartingCard(card, basicAiDeck)
+        end
+        for _, card in ipairs(showdownSetup.starting.advanced or {}) do
+            AddStartingCard(card, advancedAiDeck)
+        end
+        for _, card in ipairs(showdownSetup.starting.legendary or {}) do
+            AddStartingCard(card, legendaryAiDeck)
+        end
+        for _, card in ipairs(showdownSetup.starting.special or {}) do
+            AddStartingCard(card, specialAiDeck)
+        end
+        for _, card in ipairs(showdownSetup.starting.misc or {}) do
+            AddStartingCard(card, miscAiDeck)
+        end
+        -- special case life to the wound stack
+    end
+    if showdownSetup.life then
+        miscAiDeck:Take({ name = "Life", type = "AI", position = Location.Get("Wound Stack"):Position() })
+        local counter = Archive.Take({ name = "Counter", type = "Counter", location = "Wound Stack", rotation = { x = 0, y = 0, z = 0 } })
+        counter.setValue(showdownSetup.life)
+    end
+    -- survivor statuses
+    if showdownSetup.survivorStatus then
+        for i = 1, 4 do
+            log:Debugf("Spawning survivor %d status %s", i, showdownSetup.survivorStatus[i])
+            specialAiDeck:Take({ name = showdownSetup.survivorStatus[i], type = "AI", position = Location.Get("Player "..i.." Status"):Position() })
+        end
+    end
+
+    if showdownSetup.survivorStatus2 then
+        for i = 1, 4 do
+            log:Debugf("Spawning survivor %d status %s", i, showdownSetup.survivorStatus2[i])
+            specialAiDeck:Take({ name = showdownSetup.survivorStatus2[i], type = "AI", position = Location.Get("Player "..i.." Status"):Position() })
+        end
+    end
+
+    -- build AI deck
+    local sources = {}
+    for _, card in ipairs(showdownSetup.customBasic or {}) do
+        table.insert(sources, Archive.ContainerSource(basicAiDeck, card, "AI" ))
+    end
+    for _, card in ipairs(showdownSetup.customAdvanced or {}) do
+        table.insert(sources, Archive.ContainerSource(advancedAiDeck, card, "AI" ))
+    end
+    for _, card in ipairs(showdownSetup.customLegendary or {}) do
+        table.insert(sources, Archive.ContainerSource(legendaryAiDeck, card, "AI" ))
+    end
+    for _, card in ipairs(showdownSetup.customSpecial or {}) do
+        table.insert(sources, Archive.ContainerSource(specialAiDeck, card, "AI" ))
+    end
+    for _, card in ipairs(showdownSetup.miscAI or {}) do
+        table.insert(sources, Archive.ContainerSource(miscAiDeck, card, "AI" ))
+    end
+    for i = 1, (showdownSetup.basic or 0) do
+        table.insert(sources, Archive.ContainerSource(basicAiDeck))
+    end
+    for i = 1, (showdownSetup.advanced or 0) do
+        table.insert(sources, Archive.ContainerSource(advancedAiDeck))
+    end
+    for i = 1, (showdownSetup.legendary or 0) do
+        table.insert(sources, Archive.ContainerSource(legendaryAiDeck))
+    end
+    local aiDeck = Archive.CreateDeckFromSources({ sources = sources, location = "AI", name = monster.name.." AI", type = "AI", rotation = { x = 0, y = 180, z = 180 } })
+    aiDeck:Shuffle()
+
+    if showdownSetup.topAiCards or showdownSetup.bottomAiCards then
+        aiDeck:OrderDeck(showdownSetup.topAiCards, showdownSetup.bottomAiCards)
+        -- TODO: hack to work around broken order deck...instead spawn the cards in a specific order
+        aiDeck.object.setPositionSmooth(Location.Get("AI"):Center(), false, true)
+        aiDeck.object.setRotation({ x = 0, y = 180, z = 180 })
+    end
+
+    -----------------------------------------------------------------------------------------------
+    -- Hit Locations
+
+    local sources = {
+        Archive.ArchiveSource(showdownSetup.hitLocationsDeck or monster.hitLocationsDeck, "Hit Locations")
+    }
+
+    local trapsDeck = Archive.Take({ name = monster.trapsDeck, type = "Hit Locations", lenient = true, location =
+    "Unused HL", rotation = { x = 0, y = 180, z = 180 } })
+    if trapsDeck then
+        trapsDeck = Container(trapsDeck)
+        if showdownSetup.fixedTrap then
+            table.insert(sources, Archive.ContainerSource(trapsDeck, showdownSetup.fixedTrap, "Hit Locations"))
+        else
+            trapsDeck:Shuffle()
+            table.insert(sources, Archive.ContainerSource(trapsDeck))
+        end
+    end
+
+    for _, card in ipairs(showdownSetup.miscHitLocations or {}) do
+        table.insert(sources, Archive.ContainerSource(miscAiDeck, card, "Hit Locations"))
+    end
+    local hitLocationsDeck = Archive.CreateDeckFromSources({ sources = sources, location = "HL", name = monster.hitLocationsDeck, type = "Hit Locations", rotation = { x = 0, y = 180, z = 180 } })
+    hitLocationsDeck:Shuffle()
+    if showdownSetup.removeHitLocations then
+        log:Debugf("Taking %s from hit location deck and moving to Unused HL", showdownSetup.removeHitLocations)
+        local sources = {}
+        for _, hl in ipairs(showdownSetup.removeHitLocations) do
+            table.insert(sources, Archive.ContainerSource(hitLocationsDeck, hl, "Hit Locations"))
+        end
+        Archive.CreateDeckFromSources({ sources = sources, location = "Unused HL", name = "Unused Hit Locations", type = "Hit Locations", ignoreMissingCards = showdownSetup.ignoreMissingRemovedHitLocations })
+    elseif showdownSetup.customHitLocations then
+        log:Debugf("Removing non custom hit locations from hit location deck and moving to Unused HL")
+        local sources = {}
+        for _, card in ipairs(hitLocationsDeck:Objects()) do
+            log:Debugf("Checking %s", card.name)
+            if card.name ~= showdownSetup.fixedTrap and not Util.ArrayContains(showdownSetup.customHitLocations, card.name) then
+                table.insert(sources, Archive.ContainerSource(hitLocationsDeck, card.name, "Hit Locations"))
+            end
+        end
+        Archive.CreateDeckFromSources({ sources = sources, location = "Unused HL", name = "Unused Hit Locations", type = "Hit Locations" })
+    end
+    if showdownSetup.topHitLocationCards then
+        log:Debugf("Putting %s on top of hit location deck", showdownSetup.topHitLocationCards)
+        hitLocationsDeck:OrderDeck(showdownSetup.topHitLocationCards)
+    end
+
+    -----------------------------------------------------------------------------------------------
+    -- Terrain
+
+    local nextTerrainLocation = 1
+    local terrainOverflowCol = 2
+    local terrainOverflowRow = 2
+    local NextTerrainLocation = function()
+        if nextTerrainLocation <= Showdown.MAX_TERRAIN then
+            local terrainLocation = "Terrain "..nextTerrainLocation
+            local miscLocation = "Misc "..nextTerrainLocation
+            nextTerrainLocation = nextTerrainLocation + 1
+            return terrainLocation, miscLocation
+        else
+            log:Errorf("Not enough terrain spaces!")
+            local location = string.format("(%d, %d)", terrainOverflowCol, terrainOverflowRow)
+            terrainOverflowRow = terrainOverflowRow + 3
+            if terrainOverflowRow >= 16 then
+                terrainOverflowRow = 2
+                terrainOverflowCol = terrainOverflowCol + 2
+            end
+            return location, location
+        end
+    end
+
+    local terrainDeck = Container(Archive.Take({ name = "Terrain", type = "Terrain", location = "Terrain", rotation = { x = 0, y = 180, z = 180 } }))
+    local terrainTilesBag = Container(Archive.Take({ name = "Terrain Tiles", type = "Terrain Tiles", location = "Terrain Tiles" }))
+
+    -- DEBUG: Log all terrain cards in the deck
+    log:Debugf("[TERRAIN DECK] Contents of terrain deck:")
+    for _, obj in ipairs(terrainDeck:Objects()) do
+        log:Debugf("[TERRAIN DECK]   - name='%s', gm_notes='%s'", obj.name, obj.gm_notes or "<nil>")
+    end
+    log:Debugf("[TERRAIN DECK] Total cards in deck: %d", #terrainDeck:Objects())
+
+    terrainDeck:Shuffle()
+
+    local terrainTileObjects = {}
+    local SpawnTerrainTile = function(terrainTile, location, rotation)
+        if not terrainTileObjects[terrainTile] then
+            log:Debugf("Spawning new terrain tile %s to %s", terrainTile, location)
+            terrainTileObjects[terrainTile] = terrainTilesBag:Take({ name = terrainTile, type = "Terrain Tiles", position = Location.Get(location):Position(), rotation = rotation })
+        else
+            log:Debugf("Cloning terrain tile %s to %s", terrainTile, location)
+            local clonePosition = Location.Get(location):Center()
+            clonePosition.y = clonePosition.y + 2
+            local clonedObject = terrainTileObjects[terrainTile].clone({ position =  clonePosition })
+            if rotation then
+                Wait.frames(function() clonedObject.setRotation(rotation) end, 2)
+            end
+        end
+    end
+    local SpawnTerrain = function(terrain, locations, rotations)
+        local terrainLocation, miscLocation = NextTerrainLocation()
+        log:Debugf("[SPAWN TERRAIN] Looking for terrain card '%s' in deck", terrain or "<random>")
+        local terrainCard = terrainDeck:Take({ name = terrain, type = "Terrain", position = Location.Get(terrainLocation):Position() })
+        if not terrainCard then
+            return log:Errorf("Couldn't find terrain '%s' in deck. Check if expansion terrain is being merged.", terrain)
+        end
+        local descriptor
+        if terrain then
+            descriptor = locations and "fixed" or "unfixed"
+        else
+            descriptor = "random"
+        end
+        local cardName = terrainCard.getName()
+        log:Debugf("Spawned %s %s terrain at %s (card name from TTS: '%s')", descriptor, terrain or "random", terrainLocation, cardName)
+
+        log:Debugf("[TERRAIN LOOKUP] Looking up terrain data for card name '%s'", cardName)
+        local data = Terrain.Data(cardName)
+        if locations then
+            for i, location in ipairs(locations) do
+                SpawnTerrainTile(data.terrainTile, location, rotations[i])
+            end
+        else
+            local count = data.count
+            if count == "*" then
+                count = level.level
+            end
+
+            for i = 1, count do
+                SpawnTerrainTile(data.terrainTile, terrainLocation)
+            end
+        end
+
+        if data.miscObject then
+            log:Debugf("Spawning misc object %s/%s at %s", data.miscObject.name, data.miscObject.type, miscLocation)
+            Archive.Take({ name = data.miscObject.name, type = data.miscObject.type, location = miscLocation })
+        end
+
+        for _, startingCard in ipairs(data.starting or {}) do
+            local startingLocation = NextStartingLocation()
+            log:Debugf("Spawning starting card %s at %s", startingCard, startingLocation)
+            Archive.Take({ name = startingCard, type = "AI", location = startingLocation })
+        end
+    end
+
+    -- special terrain
+    for _, terrainSetup in ipairs(showdownSetup.specialTerrain or monster.specialTerrain or {}) do
+        if terrainSetup.terrain then
+            local terrainLocation, _ = NextTerrainLocation()
+            log:Debugf("Spawning special terrain card %s at %s", terrainSetup.terrain, terrainLocation)
+            Archive.Take({ name = terrainSetup.terrain, type = "Terrain", location = terrainLocation })
+        end
+        if terrainSetup.terrainTile then
+            log:Debugf("Spawning special terrain tile %s at %s", terrainSetup.terrainTile, terrainSetup.position)
+            Archive.Take({ name = terrainSetup.terrainTile, type = "Terrain Tiles", location = terrainSetup.position, rotation = terrainSetup.rotation })
+        end
+        if terrainSetup.miscObject then
+            local _, miscLocation = NextTerrainLocation()
+            log:Debugf("Spawning special misc object %s/%s at %s", terrainSetup.miscObject.name, terrainSetup.miscObject.type, miscLocation)
+            Archive.Take({ name = terrainSetup.miscObject.name, type = terrainSetup.miscObject.type, location = miscLocation })
+        end
+    end
+
+    -- fixed terrain
+    for _, terrainSetup in ipairs(showdownSetup.fixedTerrain or monster.fixedTerrain or {}) do
+        SpawnTerrain(terrainSetup.terrain, terrainSetup.positions, terrainSetup.rotations)
+    end
+
+    -- unfixed terrain
+    for _, terrain in ipairs(showdownSetup.unfixedTerrain or monster.unfixedTerrain or {}) do
+        SpawnTerrain(terrain, nil, nil)
+    end
+
+    -- random terrain
+    for i = 1, (showdownSetup.randomTerrain or monster.randomTerrain or 0) do
+        SpawnTerrain(nil, nil, nil)
+    end
+
+    -----------------------------------------------------------------------------------------------
+    -- misc object
+
+    local miscObject = showdownSetup.miscObject or monster.miscObject
+    if miscObject then
+        log:Debugf("Spawning misc object %s", miscObject.name)
+        Archive.Take({ name = miscObject.name, type = miscObject.type, location = "Misc" })
+    end
+
+    -----------------------------------------------------------------------------------------------
+    -- monster
+
+    Archive.Take({
+        name = showdownSetup.figurine or monster.name,
+        type = "Monster Figurine",
+        location = showdownSetup.position or monster.position,
+        rotation = showdownSetup.rotation or monster.rotation,
+        height = 5,
+    })
+
+    -- stats
+    for _, stat in ipairs({ "movement", "toughness", "speed", "damage", "accuracy", "evasion", "luck" }) do
+        Monster.SetStat(stat, showdownSetup[stat] or 0)
+    end
+
+    -----------------------------------------------------------------------------------------------
+    -- players
+    local playerLocations = showdownSetup.playerPositions or monster.playerPositions
+    local playerRotations = showdownSetup.playerRotations or monster.playerRotations or {{ x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 0 } }
+    for i, player in ipairs(Player.Players()) do
+        local figurine = player:FigurineObject()
+        if figurine then
+            figurine.setPositionSmooth(Location.Get(playerLocations[i]):Center(), false, true)
+            figurine.setRotation(playerRotations[i])
+        end
+    end
+
+    -----------------------------------------------------------------------------------------------
+
+        Archive.Clean()
+        if monster.nemesis then
+            Survivor.ClearSkipNextHunt()
+        end
+        Showdown.monster = monster
+        Showdown.level = level
+        Wait.frames(function() log:Printf("Showdown ready. Adjust your survivor/terrain placement and prepare for death.") end, 120)
+
+        --Location.Get("(11.5, 8.5)"):LookAt({ distance = 90 })
+
+        EventManager.FireEvent(EventManager.ON_SHOWDOWN_STARTED)
+    end)
+
+    Showdown.settingUp = false  -- ALWAYS reset, even on error
+
+    if not success then
+        log:Errorf("Showdown setup failed: %s", tostring(err))
+        Archive.Clean()  -- Cleanup any partial spawns
+        return false
+    end
+
+    return true
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Showdown.CleanInternal()
+    Archive.Clean()
+
+    local types = {
+        "AI",
+        "Hit Locations",
+        "Terrain",
+        "Terrain Tiles",
+        "Monster Figurine",
+        "Minion Figurine",
+        "Tokens",
+        "Archive Bag",
+        "Counter",
+    }
+    local debug = false
+
+    local blocking = {}
+    blocking = Util.ConcatArrays(blocking, Location.Get("Terrain Board"):BoxClean({ types = types, debug = debug }))
+    blocking = Util.ConcatArrays(blocking, Location.Get("Monster Board"):BoxClean({ tags = { "Deck", "Counter" }, types = types, debug = debug }))
+
+    -- don't block for the huge showdown board clean
+    Location.Get("Showdown Board"):BoxClean({ types = types, debug = debug })
+
+    for i, player in ipairs(Player.Players()) do
+        local figurine = player:FigurineObject()
+        if figurine then
+            local playerPrefix = "Player "..player.ordinal
+            local locationString = playerPrefix.." Marker"
+            local location = Location.Get(locationString)
+            local position = location:Center()
+            position.y = position.y + 1
+            figurine.setPositionSmooth(position, false, true)
+        end
+    end
+
+    return blocking
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Showdown.Clean()
+    Showdown.settingUp = false
+
+    Showdown.CleanInternal()
+
+    for _, stat in ipairs({ "movement", "toughness", "speed", "damage", "accuracy", "evasion", "luck" }) do
+        Monster.SetStat(stat, 0)
+    end
+
+    log:Printf("Cleaned up showdown.")
+
+    EventManager.FireEvent(EventManager.ON_SHOWDOWN_ENDED)
+end
+
+-------------------------------------------------------------------------------------------------
+
+function Showdown.OnObjectPickUp(_, object)
+    local type = object.getGMNotes()
+    local overlay = Showdown.getOverlay(object)
+    log:Debugf("overlay: %s", Util.TabStr(overlay))
+    if type == "Player Figurine" then
+        log:Debugf("Player figurine [%s] %s picked up", object.getGUID(), object.getName())
+        -- Removed: log:Debugf("Player table: %s", Util.TabStr(Player)) -- causes TTS crash in new version
+
+        local player = Player.ForFigurine(object)
+        log:Debugf("Player")
+        if not player or not player:SurvivorSheet() then
+            log:Debugf("Player not identified")
+            return
+        end
+        log:Debugf("Player identified")
+        local color = object.getColorTint()
+        log:Debugf("color: %s", color)
+        color[4] = 0.7
+        log:Debugf("position: %s", object.getPosition())
+        log:Debugf("movement: %s", player:SurvivorSheet():Survivor():ModifiedMovement())
+        overlay:Show(object.getPosition(), 1, player:SurvivorSheet():Survivor():ModifiedMovement(), color)
+    elseif type == "Minion Figurine" then
+        log:Debugf("Minion figurine [%s] %s picked up", object.getGUID(), object.getName())
+
+        local minion = Showdown.minionsByName[object.getName()]
+        if not minion then
+            return log:Debugf("Unknown minion %s", object.getName())
+        end
+
+        overlay:Show(object.getPosition(), 1, minion.movement, { r = 0.0, g = 0.0, b = 0.0, a = 0.9 })
+
+    elseif type == "Monster Figurine" then
+        log:Debugf("Monster figurine [%s] %s picked up", object.getGUID(), object.getName())
+
+        local size = Showdown.sizesByMonsterName[object.getName()]
+        if not size then
+            log:Debugf("Monster %s has no registered size", object.getName())
+            return
+        end
+
+        if Monster.Movement() == 0 then
+            log:Debugf("Movement zero")
+            return
+        end
+
+        overlay:Show(object.getPosition(), size.x, Monster.Movement(), { r = 0.0, g = 0.0, b = 0.0, a = 0.9 })
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Showdown.OnObjectDrop(_, object)
+    local type = object.getGMNotes()
+    local overlay = Showdown.getOverlay(object)
+    if type == "Player Figurine" then
+        log:Debugf("Player figurine [%s] %s picked up", object.getGUID(), object.getName())
+
+        local player = Player.ForFigurine(object)
+        if player then
+            overlay:Hide()
+        end
+        object.setPositionSmooth(Showdown.grid:Snap(object, { x = 1, y = 1 }), false, true)
+
+    elseif type == "Monster Figurine" then
+        log:Debugf("Monster figurine [%s] %s dropped", object.getGUID(), object.getName())
+
+        local size = Showdown.sizesByMonsterName[object.getName()]
+        if not size then
+            return log:Debugf("Monster %s has no registered size", object.getName())
+        end
+
+        object.setPositionSmooth(Showdown.grid:Snap(object, size), false, true)
+        overlay:Hide()
+
+    elseif type == "Minion Figurine" then
+        log:Debugf("Minion figurine [%s] %s dropped", object.getGUID(), object.getName())
+
+        local minion = Showdown.minionsByName[object.getName()]
+        if not minion then
+            return log:Debugf("Unrecognized minion: %s", object.getName())
+        end
+
+        object.setPositionSmooth(Showdown.grid:Snap(object, minion.size), false, true)
+        overlay:Hide()
+
+
+    elseif type == "Terrain Tiles" then
+        log:Debugf("Terrain tile [%s] %s dropped", object.getGUID(), object.getName())
+        local size = Terrain.TileSize(object.getName())
+
+        if not size then
+            return log:Debugf("Terrain tile %s has no registered size", object.getName())
+        end
+
+        object.setPositionSmooth(Showdown.grid:Snap(object, size), false, true)
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+
+-- Test interface (kept for backward compatibility)
+Showdown.Test = {
+    MonsterByName = Showdown.MonsterByNameForShowdown,
+}
+
+Showdown._test = {
+    FilterEnabledMonsters = FilterEnabledMonsters,
+}
+
+return Showdown

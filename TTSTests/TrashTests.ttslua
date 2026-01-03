@@ -1,11 +1,11 @@
 -- TTS Trash Tests
 -- Tests for Trash restore functionality (Heat Wave restore)
 
-local Console = require("Kdm/Console")
-local Location = require("Kdm/Location")
-local Strain = require("Kdm/Strain")
-local Trash = require("Kdm/Trash")
-local log = require("Kdm/Log").ForModule("TTSTests")
+local Console = require("Kdm/Core/Console")
+local Location = require("Kdm/Location/Location")
+local Strain = require("Kdm/Sequence/Strain")
+local Trash = require("Kdm/Data/Trash")
+local log = require("Kdm/Core/Log").ForModule("TTSTests")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -111,7 +111,7 @@ function TrashTests.CountCardInDeck(cardName, cardType, deckLocation)
 end
 
 function TrashTests.CountStrayCardsNearTrash(cardName)
-    local NamedObject = require("Kdm/NamedObject")
+    local NamedObject = require("Kdm/Location/NamedObject")
     local trash = NamedObject.Get("Trash")
     if not trash then
         return 0

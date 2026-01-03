@@ -29,8 +29,8 @@ local createFakeCastFunc = LocationStubs.createFakeCastFunc
 
 Test.test("CHARACTERIZATION: Location.Matches returns true for matching tag", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local obj = createMockObject({ tag = "Card" })
         local result = Location.Matches(obj, { "Card", "Deck" }, nil)
@@ -40,8 +40,8 @@ end)
 
 Test.test("CHARACTERIZATION: Location.Matches returns true for matching type (GMNotes)", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local obj = createMockObject({ gmNotes = "Special Hunt Events" })
         local result = Location.Matches(obj, nil, { "Special Hunt Events", "Basic Hunt Events" })
@@ -51,8 +51,8 @@ end)
 
 Test.test("CHARACTERIZATION: Location.Matches returns false for non-matching tag and type", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local obj = createMockObject({ tag = "Figurine", gmNotes = "Monster" })
         local result = Location.Matches(obj, { "Card" }, { "Special Hunt Events" })
@@ -62,8 +62,8 @@ end)
 
 Test.test("CHARACTERIZATION: Location.Matches returns false when tags is nil and type doesn't match", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local obj = createMockObject({ tag = "Deck", gmNotes = "" })
         local result = Location.Matches(obj, nil, { "Special Hunt Events" })
@@ -77,8 +77,8 @@ end)
 
 Test.test("CHARACTERIZATION: Clean destroys Card with matching GMNotes type", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local card = createMockObject({ tag = "Card", gmNotes = "Special Hunt Events" })
         local fakeCast = createFakeCastFunc({ card })
@@ -95,8 +95,8 @@ end)
 
 Test.test("CHARACTERIZATION: Clean returns Card with non-matching type as blocking", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local card = createMockObject({ tag = "Card", gmNotes = "Abilities" })
         local fakeCast = createFakeCastFunc({ card })
@@ -113,8 +113,8 @@ end)
 
 Test.test("CHARACTERIZATION: Clean destroys object with matching tag", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local deck = createMockObject({ tag = "Deck", gmNotes = "" })
         local fakeCast = createFakeCastFunc({ deck })
@@ -130,8 +130,8 @@ end)
 
 Test.test("CHARACTERIZATION: Clean ignores Board objects (CLEAN_IGNORE_TAGS)", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local board = createMockObject({ tag = "Board", gmNotes = "" })
         local fakeCast = createFakeCastFunc({ board })
@@ -147,8 +147,8 @@ end)
 
 Test.test("CHARACTERIZATION: Clean ignores Table objects (CLEAN_IGNORE_TAGS)", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local tableObj = createMockObject({ tag = "Table", gmNotes = "" })
         local fakeCast = createFakeCastFunc({ tableObj })
@@ -164,8 +164,8 @@ end)
 
 Test.test("CHARACTERIZATION: Clean ignores non-interactable objects", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local obj = createMockObject({ tag = "Card", gmNotes = "Special Hunt Events", interactable = false })
         local fakeCast = createFakeCastFunc({ obj })
@@ -181,8 +181,8 @@ end)
 
 Test.test("CHARACTERIZATION: Clean ignores objects with ignored types", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local obj = createMockObject({ tag = "Card", gmNotes = "Monster Resources" })
         local fakeCast = createFakeCastFunc({ obj })
@@ -201,8 +201,8 @@ end)
 
 Test.test("CHARACTERIZATION: Clean processes multiple objects correctly", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         local matchingCard = createMockObject({ tag = "Card", gmNotes = "Special Hunt Events", name = "Herb Gathering" })
         local nonMatchingCard = createMockObject({ tag = "Card", gmNotes = "Abilities", name = "Some Ability" })
@@ -230,8 +230,8 @@ end)
 
 Test.test("Clean returns Deck as blocking when deck has no cards matching types", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         -- Deck with no cards matching the requested types should be blocking
         local deck = createMockDeck({
@@ -255,8 +255,8 @@ end)
 
 Test.test("CHARACTERIZATION: Clean destroys Deck when tags includes Deck", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         -- This works: when tags includes "Deck", the Deck object matches
         local deck = createMockObject({ tag = "Deck", gmNotes = "" })
@@ -277,8 +277,8 @@ end)
 
 Test.test("Clean destroys Deck when ALL contained cards match types", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         -- Deck containing only Special Hunt Events cards (should be cleaned up)
         local deck = createMockDeck({
@@ -300,8 +300,8 @@ end)
 
 Test.test("Clean returns Deck as blocking when ANY contained card doesn't match types", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         -- Deck containing mixed cards (one matches, one doesn't)
         local deck = createMockDeck({
@@ -324,8 +324,8 @@ end)
 
 Test.test("Clean destroys Deck when cards match any of multiple types", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         -- Deck with cards matching different hunt card types
         local deck = createMockDeck({
@@ -350,8 +350,8 @@ end)
 
 Test.test("Clean ignores Deck when tags is specified (existing behavior preserved)", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         -- When tags include "Deck", we use the tag match (existing behavior)
         local deck = createMockDeck({
@@ -373,8 +373,8 @@ end)
 
 Test.test("Clean does not check Deck contents when no types specified", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         -- Only tags specified, no types - should use existing tag-based behavior
         local deck = createMockDeck({
@@ -396,8 +396,8 @@ end)
 
 Test.test("Clean destroys empty Deck when types is specified", function(t)
     withStubs(createLocationStubs(), function()
-        package.loaded["Kdm/Location"] = nil
-        local Location = require("Kdm/Location")
+        package.loaded["Kdm/Location/Location"] = nil
+        local Location = require("Kdm/Location/Location")
 
         -- Empty deck (no cards) should be destroyed since it doesn't contain
         -- any cards that would be "wrong" to destroy (vacuous truth)

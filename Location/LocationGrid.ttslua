@@ -1,0 +1,50 @@
+local log = require("Kdm/Core/Log").ForModule("LocationGrid")
+local ElementSizes = require("Kdm/Data/ElementSizes")
+local Util = require("Kdm/Util/Util")
+
+local LocationGrid = {}
+LocationGrid.__index = LocationGrid
+
+-- Constructor
+function LocationGrid:new(cols, rows, topLeft, bottomRight, size, board)
+    log:Debugf("Creating new LocationGrid with rows=%d, cols=%d, topLeft=%s, bottomRight=%s", rows, cols, Util.TabStr(topLeft), Util.TabStr(bottomRight))
+    local instance = setmetatable({}, LocationGrid)
+    instance.rows = rows
+    instance.cols = cols
+    instance.topLeft = topLeft
+    instance.bottomRight = bottomRight
+    instance.size = size or ElementSizes.CARD
+    instance.board = board or "Settlement Board"
+    return instance
+end
+
+function LocationGrid:gridSize()
+    return self.rows * self.cols
+end
+
+local tokenDx = 0.10809057 / 2
+local tokenDz = 0.1069055 / 2
+LocationGrid.GRIDS = {
+    ["Innovation"] = LocationGrid:new(18, 2, { x = 7.414137, y = 0.602996, z = -6.384946 },
+        { x = -7.412908, y = 0.602996, z = -5.344013 }),
+    ["Weapon Mastery"] = LocationGrid:new(12, 1, { x = 4.794536, y = 0.602996, z = -4.306177 },
+        { x = -4.799514, y = 0.602996, z = -4.306177 }),
+    ["Settlement Gear"] = LocationGrid:new(18, 2, { x = 7.414486, y = 0.602996, z = -2.825781 },
+        { x = -7.415930, y = 0.602996, z = -2.123120 }, ElementSizes.GEAR),
+    ["Settlement Resource"] = LocationGrid:new(18, 3, { x = 7.410852, y = 0.602996, z = -1.253595 },
+        { x = -7.411582, y = 0.602996, z = 0.829436 }),
+    ["Settlement Location"] = LocationGrid:new(10, 2, { x = 6.054009, y = 0.595169, z = 3.801595 },
+        { x = -7.115391, y = 0.595169, z = 6.102203 }, ElementSizes.SETTLEMENT_LOCATION),
+    ["Settlement Location Gear"] = LocationGrid:new(10, 2, { x = 6.150475, y = 0.595169, z = 2.302748 },
+        { x = -7.021307, y = 0.595168, z = 7.602671 }, ElementSizes.GEAR),
+    ["Player 1 Permanent Token"] = LocationGrid:new(7, 2, { x = -0.122188 - tokenDx, y = 0.15, z = 0.762676 + tokenDz },
+        { x = -0.878822 + tokenDx, y = 0.15, z = 0.976487 - tokenDz }, ElementSizes.TOKEN, "Player 1 Board"),
+    ["Player 2 Permanent Token"] = LocationGrid:new(7, 2, { x = -0.122188 - tokenDx, y = 0.15, z = 0.762676 + tokenDz },
+        { x = -0.878822 + tokenDx, y = 0.15, z = 0.976487 - tokenDz }, ElementSizes.TOKEN, "Player 2 Board"),
+    ["Player 3 Permanent Token"] = LocationGrid:new(7, 2, { x = -0.122188 - tokenDx, y = 0.15, z = 0.762676 + tokenDz },
+        { x = -0.878822 + tokenDx, y = 0.15, z = 0.976487 - tokenDz }, ElementSizes.TOKEN, "Player 3 Board"),
+    ["Player 4 Permanent Token"] = LocationGrid:new(7, 2, { x = -0.122188 - tokenDx, y = 0.15, z = 0.762676 + tokenDz },
+        { x = -0.878822 + tokenDx, y = 0.15, z = 0.976487 - tokenDz }, ElementSizes.TOKEN, "Player 4 Board"),
+}
+
+return LocationGrid

@@ -18,11 +18,11 @@
 --   - Card stacking offset appearance
 ---------------------------------------------------------------------------------------------------
 
-local Console = require("Kdm/Console")
-local Hunt = require("Kdm/Hunt")
-local Location = require("Kdm/Location")
-local Archive = require("Kdm/Archive")
-local Log = require("Kdm/Log")
+local Console = require("Kdm/Core/Console")
+local Hunt = require("Kdm/Sequence/Hunt")
+local Location = require("Kdm/Location/Location")
+local Archive = require("Kdm/Archive/Archive")
+local Log = require("Kdm/Core/Log")
 local log = Log.ForModule("HuntTests")
 local Util = require("Kdm/Util/Util")
 

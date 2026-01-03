@@ -34,8 +34,8 @@ end
 ---------------------------------------------------------------------------------------------------
 
 Test.test("ApplyFightingArt: calls FightingArtsArchive.AddCard", function(t)
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
-    local CA = require("Kdm/ConsequenceApplicator")
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+    local CA = require("Kdm/Data/ConsequenceApplicator")
     
     local calledWith = nil
     local deps = createFakeDeps()
@@ -51,14 +51,14 @@ Test.test("ApplyFightingArt: calls FightingArtsArchive.AddCard", function(t)
     t:assertTrue(result)
     
     CA.ResetDeps()
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
 end)
 
 ---------------------------------------------------------------------------------------------------
 
 Test.test("ApplyFightingArt: invokes callback", function(t)
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
-    local CA = require("Kdm/ConsequenceApplicator")
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+    local CA = require("Kdm/Data/ConsequenceApplicator")
     
     local callbackInvoked = false
     local capturedCallback = nil
@@ -76,14 +76,14 @@ Test.test("ApplyFightingArt: invokes callback", function(t)
     t:assertTrue(callbackInvoked, "Callback should be invoked when called")
     
     CA.ResetDeps()
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
 end)
 
 ---------------------------------------------------------------------------------------------------
 
 Test.test("ApplyVermin: calls VerminArchive.AddCard", function(t)
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
-    local CA = require("Kdm/ConsequenceApplicator")
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+    local CA = require("Kdm/Data/ConsequenceApplicator")
     
     local calledWith = nil
     local deps = createFakeDeps()
@@ -99,14 +99,14 @@ Test.test("ApplyVermin: calls VerminArchive.AddCard", function(t)
     t:assertTrue(result)
     
     CA.ResetDeps()
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
 end)
 
 ---------------------------------------------------------------------------------------------------
 
 Test.test("ApplyTimelineEvent: calls Timeline.ScheduleEvent", function(t)
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
-    local CA = require("Kdm/ConsequenceApplicator")
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+    local CA = require("Kdm/Data/ConsequenceApplicator")
     
     local calledWith = nil
     local deps = createFakeDeps()
@@ -123,14 +123,14 @@ Test.test("ApplyTimelineEvent: calls Timeline.ScheduleEvent", function(t)
     t:assertTrue(result)
     
     CA.ResetDeps()
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
 end)
 
 ---------------------------------------------------------------------------------------------------
 
 Test.test("TrashSettlementEvent: calls Trash.AddCard with correct params", function(t)
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
-    local CA = require("Kdm/ConsequenceApplicator")
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+    local CA = require("Kdm/Data/ConsequenceApplicator")
     
     local calledName, calledType, calledLocation = nil, nil, nil
     local deps = createFakeDeps()
@@ -150,14 +150,14 @@ Test.test("TrashSettlementEvent: calls Trash.AddCard with correct params", funct
     t:assertTrue(result)
     
     CA.ResetDeps()
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
 end)
 
 ---------------------------------------------------------------------------------------------------
 
 Test.test("AddBasicResource: calls BasicResourcesArchive.AddCard", function(t)
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
-    local CA = require("Kdm/ConsequenceApplicator")
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+    local CA = require("Kdm/Data/ConsequenceApplicator")
     
     local calledWith = nil
     local deps = createFakeDeps()
@@ -173,7 +173,7 @@ Test.test("AddBasicResource: calls BasicResourcesArchive.AddCard", function(t)
     t:assertTrue(result)
     
     CA.ResetDeps()
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
 end)
 
 ---------------------------------------------------------------------------------------------------
@@ -181,8 +181,8 @@ end)
 ---------------------------------------------------------------------------------------------------
 
 Test.test("RemoveFightingArt: calls FightingArtsArchive.RemoveCard", function(t)
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
-    local CA = require("Kdm/ConsequenceApplicator")
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+    local CA = require("Kdm/Data/ConsequenceApplicator")
     
     local calledWith = nil
     local deps = createFakeDeps()
@@ -198,14 +198,14 @@ Test.test("RemoveFightingArt: calls FightingArtsArchive.RemoveCard", function(t)
     t:assertTrue(result)
     
     CA.ResetDeps()
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
 end)
 
 ---------------------------------------------------------------------------------------------------
 
 Test.test("RemoveVermin: calls VerminArchive.RemoveCard", function(t)
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
-    local CA = require("Kdm/ConsequenceApplicator")
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+    local CA = require("Kdm/Data/ConsequenceApplicator")
     
     local calledWith = nil
     local deps = createFakeDeps()
@@ -221,14 +221,14 @@ Test.test("RemoveVermin: calls VerminArchive.RemoveCard", function(t)
     t:assertTrue(result)
     
     CA.ResetDeps()
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
 end)
 
 ---------------------------------------------------------------------------------------------------
 
 Test.test("RemoveTimelineEvent: calls Timeline.RemoveEventByName", function(t)
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
-    local CA = require("Kdm/ConsequenceApplicator")
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+    local CA = require("Kdm/Data/ConsequenceApplicator")
     
     local calledName, calledType = nil, nil
     local deps = createFakeDeps()
@@ -246,14 +246,14 @@ Test.test("RemoveTimelineEvent: calls Timeline.RemoveEventByName", function(t)
     t:assertTrue(result)
     
     CA.ResetDeps()
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
 end)
 
 ---------------------------------------------------------------------------------------------------
 
 Test.test("RestoreSettlementEvent: calls Trash.RemoveCard", function(t)
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
-    local CA = require("Kdm/ConsequenceApplicator")
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+    local CA = require("Kdm/Data/ConsequenceApplicator")
     
     local calledName, calledType, calledLocation = nil, nil, nil
     local deps = createFakeDeps()
@@ -273,14 +273,14 @@ Test.test("RestoreSettlementEvent: calls Trash.RemoveCard", function(t)
     t:assertTrue(result)
     
     CA.ResetDeps()
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
 end)
 
 ---------------------------------------------------------------------------------------------------
 
 Test.test("RemoveBasicResource: calls BasicResourcesArchive.RemoveCard", function(t)
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
-    local CA = require("Kdm/ConsequenceApplicator")
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+    local CA = require("Kdm/Data/ConsequenceApplicator")
     
     local calledWith = nil
     local deps = createFakeDeps()
@@ -296,7 +296,7 @@ Test.test("RemoveBasicResource: calls BasicResourcesArchive.RemoveCard", functio
     t:assertTrue(result)
     
     CA.ResetDeps()
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
 end)
 
 ---------------------------------------------------------------------------------------------------
@@ -304,8 +304,8 @@ end)
 ---------------------------------------------------------------------------------------------------
 
 Test.test("ApplyVermin: returns false on failure", function(t)
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
-    local CA = require("Kdm/ConsequenceApplicator")
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+    local CA = require("Kdm/Data/ConsequenceApplicator")
     
     local deps = createFakeDeps()
     deps.VerminArchive.AddCard = function(name)
@@ -318,14 +318,14 @@ Test.test("ApplyVermin: returns false on failure", function(t)
     t:assertFalse(result)
     
     CA.ResetDeps()
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
 end)
 
 ---------------------------------------------------------------------------------------------------
 
 Test.test("ApplyTimelineEvent: returns false on failure", function(t)
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
-    local CA = require("Kdm/ConsequenceApplicator")
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+    local CA = require("Kdm/Data/ConsequenceApplicator")
     
     local deps = createFakeDeps()
     deps.Timeline.ScheduleEvent = function(event)
@@ -339,5 +339,5 @@ Test.test("ApplyTimelineEvent: returns false on failure", function(t)
     t:assertFalse(result)
     
     CA.ResetDeps()
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
 end)

@@ -1,4 +1,4 @@
-local log = require("Kdm/Log").ForModule("ObjectState")
+local log = require("Kdm/Core/Log").ForModule("ObjectState")
 
 ---------------------------------------------------------------------------------------------------
 

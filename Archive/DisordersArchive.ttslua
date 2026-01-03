@@ -1,0 +1,55 @@
+local Archive = require("Kdm/Archive/Archive")
+local StrainRewardsConstants = require("Kdm/Data/StrainRewardsConstants")
+
+---------------------------------------------------------------------------------------------------
+-- DisordersArchive: Transfers disorder cards between Strain Rewards deck and Disorders deck
+--
+-- Note: For SPAWNING disorders from Core Disorders deck, use Archive.TakeFromDeck() directly.
+-- This module is for transferring cards that exist in the Strain Rewards deck.
+---------------------------------------------------------------------------------------------------
+
+local DisordersArchive = {}
+
+-- Import shared Strain Rewards constants
+DisordersArchive.REWARD_DECK_NAME = StrainRewardsConstants.REWARD_DECK_NAME
+DisordersArchive.REWARD_DECK_TYPE = StrainRewardsConstants.REWARD_DECK_TYPE
+DisordersArchive.REWARD_DECK_STAGING_POSITION = StrainRewardsConstants.REWARD_DECK_STAGING_POSITION
+
+-- Disorders specific constants
+DisordersArchive.CARD_TYPE = "Disorders"
+DisordersArchive.DECK_LOCATION = "Disorders"
+DisordersArchive.ARCHIVE_NAME = "Disorders Archive"
+
+---------------------------------------------------------------------------------------------------
+
+function DisordersArchive.AddCard(cardName, onComplete)
+    return Archive.TransferCardBetweenDecks({
+        sourceDeckName = DisordersArchive.REWARD_DECK_NAME,
+        sourceDeckType = DisordersArchive.REWARD_DECK_TYPE,
+        targetArchiveName = DisordersArchive.ARCHIVE_NAME,
+        targetDeckLocation = DisordersArchive.DECK_LOCATION,
+        stagingPosition = DisordersArchive.REWARD_DECK_STAGING_POSITION,
+        cardName = cardName,
+        cardType = DisordersArchive.CARD_TYPE,
+        logMessage = "Added " .. cardName .. " to the Disorders deck.",
+        onComplete = onComplete,
+    })
+end
+
+---------------------------------------------------------------------------------------------------
+
+function DisordersArchive.RemoveCard(cardName, onComplete)
+    return Archive.RemoveCardFromDeck({
+        archiveName = DisordersArchive.ARCHIVE_NAME,
+        deckLocation = DisordersArchive.DECK_LOCATION,
+        stagingPosition = DisordersArchive.REWARD_DECK_STAGING_POSITION,
+        cardName = cardName,
+        cardType = DisordersArchive.CARD_TYPE,
+        logMessage = "Removed " .. cardName .. " from the Disorders deck.",
+        onComplete = onComplete,
+    })
+end
+
+---------------------------------------------------------------------------------------------------
+
+return DisordersArchive

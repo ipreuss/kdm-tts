@@ -1,0 +1,133 @@
+local Campaign = require("Kdm/Sequence/Campaign")
+local Hunt = require("Kdm/Sequence/Hunt")
+local Showdown = require("Kdm/Sequence/Showdown")
+local Strain = require("Kdm/Sequence/Strain")
+local Timeline = require("Kdm/Sequence/Timeline")
+local Ui = require("Kdm/Ui")
+
+---------------------------------------------------------------------------------------------------
+
+local GlobalUi = {}
+
+---------------------------------------------------------------------------------------------------
+
+function GlobalUi.Init()
+    local ui = Ui.Get2d()
+
+    local buttons = {
+        {
+            name = "Campaign",
+            module = Campaign,
+            text = "Campaign",
+            fontSize = 16,
+            colors = Ui.DARK_BROWN_COLORS,
+            textColor = Ui.LIGHT_BROWN,
+        },
+        {
+            name = "Hunt",
+            module = Hunt,
+            text = "Hunt",
+            fontSize = 16,
+            colors = Ui.DARK_BROWN_COLORS,
+            textColor = Ui.LIGHT_BROWN,
+        },
+        {
+            name = "Showdown",
+            module = Showdown,
+            text = "Showdown",
+            fontSize = 16,
+            colors = Ui.DARK_BROWN_COLORS,
+            textColor = Ui.LIGHT_BROWN,
+        },
+        {
+            name = "Timeline",
+            module = Timeline,
+            text = "Timeline",
+            fontSize = 16,
+            colors = Ui.DARK_BROWN_COLORS,
+            textColor = Ui.LIGHT_BROWN,
+            showForAll = true,
+        },
+        {
+            name = "Strain",
+            module = Strain,
+            text = "Strain",
+            fontSize = 16,
+            colors = Ui.DARK_BROWN_COLORS,
+            textColor = Ui.LIGHT_BROWN,
+        },
+    }
+
+    GlobalUi.buttons = {}
+    for i, button in ipairs(buttons) do
+        local buttonOptions = {
+            id = button.name,
+            rectAlignment = "UpperLeft",
+            x = 70,
+            y = -10 - (i - 1) * 40,
+            width = 100,
+            height = 30,
+            onClick = function(_, player)
+                local function hide(target)
+                    if target.showForAll then
+                        target.module.HideUiForAll()
+                    else
+                        target.module.HideUi(player)
+                    end
+                end
+                local function show(target)
+                    if target.showForAll then
+                        target.module.ShowUiForAll()
+                    else
+                        target.module.ShowUi(player)
+                    end
+                end
+
+                if button.module.IsUiOpen() then
+                    hide(button)
+                else
+                    for _, other in ipairs(buttons) do
+                        if other.name ~= button.name then
+                            hide(other)
+                        end
+                    end
+                    show(button)
+                end
+            end
+        }
+
+        if button.image then
+            buttonOptions.image = button.image
+            buttonOptions.colors = button.colors or Ui.IMAGE_COLORS
+        else
+            buttonOptions.text = button.text
+            buttonOptions.fontSize = button.fontSize or 14
+            buttonOptions.colors = button.colors or Ui.IMAGE_COLORS
+            buttonOptions.textColor = button.textColor
+            buttonOptions.textAlignment = "MiddleCenter"
+        end
+
+        GlobalUi.buttons[button.name] = ui:Button(buttonOptions)
+    end
+
+    GlobalUi.open = true
+    GlobalUi.collapseExpandButton = ui:Button({ id = "CollapseExpand", rectAlignment = "UpperLeft", x = 180, y = -10, width = 30, height = 30, image = "CollapseButton", onClick = function()
+        if GlobalUi.open then
+            GlobalUi.open = false
+            GlobalUi.collapseExpandButton:SetImage("ExpandButton")
+            for _, button in pairs(GlobalUi.buttons) do
+                button:Hide()
+            end
+        else
+            GlobalUi.open = true
+            GlobalUi.collapseExpandButton:SetImage("CollapseButton")
+            for _, button in pairs(GlobalUi.buttons) do
+                button:Show()
+            end
+        end
+    end })
+end
+
+---------------------------------------------------------------------------------------------------
+
+return GlobalUi

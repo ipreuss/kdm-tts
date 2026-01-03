@@ -50,14 +50,14 @@ local function createMinimalTTSEnvironment()
     end
 
     -- NamedObject stub
-    package.loaded["Kdm/NamedObject"] = {
+    package.loaded["Kdm/Location/NamedObject"] = {
         Get = function(name)
             return createMockObject(name)
         end,
     }
 
     -- Location stub
-    package.loaded["Kdm/Location"] = {
+    package.loaded["Kdm/Location/Location"] = {
         Get = function(name)
             return {
                 Center = function() return { x = 0, y = 2, z = 0 } end,
@@ -66,7 +66,7 @@ local function createMinimalTTSEnvironment()
     }
 
     -- Archive stub
-    package.loaded["Kdm/Archive"] = {
+    package.loaded["Kdm/Archive/Archive"] = {
         Take = function() return nil end,
         Clean = function() end,
     }
@@ -79,12 +79,12 @@ local function createMinimalTTSEnvironment()
     end
 
     -- MessageBox stub
-    package.loaded["Kdm/MessageBox"] = {
+    package.loaded["Kdm/Ui/MessageBox"] = {
         Show = function(msg, callback) if callback then callback() end end,
     }
 
     -- Survivor stub (for Showdown)
-    package.loaded["Kdm/Survivor"] = {
+    package.loaded["Kdm/Entity/Survivor"] = {
         DepartingSurvivorNeedsToSkipNextHunt = function() return false end,
         ClearSkipNextHunt = function() end,
     }
@@ -167,10 +167,10 @@ Test.test("REAL INTEGRATION: ResourceRewards reads from real Showdown module exp
 
     -- Load REAL Showdown module (the exported table)
     -- We can't call Init() due to UI deps, but we can test the export structure
-    local Showdown = require("Kdm/Showdown")
+    local Showdown = require("Kdm/Sequence/Showdown")
 
     -- Load REAL ResourceRewards module
-    local ResourceRewards = require("Kdm/ResourceRewards")
+    local ResourceRewards = require("Kdm/Data/ResourceRewards")
     ResourceRewards.Init()
     ResourceRewards.PostInit()
 
@@ -220,7 +220,7 @@ Test.test("BUG DETECTION: Showdown internal assignments don't reach exports", fu
     -- 1. Showdown.ttslua has: local Showdown = {} (internal table)
     -- 2. Showdown.Setup() does: Showdown.monster = monster (assigns to internal)
     -- 3. return { Init = ..., Setup = ... } (new table, doesn't include monster/level)
-    -- 4. ResourceRewards does: local Showdown = require("Kdm/Showdown")
+    -- 4. ResourceRewards does: local Showdown = require("Kdm/Sequence/Showdown")
     -- 5. ResourceRewards reads: Showdown.monster (from exports, which is nil!)
 
     -- To test this properly, we need to verify that the RETURN TABLE
