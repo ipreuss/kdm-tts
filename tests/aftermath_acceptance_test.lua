@@ -39,6 +39,23 @@ local function collectMonsterAftermath()
     return monsters
 end
 
+-- Find victory aftermath for a specific monster and level
+local function findVictoryAftermath(monsterName, levelName)
+    for _, expansion in ipairs(getAllExpansions()) do
+        for _, monster in ipairs(expansion.monsters or {}) do
+            if monster.name == monsterName and monster.levels then
+                for _, level in ipairs(monster.levels) do
+                    if level.name == levelName then
+                        local aftermath = level.showdown and level.showdown.aftermath
+                        return aftermath and aftermath.victory
+                    end
+                end
+            end
+        end
+    end
+    return nil
+end
+
 --------------------------------------------------------------------------------
 -- Data Structure Tests
 --------------------------------------------------------------------------------
@@ -400,114 +417,35 @@ Test.test("Sunstalker Great Devourer has no aftermath (campaign finale)", functi
 end)
 
 --------------------------------------------------------------------------------
--- Disabled Checklist Item Tests (Settlement Location Rewards)
+-- Settlement Location Reward Data Tests
+-- NOTE: Disabled item UI behavior verified via TTS console tests (TTSTests).
+--       Headless tests verify data integrity only.
 --------------------------------------------------------------------------------
 
-Test.test("Disabled checklist item shows as checked", function(t)
-    -- Test that disabled items with checked=true appear correctly
-    local items = {
-        { text = "Catarium added to settlement", disabled = true, checked = true },
-        { text = "Regular item", disabled = false, checked = false },
-    }
-
-    -- Verify first item is disabled and checked
-    t:assertEqual(items[1].disabled, true, "First item should be disabled")
-    t:assertEqual(items[1].checked, true, "First item should be checked")
-    t:assertEqual(items[2].disabled, false, "Second item should not be disabled")
-end)
-
 Test.test("settlementLocationReward field exists in White Lion L1", function(t)
-    local expansions = getAllExpansions()
-
-    local found = nil
-    for _, expansion in ipairs(expansions) do
-        if expansion.monsters then
-            for _, monster in ipairs(expansion.monsters) do
-                if monster.name == "White Lion" and monster.levels then
-                    for _, level in ipairs(monster.levels) do
-                        if level.name == "Level 1" then
-                            found = level.showdown.aftermath.victory
-                            break
-                        end
-                    end
-                end
-            end
-        end
-    end
-
+    local found = findVictoryAftermath("White Lion", "Level 1")
     t:assertNotNil(found, "White Lion L1 should have victory aftermath")
     t:assertEqual(found.settlementLocationReward, "Catarium",
         "White Lion L1 should have settlementLocationReward = 'Catarium'")
 end)
 
 Test.test("settlementLocationReward field exists in Screaming Antelope L1", function(t)
-    local expansions = getAllExpansions()
-
-    local found = nil
-    for _, expansion in ipairs(expansions) do
-        if expansion.monsters then
-            for _, monster in ipairs(expansion.monsters) do
-                if monster.name == "Screaming Antelope" and monster.levels then
-                    for _, level in ipairs(monster.levels) do
-                        if level.name == "Level 1" then
-                            found = level.showdown.aftermath.victory
-                            break
-                        end
-                    end
-                end
-            end
-        end
-    end
-
+    local found = findVictoryAftermath("Screaming Antelope", "Level 1")
     t:assertNotNil(found, "Screaming Antelope L1 should have victory aftermath")
     t:assertEqual(found.settlementLocationReward, "Stone Circle",
         "Screaming Antelope L1 should have settlementLocationReward = 'Stone Circle'")
 end)
 
 Test.test("settlementLocationReward field exists in Phoenix L1", function(t)
-    local expansions = getAllExpansions()
-
-    local found = nil
-    for _, expansion in ipairs(expansions) do
-        if expansion.monsters then
-            for _, monster in ipairs(expansion.monsters) do
-                if monster.name == "Phoenix" and monster.levels then
-                    for _, level in ipairs(monster.levels) do
-                        if level.name == "Level 1" then
-                            found = level.showdown.aftermath.victory
-                            break
-                        end
-                    end
-                end
-            end
-        end
-    end
-
+    local found = findVictoryAftermath("Phoenix", "Level 1")
     t:assertNotNil(found, "Phoenix L1 should have victory aftermath")
     t:assertEqual(found.settlementLocationReward, "Plumery",
         "Phoenix L1 should have settlementLocationReward = 'Plumery'")
 end)
 
 Test.test("settlementLocationReward field exists in White Gigalion L2 and L3", function(t)
-    local expansions = getAllExpansions()
-
-    local foundL2 = nil
-    local foundL3 = nil
-    for _, expansion in ipairs(expansions) do
-        if expansion.monsters then
-            for _, monster in ipairs(expansion.monsters) do
-                if monster.name == "White Gigalion" and monster.levels then
-                    for _, level in ipairs(monster.levels) do
-                        if level.name == "Level 2" then
-                            foundL2 = level.showdown.aftermath.victory
-                        elseif level.name == "Level 3" then
-                            foundL3 = level.showdown.aftermath.victory
-                        end
-                    end
-                end
-            end
-        end
-    end
+    local foundL2 = findVictoryAftermath("White Gigalion", "Level 2")
+    local foundL3 = findVictoryAftermath("White Gigalion", "Level 3")
 
     t:assertNotNil(foundL2, "White Gigalion L2 should have victory aftermath")
     t:assertEqual(foundL2.settlementLocationReward, "Giga-Catarium",
@@ -519,28 +457,11 @@ Test.test("settlementLocationReward field exists in White Gigalion L2 and L3", f
 end)
 
 Test.test("settlementLocationReward field exists in Sunstalker all levels", function(t)
-    local expansions = getAllExpansions()
-
-    local levels = {}
-    for _, expansion in ipairs(expansions) do
-        if expansion.monsters then
-            for _, monster in ipairs(expansion.monsters) do
-                if monster.name == "Sunstalker" and monster.levels then
-                    for _, level in ipairs(monster.levels) do
-                        if level.showdown and level.showdown.aftermath and level.showdown.aftermath.victory then
-                            levels[level.name] = level.showdown.aftermath.victory
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    for levelName, victory in pairs(levels) do
-        if levelName ~= "The Great Devourer" then
-            t:assertEqual(victory.settlementLocationReward, "Skyreef Sanctuary",
-                string.format("Sunstalker %s should have settlementLocationReward = 'Skyreef Sanctuary'", levelName))
-        end
+    for _, levelName in ipairs({ "Level 1", "Level 2", "Level 3" }) do
+        local victory = findVictoryAftermath("Sunstalker", levelName)
+        t:assertNotNil(victory, string.format("Sunstalker %s should have victory aftermath", levelName))
+        t:assertEqual(victory.settlementLocationReward, "Skyreef Sanctuary",
+            string.format("Sunstalker %s should have settlementLocationReward = 'Skyreef Sanctuary'", levelName))
     end
 end)
 
