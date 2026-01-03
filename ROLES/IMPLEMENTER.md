@@ -124,31 +124,85 @@ Before coding:
 - Note dependencies and touch points
 
 ### 3. Plan Before Coding
+
 Write an implementation plan including:
 - Files to modify
 - Order of changes
 - Assumptions and open questions
-- **Refactoring assessment:**
-  - Do files need characterization tests before modification? → Use `characterization-test-writer` subagent
-  - Are there code smells in the touched code that should be addressed?
-  - What Boy Scout Rule improvements will you make while there?
+
+**Coverage assessment (MANDATORY — before any code changes):**
+
+For each file/function you will modify:
+
+| Check | If No → Action |
+|-------|----------------|
+| Tests exist for this function? | Add characterization tests |
+| Tests cover the code path being changed? | Add characterization tests for that path |
+| Tests verify the behavior being preserved? | Add characterization tests for that behavior |
+
+**"Some tests exist" ≠ "Good coverage"** — You must verify coverage is adequate for what you're changing, not just that tests exist.
+
+**If coverage is insufficient:** Invoke `characterization-test-writer` agent BEFORE any production code changes.
+
+**If code is hard to test:** Invoke `seam-finder` agent to identify injection points.
 
 **Test strategy (mandatory — plan ALL layers upfront):**
-- [ ] Characterization tests needed? (modifying existing code with limited coverage)
-- [ ] Unit tests for new/changed behavior
-- [ ] Acceptance tests for user-visible behavior (domain language)
+- [ ] Coverage assessment complete for existing code
+- [ ] Characterization tests added (if needed)
+- [ ] Unit tests planned for new/changed behavior
+- [ ] Acceptance tests planned for user-visible behavior
 - [ ] TTS console tests needed? (UI, spawning, Archive operations)
 
-**If characterization tests needed:** Invoke `characterization-test-writer` before any code changes.
+**Refactoring assessment:**
+- Are there code smells in the touched code that should be addressed?
+- What Boy Scout Rule improvements will you make while there?
 
 **Get confirmation before proceeding with code changes.**
 
 ### 4. Test-First Development
-Follow the test-first loop from PROCESS.md:
-1. Write/extend failing test
-2. Implement minimal code to pass
-3. Refactor while keeping tests green
-4. Verify with `lua tests/run.lua`
+
+Follow the complete TDD cycle (see `test-driven-development` skill):
+
+**Phase 0: Coverage Assessment** (done in Step 3)
+- Verified existing coverage is adequate
+- Added characterization tests for uncovered code
+
+**Red-Green-Refactor Loop:**
+1. Write ONE failing test for desired behavior
+2. Verify test FAILS (not errors, fails for expected reason)
+3. Implement MINIMAL code to pass
+4. Verify test passes with `lua tests/run.lua`
+5. Refactor while keeping tests green
+
+**Coverage Review (after each cycle):**
+- Did refactoring create new public functions? → Write unit tests
+- Are there edge cases not yet covered? → Add edge case tests
+- Did you discover undocumented behavior? → Add integration tests
+
+**Goal:** Each cycle should improve overall test coverage, not just make one test pass.
+
+### 4b. Bug Found or Behavior Change Requested
+
+**When you discover a bug or receive a behavior change request during development, STOP and write a test FIRST.**
+
+| Change Type | Test Level |
+|-------------|------------|
+| Internal logic bug | Unit test |
+| Module interaction bug | Integration test |
+| User-visible behavior | Acceptance test (+ TTS test if UI/spawning) |
+| TTS-specific issue | TTS console test |
+
+**Workflow:**
+1. STOP current work
+2. Write failing test that captures the bug/change
+3. Verify test fails
+4. Fix/implement
+5. Verify test passes
+6. Resume previous work
+
+**If user-noticeable:** Always write acceptance test. Add TTS test if it involves UI or spawning.
+
+See `test-driven-development` skill for detailed examples.
 
 ### 5. Refactor (Boy Scout Rule)
 After tests are green, apply the Boy Scout Rule to code you touched:

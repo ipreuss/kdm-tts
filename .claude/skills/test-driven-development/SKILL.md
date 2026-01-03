@@ -24,6 +24,52 @@ If code precedes tests, delete it and start over. No exceptions without explicit
 
 ---
 
+## Phase 0: Coverage Assessment (BEFORE any changes)
+
+**Before writing new code, assess existing test coverage of the code you will modify.**
+
+This is NOT "do tests exist?" but "is coverage actually good?"
+
+### Step 0a: Identify Code to Modify
+
+List all files and functions that will change.
+
+### Step 0b: Find Existing Tests
+
+```bash
+# Find tests for a module
+lua tests/run.lua 2>&1 | grep -i "[module]"
+# Or search test files
+grep -r "ModuleName" tests/
+```
+
+### Step 0c: Assess Coverage Quality
+
+For each function you will modify, answer:
+
+| Question | If No → Action |
+|----------|----------------|
+| Does a test exist for this function? | Write characterization test |
+| Does the test cover the code path I'm changing? | Write characterization test for that path |
+| Does the test verify the behavior I need to preserve? | Write characterization test for that behavior |
+
+**"Some tests exist" ≠ "Good coverage"**
+
+### Step 0d: Add Characterization Tests (if needed)
+
+Use `characterization-test-writer` agent to capture existing behavior BEFORE any changes.
+
+**Triggers:**
+- Function has no tests
+- Tests don't cover the code path being modified
+- Behavior is undocumented or surprising
+
+### Step 0e: Use Seam-Finder (if needed)
+
+If code is hard to test (TTS dependencies, global state), use `seam-finder` agent to identify injection points.
+
+---
+
 ## The Red-Green-Refactor Cycle
 
 ### RED Phase: Write Failing Test
@@ -105,6 +151,19 @@ Only after green:
 
 **Keep tests passing throughout.**
 
+### COVERAGE REVIEW Phase
+
+After refactoring, assess whether more tests are needed:
+
+| Question | If Yes → Action |
+|----------|-----------------|
+| Did refactoring create new public functions? | Write unit tests for them |
+| Are there edge cases not yet covered? | Add edge case tests |
+| Did you discover undocumented behavior? | Add integration tests |
+| Is the module now easier to test? | Consider deeper unit test coverage |
+
+**Goal:** Each Red-Green-Refactor cycle should improve overall test coverage.
+
 ### REPEAT
 
 Next failing test for next behavior.
@@ -121,20 +180,69 @@ Next failing test for next behavior.
 
 ---
 
-## Bug Fix Pattern
+## Bug Found or Behavior Change Requested
 
-1. **Write failing test** reproducing the bug
-2. **Verify** test fails
-3. **Fix** the bug
-4. **Verify** test passes
-5. Bug can **never recur** undetected
+**When a bug is discovered or behavior change is requested during development, STOP and write a test FIRST.**
+
+This applies whether you found the bug yourself, the user reported it, or requirements changed mid-implementation.
+
+### Step 1: Capture in a Test
+
+**Always start with the lowest appropriate test level:**
+
+| Change Type | Test Level | Example |
+|-------------|------------|---------|
+| Internal logic bug | Unit test | Calculation returns wrong value |
+| Module interaction bug | Integration test | Data flows incorrectly between modules |
+| User-visible behavior | Acceptance test | Feature doesn't work as specified |
+| TTS-specific issue | TTS console test | UI doesn't render, object doesn't spawn |
+
+**If user-noticeable:** Write acceptance test AND consider TTS test if it involves UI/spawning.
+
+### Step 2: Verify Test Fails
+
+Run the test to confirm it captures the bug/missing behavior:
+
+```bash
+lua tests/run.lua
+```
+
+The test MUST fail. If it passes, your test doesn't capture the issue.
+
+### Step 3: Fix the Bug / Implement the Change
+
+Only now write the production code.
+
+### Step 4: Verify Test Passes
+
+Run tests again. The bug can **never recur** undetected.
+
+### Example: Bug Discovered During Development
 
 ```lua
--- Reproduce the bug
-Test.test("handles nil monster name", function(t)
+-- You discover: Setup crashes when monster name is nil
+-- STOP. Write the test FIRST:
+
+Test.test("Setup returns error when monster name is nil", function(t)
     local result = Showdown.Setup(nil, "Level 1")
     t:assertEqual(result.error, "monster name required")
 end)
+
+-- Verify it fails, THEN fix the code
+```
+
+### Example: Behavior Change Requested
+
+```lua
+-- User says: "Actually, rewards should include strange resources for L3+"
+-- STOP. Write the test FIRST:
+
+Test.test("L3+ monsters include strange resources in rewards", function(t)
+    local rewards = Rewards.GetFor("White Lion", 3)
+    t:assertContains(rewards.resources, "strange")
+end)
+
+-- Verify it fails, THEN implement the change
 ```
 
 ---
@@ -182,12 +290,21 @@ See `kdm-test-patterns` for detailed guidance.
 
 Before claiming "done":
 
-- [ ] Every new function has a test
+**Phase 0 (Coverage Assessment):**
+- [ ] Identified all code that will change
+- [ ] Assessed existing test coverage (not just "tests exist")
+- [ ] Added characterization tests for uncovered code paths
+
+**Red-Green-Refactor:**
 - [ ] Watched each test FAIL before implementing
 - [ ] Each test failed for expected reason
 - [ ] Wrote minimal code to pass
-- [ ] All tests pass
-- [ ] No errors or warnings
+- [ ] Refactored while keeping tests green
+
+**Coverage Review:**
+- [ ] Every new function has a test
+- [ ] Considered edge cases and integration tests
+- [ ] All tests pass with no errors or warnings
 
 Can't check all boxes? You skipped TDD. Restart.
 
