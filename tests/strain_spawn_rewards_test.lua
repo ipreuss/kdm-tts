@@ -19,13 +19,13 @@ local Test = require("tests.framework")
 ---------------------------------------------------------------------------------------------------
 
 Test.test("FIXED: Strain.Test.ExecuteConsequences is available for acceptance testing", function(t)
-    package.loaded["Kdm/Strain"] = nil
+    package.loaded["Kdm/Sequence/Strain"] = nil
     
     -- Load minimal stubs
-    package.loaded["Kdm/Archive"] = { Take = function() end, Clean = function() end, TakeFromDeck = function() end }
-    package.loaded["Kdm/Location"] = { Get = function() return nil end }
+    package.loaded["Kdm/Archive/Archive"] = { Take = function() end, Clean = function() end, TakeFromDeck = function() end }
+    package.loaded["Kdm/Location/Location"] = { Get = function() return nil end }
     
-    local Strain = require("Kdm/Strain")
+    local Strain = require("Kdm/Sequence/Strain")
     
     t:assertNotNil(Strain.Test, "Strain should export Test table")
     t:assertNotNil(Strain.Test.ExecuteConsequences, "Strain.Test should have ExecuteConsequences")
@@ -122,17 +122,17 @@ Test.test("REGRESSION: spawn consequences run inside fightingArt callback, not c
     }
     
     -- Save and stub modules
-    local origCA = package.loaded["Kdm/ConsequenceApplicator"]
-    local origArchive = package.loaded["Kdm/Archive"]
-    local origLocation = package.loaded["Kdm/Location"]
-    local origStrain = package.loaded["Kdm/Strain"]
+    local origCA = package.loaded["Kdm/Data/ConsequenceApplicator"]
+    local origArchive = package.loaded["Kdm/Archive/Archive"]
+    local origLocation = package.loaded["Kdm/Location/Location"]
+    local origStrain = package.loaded["Kdm/Sequence/Strain"]
     
-    package.loaded["Kdm/ConsequenceApplicator"] = fakeConsequenceApplicator
-    package.loaded["Kdm/Archive"] = fakeArchive
-    package.loaded["Kdm/Location"] = { Get = function() return nil end }
-    package.loaded["Kdm/Strain"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = fakeConsequenceApplicator
+    package.loaded["Kdm/Archive/Archive"] = fakeArchive
+    package.loaded["Kdm/Location/Location"] = { Get = function() return nil end }
+    package.loaded["Kdm/Sequence/Strain"] = nil
     
-    local Strain = require("Kdm/Strain")
+    local Strain = require("Kdm/Sequence/Strain")
     
     -- Execute consequences for a milestone with BOTH fightingArt AND strangeResource
     local milestone = {
@@ -164,10 +164,10 @@ Test.test("REGRESSION: spawn consequences run inside fightingArt callback, not c
     end
     
     -- Restore modules
-    package.loaded["Kdm/ConsequenceApplicator"] = origCA
-    package.loaded["Kdm/Archive"] = origArchive
-    package.loaded["Kdm/Location"] = origLocation
-    package.loaded["Kdm/Strain"] = origStrain
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = origCA
+    package.loaded["Kdm/Archive/Archive"] = origArchive
+    package.loaded["Kdm/Location/Location"] = origLocation
+    package.loaded["Kdm/Sequence/Strain"] = origStrain
     
     -- THE KEY ASSERTION: Iron spawn must NOT happen before the callback is invoked
     t:assertFalse(ironCalledBeforeCallback,

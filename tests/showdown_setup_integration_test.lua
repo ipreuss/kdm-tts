@@ -57,7 +57,7 @@ local function createComprehensiveStubs()
     end
 
     -- Archive stub
-    package.loaded["Kdm/Archive"] = {
+    package.loaded["Kdm/Archive/Archive"] = {
         Take = function(params)
             return createMockObject(params.name or "ArchiveObject", params.type)
         end,
@@ -65,7 +65,7 @@ local function createComprehensiveStubs()
     }
 
     -- Location stub
-    package.loaded["Kdm/Location"] = {
+    package.loaded["Kdm/Location/Location"] = {
         Get = function(name)
             return {
                 Center = function() return { x = 0, y = 2, z = 0 } end,
@@ -84,30 +84,30 @@ local function createComprehensiveStubs()
     end
 
     -- Rules stub
-    package.loaded["Kdm/Rules"] = {
+    package.loaded["Kdm/Ui/Rules"] = {
         SpawnRules = function() end,
     }
 
     -- Monster stub
-    package.loaded["Kdm/Monster"] = {
+    package.loaded["Kdm/Entity/Monster"] = {
         Spawn = function() return createMockObject("monster-figurine") end,
     }
 
     -- Terrain stub
-    package.loaded["Kdm/Terrain"] = {
+    package.loaded["Kdm/Data/Terrain"] = {
         Spawn = function() end,
         SpawnRandom = function() end,
         SnapToGrid = function() end,
     }
 
     -- Survivor stub
-    package.loaded["Kdm/Survivor"] = {
+    package.loaded["Kdm/Entity/Survivor"] = {
         DepartingSurvivorNeedsToSkipNextHunt = function() return false end,
         ClearSkipNextHunt = function() end,
     }
 
     -- Player stub
-    package.loaded["Kdm/Player"] = {
+    package.loaded["Kdm/Entity/Player"] = {
         All = function() return {} end,
     }
 
@@ -130,7 +130,7 @@ local function createComprehensiveStubs()
     }
 
     -- NamedObject stub
-    package.loaded["Kdm/NamedObject"] = {
+    package.loaded["Kdm/Location/NamedObject"] = {
         Get = function(name)
             return createMockObject(name)
         end,
@@ -143,7 +143,7 @@ local function createComprehensiveStubs()
     }
 
     -- MessageBox stub
-    package.loaded["Kdm/MessageBox"] = {
+    package.loaded["Kdm/Ui/MessageBox"] = {
         Show = function(msg, callback) if callback then callback() end end,
     }
 

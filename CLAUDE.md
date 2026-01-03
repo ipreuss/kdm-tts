@@ -2,7 +2,7 @@
 
 ## Quick Commands
 - Build & Deploy: `./updateTTS.sh` (from parent directory)
-- Test (headless): `busted tests/`
+- Test (headless): `lua tests/run.lua`
 - Test (TTS console): `testall` or `testfocus <pattern>`
 
 ## Architecture Overview

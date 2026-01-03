@@ -404,7 +404,7 @@ local function buildStrainStubs()
             DARK_BROWN = "#111111",
             MID_BROWN = "#999999",
         },
-        ["Kdm/Log"] = { ForModule = function() return logStub end },
+        ["Kdm/Core/Log"] = { ForModule = function() return logStub end },
         ["Kdm/GameData/StrainMilestones"] = {
             {
                 title = "Milestone A",
@@ -420,14 +420,14 @@ local function buildStrainStubs()
                 rulesText = "Rules B",
             },
         },
-        ["Kdm/Archive"] = archiveStub,
-        ["Kdm/Location"] = locationStub,
+        ["Kdm/Archive/Archive"] = archiveStub,
+        ["Kdm/Location/Location"] = locationStub,
         ["Kdm/Util/Container"] = containerStub,
-        ["Kdm/NamedObject"] = namedObjectStub,
-        ["Kdm/Deck"] = deckStub,
-        ["Kdm/Console"] = consoleStub,
-        ["Kdm/VerminArchive"] = {},
-        ["Kdm/Timeline"] = {},
+        ["Kdm/Location/NamedObject"] = namedObjectStub,
+        ["Kdm/Data/Deck"] = deckStub,
+        ["Kdm/Core/Console"] = consoleStub,
+        ["Kdm/Archive/VerminArchive"] = {},
+        ["Kdm/Sequence/Timeline"] = {},
     }
     
     -- Populate default Strain Rewards deck with milestone fighting arts
@@ -453,7 +453,7 @@ local function buildStrainStubs()
         table.insert(verminStub.removed, name)
         return true
     end
-    stubs["Kdm/VerminArchive"] = verminStub
+    stubs["Kdm/Archive/VerminArchive"] = verminStub
 
     local timelineStub = {
         scheduled = {},
@@ -467,7 +467,7 @@ local function buildStrainStubs()
         table.insert(timelineStub.removed, { name = name, type = eventType })
         return true
     end
-    stubs["Kdm/Timeline"] = timelineStub
+    stubs["Kdm/Sequence/Timeline"] = timelineStub
 
     return stubs, {
         recorder = recorder,
@@ -500,11 +500,11 @@ local function withStrain(t, callback, options)
         options.customizeStubs(stubs, env)
     end
     withStubs(stubs, function()
-        package.loaded["Kdm/FightingArtsArchive"] = nil
-        local FightingArtsArchiveModule = require("Kdm/FightingArtsArchive")
-        package.loaded["Kdm/ConsequenceApplicator"] = nil
-        package.loaded["Kdm/Strain"] = nil
-        local StrainModule = require("Kdm/Strain")
+        package.loaded["Kdm/Archive/FightingArtsArchive"] = nil
+        local FightingArtsArchiveModule = require("Kdm/Archive/FightingArtsArchive")
+        package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local StrainModule = require("Kdm/Sequence/Strain")
         local strainTable = getInternalStrain(StrainModule)
         t:assertTrue(strainTable ~= nil, "found internal Strain table")
         env.fightingArtsArchive = FightingArtsArchiveModule
@@ -534,7 +534,7 @@ local function createArchiveForDeck(stubs, faDeck)
     archiveObject.getGUID = function()
         return "stub-archive-guid"
     end
-    stubs["Kdm/NamedObject"] = {
+    stubs["Kdm/Location/NamedObject"] = {
         Get = function()
             return archiveObject
         end,
@@ -1188,8 +1188,8 @@ Test.test("Strain.Test.SetReachedMilestones: overrides Save() return value", fun
     local stubs = buildStrainStubs()
     
     withStubs(stubs, function()
-        package.loaded["Kdm/Strain"] = nil
-        local Strain = require("Kdm/Strain")
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local Strain = require("Kdm/Sequence/Strain")
         
         -- Without override, Save returns empty reached
         local state1 = Strain.Save()
@@ -1213,7 +1213,7 @@ Test.test("Strain.Test.SetReachedMilestones: overrides Save() return value", fun
         local state3 = Strain.Save()
         t:assertFalse(state3.reached["Test Milestone"], "After reset, override should be cleared")
         
-        package.loaded["Kdm/Strain"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
     end)
 end)
 
@@ -1225,8 +1225,8 @@ Test.test("Strain.ComputeConsequenceChanges: returns empty for nil milestone", f
     local stubs = buildStrainStubs()
     
     withStubs(stubs, function()
-        package.loaded["Kdm/Strain"] = nil
-        local Strain = require("Kdm/Strain")
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local Strain = require("Kdm/Sequence/Strain")
         
         local changes = Strain.ComputeConsequenceChanges(nil, 1)
         
@@ -1234,7 +1234,7 @@ Test.test("Strain.ComputeConsequenceChanges: returns empty for nil milestone", f
         t:assertEqual(0, #changes.vermin)
         t:assertEqual(0, #changes.timelineEvents)
         
-        package.loaded["Kdm/Strain"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
     end)
 end)
 
@@ -1242,8 +1242,8 @@ Test.test("Strain.ComputeConsequenceChanges: extracts fighting art", function(t)
     local stubs = buildStrainStubs()
     
     withStubs(stubs, function()
-        package.loaded["Kdm/Strain"] = nil
-        local Strain = require("Kdm/Strain")
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local Strain = require("Kdm/Sequence/Strain")
         
         local milestone = {
             title = "Test",
@@ -1255,7 +1255,7 @@ Test.test("Strain.ComputeConsequenceChanges: extracts fighting art", function(t)
         t:assertEqual(1, #changes.fightingArts)
         t:assertEqual("Test Art", changes.fightingArts[1])
         
-        package.loaded["Kdm/Strain"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
     end)
 end)
 
@@ -1263,8 +1263,8 @@ Test.test("Strain.ComputeConsequenceChanges: computes timeline year with offset"
     local stubs = buildStrainStubs()
     
     withStubs(stubs, function()
-        package.loaded["Kdm/Strain"] = nil
-        local Strain = require("Kdm/Strain")
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local Strain = require("Kdm/Sequence/Strain")
         
         local milestone = {
             title = "Test",
@@ -1283,7 +1283,7 @@ Test.test("Strain.ComputeConsequenceChanges: computes timeline year with offset"
         t:assertEqual("Test Event", changes.timelineEvents[1].name)
         t:assertEqual(7, changes.timelineEvents[1].year)  -- 5 + 2
         
-        package.loaded["Kdm/Strain"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
     end)
 end)
 
@@ -1291,8 +1291,8 @@ Test.test("Strain.FindMilestone: returns milestone by title", function(t)
     local stubs = buildStrainStubs()
     
     withStubs(stubs, function()
-        package.loaded["Kdm/Strain"] = nil
-        local Strain = require("Kdm/Strain")
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local Strain = require("Kdm/Sequence/Strain")
         
         -- Use stub milestone name (from buildStrainStubs)
         local milestone = Strain.FindMilestone("Milestone A")
@@ -1301,7 +1301,7 @@ Test.test("Strain.FindMilestone: returns milestone by title", function(t)
         t:assertEqual("Milestone A", milestone.title)
         t:assertEqual("Test Art", milestone.consequences.fightingArt)
         
-        package.loaded["Kdm/Strain"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
     end)
 end)
 
@@ -1309,14 +1309,14 @@ Test.test("Strain.FindMilestone: returns nil for unknown title", function(t)
     local stubs = buildStrainStubs()
     
     withStubs(stubs, function()
-        package.loaded["Kdm/Strain"] = nil
-        local Strain = require("Kdm/Strain")
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local Strain = require("Kdm/Sequence/Strain")
         
         local milestone = Strain.FindMilestone("Nonexistent Milestone")
         
         t:assertNil(milestone)
         
-        package.loaded["Kdm/Strain"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
     end)
 end)
 
@@ -1324,8 +1324,8 @@ Test.test("Strain.ComputeConsequenceChanges: extracts trashSettlementEvent", fun
     local stubs = buildStrainStubs()
     
     withStubs(stubs, function()
-        package.loaded["Kdm/Strain"] = nil
-        local Strain = require("Kdm/Strain")
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local Strain = require("Kdm/Sequence/Strain")
         
         local milestone = {
             title = "Test",
@@ -1337,7 +1337,7 @@ Test.test("Strain.ComputeConsequenceChanges: extracts trashSettlementEvent", fun
         t:assertEqual(1, #changes.trashSettlementEvents)
         t:assertEqual("Heat Wave", changes.trashSettlementEvents[1])
         
-        package.loaded["Kdm/Strain"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
     end)
 end)
 
@@ -1345,8 +1345,8 @@ Test.test("Strain.ComputeConsequenceChanges: extracts addBasicResource", functio
     local stubs = buildStrainStubs()
     
     withStubs(stubs, function()
-        package.loaded["Kdm/Strain"] = nil
-        local Strain = require("Kdm/Strain")
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local Strain = require("Kdm/Sequence/Strain")
         
         local milestone = {
             title = "Test",
@@ -1358,7 +1358,7 @@ Test.test("Strain.ComputeConsequenceChanges: extracts addBasicResource", functio
         t:assertEqual(1, #changes.addBasicResources)
         t:assertEqual("Lump of Atnas", changes.addBasicResources[1])
         
-        package.loaded["Kdm/Strain"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
     end)
 end)
 
@@ -1371,8 +1371,8 @@ Test.test("BuildUndoMessage: fighting art only", function(t)
     local stubs = buildStrainStubs()
     
     withStubs(stubs, function()
-        package.loaded["Kdm/Strain"] = nil
-        local Strain = require("Kdm/Strain")
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local Strain = require("Kdm/Sequence/Strain")
         
         local milestone = {
             title = "Test",
@@ -1382,7 +1382,7 @@ Test.test("BuildUndoMessage: fighting art only", function(t)
         t:assertContains(message, "removes Test Art from the Fighting Arts deck")
         t:assertContains(message, "Remove it from any survivor")
         
-        package.loaded["Kdm/Strain"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
     end)
 end)
 
@@ -1390,8 +1390,8 @@ Test.test("BuildUndoMessage: Atmospheric Change (no fighting art)", function(t)
     local stubs = buildStrainStubs()
     
     withStubs(stubs, function()
-        package.loaded["Kdm/Strain"] = nil
-        local Strain = require("Kdm/Strain")
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local Strain = require("Kdm/Sequence/Strain")
         
         local milestone = {
             title = "Atmospheric Change",
@@ -1406,7 +1406,7 @@ Test.test("BuildUndoMessage: Atmospheric Change (no fighting art)", function(t)
         t:assertNotContains(message, "fighting art")
         t:assertNotContains(message, "survivor")
         
-        package.loaded["Kdm/Strain"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
     end)
 end)
 
@@ -1414,8 +1414,8 @@ Test.test("BuildUndoMessage: fighting art + vermin (Ashen Claw)", function(t)
     local stubs = buildStrainStubs()
     
     withStubs(stubs, function()
-        package.loaded["Kdm/Strain"] = nil
-        local Strain = require("Kdm/Strain")
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local Strain = require("Kdm/Sequence/Strain")
         
         local milestone = {
             title = "Ashen Claw Strain",
@@ -1428,7 +1428,7 @@ Test.test("BuildUndoMessage: fighting art + vermin (Ashen Claw)", function(t)
         t:assertContains(message, "removes Armored Fist from the Fighting Arts deck")
         t:assertContains(message, "removes Fiddler Crab Spider from the Vermin deck")
         
-        package.loaded["Kdm/Strain"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
     end)
 end)
 
@@ -1436,8 +1436,8 @@ Test.test("BuildUndoMessage: fighting art + timeline event (Sweat Stained Oath)"
     local stubs = buildStrainStubs()
     
     withStubs(stubs, function()
-        package.loaded["Kdm/Strain"] = nil
-        local Strain = require("Kdm/Strain")
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local Strain = require("Kdm/Sequence/Strain")
         
         local milestone = {
             title = "Sweat Stained Oath",
@@ -1450,7 +1450,7 @@ Test.test("BuildUndoMessage: fighting art + timeline event (Sweat Stained Oath)"
         t:assertContains(message, "removes Sword Oath from the Fighting Arts deck")
         t:assertContains(message, "removes Acid Storm from the timeline")
         
-        package.loaded["Kdm/Strain"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
     end)
 end)
 
@@ -1458,13 +1458,13 @@ Test.test("BuildUndoMessage: nil milestone", function(t)
     local stubs = buildStrainStubs()
     
     withStubs(stubs, function()
-        package.loaded["Kdm/Strain"] = nil
-        local Strain = require("Kdm/Strain")
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local Strain = require("Kdm/Sequence/Strain")
         
         local message = Strain.BuildUndoMessage(nil)
         t:assertEqual("This will undo the milestone.", message)
         
-        package.loaded["Kdm/Strain"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
     end)
 end)
 
@@ -1472,13 +1472,13 @@ Test.test("BuildUndoMessage: empty consequences", function(t)
     local stubs = buildStrainStubs()
     
     withStubs(stubs, function()
-        package.loaded["Kdm/Strain"] = nil
-        local Strain = require("Kdm/Strain")
+        package.loaded["Kdm/Sequence/Strain"] = nil
+        local Strain = require("Kdm/Sequence/Strain")
         
         local milestone = { title = "Test", consequences = {} }
         local message = Strain.BuildUndoMessage(milestone)
         t:assertEqual("This will undo the milestone.", message)
         
-        package.loaded["Kdm/Strain"] = nil
+        package.loaded["Kdm/Sequence/Strain"] = nil
     end)
 end)

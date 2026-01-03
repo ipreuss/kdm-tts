@@ -23,7 +23,7 @@ Test.test("TTSSpawner seam: Archive.Test_SetSpawner/ResetSpawner work correctly"
     -- This test verifies the TTSSpawner seam functions are correctly wired.
     -- We verify the seam API works - set/reset don't error and the functions are callable.
     
-    local Archive = require("Kdm/Archive")
+    local Archive = require("Kdm/Archive/Archive")
     
     -- Create fake spawner
     local spawnerCalls = {}
@@ -128,9 +128,9 @@ Test.test("TRUE INTEGRATION: Archive.Take with real Container logic", function(t
     -- only TTS spawning is stubbed.
     
     -- Save originals
-    local origNamedObject = package.loaded["Kdm/NamedObject"]
+    local origNamedObject = package.loaded["Kdm/Location/NamedObject"]
     local origExpansion = package.loaded["Kdm/Expansion"]
-    local origArchive = package.loaded["Kdm/Archive"]
+    local origArchive = package.loaded["Kdm/Archive/Archive"]
     
     -- Track what the spawner receives
     local spawnerCalls = {}
@@ -176,7 +176,7 @@ Test.test("TRUE INTEGRATION: Archive.Take with real Container logic", function(t
     })
     
     -- Stub NamedObject to return fake archive bags
-    package.loaded["Kdm/NamedObject"] = {
+    package.loaded["Kdm/Location/NamedObject"] = {
         Get = function(name)
             return {
                 getName = function() return name end,
@@ -191,8 +191,8 @@ Test.test("TRUE INTEGRATION: Archive.Take with real Container logic", function(t
     }
     
     -- Reload Archive with stubs in place
-    package.loaded["Kdm/Archive"] = nil
-    local Archive = require("Kdm/Archive")
+    package.loaded["Kdm/Archive/Archive"] = nil
+    local Archive = require("Kdm/Archive/Archive")
     
     -- Inject fake spawner
     Archive.Test_SetSpawner(fakeSpawner)
@@ -214,9 +214,9 @@ Test.test("TRUE INTEGRATION: Archive.Take with real Container logic", function(t
     
     -- Cleanup
     Archive.Test_ResetSpawner()
-    package.loaded["Kdm/NamedObject"] = origNamedObject
+    package.loaded["Kdm/Location/NamedObject"] = origNamedObject
     package.loaded["Kdm/Expansion"] = origExpansion
-    package.loaded["Kdm/Archive"] = origArchive
+    package.loaded["Kdm/Archive/Archive"] = origArchive
     
     -- Verify Archive delegated to our fake spawner
     t:assertTrue(#spawnerCalls > 0, "Archive.Take should delegate to TTSSpawner")
@@ -235,11 +235,11 @@ Test.test("TRUE INTEGRATION: Strain._TakeRewardCard → Archive.TakeFromDeck →
     -- If any export is missing, this fails naturally with "attempt to call nil"
     
     -- Save originals
-    local origNamedObject = package.loaded["Kdm/NamedObject"]
+    local origNamedObject = package.loaded["Kdm/Location/NamedObject"]
     local origExpansion = package.loaded["Kdm/Expansion"]
-    local origArchive = package.loaded["Kdm/Archive"]
-    local origStrain = package.loaded["Kdm/Strain"]
-    local origLocation = package.loaded["Kdm/Location"]
+    local origArchive = package.loaded["Kdm/Archive/Archive"]
+    local origStrain = package.loaded["Kdm/Sequence/Strain"]
+    local origLocation = package.loaded["Kdm/Location/Location"]
     local origPhysics = _G.Physics
     
     -- Track spawner calls
@@ -302,7 +302,7 @@ Test.test("TRUE INTEGRATION: Strain._TakeRewardCard → Archive.TakeFromDeck →
     })
     
     -- Stub NamedObject
-    package.loaded["Kdm/NamedObject"] = {
+    package.loaded["Kdm/Location/NamedObject"] = {
         Get = function(name)
             return {
                 getName = function() return name end,
@@ -317,7 +317,7 @@ Test.test("TRUE INTEGRATION: Strain._TakeRewardCard → Archive.TakeFromDeck →
     }
     
     -- Stub Location for position resolution
-    package.loaded["Kdm/Location"] = {
+    package.loaded["Kdm/Location/Location"] = {
         Get = function(name)
             return {
                 Center = function() return { x = 10, y = 0, z = 10 } end,
@@ -326,8 +326,8 @@ Test.test("TRUE INTEGRATION: Strain._TakeRewardCard → Archive.TakeFromDeck →
     }
     
     -- Reload Archive with stubs, inject spawner
-    package.loaded["Kdm/Archive"] = nil
-    local Archive = require("Kdm/Archive")
+    package.loaded["Kdm/Archive/Archive"] = nil
+    local Archive = require("Kdm/Archive/Archive")
     
     -- Stub Physics global for Archive.Clean
     _G.Physics = {
@@ -347,8 +347,8 @@ Test.test("TRUE INTEGRATION: Strain._TakeRewardCard → Archive.TakeFromDeck →
     })
     
     -- Reload Strain with our stubbed Archive
-    package.loaded["Kdm/Strain"] = nil
-    local Strain = require("Kdm/Strain")
+    package.loaded["Kdm/Sequence/Strain"] = nil
+    local Strain = require("Kdm/Sequence/Strain")
     
     -- Verify critical exports exist - if these fail, integration is broken
     t:assertNotNil(Strain.Test, "Strain.Test must be exported")
@@ -368,11 +368,11 @@ Test.test("TRUE INTEGRATION: Strain._TakeRewardCard → Archive.TakeFromDeck →
     -- Cleanup
     Archive.Test_ResetSpawner()
     _G.Physics = origPhysics
-    package.loaded["Kdm/NamedObject"] = origNamedObject
+    package.loaded["Kdm/Location/NamedObject"] = origNamedObject
     package.loaded["Kdm/Expansion"] = origExpansion
-    package.loaded["Kdm/Archive"] = origArchive
-    package.loaded["Kdm/Strain"] = origStrain
-    package.loaded["Kdm/Location"] = origLocation
+    package.loaded["Kdm/Archive/Archive"] = origArchive
+    package.loaded["Kdm/Sequence/Strain"] = origStrain
+    package.loaded["Kdm/Location/Location"] = origLocation
     
     -- Verify the full integration worked
     t:assertTrue(#spawnerCalls > 0, "Strain→Archive should trigger spawner")

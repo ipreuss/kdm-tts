@@ -22,19 +22,27 @@ local LocationStubs = {}
 function LocationStubs.createLocationStubs()
     return {
         ["Kdm/Util/Check"] = setmetatable({}, { __call = function() return true end }),
-        ["Kdm/Console"] = { AddCommand = function() end },
+        ["Kdm/Core/Console"] = { AddCommand = function() end },
         ["Kdm/Util/Container"] = {},
         ["Kdm/Util/EventManager"] = { AddHandler = function() end },
         ["Kdm/Expansion"] = { All = function() return {} end },
-        ["Kdm/LocationData"] = {},
-        ["Kdm/Log"] = { ForModule = function() return { Debugf = function() end, Errorf = function() end } end },
-        ["Kdm/NamedObject"] = { DEFAULT_CAST_HEIGHT = 5 },
+        ["Kdm/Location/LocationData"] = {},
+        ["Kdm/Core/Log"] = { ForModule = function() return { Debugf = function() end, Errorf = function() end } end },
+        ["Kdm/Location/NamedObject"] = { DEFAULT_CAST_HEIGHT = 5 },
         ["Kdm/Util/Util"] = {
             ArrayContains = function(array, value)
                 for _, element in ipairs(array) do
                     if element == value then return true end
                 end
                 return false
+            end,
+            TabStr = function(t)
+                if type(t) ~= "table" then return tostring(t) end
+                local parts = {}
+                for k, v in pairs(t) do
+                    table.insert(parts, tostring(k) .. "=" .. tostring(v))
+                end
+                return "{" .. table.concat(parts, ", ") .. "}"
             end,
         },
     }

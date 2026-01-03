@@ -49,29 +49,29 @@ end
 
 function TestWorld:_installArchiveSpies()
     -- Archive modules (spied)
-    package.loaded["Kdm/Archive"] = self._archiveSpy:createArchiveStub()
-    package.loaded["Kdm/FightingArtsArchive"] = self._archiveSpy:createFightingArtsArchiveStub()
-    package.loaded["Kdm/VerminArchive"] = self._archiveSpy:createVerminArchiveStub()
-    package.loaded["Kdm/BasicResourcesArchive"] = self._archiveSpy:createBasicResourcesArchiveStub()
-    package.loaded["Kdm/DisordersArchive"] = self._archiveSpy:createDisordersArchiveStub()
-    package.loaded["Kdm/SevereInjuriesArchive"] = self._archiveSpy:createSevereInjuriesArchiveStub()
-    package.loaded["Kdm/StrangeResourcesArchive"] = self._archiveSpy:createStrangeResourcesArchiveStub()
-    package.loaded["Kdm/Trash"] = self._archiveSpy:createTrashStubWithImport()
-    package.loaded["Kdm/Timeline"] = self._archiveSpy:createTimelineStub(function()
+    package.loaded["Kdm/Archive/Archive"] = self._archiveSpy:createArchiveStub()
+    package.loaded["Kdm/Archive/FightingArtsArchive"] = self._archiveSpy:createFightingArtsArchiveStub()
+    package.loaded["Kdm/Archive/VerminArchive"] = self._archiveSpy:createVerminArchiveStub()
+    package.loaded["Kdm/Archive/BasicResourcesArchive"] = self._archiveSpy:createBasicResourcesArchiveStub()
+    package.loaded["Kdm/Archive/DisordersArchive"] = self._archiveSpy:createDisordersArchiveStub()
+    package.loaded["Kdm/Archive/SevereInjuriesArchive"] = self._archiveSpy:createSevereInjuriesArchiveStub()
+    package.loaded["Kdm/Archive/StrangeResourcesArchive"] = self._archiveSpy:createStrangeResourcesArchiveStub()
+    package.loaded["Kdm/Data/Trash"] = self._archiveSpy:createTrashStubWithImport()
+    package.loaded["Kdm/Sequence/Timeline"] = self._archiveSpy:createTimelineStub(function()
         return self._currentYear
     end)
 
     -- Additional modules needed for Campaign.Import
-    package.loaded["Kdm/Showdown"] = self._archiveSpy:createShowdownStub()
-    package.loaded["Kdm/Hunt"] = self._archiveSpy:createHuntStub()
+    package.loaded["Kdm/Sequence/Showdown"] = self._archiveSpy:createShowdownStub()
+    package.loaded["Kdm/Sequence/Hunt"] = self._archiveSpy:createHuntStub()
     package.loaded["Kdm/Expansion"] = self._archiveSpy:createExpansionStub()
-    package.loaded["Kdm/Rules"] = self._archiveSpy:createRulesStub()
-    package.loaded["Kdm/Location"] = self._archiveSpy:createLocationStub()
-    package.loaded["Kdm/Survivor"] = self._archiveSpy:createSurvivorStub()
+    package.loaded["Kdm/Ui/Rules"] = self._archiveSpy:createRulesStub()
+    package.loaded["Kdm/Location/Location"] = self._archiveSpy:createLocationStub()
+    package.loaded["Kdm/Entity/Survivor"] = self._archiveSpy:createSurvivorStub()
     package.loaded["Kdm/GameData/CampaignMigrations"] = self._archiveSpy:createCampaignMigrationsStub()
-    package.loaded["Kdm/NamedObject"] = self._archiveSpy:createNamedObjectStub()
+    package.loaded["Kdm/Location/NamedObject"] = self._archiveSpy:createNamedObjectStub()
     package.loaded["Kdm/Util/Container"] = self._archiveSpy:createContainerModuleStub()
-    package.loaded["Kdm/Player"] = self._archiveSpy:createPlayerStub()
+    package.loaded["Kdm/Entity/Player"] = self._archiveSpy:createPlayerStub()
 
     -- Global Wait stub for TTS async
     Wait = self._archiveSpy:createWaitStub()
@@ -84,13 +84,13 @@ end
 function TestWorld:_loadModules()
     -- Clear cached modules to get fresh load with stubs in place
     -- The archive modules are already stubbed via _installArchiveSpies
-    package.loaded["Kdm/ConsequenceApplicator"] = nil
-    package.loaded["Kdm/Strain"] = nil
-    package.loaded["Kdm/Campaign"] = nil
-    package.loaded["Kdm/Deck"] = nil
+    package.loaded["Kdm/Data/ConsequenceApplicator"] = nil
+    package.loaded["Kdm/Sequence/Strain"] = nil
+    package.loaded["Kdm/Sequence/Campaign"] = nil
+    package.loaded["Kdm/Data/Deck"] = nil
 
-    self._strainModule = require("Kdm/Strain")
-    self._campaignModule = require("Kdm/Campaign")
+    self._strainModule = require("Kdm/Sequence/Strain")
+    self._campaignModule = require("Kdm/Sequence/Campaign")
 end
 
 ---------------------------------------------------------------------------------------------------

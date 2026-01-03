@@ -18,19 +18,19 @@ end
 Test.test("Hunt ShowUi/HideUi delegate to dialog per-player", function(t)
     local logStub = { Debugf = function() end, Errorf = function() end, Broadcastf = function() end }
     withStubs({
-        ["Kdm/Archive"] = {},
+        ["Kdm/Archive/Archive"] = {},
         ["Kdm/Util/array"] = {
             filter = function(arr, fn) local out = {} for i,v in ipairs(arr or {}) do if fn(v) then table.insert(out, v) end end return out end,
         },
         ["Kdm/Util/Check"] = setmetatable({}, { __call = function() return true end }),
         ["Kdm/Util/Container"] = {},
-        ["Kdm/Deck"] = {},
+        ["Kdm/Data/Deck"] = {},
         ["Kdm/Expansion"] = {
             All = function() return {} end,
             IsUnlockedMode = function() return false end,
             IsEnabled = function() return true end,
         },
-        ["Kdm/Location"] = {
+        ["Kdm/Location/Location"] = {
             Get = function(name)
                 return {
                     AddDropHandler = function() end,
@@ -39,14 +39,14 @@ Test.test("Hunt ShowUi/HideUi delegate to dialog per-player", function(t)
                 }
             end
         },
-        ["Kdm/Log"] = { ForModule = function() return logStub end },
-        ["Kdm/Trash"] = {},
+        ["Kdm/Core/Log"] = { ForModule = function() return logStub end },
+        ["Kdm/Data/Trash"] = {},
         ["Kdm/Ui"] = { Get2d = function() return {} end },
         ["Kdm/Util/Util"] = { Map = function(list, fn) local out = {} for i,v in ipairs(list or {}) do out[i]=fn(v) end return out end },
-        ["Kdm/Survivor"] = {},
+        ["Kdm/Entity/Survivor"] = {},
         ["Kdm/Ui/PanelKit"] = false, -- placeholder, replaced below
     }, function()
-        package.loaded["Kdm/Hunt"] = nil
+        package.loaded["Kdm/Sequence/Hunt"] = nil
 
         local dialogCalls = { show = 0, hide = 0 }
         local dialogStub = {
@@ -75,7 +75,7 @@ Test.test("Hunt ShowUi/HideUi delegate to dialog per-player", function(t)
             end,
         }
 
-        local Hunt = require("Kdm/Hunt")
+        local Hunt = require("Kdm/Sequence/Hunt")
         Hunt.Init() -- sets Hunt.dialog internally
         local player = { color = "Blue", steam_name = "Test" }
         Hunt.ShowUi(player)

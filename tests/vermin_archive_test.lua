@@ -153,10 +153,10 @@ local function buildVerminStubs(options)
     local logStub = { Errorf = function() end, Printf = function() end, Debugf = function() end }
 
     local stubs = {
-        ["Kdm/Archive"] = archiveStub,
-        ["Kdm/NamedObject"] = namedObjectStub,
-        ["Kdm/Deck"] = deckStub,
-        ["Kdm/Log"] = { ForModule = function() return logStub end },
+        ["Kdm/Archive/Archive"] = archiveStub,
+        ["Kdm/Location/NamedObject"] = namedObjectStub,
+        ["Kdm/Data/Deck"] = deckStub,
+        ["Kdm/Core/Log"] = { ForModule = function() return logStub end },
     }
 
     return stubs, {
@@ -171,8 +171,8 @@ end
 Test.test("VerminArchive.AddCard inserts reward card", function(t)
     local stubs, env = buildVerminStubs({})
     withStubs(stubs, function()
-        package.loaded["Kdm/VerminArchive"] = nil
-        local VerminArchive = require("Kdm/VerminArchive")
+        package.loaded["Kdm/Archive/VerminArchive"] = nil
+        local VerminArchive = require("Kdm/Archive/VerminArchive")
 
         local ok = VerminArchive.AddCard("Fiddler Crab Spider")
         t:assertTrue(ok, "AddCard should succeed when card present")
@@ -186,8 +186,8 @@ end)
 Test.test("VerminArchive.AddCard fails when card missing", function(t)
     local stubs = buildVerminStubs({ includeCard = false })
     withStubs(stubs, function()
-        package.loaded["Kdm/VerminArchive"] = nil
-        local VerminArchive = require("Kdm/VerminArchive")
+        package.loaded["Kdm/Archive/VerminArchive"] = nil
+        local VerminArchive = require("Kdm/Archive/VerminArchive")
 
         local ok = VerminArchive.AddCard("Missing")
         t:assertFalse(ok, "Expected failure when card absent")
@@ -197,8 +197,8 @@ end)
 Test.test("VerminArchive.RemoveCard removes present card", function(t)
     local stubs, env = buildVerminStubs({})
     withStubs(stubs, function()
-        package.loaded["Kdm/VerminArchive"] = nil
-        local VerminArchive = require("Kdm/VerminArchive")
+        package.loaded["Kdm/Archive/VerminArchive"] = nil
+        local VerminArchive = require("Kdm/Archive/VerminArchive")
 
         local ok = VerminArchive.RemoveCard("Fiddler Crab Spider")
         t:assertTrue(ok, "Removal should succeed")
@@ -210,8 +210,8 @@ end)
 Test.test("VerminArchive.RemoveCard logs when absent", function(t)
     local stubs = buildVerminStubs({ includeCard = false })
     withStubs(stubs, function()
-        package.loaded["Kdm/VerminArchive"] = nil
-        local VerminArchive = require("Kdm/VerminArchive")
+        package.loaded["Kdm/Archive/VerminArchive"] = nil
+        local VerminArchive = require("Kdm/Archive/VerminArchive")
 
         local ok = VerminArchive.RemoveCard("Missing")
         t:assertFalse(ok, "Removal should fail when card missing")

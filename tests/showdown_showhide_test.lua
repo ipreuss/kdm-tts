@@ -18,7 +18,7 @@ end
 Test.test("Showdown ShowUi/HideUi delegate to dialog per-player", function(t)
     local logStub = { Debugf = function() end, Errorf = function() end }
     withStubs({
-        ["Kdm/Archive"] = {},
+        ["Kdm/Archive/Archive"] = {},
         ["Kdm/Util/array"] = {
             filter = function(arr, fn) local out = {} for i,v in ipairs(arr or {}) do if fn(v) then table.insert(out, v) end end return out end,
         },
@@ -31,23 +31,23 @@ Test.test("Showdown ShowUi/HideUi delegate to dialog per-player", function(t)
             IsEnabled = function() return true end,
         },
         ["Kdm/Util/Grid"] = { Create = function() return {} end },
-        ["Kdm/Log"] = { ForModule = function() return logStub end },
-        ["Kdm/Location"] = { Get = function() return { Position = function() end } end },
-        ["Kdm/Monster"] = {},
-        ["Kdm/NamedObject"] = { Get = function() return {} end },
+        ["Kdm/Core/Log"] = { ForModule = function() return logStub end },
+        ["Kdm/Location/Location"] = { Get = function() return { Position = function() end } end },
+        ["Kdm/Entity/Monster"] = {},
+        ["Kdm/Location/NamedObject"] = { Get = function() return {} end },
         ["Kdm/Util/Overlay"] = { Create = function() return {} end },
-        ["Kdm/Player"] = {},
-        ["Kdm/Rules"] = {},
-        ["Kdm/Terrain"] = {},
+        ["Kdm/Entity/Player"] = {},
+        ["Kdm/Ui/Rules"] = {},
+        ["Kdm/Data/Terrain"] = {},
         ["Kdm/Ui"] = { Get2d = function() return {} end },
         ["Kdm/Util/Util"] = {
             TabStr = function() return "" end,
             Map = function(list, fn) local out = {} for i,v in ipairs(list or {}) do out[i]=fn(v) end return out end,
         },
-        ["Kdm/Survivor"] = {},
+        ["Kdm/Entity/Survivor"] = {},
         ["Kdm/Ui/PanelKit"] = false,
     }, function()
-        package.loaded["Kdm/Showdown"] = nil
+        package.loaded["Kdm/Sequence/Showdown"] = nil
         local dialogCalls = { show = 0, hide = 0 }
         local dialogStub = {
             Panel = function()
@@ -73,7 +73,7 @@ Test.test("Showdown ShowUi/HideUi delegate to dialog per-player", function(t)
             end,
         }
 
-        local Showdown = require("Kdm/Showdown")
+        local Showdown = require("Kdm/Sequence/Showdown")
         Showdown.Init()
         local player = { color = "Green", steam_name = "Test" }
         Showdown.ShowUi(player)

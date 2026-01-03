@@ -55,7 +55,7 @@ local function createMinimalTTSEnvironment()
     end
 
     -- NamedObject stub
-    package.loaded["Kdm/NamedObject"] = {
+    package.loaded["Kdm/Location/NamedObject"] = {
         Get = function(name)
             return createMockObject(name)
         end,
@@ -63,7 +63,7 @@ local function createMinimalTTSEnvironment()
 
     -- Location stub with deck tracking
     local locationDecks = {}
-    package.loaded["Kdm/Location"] = {
+    package.loaded["Kdm/Location/Location"] = {
         Get = function(name)
             return {
                 Center = function() return { x = 0, y = 2, z = 0 } end,
@@ -85,7 +85,7 @@ local function createMinimalTTSEnvironment()
     -- MessageBox stub with tracking
     local messageBoxShown = false
     local messageBoxCallback = nil
-    package.loaded["Kdm/MessageBox"] = {
+    package.loaded["Kdm/Ui/MessageBox"] = {
         Show = function(msg, callback)
             messageBoxShown = true
             messageBoxCallback = callback
@@ -214,14 +214,14 @@ local function createMinimalTTSEnvironment()
     }
 
     -- Survivor stub (for Showdown)
-    package.loaded["Kdm/Survivor"] = {
+    package.loaded["Kdm/Entity/Survivor"] = {
         DepartingSurvivorNeedsToSkipNextHunt = function() return false end,
         ClearSkipNextHunt = function() end,
     }
 
     -- Archive stub with call tracking for strange resources
     local archiveCalls = {}
-    package.loaded["Kdm/Archive"] = {
+    package.loaded["Kdm/Archive/Archive"] = {
         TakeFromDeck = function(params)
             table.insert(archiveCalls, {
                 deckName = params.deckName,
@@ -259,10 +259,10 @@ local function loadResourceRewardsModule()
     EventManager.globalHandlers = {}
 
     -- Load Showdown (needed for monster/level state)
-    local Showdown = require("Kdm/Showdown")
+    local Showdown = require("Kdm/Sequence/Showdown")
 
     -- Load ResourceRewards
-    local ResourceRewards = require("Kdm/ResourceRewards")
+    local ResourceRewards = require("Kdm/Data/ResourceRewards")
     ResourceRewards.Init()
     ResourceRewards.PostInit()
 
@@ -271,10 +271,10 @@ local function loadResourceRewardsModule()
         Showdown = Showdown,
         ResourceRewards = ResourceRewards,
         Ui = package.loaded["Kdm/Ui"],
-        Location = package.loaded["Kdm/Location"],
-        MessageBox = package.loaded["Kdm/MessageBox"],
+        Location = package.loaded["Kdm/Location/Location"],
+        MessageBox = package.loaded["Kdm/Ui/MessageBox"],
         Container = package.loaded["Kdm/Util/Container"],
-        Archive = package.loaded["Kdm/Archive"],
+        Archive = package.loaded["Kdm/Archive/Archive"],
     }
 end
 

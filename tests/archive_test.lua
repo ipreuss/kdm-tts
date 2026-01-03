@@ -38,7 +38,7 @@ local function withArchive(fn)
                 return {}
             end,
         },
-        ["Kdm/Location"] = {
+        ["Kdm/Location/Location"] = {
             Get = function()
                 return {
                     Center = function()
@@ -47,8 +47,8 @@ local function withArchive(fn)
                 }
             end,
         },
-        ["Kdm/NamedObject"] = {},
-        ["Kdm/Log"] = {
+        ["Kdm/Location/NamedObject"] = {},
+        ["Kdm/Core/Log"] = {
             ForModule = function()
                 local noop = function() end
                 return {
@@ -68,7 +68,7 @@ local function withArchive(fn)
         end,
     }
 
-    stubModules["Kdm/NamedObject"].Get = function(name)
+    stubModules["Kdm/Location/NamedObject"].Get = function(name)
         env.lastArchiveRequested = name
         local archiveObject = {
             getGUID = function()
@@ -91,15 +91,15 @@ local function withArchive(fn)
         package.loaded[name] = stub
     end
 
-    local originalArchive = package.loaded["Kdm/Archive"]
-    package.loaded["Kdm/Archive"] = nil
+    local originalArchive = package.loaded["Kdm/Archive/Archive"]
+    package.loaded["Kdm/Archive/Archive"] = nil
 
     local ok, result = pcall(function()
-        local Archive = require("Kdm/Archive")
+        local Archive = require("Kdm/Archive/Archive")
         fn(Archive, env)
     end)
 
-    package.loaded["Kdm/Archive"] = originalArchive
+    package.loaded["Kdm/Archive/Archive"] = originalArchive
     for name, original in pairs(savedModules) do
         package.loaded[name] = original
     end

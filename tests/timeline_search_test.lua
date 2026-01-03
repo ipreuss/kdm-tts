@@ -1,5 +1,5 @@
 local Test = require("tests.framework")
-local Timeline = require("Kdm/Timeline")
+local Timeline = require("Kdm/Sequence/Timeline")
 
 local function reset()
     Timeline._testResetSearchState()

@@ -153,10 +153,10 @@ local function buildBasicResourcesStubs(options)
     local logStub = { Errorf = function() end, Printf = function() end, Debugf = function() end }
 
     local stubs = {
-        ["Kdm/Archive"] = archiveStub,
-        ["Kdm/NamedObject"] = namedObjectStub,
-        ["Kdm/Deck"] = deckStub,
-        ["Kdm/Log"] = { ForModule = function() return logStub end },
+        ["Kdm/Archive/Archive"] = archiveStub,
+        ["Kdm/Location/NamedObject"] = namedObjectStub,
+        ["Kdm/Data/Deck"] = deckStub,
+        ["Kdm/Core/Log"] = { ForModule = function() return logStub end },
     }
 
     return stubs, {
@@ -171,8 +171,8 @@ end
 Test.test("BasicResourcesArchive.AddCard inserts reward card", function(t)
     local stubs, env = buildBasicResourcesStubs({})
     withStubs(stubs, function()
-        package.loaded["Kdm/BasicResourcesArchive"] = nil
-        local BasicResourcesArchive = require("Kdm/BasicResourcesArchive")
+        package.loaded["Kdm/Archive/BasicResourcesArchive"] = nil
+        local BasicResourcesArchive = require("Kdm/Archive/BasicResourcesArchive")
 
         local ok = BasicResourcesArchive.AddCard("Lump of Atnas")
         t:assertTrue(ok, "AddCard should succeed when card present")
@@ -186,8 +186,8 @@ end)
 Test.test("BasicResourcesArchive.AddCard fails when card missing", function(t)
     local stubs = buildBasicResourcesStubs({ includeCard = false })
     withStubs(stubs, function()
-        package.loaded["Kdm/BasicResourcesArchive"] = nil
-        local BasicResourcesArchive = require("Kdm/BasicResourcesArchive")
+        package.loaded["Kdm/Archive/BasicResourcesArchive"] = nil
+        local BasicResourcesArchive = require("Kdm/Archive/BasicResourcesArchive")
 
         local ok = BasicResourcesArchive.AddCard("Missing")
         t:assertFalse(ok, "Expected failure when card absent")
@@ -197,8 +197,8 @@ end)
 Test.test("BasicResourcesArchive.RemoveCard removes present card", function(t)
     local stubs, env = buildBasicResourcesStubs({})
     withStubs(stubs, function()
-        package.loaded["Kdm/BasicResourcesArchive"] = nil
-        local BasicResourcesArchive = require("Kdm/BasicResourcesArchive")
+        package.loaded["Kdm/Archive/BasicResourcesArchive"] = nil
+        local BasicResourcesArchive = require("Kdm/Archive/BasicResourcesArchive")
 
         local ok = BasicResourcesArchive.RemoveCard("Lump of Atnas")
         t:assertTrue(ok, "Removal should succeed")
@@ -210,8 +210,8 @@ end)
 Test.test("BasicResourcesArchive.RemoveCard logs when absent", function(t)
     local stubs = buildBasicResourcesStubs({ includeCard = false })
     withStubs(stubs, function()
-        package.loaded["Kdm/BasicResourcesArchive"] = nil
-        local BasicResourcesArchive = require("Kdm/BasicResourcesArchive")
+        package.loaded["Kdm/Archive/BasicResourcesArchive"] = nil
+        local BasicResourcesArchive = require("Kdm/Archive/BasicResourcesArchive")
 
         local ok = BasicResourcesArchive.RemoveCard("Missing")
         t:assertFalse(ok, "Removal should fail when card missing")
