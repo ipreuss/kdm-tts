@@ -49,6 +49,7 @@ local testFiles = {
     "tests.location_clean_test",
     "tests.hunt_showdown_filter_test",
     "tests.aftermath_acceptance_test",
+    "tests.settlement_location_rewards_test",
     "tests.hunt_party_test",
     "tests.acceptance.hunt_party_acceptance_test",
     "tests.event_manager_test",

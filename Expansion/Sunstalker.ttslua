@@ -351,11 +351,11 @@ return {
                         aftermath = {
                             victory = {
                                 resources = { basic = 4, monster = 4, strange = { "Sunstones" } },
+                                settlementLocationReward = "Skyreef Sanctuary",
                                 checklist = {
                                     { text = "+1 Hunt XP" },
                                     { text = "+1 Weapon Proficiency (if eligible)" },
                                     { text = "Collect resources" },
-                                    { text = "First victory: Gain Skyreef Sanctuary settlement location" },
                                 },
                             },
                             defeat = {
@@ -384,11 +384,11 @@ return {
                         aftermath = {
                             victory = {
                                 resources = { basic = 4, monster = 6, strange = { "1,000 Year Old Sunspot" } },
+                                settlementLocationReward = "Skyreef Sanctuary",
                                 checklist = {
                                     { text = "+1 Hunt XP" },
                                     { text = "+1 Weapon Proficiency (if eligible)" },
                                     { text = "Collect resources" },
-                                    { text = "First victory: Gain Skyreef Sanctuary settlement location" },
                                 },
                             },
                             defeat = {
@@ -419,11 +419,11 @@ return {
                         aftermath = {
                             victory = {
                                 resources = { basic = 7, monster = 8, strange = { "3,000 Year Old Sunspot" } },
+                                settlementLocationReward = "Skyreef Sanctuary",
                                 checklist = {
                                     { text = "+1 Hunt XP" },
                                     { text = "+1 Weapon Proficiency (if eligible)" },
                                     { text = "Collect resources" },
-                                    { text = "First victory: Gain Skyreef Sanctuary settlement location" },
                                     { text = "If Storytelling (first L3 victory): Add Edged Tonometry to timeline next year" },
                                 },
                             },

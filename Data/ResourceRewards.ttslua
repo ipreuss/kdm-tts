@@ -6,6 +6,7 @@ local log = require("Kdm/Core/Log").ForModule("ResourceRewards")
 local MessageBox = require("Kdm/Ui/MessageBox")
 local NamedObject = require("Kdm/Location/NamedObject")
 local RulesNavButtonKit = require("Kdm/Util/RulesNavButtonKit")
+local SettlementLocationRewards = require("Kdm/Data/SettlementLocationRewards")
 local Showdown = require("Kdm/Sequence/Showdown")
 local ShowdownAftermath = require("Kdm/Sequence/ShowdownAftermath")
 local Ui = require("Kdm/Ui")
@@ -114,9 +115,12 @@ function ResourceRewards.OnWonClick()
 
     log:Printf("Victory! %s %s", monster.name, level.name)
 
+    -- Handle settlement location reward
+    local victory = level.showdown and level.showdown.aftermath and level.showdown.aftermath.victory
+    ResourceRewards.HandleSettlementLocationReward(monster, level, victory)
+
     -- Check if we need to spawn resources
     local hasResources = monster.resourcesDeck ~= false
-    local victory = level.showdown and level.showdown.aftermath and level.showdown.aftermath.victory
     local rewards = victory and victory.resources
 
     if hasResources and rewards then
@@ -132,6 +136,42 @@ function ResourceRewards.OnWonClick()
     else
         -- No resources, just show aftermath checklist
         ResourceRewards.ShowAftermathChecklist("won")
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+
+function ResourceRewards.HandleSettlementLocationReward(monster, level, victory)
+    if not victory then
+        return
+    end
+
+    local reward = victory.settlementLocationReward
+    if not reward then
+        return
+    end
+
+    -- Check if already placed
+    if SettlementLocationRewards.IsLocationPlaced(reward) then
+        log:Debugf("%s is already placed, not adding to checklist", reward)
+        return
+    end
+
+    -- Spawn the location
+    local spawned = SettlementLocationRewards.SpawnForVictory(monster, level)
+    if spawned then
+        -- Prepend disabled pre-checked item to checklist
+        -- NOTE: This intentionally mutates the level's checklist for this showdown.
+        -- ShowdownAftermath.Show() reads victory.checklist immediately after this call,
+        -- and the showdown ends before the same level could be fought again.
+        local originalChecklist = victory.checklist or {}
+        local newChecklist = {
+            { text = reward .. " added to settlement", disabled = true, checked = true }
+        }
+        for _, item in ipairs(originalChecklist) do
+            table.insert(newChecklist, item)
+        end
+        victory.checklist = newChecklist
     end
 end
 

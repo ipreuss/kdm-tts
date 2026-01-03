@@ -1481,12 +1481,12 @@ return {
                         aftermath = {
                             victory = {
                                 resources = { basic = 4, monster = 6 },
+                                settlementLocationReward = "Plumery",
                                 checklist = {
                                     { text = "+1 Hunt XP" },
                                     { text = "+1 Weapon Proficiency (if wounded monster with weapon type)" },
                                     { text = "Survivors with age tokens gain +1 understanding" },
                                     { text = "Collect resources (auto-spawned)" },
-                                    { text = "First victory: Gain Plumery settlement location" },
                                 },
                             },
                             defeat = {
@@ -1663,12 +1663,12 @@ return {
                         aftermath = {
                             victory = {
                                 resources = { basic = 4, monster = 4 },
+                                settlementLocationReward = "Stone Circle",
                                 checklist = {
                                     { text = "Non-deaf survivors with 20+ insanity vanish" },
                                     { text = "Gain +1 Hunt XP for each survivor" },
                                     { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
                                     { text = "Collect resources (auto-spawned)" },
-                                    { text = "First victory: Add Stone Circle to settlement locations" },
                                 },
                             },
                             defeat = {
@@ -2001,10 +2001,10 @@ return {
                         aftermath = {
                             victory = {
                                 resources = { basic = 5, monster = 7, strange = { "Hooked Claw" } },
+                                settlementLocationReward = "Giga-Catarium",
                                 checklist = {
                                     { text = "+2 Hunt XP" },
                                     { text = "+1 Weapon Proficiency" },
-                                    { text = "Add Giga Catarium settlement location" },
                                 },
                             },
                             defeat = {
@@ -2038,10 +2038,10 @@ return {
                         aftermath = {
                             victory = {
                                 resources = { basic = 6, monster = 9, strange = { "Hooked Claw", "Hooked Claw", "Elder Cat Teeth", "Black Lichen" } },
+                                settlementLocationReward = "Giga-Catarium",
                                 checklist = {
                                     { text = "+2 Hunt XP" },
                                     { text = "+1 Weapon Proficiency" },
-                                    { text = "Add Giga Catarium settlement location" },
                                     { text = "If Family (first time defeating L3+): Killing blow survivor gains Secretive disorder and Gigaslayer ability" },
                                 },
                             },
@@ -2134,11 +2134,11 @@ return {
                         aftermath = {
                             victory = {
                                 resources = { basic = 4, monster = 4 },
+                                settlementLocationReward = "Catarium",
                                 checklist = {
                                     { text = "Gain +1 Hunt XP for each survivor" },
                                     { text = "Gain +1 weapon proficiency level (if wounded monster with weapon type)" },
                                     { text = "Collect resources (auto-spawned)" },
-                                    { text = "First victory: Add Catarium to settlement locations" },
                                 },
                             },
                             defeat = {

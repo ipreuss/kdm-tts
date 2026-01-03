@@ -29,6 +29,7 @@ local ITEM_HEIGHT = 0.5           -- Shorter buttons
 local ITEM_GAP = 0.05             -- Small gap between items
 local CHECKBOX_CHECKED = "[X]"
 local CHECKBOX_UNCHECKED = "[ ]"
+local DISABLED_COLOR = "#777766"  -- Dimmed version of LIGHT_BROWN for disabled items
 
 ---------------------------------------------------------------------------------------------------
 
@@ -114,6 +115,7 @@ function ShowdownAftermath.Init()
             button = button,
             text = "",
             checked = false,
+            disabled = false,
         }
     end
 
@@ -161,8 +163,20 @@ function ShowdownAftermath.Show(outcome, monster, level)
             local checklistItem = checklistItems[slotIndex]
             local item = items[i]
             checklistItem.text = item.text
-            checklistItem.checked = false
-            checklistItem.label:SetText(CHECKBOX_UNCHECKED .. " " .. item.text)
+            checklistItem.disabled = item.disabled or false
+            checklistItem.checked = item.checked or false
+
+            -- Determine checkbox state and color
+            local checkbox = checklistItem.checked and CHECKBOX_CHECKED or CHECKBOX_UNCHECKED
+            checklistItem.label:SetText(checkbox .. " " .. item.text)
+
+            -- Disabled items use dimmed color
+            if checklistItem.disabled then
+                checklistItem.label:SetColor(DISABLED_COLOR)
+            else
+                checklistItem.label:SetColor(Ui.LIGHT_BROWN)
+            end
+
             checklistItem.panel:Show()
             checklistItem.label:Show()
             checklistItem.button:Show()
@@ -196,6 +210,8 @@ function ShowdownAftermath.Hide()
         checklistItem.button:Hide()
         checklistItem.text = ""
         checklistItem.checked = false
+        checklistItem.disabled = false
+        checklistItem.label:SetColor(Ui.LIGHT_BROWN)  -- Reset color
     end
 
     donePanel:Hide()
@@ -211,6 +227,12 @@ end
 function ShowdownAftermath.OnItemToggle(index)
     local item = checklistItems[index]
     if not item or item.text == "" then
+        return
+    end
+
+    -- Skip disabled items (they can't be toggled)
+    if item.disabled then
+        log:Debugf("Item %d is disabled, skipping toggle", index)
         return
     end
 
@@ -254,6 +276,27 @@ ShowdownAftermath.Test = {
         end
         return count
     end,
+    GetDisabledCount = function()
+        local count = 0
+        for i = 1, 10 do
+            if checklistItems[i].disabled then
+                count = count + 1
+            end
+        end
+        return count
+    end,
+    GetItem = function(index)
+        local item = checklistItems[index]
+        if not item or item.text == "" then
+            return nil
+        end
+        return {
+            text = item.text,
+            checked = item.checked,
+            disabled = item.disabled,
+        }
+    end,
+    OnItemToggle = ShowdownAftermath.OnItemToggle,
     Show = ShowdownAftermath.Show,
     Hide = ShowdownAftermath.Hide,
     OnDoneClick = ShowdownAftermath.OnDoneClick,

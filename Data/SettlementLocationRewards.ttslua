@@ -1,0 +1,148 @@
+local Archive = require("Kdm/Archive/Archive")
+local Location = require("Kdm/Location/Location")
+local log = require("Kdm/Core/Log").ForModule("SettlementLocationRewards")
+local Util = require("Kdm/Util/Util")
+
+---------------------------------------------------------------------------------------------------
+
+local SettlementLocationRewards = {}
+
+local SETTLEMENT_LOCATION_TYPE = "Settlement Locations"
+local NUM_SETTLEMENT_SLOTS = 20
+
+---------------------------------------------------------------------------------------------------
+
+function SettlementLocationRewards.Init()
+    -- No initialization needed
+end
+
+---------------------------------------------------------------------------------------------------
+
+function SettlementLocationRewards.PostInit()
+    -- No post-initialization needed
+end
+
+---------------------------------------------------------------------------------------------------
+
+--- Check if a settlement location is already placed on the board
+--- @param locationName string The name of the settlement location to check
+--- @return boolean True if the location is already placed in any slot
+function SettlementLocationRewards.IsLocationPlaced(locationName)
+    for i = 1, NUM_SETTLEMENT_SLOTS do
+        local loc = Location.Get("Settlement Location " .. i)
+        local obj = loc:FirstObject({ types = { SETTLEMENT_LOCATION_TYPE } })
+        if obj and obj.getName() == locationName then
+            return true
+        end
+    end
+    return false
+end
+
+---------------------------------------------------------------------------------------------------
+
+--- Find the first empty settlement location slot
+--- @return number|nil The index of the first empty slot (1-20), or nil if all slots are full
+function SettlementLocationRewards.FindEmptySlot()
+    for i = 1, NUM_SETTLEMENT_SLOTS do
+        local loc = Location.Get("Settlement Location " .. i)
+        local obj = loc:FirstObject({ types = { SETTLEMENT_LOCATION_TYPE } })
+        if obj == nil then
+            return i
+        end
+    end
+    return nil  -- All slots full
+end
+
+---------------------------------------------------------------------------------------------------
+
+--- Spawn a settlement location card to a specific slot
+--- @param locationName string The name of the settlement location to spawn
+--- @param slotIndex number The slot index (1-20) to spawn to
+function SettlementLocationRewards.SpawnLocation(locationName, slotIndex)
+    local location = Location.Get("Settlement Location " .. slotIndex)
+
+    Archive.Take({
+        name = locationName,
+        type = SETTLEMENT_LOCATION_TYPE,
+        location = location,
+        rotation = { x = 0, y = 180, z = 180 },
+        spawnFunc = function(obj)
+            Util.HighlightAll({ obj })
+            log:Broadcastf("%s added to settlement location %d", locationName, slotIndex)
+        end
+    })
+    Archive.Clean()
+end
+
+---------------------------------------------------------------------------------------------------
+
+--- Handle the case when all settlement slots are full
+--- @param locationName string The name of the location that couldn't be placed
+function SettlementLocationRewards.HandleFullGrid(locationName)
+    log:Broadcastf("Cannot add %s - all settlement location slots are full!", locationName)
+
+    -- Highlight all settlement location slots to draw attention
+    local objects = {}
+    for i = 1, NUM_SETTLEMENT_SLOTS do
+        local loc = Location.Get("Settlement Location " .. i)
+        local obj = loc:FirstObject({ types = { SETTLEMENT_LOCATION_TYPE } })
+        if obj then
+            table.insert(objects, obj)
+        end
+    end
+
+    if #objects > 0 then
+        Util.HighlightAll(objects)
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+
+--- Main entry point: spawn settlement location reward for a victory if applicable
+--- @param monster table The monster that was defeated
+--- @param level table The level data containing aftermath info
+--- @return boolean True if a location was spawned, false otherwise
+function SettlementLocationRewards.SpawnForVictory(monster, level)
+    local victory = level and level.showdown and level.showdown.aftermath and level.showdown.aftermath.victory
+    if not victory then
+        return false
+    end
+
+    local reward = victory.settlementLocationReward
+    if not reward then
+        return false
+    end
+
+    -- Check if already placed
+    if SettlementLocationRewards.IsLocationPlaced(reward) then
+        log:Debugf("%s is already placed, skipping spawn", reward)
+        return false
+    end
+
+    -- Find an empty slot
+    local slotIndex = SettlementLocationRewards.FindEmptySlot()
+    if not slotIndex then
+        SettlementLocationRewards.HandleFullGrid(reward)
+        return false
+    end
+
+    -- Spawn the location
+    log:Printf("Spawning %s to settlement location %d", reward, slotIndex)
+    SettlementLocationRewards.SpawnLocation(reward, slotIndex)
+    return true
+end
+
+---------------------------------------------------------------------------------------------------
+
+-- Test interface
+SettlementLocationRewards.Test = {
+    IsLocationPlaced = SettlementLocationRewards.IsLocationPlaced,
+    FindEmptySlot = SettlementLocationRewards.FindEmptySlot,
+    SpawnLocation = SettlementLocationRewards.SpawnLocation,
+    SpawnForVictory = SettlementLocationRewards.SpawnForVictory,
+    HandleFullGrid = SettlementLocationRewards.HandleFullGrid,
+}
+
+---------------------------------------------------------------------------------------------------
+
+return SettlementLocationRewards

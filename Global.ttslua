@@ -22,6 +22,7 @@ local NamedObject = require("Kdm/Location/NamedObject")
 local Player = require("Kdm/Entity/Player")
 local ResourceRewards = require("Kdm/Data/ResourceRewards")
 local Rules = require("Kdm/Ui/Rules")
+local SettlementLocationRewards = require("Kdm/Data/SettlementLocationRewards")
 local ShowdownAftermath = require("Kdm/Sequence/ShowdownAftermath")
 local Settlement = require("Kdm/Sequence/Settlement")
 local Showdown = require("Kdm/Sequence/Showdown")
@@ -99,6 +100,7 @@ function onLoad(saveJson)
     --
     MilestoneBoard.Init()
     --
+    SettlementLocationRewards.Init()
     ResourceRewards.Init()
     --
     TTSTests.Init()
