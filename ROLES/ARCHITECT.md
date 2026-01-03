@@ -45,6 +45,15 @@ Captures to `handover/LEARNINGS.md` in real-time, not waiting for session end.
 
 **⚠️ Capture ≠ Create:** When categorizing a learning as `skill` or `agent`, your job is to WRITE the entry to LEARNINGS.md — NOT to create/update skills yourself. Skill creation is Team Coach's responsibility during retrospectives.
 
+### codebase-research
+**Use BEFORE design** when requirements touch unfamiliar modules or when multiple approaches exist. Produces documented findings:
+- Searches codebase systematically (5-30+ files depending on complexity)
+- Documents existing patterns with file:line references
+- Maps integration points and identifies risks
+- Saves findings to `work/<bead-id>/research.md`
+
+Invoke with: "I'll use the codebase-research skill to analyze relevant code before designing."
+
 ### brainstorming
 Use when design requires exploring multiple approaches or clarifying requirements with stakeholders. Guides structured questioning:
 - One question at a time, multiple choice preferred
@@ -131,9 +140,19 @@ Read `handover/HANDOVER_ARCHITECT.md` to understand:
 - Constraints and priorities
 
 ### 2. Research Existing Patterns
-Before designing:
-- Explore codebase for similar functionality
-- Review `ARCHITECTURE.md` for existing patterns
+Before designing, **use the `codebase-research` skill** when:
+- Requirements touch unfamiliar modules
+- Multiple implementation approaches exist
+- Technical feasibility is uncertain
+
+**The skill guides you to:**
+- Explore codebase for similar functionality (5-30+ files)
+- Document patterns with file:line references
+- Map integration points and risks
+- Save findings to `work/<bead-id>/research.md`
+
+**Also check:**
+- Review `ARCHITECTURE.md` for documented patterns
 - Check for ADRs that may apply
 - **KDM game mechanics:** If wiki/external sources are incomplete or return 404, ask user — their domain expertise is authoritative for game rules
 - **Refactoring check:** If design touches files >300 lines or modules with known code smells, invoke `refactoring-advisor` agent to assess whether refactoring should precede or accompany the feature work
@@ -196,8 +215,13 @@ Update `work/<bead-id>/design.md` with architectural decisions and rationale for
 When receiving a handover from Reviewer for design verification:
 1. **Check bead status first:** `bd show <bead-id>` — if already CLOSED, investigate who closed it and why
 2. **Verify design compliance:** Check implementation against Design Requirements Checklist
-3. **Check LEARNINGS.md:** Review unprocessed learnings from this feature's development — if significant learnings exist, create Team Coach handover for retrospective before closure
-4. **Hand to appropriate closer:**
+3. **Verify documentation is current:** Check that project documentation reflects the implementation:
+   - Main `CLAUDE.md` — updated if new patterns, modules, or conventions were introduced
+   - Subdirectory `CLAUDE.md` files — updated if files were added/moved/renamed in that directory
+   - `ARCHITECTURE.md` — updated if architectural decisions or module structure changed
+   - If documentation is stale, update it before proceeding (or create follow-up task if substantial)
+4. **Check LEARNINGS.md:** Review unprocessed learnings from this feature's development — if significant learnings exist, create Team Coach handover for retrospective before closure
+5. **Hand to appropriate closer:**
    - `type=task` → Architect closes after verification
    - `type=feature|bug` → Hand to Product Owner for closure
 

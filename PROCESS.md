@@ -33,7 +33,7 @@ PO ─requirements─► Architect ─design─► Implementer ─code+tests+rev
 
 **Code review happens via subagent** — Implementer invokes `code-reviewer` subagent before proceeding. Same-session fix loop until APPROVED.
 **Full Reviewer role reserved for complex cases** — large scope (10+ files), architectural concerns, or when user requests dedicated review.
-**Architect verifies design compliance** — before PO validates requirements are met.
+**Architect verifies design compliance and documentation** — before PO validates requirements are met.
 
 **Handoff points:**
 1. Product Owner defines requirements → Architect designs solution
@@ -41,7 +41,7 @@ PO ─requirements─► Architect ─design─► Implementer ─code+tests+rev
 3. Implementer invokes `code-reviewer` subagent → fix loop until APPROVED (no handover)
 4. Implementer invokes testing subagents (`acceptance-test-writer`, `tts-test-writer` if needed)
 5. **After tests pass and review approval → Human commits to git** (see "Git Commit Milestone" below)
-6. Architect verifies design compliance
+6. Architect verifies design compliance and ensures documentation is current (CLAUDE.md files, ARCHITECTURE.md)
 7. Architect approves → Product Owner validates feature is complete
 8. Findings at any stage may loop back to prior roles
 
