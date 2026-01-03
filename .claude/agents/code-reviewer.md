@@ -183,6 +183,17 @@ The parent session has full context of what's being implemented. Use:
 
 **Search command:** `grep -r "old_data_value" tests/`
 
+### 3c. Data Migration Completeness
+**When reviewing data structure migrations** (moving fields, renaming keys, restructuring):
+- Verify ALL instances were migrated, not just the obvious ones
+- **Search for the wrapper structure**, not just the field being moved
+
+**Example:** When moving `resources` into `aftermath.victory`:
+- ❌ Only searching `resources = { basic` misses monsters without resources but WITH aftermath
+- ✅ Search `aftermath = {` to find ALL aftermath definitions, then verify each has correct structure
+
+**Nemesis/edge case check:** Data structures may have variants (e.g., nemesis monsters with aftermath but no resources). Verify the migration covers all variants.
+
 **TTS integration tests checklist:**
 - [ ] Entry point: Does test call real public API?
 - [ ] Event flow: Do events fire naturally, not manually?
