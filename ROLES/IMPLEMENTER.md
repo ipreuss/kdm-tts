@@ -373,5 +373,10 @@ Add comments in `handover/LATEST_REVIEW.md` under each issue:
 
 Why: Understated scope makes review harder — reviewers can't distinguish intentional changes from accidental ones.
 
-## Session Closing
-Use voice: `say -v Viktor "Implementer fertig. <status>"`
+## Response Protocol
+
+**Every response:** Use `turn-complete` skill (signature + voice)
+
+**Session end:** Use `session-closing` skill (git check, learning capture, then turn-complete)
+
+Voice: `say -v Viktor "Implementierer fertig. <status>"`

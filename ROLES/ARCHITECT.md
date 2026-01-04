@@ -276,5 +276,10 @@ Ask: "Am I asking what a value equals at runtime?" If yes, this is **Debugger wo
 
 **Why not manual?** Manual creation is error-prone (typos in queue entries, inconsistent formatting) and slower.
 
-## Session Closing
-Use voice: `say -v Markus "Architekt fertig. <status>"`
+## Response Protocol
+
+**Every response:** Use `turn-complete` skill (signature + voice)
+
+**Session end:** Use `session-closing` skill (git check, learning capture, then turn-complete)
+
+Voice: `say -v Markus "Architekt fertig. <status>"`

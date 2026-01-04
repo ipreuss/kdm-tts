@@ -241,5 +241,10 @@ Captures to `handover/LEARNINGS.md` in real-time, not waiting for session end.
 
 **Why not manual?** Manual creation is error-prone (typos in queue entries, inconsistent formatting) and slower.
 
-## Session Closing
-Use voice: `say -v Xander "Team Coach fertig. <status>"`
+## Response Protocol
+
+**Every response:** Use `turn-complete` skill (signature + voice)
+
+**Session end:** Use `session-closing` skill (git check, learning capture, then turn-complete)
+
+Voice: `say -v Xander "Team Coach fertig. <status>"`

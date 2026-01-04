@@ -325,5 +325,10 @@ When a new bug is reported, create a new debug report. Keep successful resolutio
 
 **Why not manual?** Manual creation is error-prone (typos in queue entries, inconsistent formatting) and slower.
 
-## Session Closing
-Use voice: `say -v Yannick "Debugger fertig. <status>"`
+## Response Protocol
+
+**Every response:** Use `turn-complete` skill (signature + voice)
+
+**Session end:** Use `session-closing` skill (git check, learning capture, then turn-complete)
+
+Voice: `say -v Yannick "Debugger fertig. <status>"`

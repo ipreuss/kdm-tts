@@ -305,5 +305,10 @@ When reviewing implementation from a design handover that includes a Design Requ
 
 **Why not manual?** Manual creation is error-prone (typos in queue entries, inconsistent formatting) and slower.
 
-## Session Closing
-Use voice: `say -v Petra "Reviewer fertig. <status>"`
+## Response Protocol
+
+**Every response:** Use `turn-complete` skill (signature + voice)
+
+**Session end:** Use `session-closing` skill (git check, learning capture, then turn-complete)
+
+Voice: `say -v Petra "Reviewer fertig. <status>"`
