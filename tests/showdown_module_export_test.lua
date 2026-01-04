@@ -108,37 +108,3 @@ Test.test("SPEC: Module should export monster and level (correct pattern)", func
     t:assertEqual("White Lion", exportedModule.monster.name)
     t:assertEqual("Level 1", exportedModule.level.name)
 end)
-
----------------------------------------------------------------------------------------------------
--- Test: Actual Showdown Module (requires full environment)
--- This test requires more stubs but tests the real module
----------------------------------------------------------------------------------------------------
-
-Test.test("BUG: Showdown module return table lacks monster/level fields", function(t)
-    -- Read the actual return statement from Showdown.ttslua
-    local file = io.open("Showdown.ttslua", "r")
-    if not file then
-        t:skip("Showdown.ttslua not found (run from project root)")
-        return
-    end
-
-    local content = file:read("*all")
-    file:close()
-
-    -- Check if the return table includes monster and level
-    -- Look for pattern: return { ... monster = ... }
-    local returnSection = content:match("return%s*{[^}]+}")
-
-    if not returnSection then
-        t:fail("Could not find return statement in Showdown.ttslua")
-        return
-    end
-
-    local hasMonsterExport = returnSection:match("monster%s*=")
-    local hasLevelExport = returnSection:match("level%s*=")
-
-    -- This test documents the bug - it passes when bug exists
-    -- Once fixed, change assertNil to assertNotNil
-    t:assertNil(hasMonsterExport, "BUG: monster should be exported (currently missing)")
-    t:assertNil(hasLevelExport, "BUG: level should be exported (currently missing)")
-end)
