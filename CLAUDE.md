@@ -2,8 +2,42 @@
 
 ## Quick Commands
 - Build & Deploy: `./updateTTS.sh` (from parent directory)
-- Test (headless): `lua tests/run.lua`
-- Test (TTS console): `testall` or `testfocus <pattern>`
+
+## Testing Quick Reference
+
+### Welcher Test-Typ?
+
+| Ich will testen... | Test-Typ | Befehl |
+|-------------------|----------|--------|
+| Reine Logik, Berechnungen, Datenstrukturen | Headless | `lua tests/run.lua` |
+| TTS-Objekte, UI, Spawning, Archive | TTS Console | `testall` |
+| Nur einen bestimmten Test | TTS Console | `testfocus <pattern>` |
+| Nur Tests für aktuellen Bead | TTS Console | `testpriority` |
+
+### Headless Tests (Terminal)
+
+```bash
+lua tests/run.lua                    # Alle Tests
+lua tests/run.lua SurvivorTest       # Ein Test-File
+lua tests/run.lua -v                 # Verbose
+```
+
+Dateien: `tests/*_test.lua`
+
+### TTS Console Tests (Im Spiel)
+
+```
+testall                              # Alle TTS-Tests
+testfocus <pattern>                  # Tests mit Pattern im Namen
+testpriority                         # Tests für FOCUS_BEAD
+teststop                             # Laufende Tests abbrechen
+```
+
+Dateien: `TTSTests/*Tests.ttslua`
+
+**Wichtig:** Nach Code-Änderungen erst `./updateTTS.sh` ausführen!
+
+Siehe `TESTING.md` für Test-Strategie und Patterns.
 
 ## Architecture Overview
 Modular Lua codebase for Tabletop Simulator Kingdom Death: Monster automation.
