@@ -71,6 +71,17 @@ Use when refining rough ideas into requirements. Guides structured questioning:
 
 Invoke with: "I'll use the brainstorming skill to refine this idea."
 
+### ux-advisor (Proactive)
+**ALWAYS invoke when working on features with new, expanded, or changed user interaction.**
+
+The agent provides expert analysis for:
+- Layout choices and interaction patterns
+- User flow decisions
+- Visual feedback mechanisms
+- Confirmation dialogs vs silent actions
+
+⚠️ **Trigger rule:** Before defining requirements for ANY feature involving UI or user interaction, invoke ux-advisor. Get expert recommendations before presenting options to user.
+
 ### feature-breakdown
 **Use ALWAYS after brainstorming and when creating beads.** Guides splitting features into smallest valuable user stories following INVEST principles:
 - **I**ndependent — Can be developed separately

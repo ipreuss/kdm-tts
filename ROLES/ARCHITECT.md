@@ -164,6 +164,12 @@ Document:
 - Patterns to follow (with examples from codebase)
 - TTS testing requirements (headless vs console tests)
 
+**Design Heuristic — Derive from State:**
+Before adding persistence or tracking, ask: "Can we derive this from current state instead of storing it?"
+- Check domain rules before assuming tracking is necessary
+- State derivation is self-healing if data corrupts
+- Reduces implementation complexity and Save/Load maintenance
+
 ### 4. Handover to Implementer
 Create `handover/HANDOVER_IMPLEMENTER.md` with:
 - Design summary
@@ -211,8 +217,9 @@ Headless tests are always possible. TTS tests are added when headless tests alon
 ### 6. Update Work Folder
 Update `work/<bead-id>/design.md` with architectural decisions and rationale for persistent record.
 
-### 7. Design Compliance Verification (When Receiving from Reviewer)
-When receiving a handover from Reviewer for design verification:
+### 7. Design Compliance Verification (When Receiving from Implementer)
+When receiving a handover from Implementer for design verification:
+0. **Pre-flight: Verify code is committed:** Run `git status` — if feature files are uncommitted, hand back to Implementer with "Code must be committed before design verification"
 1. **Check bead status first:** `bd show <bead-id>` — if already CLOSED, investigate who closed it and why
 2. **Verify design compliance:** Check implementation against Design Requirements Checklist
 3. **Verify documentation is current:** Check that project documentation reflects the implementation:
