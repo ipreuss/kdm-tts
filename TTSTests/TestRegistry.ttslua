@@ -27,7 +27,7 @@ local TestRegistry = {}
 -- Focus Bead - Update when switching to a new backlog item
 ---------------------------------------------------------------------------------------------------
 
-TestRegistry.FOCUS_BEAD = "kdm-bo7"
+TestRegistry.FOCUS_BEAD = "kdm-863"
 
 ---------------------------------------------------------------------------------------------------
 -- All Tests Registry
@@ -51,7 +51,7 @@ TestRegistry.ALL_TESTS = {
     { name = "Bone Hatchet Pairing (same-name)", bead = "kdm-rbl", domain = "showdown", fn = function(onComplete) BattleTests.TestBoneHatchetPairing(onComplete) end },
     -- Resource Rewards integration tests (showdown domain)
     { name = "Resource Rewards Button Visible", bead = { "kdm-w1k", "kdm-rhc" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestButtonAppearsOnShowdown(onComplete) end },
-    { name = "Resource Rewards Button Hidden", bead = { "kdm-w1k", "kdm-rhc" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestButtonHiddenNoResources(onComplete) end },
+    { name = "Resource Rewards Button Visible (No Resources)", bead = { "kdm-w1k", "kdm-rhc", "kdm-863" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestButtonVisibleNoResources(onComplete) end },
     { name = "Resource Rewards Data Integrity", bead = { "kdm-w1k", "kdm-rhc" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestResourcesDataIntegrity(onComplete) end },
     { name = "Strange Resources Spawn", bead = { "kdm-w1k", "kdm-rhc" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestStrangeResourcesSpawn(onComplete) end },
     -- Resource Rewards Expansion tests (showdown domain)
@@ -102,7 +102,7 @@ TestRegistry.ALL_TESTS = {
     { name = "The Old Master Button Visible", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestOldMasterButtonAppears(onComplete) end },
     { name = "The Old Master Data Integrity", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestOldMasterDataIntegrity(onComplete) end },
     { name = "The Old Master Strange Resources Spawn", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestOldMasterStrangeResourcesSpawn(onComplete) end },
-    { name = "The Great Devourer Button Hidden", bead = "kdm-5zu", domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestGreatDevourerButtonHidden(onComplete) end },
+    { name = "The Great Devourer Button Visible", bead = { "kdm-5zu", "kdm-863" }, domain = "showdown", fn = function(onComplete) ResourceRewardsTests.TestGreatDevourerButtonVisible(onComplete) end },
     -- Hunt Card Auto-Reveal tests (hunt domain)
     { name = "ACCEPTANCE: Hunt party drop reveals card", bead = "kdm-i3z", domain = "hunt", fn = function(onComplete) HuntTests.TestHuntPartyDropTriggersReveal(onComplete) end },
     { name = "ACCEPTANCE: Face-down card flips to face-up", bead = "kdm-i3z", domain = "hunt", fn = function(onComplete) HuntTests.TestFaceDownCardFlips(onComplete) end },

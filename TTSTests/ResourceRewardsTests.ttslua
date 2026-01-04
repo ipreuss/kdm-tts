@@ -94,9 +94,9 @@ function ResourceRewardsTests.Register()
         ResourceRewardsTests.TestButtonAppearsOnShowdown()
     end, "Test rewards button appears when showdown starts with White Lion")
 
-    Console.AddCommand("testrewardshidden", function(args)
-        ResourceRewardsTests.TestButtonHiddenNoResources()
-    end, "Test rewards button hidden when monster has no resources")
+    Console.AddCommand("testrewardsvisible", function(args)
+        ResourceRewardsTests.TestButtonVisibleNoResources()
+    end, "Test rewards button visible when monster has no resources (UX consistency)")
 
     Console.AddCommand("testrewardsspawn", function(args)
         ResourceRewardsTests.TestResourcesDataIntegrity()
@@ -297,11 +297,11 @@ function ResourceRewardsTests.TestButtonAppearsOnShowdown(onComplete)
 end
 
 ---------------------------------------------------------------------------------------------------
--- INTEGRATION TEST: Verifies button hidden for monster without resource rewards
+-- INTEGRATION TEST: Verifies button visible for monster without resource rewards (UX consistency)
 ---------------------------------------------------------------------------------------------------
 
-function ResourceRewardsTests.TestButtonHiddenNoResources(onComplete)
-    log:Printf("=== TEST: TestButtonHiddenNoResources (Integration) ===")
+function ResourceRewardsTests.TestButtonVisibleNoResources(onComplete)
+    log:Printf("=== TEST: TestButtonVisibleNoResources (Integration) ===")
 
     -- Ensure clean state before starting
     Showdown.Clean()
@@ -310,6 +310,7 @@ function ResourceRewardsTests.TestButtonHiddenNoResources(onComplete)
         log:Printf("TEST: Starting Dragon King 'Death of the Dragon King' showdown (no resources)...")
 
         -- Death of the Dragon King is a story event with no resource rewards defined
+        -- Per PO decision: buttons always visible for UX consistency
         Showdown.Setup("Dragon King", "Death of the Dragon King")
 
         Wait.frames(function()
@@ -317,15 +318,15 @@ function ResourceRewardsTests.TestButtonHiddenNoResources(onComplete)
 
             local buttonVisible = ResourceRewards.Test.IsButtonVisible()
 
-            if not buttonVisible then
-                log:Printf("TEST: Rewards button correctly hidden for Death of the Dragon King")
-                log:Printf("=== TEST: TestButtonHiddenNoResources COMPLETE ===")
+            if buttonVisible then
+                log:Printf("TEST: Rewards button correctly visible for Death of the Dragon King")
+                log:Printf("=== TEST: TestButtonVisibleNoResources COMPLETE ===")
                 log:Printf("TEST RESULT: PASSED")
                 Showdown.Clean()
                 if onComplete then onComplete(true) end
             else
-                log:Errorf("TEST: Rewards button should be hidden for Death of the Dragon King!")
-                log:Printf("=== TEST: TestButtonHiddenNoResources COMPLETE ===")
+                log:Errorf("TEST: Rewards button should be visible for Death of the Dragon King!")
+                log:Printf("=== TEST: TestButtonVisibleNoResources COMPLETE ===")
                 log:Printf("TEST RESULT: FAILED")
                 Showdown.Clean()
                 if onComplete then onComplete(false) end
@@ -1615,15 +1616,16 @@ function ResourceRewardsTests.TestOldMasterStrangeResourcesSpawn(onComplete)
     end, 10)
 end
 
--- The Great Devourer (Sunstalker) - story event, NO resources (button hidden)
-function ResourceRewardsTests.TestGreatDevourerButtonHidden(onComplete)
-    log:Printf("=== TEST: TestGreatDevourerButtonHidden (Integration) ===")
+-- The Great Devourer (Sunstalker) - story event, NO resources (button visible per PO decision)
+function ResourceRewardsTests.TestGreatDevourerButtonVisible(onComplete)
+    log:Printf("=== TEST: TestGreatDevourerButtonVisible (Integration) ===")
 
     Showdown.Clean()
 
     Wait.frames(function()
         log:Printf("TEST: Starting The Great Devourer showdown (story event, no resources)...")
 
+        -- Per PO decision: buttons always visible for UX consistency
         Showdown.Setup("Sunstalker", "The Great Devourer")
 
         Wait.frames(function()
@@ -1631,15 +1633,15 @@ function ResourceRewardsTests.TestGreatDevourerButtonHidden(onComplete)
 
             local buttonVisible = ResourceRewards.Test.IsButtonVisible()
 
-            if not buttonVisible then
-                log:Printf("TEST: Rewards button correctly hidden for The Great Devourer")
-                log:Printf("=== TEST: TestGreatDevourerButtonHidden COMPLETE ===")
+            if buttonVisible then
+                log:Printf("TEST: Rewards button correctly visible for The Great Devourer")
+                log:Printf("=== TEST: TestGreatDevourerButtonVisible COMPLETE ===")
                 log:Printf("TEST RESULT: PASSED")
                 Showdown.Clean()
                 if onComplete then onComplete(true) end
             else
-                log:Errorf("TEST: Rewards button should be hidden for The Great Devourer!")
-                log:Printf("=== TEST: TestGreatDevourerButtonHidden COMPLETE ===")
+                log:Errorf("TEST: Rewards button should be visible for The Great Devourer!")
+                log:Printf("=== TEST: TestGreatDevourerButtonVisible COMPLETE ===")
                 log:Printf("TEST RESULT: FAILED")
                 Showdown.Clean()
                 if onComplete then onComplete(false) end
