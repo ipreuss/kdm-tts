@@ -16,6 +16,7 @@ local ConsequenceTests = require("Kdm/TTSTests/ConsequenceTests")
 local PatternTests = require("Kdm/TTSTests/PatternTests")
 local BattleTests = require("Kdm/TTSTests/BattleTests")
 local ResourceRewardsTests = require("Kdm/TTSTests/ResourceRewardsTests")
+local SettlementLocationRewardsTests = require("Kdm/TTSTests/SettlementLocationRewardsTests")
 local HuntTests = require("Kdm/TTSTests/HuntTests")
 
 ---------------------------------------------------------------------------------------------------
@@ -26,7 +27,7 @@ local TestRegistry = {}
 -- Focus Bead - Update when switching to a new backlog item
 ---------------------------------------------------------------------------------------------------
 
-TestRegistry.FOCUS_BEAD = "kdm-0zu"
+TestRegistry.FOCUS_BEAD = "kdm-bo7"
 
 ---------------------------------------------------------------------------------------------------
 -- All Tests Registry
@@ -115,6 +116,13 @@ TestRegistry.ALL_TESTS = {
     { name = "ACCEPTANCE: Next Card button below card with readable text", bead = "kdm-i3z", domain = "hunt", fn = function(onComplete) HuntTests.TestNextCardButtonAppearsBelowCard(onComplete) end },
     -- Deck Cleanup test (kdm-0zu fix)
     { name = "ACCEPTANCE: Deck containing matching cards cleaned up", bead = "kdm-0zu", domain = "hunt", fn = function(onComplete) HuntTests.TestDeckCleanup(onComplete) end },
+    -- Settlement Location Rewards tests (kdm-bo7)
+    { name = "Won Button Spawns Catarium", bead = "kdm-bo7", domain = "settlement", fn = function(onComplete) SettlementLocationRewardsTests.TestWonButtonSpawnsCatarium(onComplete) end },
+    { name = "Disabled Checklist Item Appears", bead = "kdm-bo7", domain = "settlement", fn = function(onComplete) SettlementLocationRewardsTests.TestDisabledChecklistItem(onComplete) end },
+    { name = "No Duplicate Settlement Location Spawn", bead = "kdm-bo7", domain = "settlement", fn = function(onComplete) SettlementLocationRewardsTests.TestNoDuplicateSpawn(onComplete) end },
+    { name = "Full Grid Shows Error", bead = "kdm-bo7", domain = "settlement", fn = function(onComplete) SettlementLocationRewardsTests.TestFullGridError(onComplete) end },
+    { name = "Other Monsters Spawn Locations", bead = "kdm-bo7", domain = "settlement", fn = function(onComplete) SettlementLocationRewardsTests.TestOtherMonsters(onComplete) end },
+    { name = "No Checklist Item When Already Placed", bead = "kdm-bo7", domain = "settlement", fn = function(onComplete) SettlementLocationRewardsTests.TestNoChecklistItemWhenAlreadyPlaced(onComplete) end },
 }
 
 ---------------------------------------------------------------------------------------------------

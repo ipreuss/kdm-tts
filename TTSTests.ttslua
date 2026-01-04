@@ -12,6 +12,7 @@
 --   PatternTests.ttslua     - Pattern deck spawning, Seed Patterns shuffle
 --   BattleTests.ttslua      - Weapon pairing (Aya's weapons, Bone Hatchet)
 --   ResourceRewardsTests.ttslua - Resource rewards button and spawning
+--   SettlementLocationRewardsTests.ttslua - Settlement location spawning after victories
 --   TestRegistry.ttslua     - Test registry with bead tags
 --   TestErrorCapture.ttslua - Error capture for test framework
 
@@ -29,6 +30,7 @@ local ConsequenceTests = require("Kdm/TTSTests/ConsequenceTests")
 local PatternTests = require("Kdm/TTSTests/PatternTests")
 local BattleTests = require("Kdm/TTSTests/BattleTests")
 local ResourceRewardsTests = require("Kdm/TTSTests/ResourceRewardsTests")
+local SettlementLocationRewardsTests = require("Kdm/TTSTests/SettlementLocationRewardsTests")
 local HuntTests = require("Kdm/TTSTests/HuntTests")
 
 -- Import test infrastructure modules
@@ -91,6 +93,11 @@ function TTSTests.Init()
         log:Printf("    >testhuntdeckorder  - Test top card revealed first from deck")
         log:Printf("    >testhuntindividualorder - Test top card revealed first (individual)")
         log:Printf("    >testhuntbutton     - Test Next Card button position")
+        log:Printf("    >testsettlementlocationwon - Test Won spawns settlement location")
+        log:Printf("    >testsettlementlocationdisabled - Test disabled checklist item")
+        log:Printf("    >testsettlementlocationnoduplicate - Test no duplicate spawn")
+        log:Printf("    >testsettlementlocationfull - Test full grid error")
+        log:Printf("    >testsettlementlocationother - Test other monster locations")
     end, "Show available TTS test commands")
 
     Console.AddCommand("testall", function(args)
@@ -161,6 +168,7 @@ function TTSTests.Init()
     PatternTests.Register()
     BattleTests.Register()
     ResourceRewardsTests.Register()
+    SettlementLocationRewardsTests.Register()
     HuntTests.Register()
 end
 

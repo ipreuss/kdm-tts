@@ -133,7 +133,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-function ShowdownAftermath.Show(outcome, monster, level)
+function ShowdownAftermath.Show(outcome, monster, level, prependItems)
     if not level or not level.showdown or not level.showdown.aftermath then
         log:Printf("No aftermath data for %s %s", monster and monster.name or "nil", level and level.name or "nil")
         return false
@@ -144,8 +144,20 @@ function ShowdownAftermath.Show(outcome, monster, level)
 
     -- Determine which checklist to show
     local outcomeData = (outcome == "won") and aftermath.victory or aftermath.defeat
-    local items = outcomeData and outcomeData.checklist
-    if not items or #items == 0 then
+    local baseItems = outcomeData and outcomeData.checklist or {}
+
+    -- Combine prepended items with base checklist
+    local items = {}
+    if prependItems then
+        for _, item in ipairs(prependItems) do
+            table.insert(items, item)
+        end
+    end
+    for _, item in ipairs(baseItems) do
+        table.insert(items, item)
+    end
+
+    if #items == 0 then
         log:Printf("No %s aftermath items for %s %s", outcome, monster.name, level.name)
         return false
     end

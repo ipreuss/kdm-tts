@@ -367,4 +367,165 @@ Test.test("HandleFullGrid highlights occupied slots", function(t)
     t:assertEqual(#highlightedObjects, 2, "Should highlight 2 occupied slots")
 end)
 
+--------------------------------------------------------------------------------
+-- HandleSettlementLocationReward Tests (ResourceRewards integration)
+--------------------------------------------------------------------------------
+
+-- Create ResourceRewards module with mocks for HandleSettlementLocationReward
+local function createResourceRewardsModule()
+    -- Reset state
+    mockLocations = {}
+    archiveTakeCallCount = 0
+    lastArchiveTakeParams = nil
+    highlightedObjects = {}
+    broadcastMessages = {}
+
+    -- Create SettlementLocationRewards mock
+    local SettlementLocationRewards = {}
+
+    function SettlementLocationRewards.IsLocationPlaced(locationName)
+        for i = 1, 20 do
+            local loc = Location.Get("Settlement Location " .. i)
+            local obj = loc:FirstObject({ types = { "Settlement Locations" } })
+            if obj and obj.getName() == locationName then
+                return true
+            end
+        end
+        return false
+    end
+
+    function SettlementLocationRewards.SpawnForVictory(monster, level)
+        local victory = level and level.showdown and level.showdown.aftermath and level.showdown.aftermath.victory
+        if not victory then return false end
+        local reward = victory.settlementLocationReward
+        if not reward then return false end
+        if SettlementLocationRewards.IsLocationPlaced(reward) then return false end
+        -- Simulate successful spawn
+        archiveTakeCallCount = archiveTakeCallCount + 1
+        return true
+    end
+
+    -- Create ResourceRewards module
+    local ResourceRewards = {}
+
+    function ResourceRewards.HandleSettlementLocationReward(monster, level)
+        local victory = level and level.showdown and level.showdown.aftermath and level.showdown.aftermath.victory
+        if not victory then
+            return nil
+        end
+
+        local reward = victory.settlementLocationReward
+        if not reward then
+            return nil
+        end
+
+        if SettlementLocationRewards.IsLocationPlaced(reward) then
+            return nil
+        end
+
+        local spawned = SettlementLocationRewards.SpawnForVictory(monster, level)
+        if spawned then
+            return { text = reward .. " added to settlement", disabled = true, checked = true }
+        end
+
+        return nil
+    end
+
+    return ResourceRewards
+end
+
+Test.test("HandleSettlementLocationReward returns nil when no victory data", function(t)
+    local ResourceRewards = createResourceRewardsModule()
+    local monster = { name = "White Lion" }
+    local level = { showdown = {} }
+
+    local result = ResourceRewards.HandleSettlementLocationReward(monster, level)
+
+    t:assertNil(result, "Should return nil with no victory data")
+end)
+
+Test.test("HandleSettlementLocationReward returns nil when no settlementLocationReward", function(t)
+    local ResourceRewards = createResourceRewardsModule()
+    local monster = { name = "White Lion" }
+    local level = {
+        showdown = {
+            aftermath = {
+                victory = {
+                    resources = { basic = 4, monster = 4 },
+                    checklist = { { text = "Test" } }
+                }
+            }
+        }
+    }
+
+    local result = ResourceRewards.HandleSettlementLocationReward(monster, level)
+
+    t:assertNil(result, "Should return nil when no reward configured")
+end)
+
+Test.test("HandleSettlementLocationReward returns nil when location already placed", function(t)
+    local ResourceRewards = createResourceRewardsModule()
+    mockLocations["Settlement Location 3"] = { getName = function() return "Catarium" end }
+
+    local monster = { name = "White Lion" }
+    local level = {
+        showdown = {
+            aftermath = {
+                victory = {
+                    settlementLocationReward = "Catarium",
+                    checklist = { { text = "Test" } }
+                }
+            }
+        }
+    }
+
+    local result = ResourceRewards.HandleSettlementLocationReward(monster, level)
+
+    t:assertNil(result, "Should return nil when location already placed")
+    t:assertEqual(archiveTakeCallCount, 0, "Should not spawn when already placed")
+end)
+
+Test.test("HandleSettlementLocationReward returns checklist item when spawned", function(t)
+    local ResourceRewards = createResourceRewardsModule()
+    local monster = { name = "White Lion" }
+    local level = {
+        showdown = {
+            aftermath = {
+                victory = {
+                    settlementLocationReward = "Catarium",
+                    checklist = { { text = "Test" } }
+                }
+            }
+        }
+    }
+
+    local result = ResourceRewards.HandleSettlementLocationReward(monster, level)
+
+    t:assertNotNil(result, "Should return checklist item when spawned")
+    t:assertEqual(result.text, "Catarium added to settlement", "Text should describe the addition")
+    t:assertEqual(result.disabled, true, "Item should be disabled")
+    t:assertEqual(result.checked, true, "Item should be checked")
+end)
+
+Test.test("HandleSettlementLocationReward does not mutate victory.checklist", function(t)
+    local ResourceRewards = createResourceRewardsModule()
+    local monster = { name = "White Lion" }
+    local originalChecklist = { { text = "Original Item" } }
+    local level = {
+        showdown = {
+            aftermath = {
+                victory = {
+                    settlementLocationReward = "Catarium",
+                    checklist = originalChecklist
+                }
+            }
+        }
+    }
+
+    ResourceRewards.HandleSettlementLocationReward(monster, level)
+
+    t:assertEqual(#originalChecklist, 1, "Original checklist should not be mutated")
+    t:assertEqual(originalChecklist[1].text, "Original Item", "Original item should be unchanged")
+end)
+
 return Test

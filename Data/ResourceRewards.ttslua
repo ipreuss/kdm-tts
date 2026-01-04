@@ -115,11 +115,11 @@ function ResourceRewards.OnWonClick()
 
     log:Printf("Victory! %s %s", monster.name, level.name)
 
-    -- Handle settlement location reward
-    local victory = level.showdown and level.showdown.aftermath and level.showdown.aftermath.victory
-    ResourceRewards.HandleSettlementLocationReward(monster, level, victory)
+    -- Handle settlement location reward (returns item to prepend to checklist, or nil)
+    local settlementLocationItem = ResourceRewards.HandleSettlementLocationReward(monster, level)
 
     -- Check if we need to spawn resources
+    local victory = level.showdown and level.showdown.aftermath and level.showdown.aftermath.victory
     local hasResources = monster.resourcesDeck ~= false
     local rewards = victory and victory.resources
 
@@ -127,52 +127,49 @@ function ResourceRewards.OnWonClick()
         if hasSpawnedThisShowdown then
             MessageBox.Show("Resources have already been spawned for this showdown. Spawn again?", function()
                 ResourceRewards.SpawnRewards()
-                ResourceRewards.ShowAftermathChecklist("won")
+                ResourceRewards.ShowAftermathChecklist("won", settlementLocationItem)
             end)
         else
             ResourceRewards.SpawnRewards()
-            ResourceRewards.ShowAftermathChecklist("won")
+            ResourceRewards.ShowAftermathChecklist("won", settlementLocationItem)
         end
     else
         -- No resources, just show aftermath checklist
-        ResourceRewards.ShowAftermathChecklist("won")
+        ResourceRewards.ShowAftermathChecklist("won", settlementLocationItem)
     end
 end
 
 ---------------------------------------------------------------------------------------------------
 
-function ResourceRewards.HandleSettlementLocationReward(monster, level, victory)
+--- Handle settlement location reward for a victory
+--- @param monster table The monster that was defeated
+--- @param level table The level data
+--- @return table|nil A checklist item to prepend, or nil if nothing was spawned
+function ResourceRewards.HandleSettlementLocationReward(monster, level)
+    local victory = level and level.showdown and level.showdown.aftermath and level.showdown.aftermath.victory
     if not victory then
-        return
+        return nil
     end
 
     local reward = victory.settlementLocationReward
     if not reward then
-        return
+        return nil
     end
 
-    -- Check if already placed
+    -- Check if already placed - don't spawn or add checklist item
     if SettlementLocationRewards.IsLocationPlaced(reward) then
-        log:Debugf("%s is already placed, not adding to checklist", reward)
-        return
+        log:Debugf("%s is already placed, skipping", reward)
+        return nil
     end
 
     -- Spawn the location
     local spawned = SettlementLocationRewards.SpawnForVictory(monster, level)
     if spawned then
-        -- Prepend disabled pre-checked item to checklist
-        -- NOTE: This intentionally mutates the level's checklist for this showdown.
-        -- ShowdownAftermath.Show() reads victory.checklist immediately after this call,
-        -- and the showdown ends before the same level could be fought again.
-        local originalChecklist = victory.checklist or {}
-        local newChecklist = {
-            { text = reward .. " added to settlement", disabled = true, checked = true }
-        }
-        for _, item in ipairs(originalChecklist) do
-            table.insert(newChecklist, item)
-        end
-        victory.checklist = newChecklist
+        -- Return the checklist item to prepend (don't mutate expansion data)
+        return { text = reward .. " added to settlement", disabled = true, checked = true }
     end
+
+    return nil
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -204,11 +201,14 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
-function ResourceRewards.ShowAftermathChecklist(outcome)
+function ResourceRewards.ShowAftermathChecklist(outcome, prependItem)
     local monster = Showdown.monster
     local level = Showdown.level
 
-    local shown = ShowdownAftermath.Show(outcome, monster, level)
+    -- Build prepend items list if we have a settlement location item
+    local prependItems = prependItem and { prependItem } or nil
+
+    local shown = ShowdownAftermath.Show(outcome, monster, level, prependItems)
     if not shown then
         -- No aftermath data, just cleanup
         log:Debugf("No aftermath data for %s, cleaning up showdown", outcome)

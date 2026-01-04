@@ -1,6 +1,7 @@
 local Archive = require("Kdm/Archive/Archive")
 local Location = require("Kdm/Location/Location")
 local log = require("Kdm/Core/Log").ForModule("SettlementLocationRewards")
+local Showdown = require("Kdm/Sequence/Showdown")
 local Util = require("Kdm/Util/Util")
 
 ---------------------------------------------------------------------------------------------------
@@ -58,13 +59,16 @@ end
 --- Spawn a settlement location card to a specific slot
 --- @param locationName string The name of the settlement location to spawn
 --- @param slotIndex number The slot index (1-20) to spawn to
-function SettlementLocationRewards.SpawnLocation(locationName, slotIndex)
+--- @param deckName string The name of the settlement locations deck (e.g., "Core Settlement Locations")
+function SettlementLocationRewards.SpawnLocation(locationName, slotIndex, deckName)
     local location = Location.Get("Settlement Location " .. slotIndex)
 
-    Archive.Take({
+    Archive.TakeFromDeck({
+        deckName = deckName,
+        deckType = SETTLEMENT_LOCATION_TYPE,
         name = locationName,
-        type = SETTLEMENT_LOCATION_TYPE,
-        location = location,
+        cardType = SETTLEMENT_LOCATION_TYPE,
+        position = location:Center(),
         rotation = { x = 0, y = 180, z = 180 },
         spawnFunc = function(obj)
             Util.HighlightAll({ obj })
@@ -126,9 +130,17 @@ function SettlementLocationRewards.SpawnForVictory(monster, level)
         return false
     end
 
+    -- Determine which Settlement Locations deck to use based on monster's expansion
+    local expansion = Showdown.expansionsByMonsterName and Showdown.expansionsByMonsterName[monster.name]
+    local deckName = "Core Settlement Locations"  -- Default to Core deck
+    if expansion and expansion.components and expansion.components["Settlement Locations"] then
+        deckName = expansion.components["Settlement Locations"]
+    end
+    log:Debugf("Using Settlement Locations deck: %s (expansion: %s)", deckName, expansion and expansion.name or "Core")
+
     -- Spawn the location
     log:Printf("Spawning %s to settlement location %d", reward, slotIndex)
-    SettlementLocationRewards.SpawnLocation(reward, slotIndex)
+    SettlementLocationRewards.SpawnLocation(reward, slotIndex, deckName)
     return true
 end
 

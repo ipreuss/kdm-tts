@@ -1,0 +1,483 @@
+-- TTS Settlement Location Rewards Integration Tests
+-- Tests settlement location spawning after showdown victories
+--
+-- Bead: kdm-bo7
+--
+-- Tests verify:
+-- 1. Clicking Won spawns settlement location to empty slot
+-- 2. ShowdownAftermath displays disabled pre-checked item
+-- 3. Already-placed locations don't spawn duplicates
+-- 4. Full grid shows error message
+
+local Console = require("Kdm/Core/Console")
+local Location = require("Kdm/Location/Location")
+local log = require("Kdm/Core/Log").ForModule("SettlementLocationRewardsTests")
+local ResourceRewards = require("Kdm/Data/ResourceRewards")
+local SettlementLocationRewards = require("Kdm/Data/SettlementLocationRewards")
+local Showdown = require("Kdm/Sequence/Showdown")
+local ShowdownAftermath = require("Kdm/Sequence/ShowdownAftermath")
+
+---------------------------------------------------------------------------------------------------
+
+local SettlementLocationRewardsTests = {}
+
+---------------------------------------------------------------------------------------------------
+-- Helpers
+---------------------------------------------------------------------------------------------------
+
+-- Helper to count settlement locations on board
+local function countSettlementLocations(locationName)
+    local count = 0
+    for i = 1, 20 do
+        local loc = Location.Get("Settlement Location " .. i)
+        local obj = loc:FirstObject({ types = { "Settlement Locations" } })
+        if obj and obj.getName() == locationName then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+-- Helper to fill all settlement location slots (for full grid test)
+local function fillAllSettlementSlots()
+    -- Just place dummy objects in all slots - we don't need real settlement locations
+    -- We'll use the Catarium multiple times to fill the grid quickly
+    for i = 1, 20 do
+        local loc = Location.Get("Settlement Location " .. i)
+        local existing = loc:FirstObject({ types = { "Settlement Locations" } })
+        if not existing then
+            -- Spawn a Catarium to fill the slot
+            SettlementLocationRewards.Test.SpawnLocation("Catarium", i, "Core Settlement Locations")
+        end
+    end
+end
+
+-- Helper to clean up all settlement location slots
+local function cleanupAllSettlementSlots()
+    for i = 1, 20 do
+        local loc = Location.Get("Settlement Location " .. i)
+        local obj = loc:FirstObject({ types = { "Settlement Locations" } })
+        if obj then
+            obj.destruct()
+        end
+    end
+end
+
+-- Helper to clean up spawned resources from the reward spawn area
+-- Resources spawn at x=50.60, z=-13.88 in a grid pattern
+local function cleanupSpawnedResources()
+    local resourceTypes = {
+        ["Basic Resources"] = true,
+        ["Monster Resources"] = true,
+        ["Strange Resources"] = true,
+        ["Vermin"] = true,
+    }
+
+    -- Clean from Showdown Board location (covers most resources)
+    local showdownBoard = Location.Get("Showdown Board")
+    if showdownBoard then
+        showdownBoard:BoxClean({ types = { "Basic Resources", "Monster Resources", "Strange Resources", "Vermin" } })
+    end
+
+    -- Also search all objects and destroy resources in the spawn area
+    -- Spawn area: x=48-62, z=-25 to -10
+    for _, obj in ipairs(getAllObjects()) do
+        if obj and not obj.isDestroyed() then
+            local objType = obj.getGMNotes()
+            if resourceTypes[objType] then
+                local pos = obj.getPosition()
+                if pos.x >= 48 and pos.x <= 62 and pos.z >= -25 and pos.z <= -10 then
+                    obj.destruct()
+                end
+            end
+        end
+    end
+end
+
+-- Comprehensive cleanup for test teardown
+local function fullTestCleanup()
+    cleanupAllSettlementSlots()
+    cleanupSpawnedResources()
+    ShowdownAftermath.Hide()
+    Showdown.Clean()
+end
+
+---------------------------------------------------------------------------------------------------
+-- Test 1: Won button triggers location spawn
+---------------------------------------------------------------------------------------------------
+
+function SettlementLocationRewardsTests.TestWonButtonSpawnsCatarium(onComplete)
+    log:Printf("=== TEST: TestWonButtonSpawnsCatarium ===")
+    log:Printf("TEST: Verifies clicking Won spawns Catarium for White Lion L1")
+
+    -- Full cleanup before test
+    fullTestCleanup()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting White Lion Level 1 showdown...")
+        Showdown.Setup("White Lion", "Level 1")
+
+        Wait.frames(function()
+            -- Count Catariums before clicking Won
+            local beforeCount = countSettlementLocations("Catarium")
+            log:Printf("TEST: Catarium count before Won click: %d", beforeCount)
+
+            -- Click Won button
+            log:Printf("TEST: Clicking Won button...")
+            ResourceRewards.Test.OnWonClick()
+
+            Wait.frames(function()
+                -- Count Catariums after clicking Won
+                local afterCount = countSettlementLocations("Catarium")
+                log:Printf("TEST: Catarium count after Won click: %d", afterCount)
+
+                local passed = afterCount == beforeCount + 1
+                if passed then
+                    log:Printf("TEST: Catarium spawned successfully (before=%d, after=%d)", beforeCount, afterCount)
+                else
+                    log:Errorf("TEST: Catarium not spawned (before=%d, after=%d)", beforeCount, afterCount)
+                end
+
+                log:Printf("=== TEST: TestWonButtonSpawnsCatarium COMPLETE ===")
+                log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+
+                fullTestCleanup()
+                if onComplete then onComplete(passed) end
+            end, 60)  -- Wait for spawn to complete
+        end, 60)  -- Wait for showdown setup
+    end, 30)  -- Wait for initial cleanup
+end
+
+---------------------------------------------------------------------------------------------------
+-- Test 2: Disabled checklist item appears in ShowdownAftermath
+---------------------------------------------------------------------------------------------------
+
+function SettlementLocationRewardsTests.TestDisabledChecklistItem(onComplete)
+    log:Printf("=== TEST: TestDisabledChecklistItem ===")
+    log:Printf("TEST: Verifies ShowdownAftermath shows disabled pre-checked item")
+
+    fullTestCleanup()
+
+    Wait.frames(function()
+        log:Printf("TEST: Starting White Lion Level 1 showdown...")
+        Showdown.Setup("White Lion", "Level 1")
+
+        Wait.frames(function()
+            log:Printf("TEST: Clicking Won button...")
+            ResourceRewards.Test.OnWonClick()
+
+            Wait.frames(function()
+                -- Search through all checklist items for the disabled Catarium item
+                local foundCatariumItem = false
+                local disabledCount = 0
+
+                for i = 1, 10 do
+                    local item = ShowdownAftermath.Test.GetItem(i)
+                    if item then
+                        log:Printf("TEST: Item %d: text='%s', disabled=%s, checked=%s",
+                            i, item.text, tostring(item.disabled), tostring(item.checked))
+
+                        if item.disabled then
+                            disabledCount = disabledCount + 1
+                        end
+
+                        -- Look for the Catarium item
+                        if item.disabled and item.checked and string.find(item.text, "Catarium") then
+                            foundCatariumItem = true
+                            log:Printf("TEST: Found disabled Catarium item at position %d", i)
+                        end
+                    end
+                end
+
+                log:Printf("TEST: Total disabled items found: %d", disabledCount)
+
+                local passed = foundCatariumItem
+                if passed then
+                    log:Printf("TEST: Disabled Catarium checklist item found")
+                else
+                    log:Errorf("TEST: Could not find disabled Catarium item in checklist")
+                end
+
+                log:Printf("=== TEST: TestDisabledChecklistItem COMPLETE ===")
+                log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+
+                fullTestCleanup()
+                if onComplete then onComplete(passed) end
+            end, 60)  -- Wait for aftermath to show
+        end, 60)  -- Wait for showdown setup
+    end, 30)  -- Wait for initial cleanup
+end
+
+---------------------------------------------------------------------------------------------------
+-- Test 3: Already-placed location doesn't spawn duplicate
+---------------------------------------------------------------------------------------------------
+
+function SettlementLocationRewardsTests.TestNoDuplicateSpawn(onComplete)
+    log:Printf("=== TEST: TestNoDuplicateSpawn ===")
+    log:Printf("TEST: Verifies Catarium doesn't spawn if already placed")
+
+    fullTestCleanup()
+
+    Wait.frames(function()
+        -- Manually place Catarium in slot 1
+        log:Printf("TEST: Pre-placing Catarium in slot 1...")
+        SettlementLocationRewards.Test.SpawnLocation("Catarium", 1, "Core Settlement Locations")
+
+        Wait.frames(function()
+            local beforeCount = countSettlementLocations("Catarium")
+            log:Printf("TEST: Catarium count after pre-placement: %d", beforeCount)
+
+            log:Printf("TEST: Starting White Lion Level 1 showdown...")
+            Showdown.Setup("White Lion", "Level 1")
+
+            Wait.frames(function()
+                log:Printf("TEST: Clicking Won button...")
+                ResourceRewards.Test.OnWonClick()
+
+                Wait.frames(function()
+                    local afterCount = countSettlementLocations("Catarium")
+                    log:Printf("TEST: Catarium count after Won click: %d", afterCount)
+
+                    local passed = afterCount == beforeCount
+                    if passed then
+                        log:Printf("TEST: Correctly did NOT spawn duplicate (count stayed at %d)", afterCount)
+                    else
+                        log:Errorf("TEST: Unexpected spawn (before=%d, after=%d)", beforeCount, afterCount)
+                    end
+
+                    log:Printf("=== TEST: TestNoDuplicateSpawn COMPLETE ===")
+                    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+
+                    fullTestCleanup()
+                    if onComplete then onComplete(passed) end
+                end, 60)  -- Wait for Won processing
+            end, 60)  -- Wait for showdown setup
+        end, 60)  -- Wait for initial Catarium spawn
+    end, 30)  -- Wait for initial cleanup
+end
+
+---------------------------------------------------------------------------------------------------
+-- Test 4: Full grid shows error (broadcast message)
+---------------------------------------------------------------------------------------------------
+
+function SettlementLocationRewardsTests.TestFullGridError(onComplete)
+    log:Printf("=== TEST: TestFullGridError ===")
+    log:Printf("TEST: Verifies error message when all settlement slots full")
+
+    fullTestCleanup()
+
+    Wait.frames(function()
+        -- Fill all 20 settlement slots
+        log:Printf("TEST: Filling all 20 settlement slots...")
+        fillAllSettlementSlots()
+
+        Wait.frames(function()
+            local emptySlot = SettlementLocationRewards.FindEmptySlot()
+            log:Printf("TEST: Empty slot check (should be nil): %s", tostring(emptySlot))
+
+            if emptySlot ~= nil then
+                log:Errorf("TEST: Setup failed - found empty slot %d", emptySlot)
+                cleanupAllSettlementSlots()
+                Showdown.Clean()
+                if onComplete then onComplete(false) end
+                return
+            end
+
+            log:Printf("TEST: Starting White Lion Level 1 showdown...")
+            Showdown.Setup("White Lion", "Level 1")
+
+            Wait.frames(function()
+                log:Printf("TEST: Clicking Won button...")
+                -- Note: HandleFullGrid broadcasts an error message
+                -- We can't easily capture broadcast messages in TTS, but we can verify
+                -- that no new Catarium was spawned
+
+                local beforeCount = countSettlementLocations("Catarium")
+                ResourceRewards.Test.OnWonClick()
+
+                Wait.frames(function()
+                    local afterCount = countSettlementLocations("Catarium")
+                    log:Printf("TEST: Catarium count (before=%d, after=%d)", beforeCount, afterCount)
+
+                    -- The count should be the same (no spawn occurred)
+                    local passed = afterCount == beforeCount
+                    if passed then
+                        log:Printf("TEST: Correctly did NOT spawn when grid full")
+                        log:Printf("TEST: Check chat for broadcast error message about full grid")
+                    else
+                        log:Errorf("TEST: Unexpected count change (grid should be full)")
+                    end
+
+                    log:Printf("=== TEST: TestFullGridError COMPLETE ===")
+                    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+
+                    fullTestCleanup()
+                    if onComplete then onComplete(passed) end
+                end, 60)  -- Wait for Won processing
+            end, 60)  -- Wait for showdown setup
+        end, 120)  -- Wait for all 20 spawns to complete
+    end, 30)  -- Wait for initial cleanup
+end
+
+---------------------------------------------------------------------------------------------------
+-- Test 5: Other monsters also spawn their locations
+---------------------------------------------------------------------------------------------------
+
+function SettlementLocationRewardsTests.TestOtherMonsters(onComplete)
+    log:Printf("=== TEST: TestOtherMonsters ===")
+    log:Printf("TEST: Verifies other monsters spawn their settlement locations")
+
+    fullTestCleanup()
+
+    Wait.frames(function()
+        -- Test Screaming Antelope L1 -> Stone Circle
+        log:Printf("TEST: Testing Screaming Antelope L1 -> Stone Circle...")
+        Showdown.Setup("Screaming Antelope", "Level 1")
+
+        Wait.frames(function()
+            local beforeCount = countSettlementLocations("Stone Circle")
+            log:Printf("TEST: Stone Circle count before Won: %d", beforeCount)
+
+            ResourceRewards.Test.OnWonClick()
+
+            Wait.frames(function()
+                local afterCount = countSettlementLocations("Stone Circle")
+                log:Printf("TEST: Stone Circle count after Won: %d", afterCount)
+
+                local antelopePassed = afterCount == beforeCount + 1
+                if antelopePassed then
+                    log:Printf("TEST: Stone Circle spawned successfully")
+                else
+                    log:Errorf("TEST: Stone Circle not spawned (before=%d, after=%d)", beforeCount, afterCount)
+                end
+
+                -- Cleanup and test Phoenix L1 -> Plumery
+                fullTestCleanup()
+
+                Wait.frames(function()
+                    log:Printf("TEST: Testing Phoenix L1 -> Plumery...")
+                    Showdown.Setup("Phoenix", "Level 1")
+
+                    Wait.frames(function()
+                        local beforeCount2 = countSettlementLocations("Plumery")
+                        log:Printf("TEST: Plumery count before Won: %d", beforeCount2)
+
+                        ResourceRewards.Test.OnWonClick()
+
+                        Wait.frames(function()
+                            local afterCount2 = countSettlementLocations("Plumery")
+                            log:Printf("TEST: Plumery count after Won: %d", afterCount2)
+
+                            local phoenixPassed = afterCount2 == beforeCount2 + 1
+                            if phoenixPassed then
+                                log:Printf("TEST: Plumery spawned successfully")
+                            else
+                                log:Errorf("TEST: Plumery not spawned (before=%d, after=%d)", beforeCount2, afterCount2)
+                            end
+
+                            local passed = antelopePassed and phoenixPassed
+                            log:Printf("=== TEST: TestOtherMonsters COMPLETE ===")
+                            log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+
+                            fullTestCleanup()
+                            if onComplete then onComplete(passed) end
+                        end, 60)  -- Wait for Phoenix spawn
+                    end, 60)  -- Wait for Phoenix setup
+                end, 30)  -- Wait between monsters
+            end, 60)  -- Wait for Antelope spawn
+        end, 60)  -- Wait for Antelope setup
+    end, 30)  -- Wait for initial cleanup
+end
+
+---------------------------------------------------------------------------------------------------
+-- Test 6: No checklist item when location already placed
+---------------------------------------------------------------------------------------------------
+
+function SettlementLocationRewardsTests.TestNoChecklistItemWhenAlreadyPlaced(onComplete)
+    log:Printf("=== TEST: TestNoChecklistItemWhenAlreadyPlaced ===")
+    log:Printf("TEST: Verifies disabled checklist item does NOT appear when location already exists")
+
+    fullTestCleanup()
+
+    Wait.frames(function()
+        -- Manually place Catarium in slot 1
+        log:Printf("TEST: Pre-placing Catarium in slot 1...")
+        SettlementLocationRewards.Test.SpawnLocation("Catarium", 1, "Core Settlement Locations")
+
+        Wait.frames(function()
+            log:Printf("TEST: Starting White Lion Level 1 showdown...")
+            Showdown.Setup("White Lion", "Level 1")
+
+            Wait.frames(function()
+                log:Printf("TEST: Clicking Won button...")
+                ResourceRewards.Test.OnWonClick()
+
+                Wait.frames(function()
+                    -- Search through all checklist items - should NOT find disabled Catarium item
+                    local foundDisabledCatariumItem = false
+
+                    for i = 1, 10 do
+                        local item = ShowdownAftermath.Test.GetItem(i)
+                        if item then
+                            log:Printf("TEST: Item %d: text='%s', disabled=%s, checked=%s",
+                                i, item.text, tostring(item.disabled), tostring(item.checked))
+
+                            -- Look for disabled Catarium item (should NOT be there)
+                            if item.disabled and item.checked and string.find(item.text, "Catarium") then
+                                foundDisabledCatariumItem = true
+                                log:Printf("TEST: Found unexpected disabled Catarium item at position %d", i)
+                            end
+                        end
+                    end
+
+                    local passed = not foundDisabledCatariumItem
+                    if passed then
+                        log:Printf("TEST: Correctly did NOT show disabled Catarium item (location was already placed)")
+                    else
+                        log:Errorf("TEST: Unexpectedly found disabled Catarium item in checklist")
+                    end
+
+                    log:Printf("=== TEST: TestNoChecklistItemWhenAlreadyPlaced COMPLETE ===")
+                    log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+
+                    fullTestCleanup()
+                    if onComplete then onComplete(passed) end
+                end, 60)  -- Wait for aftermath to show
+            end, 60)  -- Wait for showdown setup
+        end, 60)  -- Wait for Catarium spawn
+    end, 30)  -- Wait for initial cleanup
+end
+
+---------------------------------------------------------------------------------------------------
+-- Console Command Registration
+---------------------------------------------------------------------------------------------------
+
+function SettlementLocationRewardsTests.Register()
+    Console.AddCommand("testsettlementlocationwon", function(args)
+        SettlementLocationRewardsTests.TestWonButtonSpawnsCatarium()
+    end, "Test Won button spawns Catarium for White Lion L1")
+
+    Console.AddCommand("testsettlementlocationdisabled", function(args)
+        SettlementLocationRewardsTests.TestDisabledChecklistItem()
+    end, "Test ShowdownAftermath shows disabled checklist item")
+
+    Console.AddCommand("testsettlementlocationnoduplicate", function(args)
+        SettlementLocationRewardsTests.TestNoDuplicateSpawn()
+    end, "Test already-placed location doesn't spawn duplicate")
+
+    Console.AddCommand("testsettlementlocationfull", function(args)
+        SettlementLocationRewardsTests.TestFullGridError()
+    end, "Test full grid shows error message")
+
+    Console.AddCommand("testsettlementlocationother", function(args)
+        SettlementLocationRewardsTests.TestOtherMonsters()
+    end, "Test other monsters spawn their locations")
+
+    Console.AddCommand("testsettlementlocationnochecklist", function(args)
+        SettlementLocationRewardsTests.TestNoChecklistItemWhenAlreadyPlaced()
+    end, "Test no checklist item when location already placed")
+end
+
+---------------------------------------------------------------------------------------------------
+
+return SettlementLocationRewardsTests
