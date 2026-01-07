@@ -284,6 +284,102 @@ Test.test("All weaponStats items exist in template", function(t)
     end
 end)
 
+Test.test("Core Archive.data token entries have NamedObject GUIDs", function(t)
+    local templateGuids = loadTemplateGuids()
+    if not templateGuids then
+        t:fail("Could not load template GUIDs")
+        return
+    end
+
+    -- Stub minimal dependencies to load Archive module for its static data
+    local noop = function() end
+    local noopLog = { Debugf = noop, Errorf = noop, Printf = noop, Broadcastf = noop }
+    local stubs = {
+        ["Kdm/Util/Check"] = setmetatable({}, { __call = function() return true end }),
+        ["Kdm/Util/Container"] = function() return {} end,
+        ["Kdm/Expansion"] = { All = function() return {} end },
+        ["Kdm/Location/Location"] = {},
+        ["Kdm/Core/Log"] = { ForModule = function() return noopLog end },
+        ["Kdm/Util/ObjectState"] = {},
+        ["Kdm/Util/TTSSpawner"] = {},
+        ["Kdm/Util/Util"] = {},
+    }
+
+    -- Load NamedObject.data (it has minimal deps, just need stubs)
+    local noStubs = {
+        ["Kdm/Util/Check"] = stubs["Kdm/Util/Check"],
+        ["Kdm/Core/Console"] = { AddCommand = noop },
+        ["Kdm/Util/EventManager"] = { AddHandler = noop },
+        ["Kdm/Expansion"] = stubs["Kdm/Expansion"],
+        ["Kdm/Core/Log"] = stubs["Kdm/Core/Log"],
+    }
+
+    -- Save and stub
+    local savedModules = {}
+    for name, stub in pairs(stubs) do
+        savedModules[name] = package.loaded[name]
+        package.loaded[name] = stub
+    end
+    for name, stub in pairs(noStubs) do
+        if not savedModules[name] then
+            savedModules[name] = package.loaded[name]
+        end
+        package.loaded[name] = stub
+    end
+
+    -- Clear cached modules to force reload
+    local origArchive = package.loaded["Kdm/Archive/Archive"]
+    local origNamedObject = package.loaded["Kdm/Location/NamedObject"]
+    package.loaded["Kdm/Archive/Archive"] = nil
+    package.loaded["Kdm/Location/NamedObject"] = nil
+
+    local ok, err = pcall(function()
+        local Archive = require("Kdm/Archive/Archive")
+        local NamedObject = require("Kdm/Location/NamedObject")
+
+        -- Build reverse lookup: name -> guid from NamedObject.data
+        local nameToGuid = {}
+        for guid, data in pairs(NamedObject.data) do
+            nameToGuid[data.name] = guid
+        end
+
+        local missing = {}
+        local invalidGuids = {}
+
+        -- Check each "Tokens" type entry in Archive.data
+        for _, entry in ipairs(Archive.data) do
+            local name, entryType, archiveName = entry[1], entry[2], entry[3]
+            if entryType == "Tokens" then
+                local guid = nameToGuid[archiveName]
+                if not guid then
+                    table.insert(missing, string.format("'%s' (archive: '%s')", name, archiveName))
+                elseif not templateGuids[guid] then
+                    table.insert(invalidGuids, string.format("'%s' GUID '%s' not in template", archiveName, guid))
+                end
+            end
+        end
+
+        if #missing > 0 then
+            t:fail("Archive.data tokens missing NamedObject.data entries:\n  - " .. table.concat(missing, "\n  - "))
+        end
+
+        if #invalidGuids > 0 then
+            t:fail("NamedObject.data token GUIDs not in template:\n  - " .. table.concat(invalidGuids, "\n  - "))
+        end
+    end)
+
+    -- Restore
+    package.loaded["Kdm/Archive/Archive"] = origArchive
+    package.loaded["Kdm/Location/NamedObject"] = origNamedObject
+    for name, original in pairs(savedModules) do
+        package.loaded[name] = original
+    end
+
+    if not ok then
+        t:fail("Test setup error: " .. tostring(err))
+    end
+end)
+
 -- Print summary
 Test.test("Template integrity summary", function(t)
     local nicknames = loadTemplateNicknames()
