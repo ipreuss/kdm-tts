@@ -1,0 +1,208 @@
+-- TTS Token Archive Tests
+-- Tests for token spawning from archive (kdm-m24)
+--
+-- Bead: kdm-m24
+--
+-- Tests that the 6 new token types can be spawned from their archives
+-- and have correct names.
+
+local Console = require("Kdm/Core/Console")
+local Archive = require("Kdm/Archive/Archive")
+local log = require("Kdm/Core/Log").ForModule("TokenArchiveTests")
+
+---------------------------------------------------------------------------------------------------
+
+local TokenArchiveTests = {}
+
+---------------------------------------------------------------------------------------------------
+-- Test Data: Token types that were added in kdm-m24
+---------------------------------------------------------------------------------------------------
+
+-- Note: Archive bags are plural ("Red Tokens") but spawn singular tokens ("Red Token")
+local TOKEN_TYPES = {
+    { name = "Red Tokens", type = "Tokens", expectedName = "Red Token" },
+    { name = "Blue Tokens", type = "Tokens", expectedName = "Blue Token" },
+    { name = "Green Tokens", type = "Tokens", expectedName = "Green Token" },
+    { name = "White Tokens", type = "Tokens", expectedName = "White Token" },
+    { name = "Bleeding Tokens", type = "Tokens", expectedName = "Bleeding Token" },
+    { name = "Lunacy Tokens", type = "Tokens", expectedName = "Lunacy Token" },
+}
+
+---------------------------------------------------------------------------------------------------
+-- Test Registration
+---------------------------------------------------------------------------------------------------
+
+function TokenArchiveTests.Register()
+    Console.AddCommand("testtokenred", function(args)
+        TokenArchiveTests.TestRedTokensSpawn()
+    end, "Test spawning Red Tokens from archive")
+
+    Console.AddCommand("testtokenblue", function(args)
+        TokenArchiveTests.TestBlueTokensSpawn()
+    end, "Test spawning Blue Tokens from archive")
+
+    Console.AddCommand("testtokengreen", function(args)
+        TokenArchiveTests.TestGreenTokensSpawn()
+    end, "Test spawning Green Tokens from archive")
+
+    Console.AddCommand("testtokenwhite", function(args)
+        TokenArchiveTests.TestWhiteTokensSpawn()
+    end, "Test spawning White Tokens from archive")
+
+    Console.AddCommand("testtokenbleeding", function(args)
+        TokenArchiveTests.TestBleedingTokensSpawn()
+    end, "Test spawning Bleeding Tokens from archive")
+
+    Console.AddCommand("testtokenlunacy", function(args)
+        TokenArchiveTests.TestLunacyTokensSpawn()
+    end, "Test spawning Lunacy Tokens from archive")
+
+    Console.AddCommand("testtokensall", function(args)
+        TokenArchiveTests.TestAllTokensSpawn()
+    end, "Test spawning all 6 token types from archive")
+end
+
+---------------------------------------------------------------------------------------------------
+-- Helper: Test spawning a single token type
+---------------------------------------------------------------------------------------------------
+
+local function testTokenSpawn(tokenName, tokenType, expectedName, onComplete)
+    log:Printf("=== TEST: Test%sSpawn ===", tokenName:gsub(" ", ""))
+    log:Printf("TEST: Spawning %s from archive...", tokenName)
+
+    -- Spawn token at a test position
+    local testPosition = { x = 0, y = 5, z = 0 }
+    local obj = Archive.Take({
+        name = tokenName,
+        type = tokenType,
+        position = testPosition,
+    })
+
+    if not obj then
+        log:Errorf("TEST FAILED: Could not spawn %s from archive", tokenName)
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    -- Wait for object to spawn
+    Wait.frames(function()
+        -- Verify object exists and has correct name
+        -- Note: expectedName is singular ("Red Token"), tokenName is the archive name ("Red Tokens")
+        local actualName = obj.getName()
+        local nameCorrect = actualName == expectedName
+
+        if nameCorrect then
+            log:Printf("TEST: %s spawned successfully with correct name '%s'", tokenName, expectedName)
+        else
+            log:Errorf("TEST: Name incorrect - expected '%s', got '%s'", expectedName, actualName)
+        end
+
+        -- Verify position is approximately correct
+        local actualPos = obj.getPosition()
+        local positionCorrect = math.abs(actualPos.x - testPosition.x) < 1
+                            and math.abs(actualPos.z - testPosition.z) < 1
+
+        if positionCorrect then
+            log:Printf("TEST: Position correct (x=%.2f, z=%.2f)", actualPos.x, actualPos.z)
+        else
+            log:Errorf("TEST: Position incorrect - expected (%.2f, %.2f), got (%.2f, %.2f)",
+                testPosition.x, testPosition.z, actualPos.x, actualPos.z)
+        end
+
+        local passed = obj ~= nil and nameCorrect and positionCorrect
+
+        -- Cleanup: destroy spawned token
+        Wait.frames(function()
+            obj.destruct()
+            Archive.Clean()
+            log:Printf("TEST: Cleaned up - destroyed token")
+            log:Printf("=== TEST: Test%sSpawn COMPLETE ===", tokenName:gsub(" ", ""))
+            log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+            if onComplete then onComplete(passed) end
+        end, 10)
+    end, 30)
+end
+
+---------------------------------------------------------------------------------------------------
+-- Individual Token Tests
+---------------------------------------------------------------------------------------------------
+
+function TokenArchiveTests.TestRedTokensSpawn(onComplete)
+    testTokenSpawn("Red Tokens", "Tokens", "Red Token", onComplete)
+end
+
+function TokenArchiveTests.TestBlueTokensSpawn(onComplete)
+    testTokenSpawn("Blue Tokens", "Tokens", "Blue Token", onComplete)
+end
+
+function TokenArchiveTests.TestGreenTokensSpawn(onComplete)
+    testTokenSpawn("Green Tokens", "Tokens", "Green Token", onComplete)
+end
+
+function TokenArchiveTests.TestWhiteTokensSpawn(onComplete)
+    testTokenSpawn("White Tokens", "Tokens", "White Token", onComplete)
+end
+
+function TokenArchiveTests.TestBleedingTokensSpawn(onComplete)
+    testTokenSpawn("Bleeding Tokens", "Tokens", "Bleeding Token", onComplete)
+end
+
+function TokenArchiveTests.TestLunacyTokensSpawn(onComplete)
+    testTokenSpawn("Lunacy Tokens", "Tokens", "Lunacy Token", onComplete)
+end
+
+---------------------------------------------------------------------------------------------------
+-- All Tokens Test (spawns all 6 types sequentially)
+---------------------------------------------------------------------------------------------------
+
+function TokenArchiveTests.TestAllTokensSpawn(onComplete)
+    log:Printf("=== TEST: TestAllTokensSpawn ===")
+    log:Printf("TEST: Spawning all 6 token types from archive...")
+
+    local currentIndex = 1
+    local passedCount = 0
+    local failedCount = 0
+    local failedTokens = {}
+
+    local function testNextToken()
+        if currentIndex > #TOKEN_TYPES then
+            -- All tests complete
+            log:Printf("=== TEST: TestAllTokensSpawn COMPLETE ===")
+            log:Printf("TEST: Tested %d token types: %d passed, %d failed",
+                #TOKEN_TYPES, passedCount, failedCount)
+            if failedCount > 0 then
+                log:Errorf("Failed tokens:")
+                for _, name in ipairs(failedTokens) do
+                    log:Errorf("  - %s", name)
+                end
+            end
+            log:Printf("TEST RESULT: %s", failedCount == 0 and "PASSED" or "FAILED")
+            if onComplete then onComplete(failedCount == 0) end
+            return
+        end
+
+        local token = TOKEN_TYPES[currentIndex]
+        log:Printf("TEST: [%d/%d] Testing %s...", currentIndex, #TOKEN_TYPES, token.name)
+
+        testTokenSpawn(token.name, token.type, token.expectedName, function(success)
+            if success then
+                passedCount = passedCount + 1
+            else
+                failedCount = failedCount + 1
+                table.insert(failedTokens, token.name)
+            end
+            currentIndex = currentIndex + 1
+
+            -- Wait before testing next token
+            Wait.frames(function()
+                testNextToken()
+            end, 30)
+        end)
+    end
+
+    testNextToken()
+end
+
+---------------------------------------------------------------------------------------------------
+
+return TokenArchiveTests

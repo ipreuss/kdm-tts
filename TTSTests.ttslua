@@ -32,6 +32,7 @@ local BattleTests = require("Kdm/TTSTests/BattleTests")
 local ResourceRewardsTests = require("Kdm/TTSTests/ResourceRewardsTests")
 local SettlementLocationRewardsTests = require("Kdm/TTSTests/SettlementLocationRewardsTests")
 local HuntTests = require("Kdm/TTSTests/HuntTests")
+local TokenArchiveTests = require("Kdm/TTSTests/TokenArchiveTests")
 
 -- Import test infrastructure modules
 local TestRegistry = require("Kdm/TTSTests/TestRegistry")
@@ -98,6 +99,13 @@ function TTSTests.Init()
         log:Printf("    >testsettlementlocationnoduplicate - Test no duplicate spawn")
         log:Printf("    >testsettlementlocationfull - Test full grid error")
         log:Printf("    >testsettlementlocationother - Test other monster locations")
+        log:Printf("    >testtokenred       - Test spawning Red Tokens from archive")
+        log:Printf("    >testtokenblue      - Test spawning Blue Tokens from archive")
+        log:Printf("    >testtokengreen     - Test spawning Green Tokens from archive")
+        log:Printf("    >testtokenwhite     - Test spawning White Tokens from archive")
+        log:Printf("    >testtokenbleeding  - Test spawning Bleeding Tokens from archive")
+        log:Printf("    >testtokenlunacy    - Test spawning Lunacy Tokens from archive")
+        log:Printf("    >testtokensall      - Test spawning all 6 token types from archive")
     end, "Show available TTS test commands")
 
     Console.AddCommand("testall", function(args)
@@ -170,6 +178,7 @@ function TTSTests.Init()
     ResourceRewardsTests.Register()
     SettlementLocationRewardsTests.Register()
     HuntTests.Register()
+    TokenArchiveTests.Register()
 end
 
 ---------------------------------------------------------------------------------------------------

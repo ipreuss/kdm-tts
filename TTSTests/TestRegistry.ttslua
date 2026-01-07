@@ -18,6 +18,7 @@ local BattleTests = require("Kdm/TTSTests/BattleTests")
 local ResourceRewardsTests = require("Kdm/TTSTests/ResourceRewardsTests")
 local SettlementLocationRewardsTests = require("Kdm/TTSTests/SettlementLocationRewardsTests")
 local HuntTests = require("Kdm/TTSTests/HuntTests")
+local TokenArchiveTests = require("Kdm/TTSTests/TokenArchiveTests")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -27,7 +28,7 @@ local TestRegistry = {}
 -- Focus Bead - Update when switching to a new backlog item
 ---------------------------------------------------------------------------------------------------
 
-TestRegistry.FOCUS_BEAD = "kdm-863"
+TestRegistry.FOCUS_BEAD = "kdm-m24"
 
 ---------------------------------------------------------------------------------------------------
 -- All Tests Registry
@@ -123,6 +124,14 @@ TestRegistry.ALL_TESTS = {
     { name = "Full Grid Shows Error", bead = "kdm-bo7", domain = "settlement", fn = function(onComplete) SettlementLocationRewardsTests.TestFullGridError(onComplete) end },
     { name = "Other Monsters Spawn Locations", bead = "kdm-bo7", domain = "settlement", fn = function(onComplete) SettlementLocationRewardsTests.TestOtherMonsters(onComplete) end },
     { name = "No Checklist Item When Already Placed", bead = "kdm-bo7", domain = "settlement", fn = function(onComplete) SettlementLocationRewardsTests.TestNoChecklistItemWhenAlreadyPlaced(onComplete) end },
+    -- Token Archive tests (kdm-m24)
+    { name = "Red Tokens Spawn from Archive", bead = "kdm-m24", domain = "archive", fn = function(onComplete) TokenArchiveTests.TestRedTokensSpawn(onComplete) end },
+    { name = "Blue Tokens Spawn from Archive", bead = "kdm-m24", domain = "archive", fn = function(onComplete) TokenArchiveTests.TestBlueTokensSpawn(onComplete) end },
+    { name = "Green Tokens Spawn from Archive", bead = "kdm-m24", domain = "archive", fn = function(onComplete) TokenArchiveTests.TestGreenTokensSpawn(onComplete) end },
+    { name = "White Tokens Spawn from Archive", bead = "kdm-m24", domain = "archive", fn = function(onComplete) TokenArchiveTests.TestWhiteTokensSpawn(onComplete) end },
+    { name = "Bleeding Tokens Spawn from Archive", bead = "kdm-m24", domain = "archive", fn = function(onComplete) TokenArchiveTests.TestBleedingTokensSpawn(onComplete) end },
+    { name = "Lunacy Tokens Spawn from Archive", bead = "kdm-m24", domain = "archive", fn = function(onComplete) TokenArchiveTests.TestLunacyTokensSpawn(onComplete) end },
+    { name = "All Tokens Spawn from Archive", bead = "kdm-m24", domain = "archive", fn = function(onComplete) TokenArchiveTests.TestAllTokensSpawn(onComplete) end },
 }
 
 ---------------------------------------------------------------------------------------------------
