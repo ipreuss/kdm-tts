@@ -59,8 +59,12 @@ NamedObject.data = {
     ["0e3e77"] = { name = "Strength Tokens" },
     ["ee903a"] = { name = "Evasion Tokens" },
     ["5ec1c7"] = { name = "Luck Tokens" },
-    
-    
+    ["d03aa2"] = { name = "Red Tokens" },
+    ["42647a"] = { name = "Blue Tokens" },
+    ["61a7a3"] = { name = "Green Tokens" },
+    ["c3e5d3"] = { name = "White Tokens" },
+    ["39f6f6"] = { name = "Bleeding Tokens" },
+    ["09afad"] = { name = "Lunacy Tokens" },
 
     ["966a53"] = { name = "Seed Patterns Archive" },
 
