@@ -19,6 +19,7 @@ local ResourceRewardsTests = require("Kdm/TTSTests/ResourceRewardsTests")
 local SettlementLocationRewardsTests = require("Kdm/TTSTests/SettlementLocationRewardsTests")
 local HuntTests = require("Kdm/TTSTests/HuntTests")
 local TokenArchiveTests = require("Kdm/TTSTests/TokenArchiveTests")
+local SurvivorTests = require("Kdm/TTSTests/SurvivorTests")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -28,7 +29,7 @@ local TestRegistry = {}
 -- Focus Bead - Update when switching to a new backlog item
 ---------------------------------------------------------------------------------------------------
 
-TestRegistry.FOCUS_BEAD = "kdm-m24"
+TestRegistry.FOCUS_BEAD = "kdm-407"
 
 ---------------------------------------------------------------------------------------------------
 -- All Tests Registry
@@ -133,6 +134,8 @@ TestRegistry.ALL_TESTS = {
     { name = "Lunacy Tokens Spawn from Archive", bead = "kdm-m24", domain = "archive", fn = function(onComplete) TokenArchiveTests.TestLunacyTokensSpawn(onComplete) end },
     { name = "All Tokens Spawn from Archive", bead = "kdm-m24", domain = "archive", fn = function(onComplete) TokenArchiveTests.TestAllTokensSpawn(onComplete) end },
     { name = "Import Path Red Token", bead = "kdm-m24", domain = "archive", fn = function(onComplete) TokenArchiveTests.TestImportPathRedToken(onComplete) end },
+    -- Survivor tests (kdm-407)
+    { name = "Survivor Sheet Spawns on SpawnSurvivorBox", bead = "kdm-407", domain = "survivor", fn = function(onComplete) SurvivorTests.TestSurvivorSheetSpawns(onComplete) end },
 }
 
 ---------------------------------------------------------------------------------------------------

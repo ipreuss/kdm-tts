@@ -33,6 +33,7 @@ local ResourceRewardsTests = require("Kdm/TTSTests/ResourceRewardsTests")
 local SettlementLocationRewardsTests = require("Kdm/TTSTests/SettlementLocationRewardsTests")
 local HuntTests = require("Kdm/TTSTests/HuntTests")
 local TokenArchiveTests = require("Kdm/TTSTests/TokenArchiveTests")
+local SurvivorTests = require("Kdm/TTSTests/SurvivorTests")
 
 -- Import test infrastructure modules
 local TestRegistry = require("Kdm/TTSTests/TestRegistry")
@@ -106,6 +107,7 @@ function TTSTests.Init()
         log:Printf("    >testtokenbleeding  - Test spawning Bleeding Tokens from archive")
         log:Printf("    >testtokenlunacy    - Test spawning Lunacy Tokens from archive")
         log:Printf("    >testtokensall      - Test spawning all 6 token types from archive")
+        log:Printf("    >testsurvivorsheet  - Test survivor sheet spawns when box is spawned")
     end, "Show available TTS test commands")
 
     Console.AddCommand("testall", function(args)
@@ -179,6 +181,7 @@ function TTSTests.Init()
     SettlementLocationRewardsTests.Register()
     HuntTests.Register()
     TokenArchiveTests.Register()
+    SurvivorTests.Register()
 end
 
 ---------------------------------------------------------------------------------------------------

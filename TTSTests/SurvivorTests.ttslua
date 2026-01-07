@@ -1,0 +1,139 @@
+-- TTS Survivor Tests
+-- Tests for survivor box and sheet spawning (kdm-407)
+--
+-- Bead: kdm-407
+--
+-- Tests that survivor sheets spawn correctly when SpawnSurvivorBox() is called programmatically
+
+local Console = require("Kdm/Core/Console")
+local Survivor = require("Kdm/Entity/Survivor")
+local Location = require("Kdm/Location/Location")
+local Archive = require("Kdm/Archive/Archive")
+local Names = require("Kdm/Util/Names")
+local log = require("Kdm/Core/Log").ForModule("SurvivorTests")
+
+---------------------------------------------------------------------------------------------------
+
+local SurvivorTests = {}
+
+---------------------------------------------------------------------------------------------------
+-- Test Registration
+---------------------------------------------------------------------------------------------------
+
+function SurvivorTests.Register()
+    Console.AddCommand("testsurvivorsheet", function(args)
+        SurvivorTests.TestSurvivorSheetSpawns()
+    end, "Test survivor sheet spawns when SpawnSurvivorBox is called")
+end
+
+---------------------------------------------------------------------------------------------------
+-- Test: Survivor Sheet Spawns When SpawnSurvivorBox is Called
+---------------------------------------------------------------------------------------------------
+
+function SurvivorTests.TestSurvivorSheetSpawns(onComplete)
+    log:Printf("=== TEST: TestSurvivorSheetSpawns ===")
+    log:Printf("TEST: Creating survivor and spawning survivor box...")
+
+    -- Create a test survivor
+    local survivor = Survivor.CreateSurvivor(Names.Gender.male)
+    log:Printf("TEST: Created survivor %s (ID: %d)", survivor:NameOrUnnamed(), survivor.id)
+
+    -- Verify survivor was created
+    if not survivor then
+        log:Errorf("TEST FAILED: Could not create survivor")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    -- Spawn survivor box at Player 1 location
+    local testLocation = "Player 1 Survivor Sheet"
+    log:Printf("TEST: Spawning survivor box at %s...", testLocation)
+
+    Survivor.SpawnSurvivorBox(survivor, testLocation)
+
+    -- Wait for survivor box to spawn and Location.OnEnter to trigger
+    Wait.frames(function()
+        log:Printf("TEST: Checking if survivor box was registered...")
+
+        local survivorBox = Survivor.SurvivorBoxForSurvivor(survivor)
+        if not survivorBox then
+            log:Errorf("TEST FAILED: Survivor box was not registered")
+            if onComplete then onComplete(false) end
+            return
+        end
+
+        log:Printf("TEST: Survivor box registered successfully")
+
+        -- Wait for UnpackSurvivorBox to complete and spawn survivor sheet
+        Wait.frames(function()
+            log:Printf("TEST: Checking if survivor sheet was spawned...")
+
+            local survivorSheet = Survivor.SurvivorSheetForSurvivor(survivor)
+
+            if not survivorSheet then
+                log:Errorf("TEST FAILED: Survivor sheet was not spawned")
+                log:Errorf("  Expected: Survivor sheet at Player 1 location")
+                log:Errorf("  Actual: No survivor sheet found")
+
+                -- Cleanup
+                if survivorBox then
+                    survivorBox:Object().destruct()
+                end
+
+                if onComplete then onComplete(false) end
+                return
+            end
+
+            -- Verify survivor sheet exists at correct location
+            local sheetObject = survivorSheet:Object()
+            if not sheetObject then
+                log:Errorf("TEST FAILED: Survivor sheet object is nil")
+                if survivorBox then
+                    survivorBox:Object().destruct()
+                end
+                Archive.Clean()
+                if onComplete then onComplete(false) end
+                return
+            end
+
+            local sheetLocation = Location.Get(testLocation)
+            local objectsAtLocation = sheetLocation:AllObjects()
+            local foundSheet = false
+
+            for _, obj in ipairs(objectsAtLocation) do
+                if obj.getGUID() == sheetObject.getGUID() then
+                    foundSheet = true
+                    break
+                end
+            end
+
+            if not foundSheet then
+                log:Errorf("TEST FAILED: Survivor sheet not at expected location")
+                log:Errorf("  Expected location: %s", testLocation)
+                log:Errorf("  Sheet GUID: %s", sheetObject.getGUID())
+            else
+                log:Printf("TEST: Survivor sheet spawned at correct location")
+                log:Printf("  Location: %s", testLocation)
+                log:Printf("  Sheet GUID: %s", sheetObject.getGUID())
+            end
+
+            local passed = foundSheet
+
+            -- Cleanup: destroy survivor sheet (survivor box was already destroyed by UnpackSurvivorBox)
+            Wait.frames(function()
+                if sheetObject then
+                    sheetObject.destruct()
+                end
+                Archive.Clean()
+                log:Printf("TEST: Cleaned up - destroyed survivor sheet")
+                log:Printf("=== TEST: TestSurvivorSheetSpawns COMPLETE ===")
+                log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+                if onComplete then onComplete(passed) end
+            end, 10)
+        end, 60)  -- Wait longer for UnpackSurvivorBox to complete
+    end, 30)
+end
+
+---------------------------------------------------------------------------------------------------
+
+return SurvivorTests

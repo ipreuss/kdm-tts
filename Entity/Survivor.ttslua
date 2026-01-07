@@ -1293,15 +1293,22 @@ function Survivor.SpawnSurvivorBox(survivor, location)
         return
     end
 
+    log:Debugf("SpawnSurvivorBox calling Archive.Take for survivor %s at location %s", survivor:NameOrUnnamed(), location:Name())
     Archive.Take({
         name = "Survivor Box",
         type = "Survivor Box",
         location = location,
         rotation = { x = 0, y = 180, z = 0 },
         spawnFunc = function(survivorBoxObject)
+            log:Debugf("SpawnSurvivorBox spawnFunc called for [%s] %s", survivorBoxObject.getGUID(), survivorBoxObject.getName())
             local survivorBox = SurvivorBoxClass.Create(survivor, survivorBoxObject)
             Survivor.survivorBoxesBySurvivor[survivor] = survivorBox
             Survivor.survivorBoxesByObject[survivorBoxObject] = survivorBox
+            log:Debugf("SpawnSurvivorBox registered survivor box for [%s]", survivorBoxObject.getGUID())
+
+            -- TTS onObjectSpawn doesn't fire for Archive.Take spawns, so manually trigger location entry
+            -- to fire drop handlers (e.g. OnObjectDroppedOnSurvivorSheet spawns survivor sheets)
+            Location.OnEnter(survivorBoxObject)
 
             -- Custom model boxes are mad sketchy the turn they come into play: they're treated as "Generic" not "Boxes" for 1 frame
             Wait.frames(function()
