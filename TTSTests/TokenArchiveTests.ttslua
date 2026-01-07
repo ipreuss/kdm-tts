@@ -60,6 +60,10 @@ function TokenArchiveTests.Register()
     Console.AddCommand("testtokensall", function(args)
         TokenArchiveTests.TestAllTokensSpawn()
     end, "Test spawning all 6 token types from archive")
+
+    Console.AddCommand("testtokenimport", function(args)
+        TokenArchiveTests.TestImportPathRedToken()
+    end, "Test import path for Red Token via Archive.TakeObject")
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -201,6 +205,39 @@ function TokenArchiveTests.TestAllTokensSpawn(onComplete)
     end
 
     testNextToken()
+end
+
+---------------------------------------------------------------------------------------------------
+-- Import Path Test (tests Archive.TakeObject with singular name)
+---------------------------------------------------------------------------------------------------
+
+function TokenArchiveTests.TestImportPathRedToken(onComplete)
+    log:Printf("=== TEST: TestImportPathRedToken ===")
+    log:Printf("TEST: Testing import path - Archive.TakeObject with singular name...")
+
+    local testPosition = { x = 0, y = 5, z = 0 }
+
+    -- This is exactly what Campaign.Spawn calls during import:
+    local obj = Archive.TakeObject({
+        name = "Red Token",  -- Singular (as stored in export)
+        type = "Tokens",
+        position = testPosition,
+    })
+
+    if not obj then
+        log:Errorf("TEST FAILED: Archive.TakeObject could not find 'Red Token' in Tokens archives")
+        if onComplete then onComplete(false) end
+        return
+    end
+
+    Wait.frames(function()
+        local passed = obj ~= nil and obj.getName() == "Red Token"
+        log:Printf("TEST RESULT: %s", passed and "PASSED" or "FAILED")
+
+        obj.destruct()
+        Archive.Clean()
+        if onComplete then onComplete(passed) end
+    end, 30)
 end
 
 ---------------------------------------------------------------------------------------------------

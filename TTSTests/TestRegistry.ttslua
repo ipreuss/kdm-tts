@@ -132,6 +132,7 @@ TestRegistry.ALL_TESTS = {
     { name = "Bleeding Tokens Spawn from Archive", bead = "kdm-m24", domain = "archive", fn = function(onComplete) TokenArchiveTests.TestBleedingTokensSpawn(onComplete) end },
     { name = "Lunacy Tokens Spawn from Archive", bead = "kdm-m24", domain = "archive", fn = function(onComplete) TokenArchiveTests.TestLunacyTokensSpawn(onComplete) end },
     { name = "All Tokens Spawn from Archive", bead = "kdm-m24", domain = "archive", fn = function(onComplete) TokenArchiveTests.TestAllTokensSpawn(onComplete) end },
+    { name = "Import Path Red Token", bead = "kdm-m24", domain = "archive", fn = function(onComplete) TokenArchiveTests.TestImportPathRedToken(onComplete) end },
 }
 
 ---------------------------------------------------------------------------------------------------
