@@ -2,7 +2,7 @@
 
 This is a personal fork of the Kingdom Death: Monster mod for Tabletop Simulator. It includes additional features and content adapted to my personal preferences.
 
-**Note:** This fork contains newer KDM material and is therefore not published on the Steam Workshop, in accordance with Adam Poots' requirements regarding unreleased content.
+**Note:** This fork includes content from the Gambler's Chest and beyond. As Adam Poots has requested that such content not be published on the Steam Workshop, this mod is not publicly available there.
 
 ## Tests
 Unit tests live under `tests/` so they are never bundled into the Tabletop Simulator save. Run the current suite with:
