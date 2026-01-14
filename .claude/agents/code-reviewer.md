@@ -68,9 +68,18 @@ The invoking role specifies depth via the prompt (e.g., "review with standard de
 
 | Preset | Scope | Perspective Agents | Duration |
 |--------|-------|-------------------|----------|
-| **quick** | <3 files, no new modules, trivial changes | None (code-reviewer only) | 2-3 min |
-| **standard** | 3-10 files, existing patterns | security-reviewer, maintainability-reviewer | 5-8 min |
-| **comprehensive** | >10 files, new architecture, high-risk | All perspectives (security, maintainability, performance) | 10-15 min |
+| **quick** | <3 files, no new modules, trivial changes | **kdm-solid-reviewer** (mandatory) | 2-3 min |
+| **standard** | 3-10 files, existing patterns | **kdm-solid-reviewer** (mandatory), security-reviewer, maintainability-reviewer | 5-8 min |
+| **comprehensive** | >10 files, new architecture, high-risk | **kdm-solid-reviewer** (mandatory), security, maintainability, performance | 10-15 min |
+
+### Mandatory Perspective: kdm-solid-reviewer
+
+**ALWAYS invoke `kdm-solid-reviewer` when code files are touched** (any .ttslua or .lua files in the diff). This reviewer detects:
+- OCP violations (type-based dispatch chains)
+- Testability anti-patterns (direct Wait.frames/time, TTS API calls)
+- Growing anti-patterns (adding to existing violation chains)
+
+If `kdm-solid-reviewer` returns **BLOCKING**, the overall review status is **MAJOR FINDINGS** regardless of other perspectives. The violations must be fixed before approval.
 
 ### Depth Selection Guidance
 
@@ -94,18 +103,25 @@ The invoking role specifies depth via the prompt (e.g., "review with standard de
 
 ### Invoking Perspective Reviewers
 
-For standard and comprehensive depths, spawn perspective reviewers **in parallel** using the Task tool:
+Spawn perspective reviewers **in parallel** using the Task tool. **kdm-solid-reviewer is MANDATORY** for all depths when code is touched:
 
 ```
-# Standard depth example - spawn 2 perspectives
+# Quick depth - mandatory only
+Task(kdm-solid-reviewer): "Review this diff for OCP violations and testability anti-patterns:\n```diff\n[git diff output]\n```"
+
+# Standard depth - mandatory + 2 perspectives
+Task(kdm-solid-reviewer): "Review this diff for OCP violations and testability anti-patterns:\n```diff\n[git diff output]\n```"
 Task(security-reviewer): "Review [files] for security issues. Focus on: [specific concerns]"
 Task(maintainability-reviewer): "Review [files] for SOLID compliance and coupling"
 
-# Comprehensive depth - spawn all 3
+# Comprehensive depth - mandatory + all 3
+Task(kdm-solid-reviewer): "Review this diff for OCP violations and testability anti-patterns:\n```diff\n[git diff output]\n```"
 Task(security-reviewer): "..."
 Task(maintainability-reviewer): "..."
 Task(performance-reviewer): "Review [files] for efficiency issues. Focus on: [hot paths]"
 ```
+
+**CRITICAL:** Always pass the actual git diff to kdm-solid-reviewer. It identifies changed sections from the diff hunk headers, then analyzes those functions/blocks plus ~50 lines context (Boy Scout Rule: fix pre-existing violations in changed sections).
 
 **Provide context to each perspective:**
 - Which files to review
@@ -116,10 +132,17 @@ Task(performance-reviewer): "Review [files] for efficiency issues. Focus on: [ho
 
 After perspectives return, merge their findings:
 
-1. **Deduplicate** — Same issue found by multiple perspectives (high confidence)
-2. **Categorize** — Group by severity and perspective
-3. **Prefix findings** — Mark source: `[SEC]`, `[MAINT]`, `[PERF]`
-4. **Prioritize** — Security > Correctness > Maintainability > Performance
+1. **Check kdm-solid-reviewer first** — If BLOCKING, overall status is MAJOR FINDINGS
+2. **Deduplicate** — Same issue found by multiple perspectives (high confidence)
+3. **Categorize** — Group by severity and perspective
+4. **Prefix findings** — Mark source: `[KDM-SOLID]`, `[SEC]`, `[MAINT]`, `[PERF]`
+5. **Prioritize** — KDM-SOLID BLOCKING > Security > Correctness > Maintainability > Performance
+
+**Handling kdm-solid-reviewer BLOCKING:**
+- BLOCKING findings are non-negotiable - they represent violations of documented patterns
+- Include the specific refactoring advice from kdm-solid-reviewer in the review output
+- Reference `docs/SOLID_ANALYSIS.md` for context on why these patterns matter
+- Implementer must fix violations and re-submit for review
 
 Include all valid findings in the final review output.
 
@@ -296,6 +319,12 @@ The parent session has full context of what's being implemented. Use:
 
 ### Checklist
 
+**KDM-SOLID (mandatory):**
+- [ ] No new type-based dispatch chains (OCP)
+- [ ] No new direct Wait.frames/time calls (use TTSAdapter)
+- [ ] No nested Wait callbacks added
+- [ ] Handler registry pattern used where appropriate
+
 **Design Alignment:**
 - [ ] Matches design specification
 - [ ] N/A — [reason if not applicable]
@@ -335,6 +364,13 @@ The parent session has full context of what's being implemented. Use:
 6. Commit fixes and proceed to next step
 
 **Refactorings are never deferred**, even if minor. Technical debt compounds.
+
+**kdm-solid-reviewer BLOCKING:**
+When kdm-solid-reviewer returns BLOCKING, this is a strict gate:
+- Cannot approve with BLOCKING violations (always MAJOR FINDINGS)
+- Use the specific refactoring advice provided by kdm-solid-reviewer
+- These patterns are documented in `docs/SOLID_ANALYSIS.md` for context
+- Boy Scout Rule: don't add to existing anti-patterns, convert them
 
 **Refactoring-advisor integration:**
 When this review identifies code smells (DRY violations, duplication, SRP issues, large files), the implementing role MUST invoke `refactoring-advisor` before fixing. The advisor designs the proper abstraction; don't just hack a quick fix.
