@@ -1,5 +1,8 @@
-# kdm-tts
-Source for my Kingdom Death: Monster mod for Tabletop Simulator (https://steamcommunity.com/sharedfiles/filedetails/?id=2112101994)
+# kdm-tts (Personal Fork)
+
+This is a personal fork of the Kingdom Death: Monster mod for Tabletop Simulator. It includes additional features and content adapted to my personal preferences.
+
+**Note:** This fork contains newer KDM material and is therefore not published on the Steam Workshop, in accordance with Adam Poots' requirements regarding unreleased content.
 
 ## Tests
 Unit tests live under `tests/` so they are never bundled into the Tabletop Simulator save. Run the current suite with:
