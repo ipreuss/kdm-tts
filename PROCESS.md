@@ -95,6 +95,16 @@ Complex/cross-module      → Debugger role (full handover)
 **Code review via subagent (default):**
 All code goes through the `code-reviewer` subagent. The subagent operates in a same-session fix loop: invoke → fix issues → re-invoke until APPROVED. Significant findings go to `handover/LEARNINGS.md` for audit trail.
 
+**Review depth presets:**
+
+| Depth | When to Use | Perspectives Invoked |
+|-------|-------------|---------------------|
+| **quick** | <3 files, trivial changes, bug fixes | None (code-reviewer only) |
+| **standard** | Default for most changes | security-reviewer, maintainability-reviewer |
+| **comprehensive** | >10 files, new modules, high-risk | All (+ performance-reviewer) |
+
+Specify depth when invoking: "Review with comprehensive depth" or accept standard as default. The code-reviewer orchestrates perspective subagents and synthesizes findings.
+
 **Review outcomes:**
 
 | Status | Meaning | Next Step |
@@ -235,6 +245,7 @@ All role-to-role handovers are stored in the `handover/` folder:
 | `LEARNINGS.md` | Insights and improvement ideas from all roles | Team Coach |
 | `LATEST_REVIEW.md` | Most recent code review findings | Reviewer |
 | `LATEST_DEBUG.md` | Most recent debug report | Debugger |
+| `AGGREGATION_SUMMARY.md` | Periodic aggregation of review findings (PAF pattern) | Team Coach |
 
 Task-specific handovers use descriptive names following this convention:
 ```
@@ -646,6 +657,9 @@ Subagents provide specialized capabilities within a session. See `.claude/agents
 | Subagent | Purpose | Model |
 |----------|---------|-------|
 | `code-reviewer` | Review code at milestones, before handover, or when stuck | opus |
+| `security-reviewer` | Security perspective: input validation, path handling, secrets | sonnet |
+| `maintainability-reviewer` | Maintainability perspective: SOLID, coupling, complexity | sonnet |
+| `performance-reviewer` | Performance perspective: loops, TTS API, memory patterns | sonnet |
 | `debugger` | Diagnose bugs without full Debugger handover | sonnet |
 | `characterization-test-writer` | Write characterization tests before modifying legacy code | sonnet |
 | `acceptance-test-writer` | Write headless acceptance tests using domain language | sonnet |

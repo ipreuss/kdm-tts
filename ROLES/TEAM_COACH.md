@@ -121,7 +121,67 @@ For large features with significant learnings, follow the 5-round process:
 - Log processed learnings, clear from LEARNINGS.md
 - Broadcast summary to all roles
 
-### 6. Consolidate Learnings (Light Retrospective)
+### 6. Aggregate Review Findings (PAF Pattern)
+
+Periodically aggregate findings across multiple reviews to identify systemic patterns. This surfaces issues that individual reviews miss due to local scope.
+
+**When to aggregate:**
+- After 5+ code reviews since last aggregation
+- Before major milestones or releases
+- When LEARNINGS.md shows recurring themes
+- On request from any role
+
+**Aggregation process:**
+
+1. **Collect sources:**
+   - `handover/LEARNINGS.md` — Recent learnings
+   - `handover/LATEST_REVIEW.md` — Most recent review
+   - Git log for review-related commits
+
+2. **Categorize findings by type:**
+
+   | Category | Prefix | Description |
+   |----------|--------|-------------|
+   | Security | SEC- | Input validation, path handling, secrets |
+   | Performance | PERF- | Loops, TTS API, memory patterns |
+   | Maintainability | MAINT- | SOLID, coupling, complexity |
+   | UX | UX- | User interaction, feedback, clarity |
+   | Process | PROC- | Workflow friction, handover issues |
+
+3. **Identify patterns:**
+   - Issues appearing 3+ times → Systemic problem
+   - Issues in same module → Module needs attention
+   - Issues of same type → Missing skill or guideline
+
+4. **Create aggregation summary:**
+
+   ```markdown
+   ## Review Aggregation Summary
+   **Period:** [date range]
+   **Reviews analyzed:** [count]
+
+   ### Systemic Issues (3+ occurrences)
+   | Issue | Occurrences | Modules | Proposed Action |
+   |-------|-------------|---------|-----------------|
+   | [pattern] | N | [list] | skill/agent/doc |
+
+   ### Module Health
+   | Module | Issues | Primary Concern |
+   |--------|--------|-----------------|
+   | [name] | N | [category] |
+
+   ### Recommended Actions
+   1. [Action with owner and priority]
+   ```
+
+5. **Act on findings:**
+   - Create beads for significant technical debt
+   - Update skills/agents for recurring guidance needs
+   - Broadcast to roles if process changes needed
+
+**Output location:** `handover/AGGREGATION_SUMMARY.md` (replaced each time)
+
+### 7. Consolidate Learnings (Light Retrospective)
 
 For minor improvements or when learnings are few (<5), implement directly:
 
@@ -155,7 +215,7 @@ For minor improvements or when learnings are few (<5), implement directly:
 - On request from any role
 - At natural pause points (end of sprint/milestone)
 
-### 7. Archive Work Folders (Closed Beads)
+### 8. Archive Work Folders (Closed Beads)
 
 After retrospective, consolidate and clean up work folders for closed beads:
 
@@ -197,7 +257,7 @@ rm -rf work/kdm-xyz/
 
 Work folders are temporary — valuable content should be promoted to permanent locations before deletion.
 
-### 8. Git Commit Process Changes
+### 9. Git Commit Process Changes
 
 After making process changes (updating PROCESS.md, ROLES/*.md, skills, agents):
 1. Run `git status` to show all changes
