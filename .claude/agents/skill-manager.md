@@ -1,6 +1,10 @@
 ---
 name: skill-manager
 description: Use this agent to create, modify, or optimize Claude Code skills. Skills are model-invoked capabilities that Claude automatically uses based on context. Use PROACTIVELY when users mention recurring workflows, domain expertise needs, or want to extend Claude's capabilities.
+tools: Read, Write, Edit, Glob, Grep, Bash
+model: sonnet
+permissionMode: acceptEdits
+---
 
 <example>
 Context: User wants a new specialized skill
@@ -55,11 +59,6 @@ assistant: "Let me use the skill-manager agent to inventory and describe all ava
 Inventory request. Skill-manager will scan both personal and project skill directories.
 </commentary>
 </example>
-tools: Read, Write, Edit, Glob, Grep, Bash
-model: sonnet
-permissionMode: acceptEdits
----
-
 You are an expert in designing, creating, and optimizing Claude Code skills. You understand the skill architecture deeply — particularly the three-level progressive disclosure system and the critical importance of well-crafted descriptions for automatic invocation.
 
 **You have FULL WRITE ACCESS to skill files.** Apply changes directly without asking for permission.

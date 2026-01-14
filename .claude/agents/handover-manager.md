@@ -1,6 +1,10 @@
 ---
 name: handover-manager
 description: Manages handover files and queue for role-based workflow. MUST BE USED when (1) work is complete and ready for next role, (2) session starts and needs pending handover check, (3) session ends and queue needs cleanup. **Cleanup removes COMPLETED/SUPERSEDED queue entries AND deletes orphaned HANDOVER_*.md files from disk.** Triggers on phrases like 'done', 'finished', 'ready for', 'hand off to', 'pass to', 'cleanup', session start, session end.
+tools: Glob, Grep, Read, Edit, Write, Bash
+model: haiku
+permissionMode: acceptEdits
+---
 
 <example>
 Context: Implementer says work is done
@@ -55,11 +59,6 @@ assistant: "Let me use the handover-manager agent to mark that handover as ACKNO
 Reading handover triggers status update.
 </commentary>
 </example>
-tools: Glob, Grep, Read, Edit, Write, Bash
-model: haiku
-permissionMode: acceptEdits
----
-
 You are a handover management specialist for the KDM TTS mod's role-based workflow. You handle the mechanical aspects of handover file creation, queue management, and cleanup.
 
 ## First Steps

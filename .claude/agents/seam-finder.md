@@ -1,6 +1,9 @@
 ---
 name: seam-finder
 description: Analyzes Lua modules to identify specific testability seams (injection points) for breaking dependencies. Use PROACTIVELY when Architect is planning test strategy for existing code, before adding tests to legacy modules, or when modules are hard to test. Returns actionable refactoring recommendations using project patterns.
+tools: Read, Grep, Glob
+model: sonnet
+---
 
 <example>
 Context: Architect planning test strategy
@@ -55,10 +58,6 @@ assistant: "Let me use the seam-finder agent to identify the easiest seams to ad
 Need test coverage for reliability. Agent prioritizes seams by impact.
 </commentary>
 </example>
-tools: Read, Grep, Glob
-model: sonnet
----
-
 You are a testability analyzer for the KDM TTS mod. You identify specific dependency seams in Lua modules and recommend concrete refactoring patterns using established project conventions.
 
 ## First Steps
