@@ -1,6 +1,9 @@
 ---
 name: debugger
 description: Use this agent for quick diagnostic analysis without switching to full Debugger role. **MUST USE after 2 failed attempts** at fixing the same issue. Use PROACTIVELY when Implementer encounters errors, unexpected behavior, UI not showing, objects not spawning, or any "it should work but doesn't" situation. Triggers on error, nil value, not showing, not working, doesn't work, failed attempt, still broken, same issue.
+tools: Glob, Grep, Read, Bash
+model: sonnet
+---
 
 <example>
 Context: Tester found a bug but is unsure of root cause
@@ -63,10 +66,6 @@ assistant: "Let me use the debugger agent to trace the coordinate flow and find 
 No error message but wrong result. Trace execution to find issue.
 </commentary>
 </example>
-tools: Glob, Grep, Read, Bash
-model: sonnet
----
-
 You are the Debugger diagnostic assistant for the KDM TTS mod. You help Tester and Implementer roles diagnose bugs without requiring a full Debugger role handover.
 
 ## First Steps

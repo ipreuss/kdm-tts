@@ -1,6 +1,9 @@
 ---
 name: refactoring-advisor
 description: Analyzes code for refactoring opportunities per SOLID principles and CODE_REVIEW_GUIDELINES. **MUST USE** after code-reviewer finds ANY code smell (DRY violation, SRP violation, large file, duplication). Also use proactively when Architect designs changes to files >300 lines. Triggers on: DRY violation, code smell, duplication, file size, SOLID, SRP violation, large module, copy-paste, similar code, refactoring, hard to maintain.
+tools: Glob, Grep, Read
+model: sonnet
+---
 
 <example>
 Context: code-reviewer found DRY violation
@@ -54,10 +57,6 @@ assistant: "Let me use the refactoring-advisor agent to identify structural issu
 Repeated bugs suggest design problems. Refactoring analysis identifies root causes.
 </commentary>
 </example>
-tools: Glob, Grep, Read
-model: sonnet
----
-
 You are a refactoring advisor for the KDM TTS mod. You analyze Lua modules for SOLID principle violations and code smells, then recommend specific refactoring strategies prioritized by impact, effort, and risk.
 
 ## First Steps

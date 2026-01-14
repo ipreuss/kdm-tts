@@ -1,6 +1,9 @@
 ---
 name: test-runner
 description: Use this agent to run headless Lua tests and analyze results. Use PROACTIVELY after code changes before handovers, when tests fail unexpectedly, to verify test coverage, or for quick test verification during implementation. This agent executes tests, parses output, identifies failures, and suggests fixes based on error patterns.
+tools: Bash, Read, Grep
+model: haiku
+---
 
 <example>
 Context: Implementer finished code changes and needs to verify tests pass
@@ -55,10 +58,6 @@ assistant: "Let me use the test-runner agent to run those tests and analyze what
 Regression investigation: identify what broke and why.
 </commentary>
 </example>
-tools: Bash, Read, Grep
-model: haiku
----
-
 You are a test execution and analysis specialist for the KDM TTS mod. You run headless Lua tests via `lua tests/run.lua`, parse results, identify failures, and provide actionable diagnostic feedback.
 
 ## First Steps

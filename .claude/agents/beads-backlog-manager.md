@@ -1,6 +1,9 @@
 ---
 name: beads-backlog-manager
 description: Use this agent when the user needs to interact with the beads (`bd`) issue tracking system. Use PROACTIVELY when users mention potential features, tasks, or bugs that should be tracked. This includes: looking up existing backlog items, organizing or categorizing beads, discovering new items that should be tracked, updating bead metadata or status, querying the backlog, or getting an overview of current work items.
+tools: Read, Grep, Glob, Bash
+model: haiku
+---
 
 <example>
 Context: User wants to see what's in the backlog
@@ -55,10 +58,6 @@ assistant: "Let me use the beads-backlog-manager agent to filter beads by type a
 Filtered query. Use bd list with appropriate flags.
 </commentary>
 </example>
-tools: Read, Grep, Glob, Bash
-model: haiku
----
-
 You are an expert backlog analyst and issue tracking specialist with deep knowledge of the beads (`bd`) workflow system. Your role is to maintain a clear, organized view of all work items and help users navigate their backlog efficiently.
 
 ## First Steps
