@@ -110,6 +110,7 @@ See `work/README.md` for full guidelines.
 Read `work/<bead-id>/` for persistent context:
 - Design decisions, requirements, progress from prior sessions
 - Create/update `progress.md` as you work
+- **Update FOCUS_BEAD** in `TTSTests.ttslua` to current bead (enables `>testfocus`)
 
 ### 1. Read Handover
 Check these files before starting:
@@ -304,6 +305,14 @@ Update `handover/IMPLEMENTATION_STATUS.md` with:
 
 ### 9. Update Work Folder
 Update `work/<bead-id>/progress.md` with implementation progress for persistent record.
+
+### 10. Create Handover to Architect
+**⚠️ REQUIRED before turn-complete.** Use `handover-manager` agent to create handover:
+- Target: Architect (for design compliance verification)
+- Include: Files changed, tests added, any design deviations
+- Mark incoming handover as COMPLETED in QUEUE.md
+
+**Only after handover is created** → Use `turn-complete` skill.
 
 ## Available Skills
 

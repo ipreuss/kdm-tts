@@ -725,6 +725,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function Player:OnObjectDroppedOnSurvivorSheet(object)
+    log:Debugf("[DEBUG] OnObjectDroppedOnSurvivorSheet called for [%s] %s, GMNotes=%s", object.getGUID(), object.getName(), object.getGMNotes())
     if object.getGMNotes() ~= "Survivor Box" then
         return
     end
@@ -734,6 +735,7 @@ function Player:OnObjectDroppedOnSurvivorSheet(object)
     end
 
     local survivorBox = Survivor.SurvivorBoxForObject(object)
+    log:Debugf("[DEBUG] SurvivorBoxForObject returned: %s", tostring(survivorBox))
     if not survivorBox then
         return log:Errorf("Survivor box %s isn't linked to any survivor. This usually means it was created by copying/pasting or importing from another save, which won't work. If this is the case, then you'll need to create the survivor from the 'Survivors' board.", object.getGUID())
     end

@@ -31,6 +31,13 @@ Random fixes waste time and create new bugs. You cannot propose solutions until 
 3. **Check recent changes** — `git diff`, recent handovers
 4. **Gather evidence** — Add `log:Debugf(...)` if needed
 5. **Trace the call stack** — Use `root-cause-tracing` skill for deep errors
+6. **Consider: Is the test wrong?** — Check code comments for design intent
+
+**Tests can be wrong, not just code.** When tests fail, explicitly check:
+- Is the code wrong? (most common)
+- Or is the test wrong? (look for comments documenting design intent)
+
+Reframe by asking: "From a UX perspective, does this behavior make sense?"
 
 **Output:** Clear statement of root cause with evidence
 

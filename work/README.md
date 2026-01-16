@@ -8,6 +8,17 @@ Each active bead gets a dedicated folder (`work/<bead-id>/`) where roles documen
 
 The suggested structure below is a starting point, not a constraint. Create whatever files help capture and share knowledge.
 
+## Templates
+
+See `work/TEMPLATES/` for starter templates:
+- `requirements.md` — PO acceptance criteria template
+- `research.md` — Architect codebase findings (from `codebase-research` skill)
+- `design.md` — Architect design decisions template
+- `progress.md` — Implementer session log template
+- `STATUS.md` — Cross-role progress tracker (for long-running features)
+
+**Usage:** Copy relevant templates when creating a new work folder, then customize.
+
 ## Folder Lifecycle
 
 ### 1. Creation (Product Owner)
@@ -43,6 +54,7 @@ See `ROLES/TEAM_COACH.md` Step 7 for detailed cleanup procedure.
 |------|---------------|---------|
 | `README.md` | Any | Quick summary: what, why, current status |
 | `requirements.md` | Product Owner | Acceptance criteria, constraints, user stories |
+| `research.md` | Architect | Codebase findings BEFORE design (see `codebase-research` skill) |
 | `design.md` | Architect | Decisions, patterns, rationale, alternatives considered |
 | `progress.md` | Implementer | What's done, what remains, blockers |
 | `testing.md` | Tester | Test plan, results, bugs found, TTS commands |
@@ -50,7 +62,32 @@ See `ROLES/TEAM_COACH.md` Step 7 for detailed cleanup procedure.
 | `decisions.md` | Any | Key decisions with rationale and date |
 | `learnings.md` | Any | Insights during work (feeds retrospective) |
 | `debug-notes.md` | Debugger | Investigation notes, hypotheses, evidence |
+| `STATUS.md` | Any | (Optional) Progress tracker for long-running features |
 | `<anything>.md` | Any | Create as needed |
+
+## Artifact Workflow
+
+**Typical flow for a feature bead:**
+
+```
+work/kdm-xyz/
+├── requirements.md    ← PO creates (acceptance criteria)
+├── research.md        ← Architect creates (codebase analysis)
+├── design.md          ← Architect creates (architecture decisions)
+├── progress.md        ← Implementer updates (task progress)
+├── STATUS.md          ← (Optional) All roles update (progress tracker)
+└── learnings.md       ← Any role adds (insights during work)
+```
+
+**Handovers reference work folder:**
+```markdown
+## Context
+See `work/kdm-xyz/` for full background:
+- `research.md` for codebase findings
+- `design.md` for architectural decisions
+```
+
+**Avoids duplication:** Handovers focus on "what to do now" while work folders hold persistent context.
 
 ## Integration with Handovers
 
