@@ -38,6 +38,31 @@ Archive.Clean()
 - `Object destroyed in callback` - Archive.Clean called too early
 - `Card not found` - Name mismatch with archiveEntries
 
+## TTS Event Limitations
+
+### onObjectSpawn Does Not Fire for Archive.Take
+
+TTS's `onObjectSpawn` global event does **not** fire when `Archive.Take` spawns objects. Any code relying on `onObjectSpawn` to detect Archive.Take spawns will silently fail.
+
+**Workaround:** Call `Location.OnEnter(object)` after spawning to manually trigger drop handlers:
+
+```lua
+Archive.Take({
+    archive = "Survivor Boxes",
+    archiveEntry = boxEntry,
+    location = location,
+    spawnFunc = function(survivorBoxObject)
+        -- Manually trigger location entry since onObjectSpawn doesn't fire
+        Location.OnEnter(survivorBoxObject)
+        -- ... rest of spawn callback
+    end
+})
+```
+
+**Reference:** See `Entity/Survivor.ttslua:1309-1311` for the pattern discovered during kdm-407.
+
+**Why this matters:** Drop handlers registered via `Location` (e.g., `OnObjectDroppedOnSurvivorSheet`) depend on location entry events. Without manual `OnEnter`, these handlers never execute for Archive.Take spawns.
+
 ## Dependencies
 - Location (spawn positions)
 - Expansion (archiveEntries definitions)
