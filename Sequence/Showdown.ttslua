@@ -143,10 +143,7 @@ function Showdown.InitUi()
         end,
     })
 
-    Showdown.monsterList:SetOptionsWithDefault(Util.Map(
-        FilterEnabledMonsters(Showdown.monsters, Showdown.expansionsByMonsterName),
-        function(monster) return { text = monster.name, value = monster } end
-    ), true)
+    Showdown.RefreshMonsterList()
 
     Showdown.panel:Button({ id = "Begin", x = 183, y = -345, width = 301, height = 60, onClick = function(mouseButton, player)
         if not Showdown.monster or not Showdown.level then
@@ -171,6 +168,16 @@ function Showdown.InitUi()
         Showdown.Clean()
         Showdown.HideUi(player)
     end })
+end
+
+---------------------------------------------------------------------------------------------------
+
+function Showdown.RefreshMonsterList()
+    if not Showdown.monsterList then return end
+    Showdown.monsterList:SetOptionsWithDefault(Util.Map(
+        FilterEnabledMonsters(Showdown.monsters, Showdown.expansionsByMonsterName),
+        function(monster) return { text = monster.name, value = monster } end
+    ), true)
 end
 
 ---------------------------------------------------------------------------------------------------

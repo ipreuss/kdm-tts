@@ -251,6 +251,7 @@ end
 function ArchiveSpy:createShowdownStub()
     return {
         Clean = function() end,
+        RefreshMonsterList = function() end,
     }
 end
 
@@ -258,6 +259,7 @@ function ArchiveSpy:createHuntStub()
     return {
         Clean = function() end,
         Import = function(data) end,
+        RefreshMonsterList = function() end,
     }
 end
 

@@ -131,10 +131,7 @@ function Hunt.Init()
         end
     })
 
-    Hunt.monsterList:SetOptionsWithDefault(Util.Map(
-        FilterEnabledMonsters(Hunt.monsters, Hunt.expansionsByMonsterName),
-        function(monster) return { text = monster.name, value = monster } end
-    ), true)
+    Hunt.RefreshMonsterList()
 
     Hunt.panel:Button({ id = "Begin", x = 183, y = -345, width = 301, height = 60, onClick = function(mouseButton, player)
         if not Hunt.monster or not Hunt.level then
@@ -183,6 +180,18 @@ function Hunt.Init()
         log:Debugf("Hunt card reveal drop handlers registered")
     end
 end
+
+---------------------------------------------------------------------------------------------------
+
+function Hunt.RefreshMonsterList()
+    if not Hunt.monsterList then return end
+    Hunt.monsterList:SetOptionsWithDefault(Util.Map(
+        FilterEnabledMonsters(Hunt.monsters, Hunt.expansionsByMonsterName),
+        function(monster) return { text = monster.name, value = monster } end
+    ), true)
+end
+
+---------------------------------------------------------------------------------------------------
 
 function Hunt.Import(data)
     log:Debugf("Importing hunt data")

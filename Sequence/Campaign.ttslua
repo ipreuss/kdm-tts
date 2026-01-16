@@ -920,6 +920,8 @@ function Campaign.Import(data)
     end
     Expansion.SetEnabled(enabledByExpansionName)
     Expansion.SetUnlockedMode(data.unlockedMode)
+    Hunt.RefreshMonsterList()
+    Showdown.RefreshMonsterList()
 
     Rules.createRulebookButtons()
 
