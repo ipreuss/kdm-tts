@@ -1,7 +1,7 @@
 # KDM TTS Mod
 
 ## Quick Commands
-- Build & Deploy: `./updateTTS.sh` (from parent directory)
+- Build & Deploy: `./updateTTS.sh`
 
 ## Testing Quick Reference
 
