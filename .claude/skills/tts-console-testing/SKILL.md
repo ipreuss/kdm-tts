@@ -1,6 +1,6 @@
 ---
 name: tts-console-testing
-description: Writing and running TTS console tests for in-game verification. Use when writing TTS tests, using testall/testfocus commands, verifying TTS-specific behavior, or setting up FOCUS_BEAD. Triggers on TTS test, testall, testfocus, console test, TTS verification, FOCUS_BEAD, TTSTests.
+description: Writing and running TTS console tests for in-game verification. Use when writing TTS tests, using testall/testcurrent commands, verifying TTS-specific behavior, or setting up FOCUS_BEAD. Triggers on TTS test, testall, testcurrent, console test, TTS verification, FOCUS_BEAD, TTSTests.
 ---
 
 # TTS Console Testing
@@ -21,12 +21,14 @@ TTS console tests are needed when headless tests are insufficient:
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
 | `>testall` | Run all TTS tests (~13 tests) | Before closing a bead, after major changes |
-| `>testfocus` | Run only tests for current bead | During active development |
+| `>testrun <name>` | Run single test by exact name | Testing one specific test |
+| `>testcurrent` | Run only tests for FOCUS_BEAD | During active development |
+| `>testpriority` | Run FOCUS_BEAD first, then others | Quick verification before testall |
 
 ### Focused Testing Workflow
 
 1. When starting work on a bead, update `FOCUS_BEAD` in `TTSTests.ttslua`
-2. Use `>testfocus` during development for fast feedback
+2. Use `>testcurrent` during development for fast feedback
 3. Run `>testall` before marking work complete
 
 ```lua
@@ -190,11 +192,22 @@ if input == testName then
 if string.lower(input) == string.lower(testName) then
 ```
 
+## TTS Console Output Timing
+
+**Problem:** When analyzing TTS console output with multiple game loads, test results may be from OLD code, not current changes.
+
+**How to verify:**
+1. Find the **last** "Loading complete" message in console output
+2. Only test results **AFTER** this timestamp are from current code
+3. Results **BEFORE** are from previous code versions — ignore them
+
+**Common mistake:** Analyzing test failures that occurred before the latest `./updateTTS.sh` and game reload. Always check timing first.
+
 ## File Organization
 
 ```
 TTSTests/
-├── TTSTests.ttslua          # Main registry, testall/testfocus commands
+├── TTSTests.ttslua          # Main registry, testall/testcurrent/testpriority commands
 ├── ResourceRewardsTests.ttslua
 ├── HuntTests.ttslua
 └── <Module>Tests.ttslua     # Module-specific test files
@@ -202,4 +215,4 @@ TTSTests/
 
 **CRITICAL:** New test files must be registered in both:
 1. The module's `Register()` function (for console commands)
-2. `TTSTests.ttslua` ALL_TESTS table (for testall/testfocus)
+2. `TTSTests.ttslua` ALL_TESTS table (for testall/testcurrent)

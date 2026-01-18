@@ -14,7 +14,7 @@ Core principles for writing tests that catch bugs and serve as documentation.
 | **Unit Tests** | Test pure business logic in isolation | `tests/framework.lua`, stubs | ~2 seconds |
 | **Integration Tests** | Verify cross-module interactions | TTSSpawner seam, module stubs | ~2 seconds |
 | **Acceptance Tests** | Verify user-visible behavior end-to-end | `TestWorld`, `ArchiveSpy` | ~2 seconds |
-| **TTS Console Tests** | Verify TTS environment interactions | `>testall`, `>testfocus` | ~1 min each |
+| **TTS Console Tests** | Verify TTS environment interactions | `>testall`, `>testcurrent` | ~1 min each |
 
 ## Core Principles
 

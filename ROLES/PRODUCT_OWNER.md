@@ -172,7 +172,9 @@ Create `handover/HANDOVER_ARCHITECT.md` with:
 
 ### 6. Close Bead (Feature/Bug Types Only)
 Before closing:
-1. **Check LEARNINGS.md:** Review unprocessed learnings from this feature's development — if significant learnings exist, create Team Coach handover for retrospective before closure
+1. **Check LEARNINGS.md:** Review unprocessed learnings from this feature's development
+   - **Significant learnings** (category `doc`, `skill`, `process`, or `agent`) → Create Team Coach handover for retrospective **automatically**. Do NOT ask user for permission — the handover is mandatory per process.
+   - **Category `none` only** → No handover needed
 2. Check for open child beads: `bd show <parent-id>`
 3. For each open child, populate its description with the relevant AC section from the parent
 4. Create work folder for the next child to be worked: `mkdir work/kdm-xyz`

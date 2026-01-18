@@ -691,7 +691,7 @@ Skills provide domain knowledge that Claude automatically applies when context m
 | `tts-location-tracking` | Location system, drop handlers, coordinates | Location, drop handler, coordinates |
 | `tts-ui-timing` | ApplyToObject, Show/Hide timing | ApplyToObject, UI timing, Show, Hide |
 | `test-first-principles` | Core testing principles, anti-patterns, behavioral vs structural | test, behavioral, structural, anti-pattern |
-| `tts-console-testing` | TTS console test patterns, testall, testfocus | testall, testfocus, TTS test, console test |
+| `tts-console-testing` | TTS console test patterns, testall, testcurrent | testall, testcurrent, TTS test, console test |
 | `acceptance-test-design` | TestWorld, user-visible behavior, domain language | TestWorld, acceptance, domain language |
 
 ### Debugging Procedure

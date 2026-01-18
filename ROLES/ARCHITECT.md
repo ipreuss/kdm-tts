@@ -232,6 +232,8 @@ When receiving a handover from Implementer for design verification:
    - `type=task` → Architect closes after verification
    - `type=feature|bug` → Hand to Product Owner for closure
 
+   ⚠️ **Even if bead already closed:** Create PO handover anyway. PO-Abnahme (acceptance) validates user requirements are met — this is independent of technical bead status. If someone prematurely closed: reopen bead → complete handover chain → proper closure.
+
 **Process violation check:** Only Architect (for tasks) or Product Owner (for features/bugs) may close beads. If bead was closed by another role, flag this in the handover.
 
 ## Lightweight Refactoring Workflow

@@ -1,6 +1,6 @@
 ---
 name: tts-test-writer
-description: Write automated TTS console tests for behavior that requires in-game verification. Use after acceptance tests when TTS-specific verification is needed (UI, spawning, visual placement, Archive operations). Triggers on TTS test, console test, testall, testfocus, in-game verification, UI test, spawn test.
+description: Write automated TTS console tests for behavior that requires in-game verification. Use after acceptance tests when TTS-specific verification is needed (UI, spawning, visual placement, Archive operations). Triggers on TTS test, console test, testall, testcurrent, in-game verification, UI test, spawn test.
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: sonnet
 ---
@@ -31,7 +31,7 @@ assistant: "I'll use the tts-test-writer agent to create tests that verify card 
 Physical verification: TTS tests verify actual object positions and states.
 </commentary>
 </example>
-You are a TTS console test specialist who writes automated tests that run inside Tabletop Simulator via `>testall` and `>testfocus` commands.
+You are a TTS console test specialist who writes automated tests that run inside Tabletop Simulator via `>testall` and `>testcurrent` commands.
 
 ## Core Philosophy
 
@@ -106,7 +106,7 @@ local ALL_TESTS = {
 }
 ```
 
-**CRITICAL:** Both steps required or test won't run via `>testall`/`>testfocus`.
+**CRITICAL:** Both steps required or test won't run via `>testall`/`>testcurrent`.
 
 ## Test Pattern: Snapshot/Action/Verify
 
@@ -166,7 +166,7 @@ Wait.condition(
 local FOCUS_BEAD = "kdm-xxx"  -- Update to current bead
 ```
 
-- `>testfocus` — runs only tests tagged with FOCUS_BEAD
+- `>testcurrent` — runs only tests tagged with FOCUS_BEAD
 - `>testall` — runs all registered tests
 
 **Always update FOCUS_BEAD when starting work on a new bead.**
@@ -294,7 +294,7 @@ end
 ```
 
 In TTS console:
-- `>testfocus` — Run tests for current bead
+- `>testcurrent` — Run tests for current bead
 - `>testall` — Run all tests
 - `>test[cmd]` — Run specific test
 
@@ -302,7 +302,7 @@ In TTS console:
 
 After running `./updateTTS.sh`, user must:
 1. Open TTS
-2. Run `>testfocus` or `>testall`
+2. Run `>testcurrent` or `>testall`
 3. Confirm all tests pass
 ```
 
@@ -310,7 +310,7 @@ After running `./updateTTS.sh`, user must:
 
 1. **Always use onComplete callback** — enables `>testall` sequencing
 2. **Log TEST RESULT: PASSED/FAILED** — standardized output parsing
-3. **Update FOCUS_BEAD** — enables `>testfocus` for fast iteration
+3. **Update FOCUS_BEAD** — enables `>testcurrent` for fast iteration
 4. **Register in BOTH places** — Console.AddCommand AND ALL_TESTS
 5. **Handle async properly** — Use Wait.frames/Wait.condition
 6. **Count cards correctly** — Handle both Card and Deck objects

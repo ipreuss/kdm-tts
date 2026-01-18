@@ -110,7 +110,7 @@ See `work/README.md` for full guidelines.
 Read `work/<bead-id>/` for persistent context:
 - Design decisions, requirements, progress from prior sessions
 - Create/update `progress.md` as you work
-- **Update FOCUS_BEAD** in `TTSTests.ttslua` to current bead (enables `>testfocus`)
+- **Update FOCUS_BEAD** in `TTSTests.ttslua` to current bead (enables `>testcurrent`)
 
 ### 1. Read Handover
 Check these files before starting:
@@ -276,7 +276,7 @@ When implementation is complete:
 **Step 7c: TTS Tests (if needed)**
 1. Invoke `tts-test-writer` subagent to create TTS console tests
 2. Run `./updateTTS.sh` to sync
-3. Ask user to run `>testfocus` in TTS and confirm results
+3. Ask user to run `>testcurrent` in TTS and confirm results
 4. Document: "TTS Verification: User confirmed [commands] passed on [date]"
 
 **When TTS tests are needed:**

@@ -29,6 +29,19 @@ Before your closing, ask yourself:
 
 If yes to any: fix it before closing.
 
+### Role-Specific Checks
+
+**Implementer:**
+- ⛔ Did I close a bead? → **Process violation!** Only PO (features/bugs) or Architect (tasks) may close beads. Create handover to appropriate role instead.
+- ☑️ Did I commit code before creating handover? → Required by process.
+
+**Architect:**
+- ☑️ Did I verify code is committed before design verification?
+- ☑️ Am I handing to PO even if bead was prematurely closed?
+
+**Product Owner:**
+- ☑️ Did I create Team Coach handover for significant learnings (doc/skill/process/agent)?
+
 ## Signature Format
 
 ```

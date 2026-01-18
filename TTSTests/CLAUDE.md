@@ -4,7 +4,9 @@
 In TTS chat console:
 ```
 >testall              # Run all tests
->testfocus <pattern>  # Run tests matching pattern
+>testrun <name>       # Run single test by exact name
+>testcurrent          # Run tests for FOCUS_BEAD
+>testpriority         # FOCUS_BEAD first, then all
 ```
 
 ## Structure

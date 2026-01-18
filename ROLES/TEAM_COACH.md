@@ -217,6 +217,8 @@ For minor improvements or when learnings are few (<5), implement directly:
 
 ### 8. Archive Work Folders (Closed Beads)
 
+**⚠️ Use the `work-folder-cleanup` skill** — ensures no knowledge is lost before deletion.
+
 After retrospective, consolidate and clean up work folders for closed beads:
 
 **Step 1: Identify closed bead folders**

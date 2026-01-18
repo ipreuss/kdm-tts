@@ -11,8 +11,9 @@
 |-------------------|----------|--------|
 | Reine Logik, Berechnungen, Datenstrukturen | Headless | `lua tests/run.lua` |
 | TTS-Objekte, UI, Spawning, Archive | TTS Console | `testall` |
-| Nur einen bestimmten Test | TTS Console | `testfocus <pattern>` |
-| Nur Tests für aktuellen Bead | TTS Console | `testpriority` |
+| Nur einen bestimmten Test | TTS Console | `testrun <name>` |
+| Nur Tests für aktuellen Bead | TTS Console | `testcurrent` |
+| FOCUS_BEAD zuerst, dann alle | TTS Console | `testpriority` |
 
 ### Headless Tests (Terminal)
 
@@ -28,8 +29,9 @@ Dateien: `tests/*_test.lua`
 
 ```
 testall                              # Alle TTS-Tests
-testfocus <pattern>                  # Tests mit Pattern im Namen
-testpriority                         # Tests für FOCUS_BEAD
+testrun <name>                       # Einzelner Test mit exaktem Namen
+testcurrent                          # Tests für FOCUS_BEAD
+testpriority                         # FOCUS_BEAD zuerst, dann alle
 teststop                             # Laufende Tests abbrechen
 ```
 

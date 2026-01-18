@@ -210,7 +210,7 @@ For TTS console test patterns (snapshot/action/restore, registration, `Wait.fram
 
 Quick reference:
 - Register in `TTSTests/<Module>Tests.ttslua` + `ALL_TESTS` in `TTSTests.ttslua`
-- Use `>testfocus` during development, `>testall` before closing beads
+- Use `>testcurrent` during development, `>testall` before closing beads
 - Expose internal functions via `Module._test.Foo` for test access
 
 ## Progressive Debug Logging Strategy
