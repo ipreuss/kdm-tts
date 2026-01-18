@@ -248,7 +248,7 @@ end
 -- Additional module stubs for Campaign.Import
 ---------------------------------------------------------------------------------------------------
 
-function ArchiveSpy:createShowdownStub()
+local function createRefreshableStub()
     local stub = {
         Clean = function() end,
         _refreshMonsterListCalled = false,
@@ -259,15 +259,13 @@ function ArchiveSpy:createShowdownStub()
     return stub
 end
 
+function ArchiveSpy:createShowdownStub()
+    return createRefreshableStub()
+end
+
 function ArchiveSpy:createHuntStub()
-    local stub = {
-        Clean = function() end,
-        Import = function(data) end,
-        _refreshMonsterListCalled = false,
-    }
-    stub.RefreshMonsterList = function()
-        stub._refreshMonsterListCalled = true
-    end
+    local stub = createRefreshableStub()
+    stub.Import = function(data) end
     return stub
 end
 
