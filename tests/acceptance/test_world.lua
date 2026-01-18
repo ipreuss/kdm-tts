@@ -62,8 +62,10 @@ function TestWorld:_installArchiveSpies()
     end)
 
     -- Additional modules needed for Campaign.Import
-    package.loaded["Kdm/Sequence/Showdown"] = self._archiveSpy:createShowdownStub()
-    package.loaded["Kdm/Sequence/Hunt"] = self._archiveSpy:createHuntStub()
+    self._showdownStub = self._archiveSpy:createShowdownStub()
+    self._huntStub = self._archiveSpy:createHuntStub()
+    package.loaded["Kdm/Sequence/Showdown"] = self._showdownStub
+    package.loaded["Kdm/Sequence/Hunt"] = self._huntStub
     package.loaded["Kdm/Expansion"] = self._archiveSpy:createExpansionStub()
     package.loaded["Kdm/Ui/Rules"] = self._archiveSpy:createRulesStub()
     package.loaded["Kdm/Location/Location"] = self._archiveSpy:createLocationStub()
@@ -244,6 +246,14 @@ end
 
 function TestWorld:fightingArtsCount()
     return self._archiveSpy:fightingArtsAddedCount()
+end
+
+function TestWorld:huntRefreshMonsterListCalled()
+    return self._huntStub._refreshMonsterListCalled
+end
+
+function TestWorld:showdownRefreshMonsterListCalled()
+    return self._showdownStub._refreshMonsterListCalled
 end
 
 function TestWorld:verminDeck()

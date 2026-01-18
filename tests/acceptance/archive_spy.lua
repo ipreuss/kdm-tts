@@ -249,18 +249,26 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function ArchiveSpy:createShowdownStub()
-    return {
+    local stub = {
         Clean = function() end,
-        RefreshMonsterList = function() end,
+        _refreshMonsterListCalled = false,
     }
+    stub.RefreshMonsterList = function()
+        stub._refreshMonsterListCalled = true
+    end
+    return stub
 end
 
 function ArchiveSpy:createHuntStub()
-    return {
+    local stub = {
         Clean = function() end,
         Import = function(data) end,
-        RefreshMonsterList = function() end,
+        _refreshMonsterListCalled = false,
     }
+    stub.RefreshMonsterList = function()
+        stub._refreshMonsterListCalled = true
+    end
+    return stub
 end
 
 function ArchiveSpy:createExpansionStub()

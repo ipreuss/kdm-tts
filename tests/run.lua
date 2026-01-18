@@ -38,6 +38,7 @@ local testFiles = {
     "tests.acceptance.pattern_gear_acceptance_test",
     "tests.acceptance.weapon_pairing_acceptance_test",
     "tests.acceptance.resource_rewards_acceptance_test",
+    "tests.acceptance.monster_list_refresh_acceptance_test",
     "tests.acceptance.hunt_reveal_acceptance_test",
     "tests.acceptance.hunt_cleanup_acceptance_test",
     "tests.ui_create3d_cache_test",
