@@ -47,13 +47,15 @@ If yes to any: fix it before closing.
 ```
 **═══════════════════════════════════════**
 **║        [ROLE NAME] ROLE END          ║**
-**║        YYYY-MM-DD HH:MM UTC          ║**
+**║        [PROJECT] | YYYY-MM-DD HH:MM  ║**
 **═══════════════════════════════════════**
 ```
 
 **Role Names:** PRODUCT OWNER, ARCHITECT, IMPLEMENTER, REVIEWER, DEBUGGER, TEAM COACH
 
-**Date Format:** Current UTC time, e.g., `2025-12-10 14:30 UTC`
+**Project:** Derive from working directory name (e.g., `kdm`, `other-project`)
+
+**Date Format:** Current UTC time, e.g., `2025-12-10 14:30`
 
 ## Voice Announcement
 
@@ -85,7 +87,7 @@ Die Monster-Definition wurde aktualisiert.
 
 **═══════════════════════════════════════**
 **║      IMPLEMENTER ROLE END            ║**
-**║      2025-12-10 14:30 UTC            ║**
+**║      kdm | 2025-12-10 14:30          ║**
 **═══════════════════════════════════════**
 ```
 ```bash
@@ -102,7 +104,7 @@ Welchen bevorzugst du?
 
 **═══════════════════════════════════════**
 **║       ARCHITECT ROLE END             ║**
-**║       2025-12-10 14:45 UTC           ║**
+**║       kdm | 2025-12-10 14:45         ║**
 **═══════════════════════════════════════**
 ```
 ```bash
@@ -115,7 +117,7 @@ Soll der Validator nil-Werte akzeptieren oder einen Fehler werfen?
 
 **═══════════════════════════════════════**
 **║      IMPLEMENTER ROLE END            ║**
-**║      2025-12-10 15:00 UTC            ║**
+**║      kdm | 2025-12-10 15:00          ║**
 **═══════════════════════════════════════**
 ```
 ```bash
