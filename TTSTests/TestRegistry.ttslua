@@ -29,7 +29,7 @@ local TestRegistry = {}
 -- Focus Bead - Update when switching to a new backlog item
 ---------------------------------------------------------------------------------------------------
 
-TestRegistry.FOCUS_BEAD = "kdm-407"
+TestRegistry.FOCUS_BEAD = "kdm-cnu"
 
 ---------------------------------------------------------------------------------------------------
 -- All Tests Registry
