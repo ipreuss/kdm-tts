@@ -95,15 +95,7 @@ Complex/cross-module      → Debugger role (full handover)
 **Code review via subagent (default):**
 All code goes through the `code-reviewer` subagent. The subagent operates in a same-session fix loop: invoke → fix issues → re-invoke until APPROVED. Significant findings go to `handover/LEARNINGS.md` for audit trail.
 
-**Review depth presets:**
-
-| Depth | When to Use | Perspectives Invoked |
-|-------|-------------|---------------------|
-| **quick** | <3 files, trivial changes, bug fixes | None (code-reviewer only) |
-| **standard** | Default for most changes | security-reviewer, maintainability-reviewer |
-| **comprehensive** | >10 files, new modules, high-risk | All (+ performance-reviewer) |
-
-Specify depth when invoking: "Review with comprehensive depth" or accept standard as default. The code-reviewer orchestrates perspective subagents and synthesizes findings.
+**Review depth:** The code-reviewer supports three depth presets (quick/standard/comprehensive) based on change scope. See `.claude/agents/code-reviewer.md` for details.
 
 **Review outcomes:**
 
@@ -247,6 +239,11 @@ All role-to-role handovers are stored in the `handover/` folder:
 | `LATEST_DEBUG.md` | Most recent debug report | Debugger |
 | `AGGREGATION_SUMMARY.md` | Periodic aggregation of review findings (PAF pattern) | Team Coach |
 
+**⚠️ Local-only directory:** The entire `handover/` directory is in `.gitignore` — `QUEUE.md`, `LEARNINGS.md`, and all `HANDOVER_*.md` files are stored locally, not tracked by git. This means:
+- Handover state is machine-specific (not shared across workstations)
+- Orphaned queue entries can occur if files are manually deleted
+- Session startup should gracefully handle missing handover files
+
 Task-specific handovers use descriptive names following this convention:
 ```
 HANDOVER_<FROM>_<TO>_<SHORT_DESCRIPTION>.md
@@ -295,36 +292,9 @@ SUPERSEDED means "replaced by newer handover, do not process."
 
 Keep descriptions short (1-3 words, use underscores). This makes handovers easier to find and understand without opening them.
 
-### Handover Summary Requirement
-
-**After creating a handover, summarize it in your response** before the session closing signature. This allows the user to see the handover contents without needing to open the file.
-
-Include:
-- Recipient role and file name
-- Key points from the handover (2-5 bullet points)
-- Any action items or decisions needed
-
-This is especially important for broadcast handovers to multiple roles.
+**Summarize handovers in your response:** After creating a handover, include a brief summary (2-5 bullet points) before the session closing signature so users don't need to open the file. See `.claude/agents/handover-writer.md` for details.
 
 **Cleanup:** When a new top-level bead is started, clean up the handover folder by removing old completed handovers. This keeps the folder manageable and prevents confusion.
-
-### Process Change Broadcasts
-
-When any role updates PROCESS.md, they must broadcast the change to all other roles:
-
-1. Create a new handover file (never modify existing handovers)
-2. Add PENDING entries to QUEUE.md for all roles
-3. Content should include:
-   - What changed
-   - Why it changed
-   - Any immediate actions required
-
-Roles receiving a process handover should:
-1. Read and acknowledge the change
-2. Mark the handover as COMPLETED
-3. Apply the new process immediately
-
-This ensures all roles stay synchronized on process changes, even mid-session.
 
 ### Learning Capture
 
@@ -368,76 +338,7 @@ This ensures all roles stay synchronized on process changes, even mid-session.
 - Features completed smoothly in 1-2 sessions
 - Pure technical tasks with no process friction
 
----
-
-### Retrospective Formats
-
-**Learnings are captured continuously** via handover-writer during each handover, so retrospectives start with material already collected in `handover/LEARNINGS.md`.
-
-**Choose format based on task complexity:**
-
-| Format | Use When | Rounds |
-|--------|----------|--------|
-| **Standard** | Large features, 5+ handovers, significant issues | 5 rounds |
-| **Light** | Small tasks, technical debt, minor friction | 1 round |
-
----
-
-#### Standard Retrospective (5 rounds)
-
-**Round 1 — Gather and Broadcast Learnings:**
-Team Coach reviews `handover/LEARNINGS.md` for the feature, then:
-- Gathers and organizes all learnings by category
-- Creates handover to all involved roles with the collected feedback
-- Asks each role to select 1-3 most important learnings
-
-**Round 2 — Role Brainstorming:**
-Each role:
-- Reviews the organized learnings
-- Selects 1-3 most important items from their perspective
-- For each selected item, uses the `brainstorm` skill to generate at least 3 different solutions
-- Creates handover back to Team Coach with selections and brainstormed solutions
-
-**Round 3 — Synthesize Proposals:**
-Team Coach:
-- Reviews all role feedback and brainstormed solutions
-- Synthesizes up to 3 concrete process change proposals
-- Creates handover to all roles requesting Support/Oppose/Modify feedback
-
-**Round 4 — Proposal Feedback:**
-Each role:
-- Reviews the synthesized proposals
-- Provides Support/Oppose/Modify feedback for each proposal
-- Creates handover back to Team Coach
-
-**Round 5 — Implement:**
-Team Coach:
-- Incorporates feedback into final decisions
-- Implements approved changes (updates skills, agents, docs, process)
-- Logs processed learnings, clears from LEARNINGS.md
-- Broadcasts summary to all roles
-
-**Critical:** Always use handovers for feedback requests, never assume roles can respond in-session. Each role processes feedback in their own session.
-
----
-
-#### Light Retrospective (1 round)
-
-Team Coach reviews learnings and implements improvements directly:
-- No feedback round needed for minor improvements
-- Updates artifacts, logs processing, broadcasts summary
-
-**Time-box:** Max 30 minutes.
-
----
-
-#### Retrospective Handover Format
-
-Product Owner creates `HANDOVER_PO_TEAMCOACH_RETRO_<FEATURE>.md` with:
-- Feature summary and bead ID
-- Roles involved
-- Notable issues encountered
-- Suggested retrospective format (Standard/Light)
+**Retrospective formats:** Team Coach chooses between Standard (5 rounds, for complex features) or Light (1 round, for minor improvements). See `ROLES/TEAM_COACH.md` for details.
 
 ---
 
@@ -650,49 +551,9 @@ sips -s format jpeg screenshot.png --out screenshot.jpg
 
 This reduces file size significantly and prevents context overflow when analyzing images.
 
-### Available Subagents
+### Available Subagents and Skills
 
-Subagents provide specialized capabilities within a session. See `.claude/agents/` for full documentation.
-
-| Subagent | Purpose | Model |
-|----------|---------|-------|
-| `code-reviewer` | Review code at milestones, before handover, or when stuck | opus |
-| `security-reviewer` | Security perspective: input validation, path handling, secrets | sonnet |
-| `maintainability-reviewer` | Maintainability perspective: SOLID, coupling, complexity | sonnet |
-| `performance-reviewer` | Performance perspective: loops, TTS API, memory patterns | sonnet |
-| `debugger` | Diagnose bugs without full Debugger handover | sonnet |
-| `characterization-test-writer` | Write characterization tests before modifying legacy code | sonnet |
-| `acceptance-test-writer` | Write headless acceptance tests using domain language | sonnet |
-| `tts-test-writer` | Write automated TTS console tests | sonnet |
-| `test-runner` | Run headless tests and analyze results | sonnet |
-| `seam-finder` | Analyze modules for testability seams and refactoring opportunities | sonnet |
-| `screenshot-analyzer` | Analyze screenshots with auto file discovery and size optimization | sonnet |
-| `subagent-creator` | Create new custom subagents following best practices | sonnet |
-| `beads-backlog-manager` | Query and manage the beads issue tracking system | haiku |
-| `handover-manager` | Create handovers, update queue, cleanup completed entries | haiku |
-| `handover-writer` | Compose well-structured handover content with role-aware templates | haiku |
-| `refactoring-advisor` | Analyze code for SOLID violations, code smells, refactoring opportunities | sonnet |
-
-### Available Skills
-
-Skills provide domain knowledge that Claude automatically applies when context matches. See `.claude/skills/` for full documentation.
-
-| Skill | Purpose | Triggers |
-|-------|---------|----------|
-| `legacy-code-testing` | Feathers' techniques for safely modifying untested code | legacy, untested, seam, characterization test |
-| `kdm-coding-conventions` | Lua coding style, module exports, SOLID principles, error handling | Lua, module, export, style, SOLID, guard clause |
-| `kdm-expansion-data` | Expansion data structures, archive system, card naming conventions | expansion, gear, monster, archive, card, deck |
-| `kdm-ui-framework` | UI patterns, PanelKit, LayoutManager, color palette, dialog creation | UI, panel, dialog, PanelKit, LayoutManager, CLASSIC |
-| `dry-violations` | Detects duplication when making similar changes in multiple places | copy-paste, same change, duplicate code, extract |
-| `session-closing` | Ensures roles use closing signature and voice announcement | done, finished, thanks, handover, summary, waiting for user |
-| `tts-archive-spawning` | Archive.Take, async callbacks, Archive.Clean patterns | Archive.Take, spawn, callback, async |
-| `tts-deck-operations` | Deck extraction, collapse behavior, card merging | deck, takeObject, card extraction, quantity |
-| `tts-unknown-error` | <Unknown Error>, destroyed objects, object lifecycle | Unknown Error, destroyed, nil object |
-| `tts-location-tracking` | Location system, drop handlers, coordinates | Location, drop handler, coordinates |
-| `tts-ui-timing` | ApplyToObject, Show/Hide timing | ApplyToObject, UI timing, Show, Hide |
-| `test-first-principles` | Core testing principles, anti-patterns, behavioral vs structural | test, behavioral, structural, anti-pattern |
-| `tts-console-testing` | TTS console test patterns, testall, testcurrent | testall, testcurrent, TTS test, console test |
-| `acceptance-test-design` | TestWorld, user-visible behavior, domain language | TestWorld, acceptance, domain language |
+See `.claude/agents/` and `.claude/skills/` for all available subagents and skills with their triggers and documentation.
 
 ### Debugging Procedure
 
