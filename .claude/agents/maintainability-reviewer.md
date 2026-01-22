@@ -96,6 +96,60 @@ You are a Maintainability Reviewer for the KDM TTS mod. Your focus is ensuring c
 - Magic numbers/strings
 - Inconsistent patterns
 
+### 6. Type Case Code Smell
+
+**The Problem:** Excessive `if/elseif` or table-dispatch chains checking an object's type indicate poor design. This violates the Open/Closed Principle — adding a new type requires modifying existing code everywhere type checks occur.
+
+**Detection patterns:**
+```lua
+-- SMELL: Type-based conditionals
+if obj.type == "fire" then
+    damage = 10
+elseif obj.type == "water" then
+    damage = 5
+elseif obj.type == "earth" then
+    damage = 8
+end
+
+-- SMELL: Type dispatch tables that grow
+local handlers = {
+    fire = function() ... end,
+    water = function() ... end,
+    -- Every new type = modify this table
+}
+```
+
+**Why it's harmful:**
+- Adding new types requires changes in multiple places
+- Easy to miss a case (silent bugs)
+- Scattered logic — type behavior spread across codebase
+- Testing requires covering all branches
+
+**Fixes:**
+```lua
+-- FIX 1: Polymorphism via metatables
+local FireTile = { damage = 10 }
+function FireTile:getDamage() return self.damage end
+
+local WaterTile = { damage = 5 }
+function WaterTile:getDamage() return self.damage end
+
+-- Usage: tile:getDamage() — no type checking needed
+
+-- FIX 2: Strategy pattern
+local function createTile(config)
+    return {
+        getDamage = config.getDamage or function() return 0 end,
+        onMatch = config.onMatch or function() end,
+    }
+end
+```
+
+**When type dispatch is OK:**
+- Parsing/deserialization (external data → internal types)
+- Factory functions (one location creates typed objects)
+- Truly exhaustive enums that won't expand
+
 ## Review Process
 
 1. **Scan structure** — Module boundaries, file sizes, export counts

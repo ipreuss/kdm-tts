@@ -80,8 +80,27 @@ MUST invoke `refactoring-advisor` to design the proper fix. Don't hack a quick s
 | `acceptance-test-writer` | After code-reviewer approval — writes headless acceptance tests |
 | `tts-test-writer` | When TTS verification needed — writes automated console tests |
 | `test-runner` | Quick verification — runs headless tests and analyzes results |
+| `exploratory-tester` | (If available) Runtime verification before handover — tests happy path, edge cases |
 
 **Workflow:** Unit tests (you write) → code-reviewer → acceptance-test-writer → tts-test-writer (if needed) → Architect
+
+### Exploratory Testing (TTS Projects)
+
+**For changes with TTS interactions:** After automated tests pass, consider exploratory testing in TTS before handover.
+
+**When to use:**
+- Changes to visible UI components
+- Spawning, positioning, or Archive operations
+- User interaction flows (buttons, menus)
+
+**What to verify:**
+- Happy path works in TTS environment
+- Edge cases (empty states, missing cards)
+- Visual placement is correct
+
+**Why:** Automated tests don't catch all real-world scenarios. Headless tests verify logic, but TTS-specific issues (UI rendering, object placement, async timing) only surface in the actual runtime environment.
+
+**Skip if:** Pure logic changes, no TTS interaction impact.
 
 **Handover-manager subagent:** For creating handovers:
 - Use `handover-manager` subagent to create handover files and update QUEUE.md

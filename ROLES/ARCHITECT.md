@@ -178,7 +178,34 @@ Create `handover/HANDOVER_IMPLEMENTER.md` with:
 - Testing requirements
 - Open questions resolved
 - **Design Requirements Checklist** (see below)
+- **Scope Clarity** (see below)
+- **Consumer Audit** (see below) — for data model changes
+- **Test Migration Notes** (see below) — when moving logic between functions
+- **Fail-Fast Points** (see below) — identify where assertions are required
 - **Refactoring scope:** Identify refactoring that should precede implementation (prerequisite) vs accompany it (Boy Scout Rule) vs follow it (tech debt bead)
+
+### Scope Clarity: IN vs OUT
+
+When defining bead scope, always use **contrast statements** to prevent ambiguity:
+
+```markdown
+## Scope
+
+**IN scope:**
+- Timeline event creation
+- Single survivor tracking
+
+**OUT of scope:**
+- Multi-survivor coordination (separate bead)
+- Timeline UI rendering
+```
+
+**Why?** "X is out of scope" without contrast can be misread. Explicit IN/OUT lists prevent this confusion.
+
+**When to use:**
+- Features with potential scope creep
+- Tasks where boundaries aren't obvious
+- Any bead where "what's NOT included" matters
 
 ### Design Requirements Checklist
 
@@ -197,6 +224,71 @@ Before closing this feature, verify ALL items are implemented:
 **Why this matters:** The kdm-w1k feature was 40% complete (4 of 10+ monsters) when code patterns were perfect. Without explicit scope tracking, the bead would have closed prematurely.
 
 **Testability notes:** Include which requirements need TTS console tests vs headless tests to help Tester plan coverage.
+
+### Consumer Audit (Data Model Changes)
+
+When design changes data structures, APIs, or module interfaces:
+
+```bash
+# Find ALL consumers of the changed field/function
+grep -r "\.fieldname" src/
+grep -r "modulename\." Kdm/
+```
+
+**Include in handover:**
+```markdown
+## Consumer Audit
+
+Changed: `Survivor.status` field structure
+
+**Consumers identified:**
+- `Kdm/Timeline.ttslua:142` — reads status for event triggers
+- `Kdm/Settlement.ttslua:89` — updates status during settlement phase
+- `tests/survivor_test.lua` — multiple test files
+
+**Migration required:** All consumers must use new accessor `getStatus()` instead of direct field access.
+```
+
+**Why this matters:** Unit tests verify the changed module works correctly, but don't catch consumers using old patterns. Bugs can surface despite passing tests when undiscovered consumers access changed fields directly.
+
+### Test Migration Notes
+
+When design moves logic between functions (refactoring timing, restructuring flow):
+
+```markdown
+## Test Migration
+
+Logic moved from: `processHunt()` → `validateHuntTarget()`
+
+**Tests affected:**
+- `test_processHunt_*` — need new helper to simulate validateHuntTarget flow
+- `test_validation_*` — timing assertions may need adjustment
+
+**Migration strategy:** Create test helper that simulates the new flow.
+```
+
+**Why this matters:** Moving logic changes when/how tests exercise code. Without migration notes, Implementer discovers broken tests mid-implementation.
+
+### Fail-Fast Points
+
+Identify where assertions are required to enforce fail-fast behavior:
+
+```markdown
+## Fail-Fast Points
+
+**Precondition assertions (function entry):**
+- `Timeline.addEvent()` — assert `survivor != nil` because [reason]
+- `Hunt.resolve()` — assert `target` exists because [dependency]
+
+**Data access assertions:**
+- `survivors[i]` — assert `i <= #survivors` because array is fixed-size
+- `board.get(x, y)` — assert returns non-nil for valid coordinates
+
+**State transition assertions:**
+- Before `state = "hunting"` — assert `state == "settlement"` because [invalid transition]
+```
+
+**Why this matters:** Designing fail-fast points upfront prevents Implementer from adding silent fallbacks. The reviewer will check for default value patterns and missing assertions.
 
 ### 5. Testing Specification
 
