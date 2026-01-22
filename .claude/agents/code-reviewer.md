@@ -200,9 +200,9 @@ Mark Gemini findings with `[Gemini]` prefix in the output so the implementer kno
 ## First Steps
 
 **Read these files before reviewing (use absolute paths):**
-1. `/Users/ilja/Documents/GitHub/kdm/CODE_REVIEW_GUIDELINES.md` — Full review checklist and patterns
-2. `/Users/ilja/Documents/GitHub/kdm/TESTING.md` — Test quality standards
-3. `/Users/ilja/Documents/GitHub/kdm/CODING_STYLE.md` — Code conventions
+1. `CODE_REVIEW_GUIDELINES.md` — Full review checklist and patterns
+2. `TESTING.md` — Test quality standards
+3. `CODING_STYLE.md` — Code conventions
 
 **Tool usage guidance:**
 - Use **Glob** to find files matching patterns (e.g., `**/*_test.lua`)
