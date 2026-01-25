@@ -40,6 +40,31 @@ Player.TOKEN_STATS = {
     ["Lunacy Token"] = "frenzy",
 }
 
+-- Non-gear card locations for token scanning (kdm-spk)
+-- Used by Campaign.ExportSurvivors() for token-only export
+Player.NON_GEAR_CARD_SUFFIXES = {
+    "Fighting Art 1", "Fighting Art 2", "Fighting Art 3",
+    "Disorder 1", "Disorder 2", "Disorder 3",
+    "Weapon Proficiency",
+}
+for i = 1, 11 do
+    table.insert(Player.NON_GEAR_CARD_SUFFIXES, "Ability/Impairment " .. i)
+end
+
+-- All card display locations for token scanning (kdm-spk)
+-- Used by UpdateStats() - includes gear locations
+Player.CARD_LOCATION_SUFFIXES = {
+    "Fighting Art 1", "Fighting Art 2", "Fighting Art 3",
+    "Disorder 1", "Disorder 2", "Disorder 3",
+    "Weapon Proficiency",
+    "Gear 1", "Gear 2", "Gear 3", "Gear 4", "Gear 5",
+    "Gear 6", "Gear 7", "Gear 8", "Gear 9",
+    "Fist & Tooth", "Armor Set",
+}
+for i = 1, 11 do
+    table.insert(Player.CARD_LOCATION_SUFFIXES, "Ability/Impairment " .. i)
+end
+
 ---------------------------------------------------------------------------------------------------
 
 function Player.Init(saveState)
@@ -654,28 +679,20 @@ function Player:UpdateStats()
     end
 
     local playerPrefix = "Player "..self.ordinal
-    for _, location in ipairs({
-        playerPrefix.." Gear 1",
-        playerPrefix.." Gear 2",
-        playerPrefix.." Gear 3",
-        playerPrefix.." Gear 4",
-        playerPrefix.." Gear 5",
-        playerPrefix.." Gear 6",
-        playerPrefix.." Gear 7",
-        playerPrefix.." Gear 8",
-        playerPrefix.." Gear 9",
-        playerPrefix.." Fist & Tooth",
-        playerPrefix.." Armor Set",
-    }) do
 
-        for _, object in ipairs(Location.Get(location):AllObjects()) do
-            if object.tag ~= "Card" then
-                local stat = Player.TOKEN_STATS[object.getName()]
-                if stat == "evasion" then
-                    local value = Util.TokenValue(object)
-                    log:Debugf("Adding token %s from gear at %s", object.getName(), location)
-                    modifiers[stat] = (modifiers[stat] or 0) + value
-                    object.registerCollisions()
+    -- Scan all player display card locations for attribute tokens (kdm-spk)
+    for _, suffix in ipairs(Player.CARD_LOCATION_SUFFIXES) do
+        local location = Location.Get(playerPrefix .. " " .. suffix)
+        if location then
+            for _, object in ipairs(location:AllObjects()) do
+                if object.tag ~= "Card" then
+                    local stat = Player.TOKEN_STATS[object.getName()]
+                    if stat then
+                        local value = Util.TokenValue(object)
+                        log:Debugf("Adding token %s from %s at %s", object.getName(), suffix, playerPrefix)
+                        modifiers[stat] = (modifiers[stat] or 0) + value
+                        object.registerCollisions()
+                    end
                 end
             end
         end

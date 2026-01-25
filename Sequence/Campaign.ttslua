@@ -425,10 +425,14 @@ function Campaign.ExportToOrb()
     local departingSurvivors = {}
     for ordinal, player in ipairs(Player.Players()) do
         local playerPrefix = "Player " .. ordinal
-        scanTypesByLocation[playerPrefix .. " Armor Set"] = { "Armor Sets" }
+        scanTypesByLocation[playerPrefix .. " Armor Set"] = { "Armor Sets", "Tokens" }
         scanTypesByLocation[playerPrefix .. " Fist & Tooth"] = { "Gear", "Tokens" }
         for i = 1, 9 do
             scanTypesByLocation[playerPrefix .. " Gear " .. i] = { "Gear", "Tokens" }
+        end
+        -- Card display locations for token export (kdm-spk)
+        for _, suffix in ipairs(Player.NON_GEAR_CARD_SUFFIXES) do
+            scanTypesByLocation[playerPrefix .. " " .. suffix] = { "Tokens" }
         end
         departingSurvivors[ordinal] = player.survivorSheet and player.survivorSheet.survivor.id
     end

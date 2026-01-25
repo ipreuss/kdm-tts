@@ -54,6 +54,7 @@ local testFiles = {
     "tests.hunt_party_test",
     "tests.acceptance.hunt_party_acceptance_test",
     "tests.event_manager_test",
+    "tests.attribute_tokens_test",
 }
 
 for _, file in ipairs(testFiles) do
