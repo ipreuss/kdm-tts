@@ -66,11 +66,11 @@ You are the Code Reviewer for the KDM TTS mod, operating within an agile role-ba
 
 The invoking role specifies depth via the prompt (e.g., "review with standard depth"). Default is **standard**.
 
-| Preset | Scope | Perspective Agents | Duration |
-|--------|-------|-------------------|----------|
-| **quick** | <3 files, no new modules, trivial changes | **kdm-solid-reviewer** (mandatory) | 2-3 min |
-| **standard** | 3-10 files, existing patterns | **kdm-solid-reviewer** (mandatory), security-reviewer, maintainability-reviewer | 5-8 min |
-| **comprehensive** | >10 files, new architecture, high-risk | **kdm-solid-reviewer** (mandatory), security, maintainability, performance | 10-15 min |
+| Preset | Scope | Perspective Agents | External CLI | Duration |
+|--------|-------|-------------------|--------------|----------|
+| **quick** | <3 files, no new modules, trivial changes | **kdm-solid-reviewer** (mandatory) | None | 2-3 min |
+| **standard** | 3-10 files, existing patterns | **kdm-solid-reviewer** (mandatory), security-reviewer, maintainability-reviewer | gemini, codex | 5-8 min |
+| **comprehensive** | >10 files, new architecture, high-risk | **kdm-solid-reviewer** (mandatory), security, maintainability, performance | gemini, codex | 10-15 min |
 
 ### Mandatory Perspective: kdm-solid-reviewer
 
@@ -127,6 +127,46 @@ Task(performance-reviewer): "Review [files] for efficiency issues. Focus on: [ho
 - Which files to review
 - What the change does (brief summary)
 - Specific concerns for that perspective
+
+### External CLI Reviews (Gemini & Codex)
+
+For **standard** and **comprehensive** depth, also invoke external AI reviewers via CLI. Run these **in parallel** with internal perspectives:
+
+```bash
+# Gemini CLI Review
+git diff --staged | gemini "Review this code change. Focus on:
+- Bugs and logic errors
+- Design issues and code smells
+- Missing edge cases
+- Suggestions for improvement
+Be concise and actionable."
+
+# Codex CLI Review
+git diff --staged | codex exec "Review this code change. Focus on:
+- Bugs and logic errors
+- Design issues and code smells
+- Missing edge cases
+- Suggestions for improvement
+Be concise and actionable."
+```
+
+**Integration notes:**
+- Prefer `git diff --staged` for reviewing changes prepared for commit
+- If no changes are staged, use `git diff` for all local modifications
+- For file-specific review: `git diff [file] | gemini "..."`
+- External reviews run via Bash tool, internal perspectives via Task tool
+- Prefix external findings in the review output:
+  ```
+  [GEMINI] Suggestion: Consider extracting repeated logic into helper function
+  [CODEX] Bug: Potential null reference on line 42
+  ```
+- For very long outputs, summarize key findings in your own words while preserving the prefix for direct quotes
+
+**When external CLIs are unavailable:**
+- Check with `which gemini` and `which codex`
+- If missing, skip external review and note in output
+- If auth expired, note in output (user must run `codex login` or `gemini` re-auth)
+- Internal perspectives still provide coverage
 
 ### Synthesizing Perspective Findings
 
@@ -340,6 +380,10 @@ The parent session has full context of what's being implemented. Use:
 - [ ] Integration tests for module boundaries
 - [ ] Data integration uses real expansion data
 - [ ] Breaking production would fail tests
+
+**External CLI Reviews:**
+- [ ] Gemini review passed (or N/A for quick)
+- [ ] Codex review passed (or N/A for quick)
 
 ### Recommendation
 [Clear next step: proceed to Tester/git commit, fix issues first, or discuss deviations]
