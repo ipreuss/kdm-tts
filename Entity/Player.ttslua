@@ -40,12 +40,6 @@ Player.TOKEN_STATS = {
     ["Lunacy Token"] = "frenzy",
 }
 
--- Shared Ability/Impairment suffixes (1-11 slots)
-local ABILITY_IMPAIRMENT_SUFFIXES = {}
-for i = 1, 11 do
-    ABILITY_IMPAIRMENT_SUFFIXES[i] = "Ability/Impairment " .. i
-end
-
 -- Non-gear card locations for token scanning (kdm-spk)
 -- Used by Campaign.ExportSurvivors() for token-only export
 Player.NON_GEAR_CARD_SUFFIXES = {
@@ -53,8 +47,8 @@ Player.NON_GEAR_CARD_SUFFIXES = {
     "Disorder 1", "Disorder 2", "Disorder 3",
     "Weapon Proficiency",
 }
-for _, suffix in ipairs(ABILITY_IMPAIRMENT_SUFFIXES) do
-    table.insert(Player.NON_GEAR_CARD_SUFFIXES, suffix)
+for i = 1, 11 do
+    table.insert(Player.NON_GEAR_CARD_SUFFIXES, "Ability/Impairment " .. i)
 end
 
 -- All card display locations for token scanning (kdm-spk)
@@ -67,8 +61,8 @@ Player.CARD_LOCATION_SUFFIXES = {
     "Gear 6", "Gear 7", "Gear 8", "Gear 9",
     "Fist & Tooth", "Armor Set",
 }
-for _, suffix in ipairs(ABILITY_IMPAIRMENT_SUFFIXES) do
-    table.insert(Player.CARD_LOCATION_SUFFIXES, suffix)
+for i = 1, 11 do
+    table.insert(Player.CARD_LOCATION_SUFFIXES, "Ability/Impairment " .. i)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -697,10 +691,7 @@ function Player:UpdateStats()
                         local value = Util.TokenValue(object)
                         log:Debugf("Adding token %s from %s at %s", object.getName(), suffix, playerPrefix)
                         modifiers[stat] = (modifiers[stat] or 0) + value
-                        -- Card locations may contain custom objects without registerCollisions
-                        if object.registerCollisions then
-                            object.registerCollisions()
-                        end
+                        object.registerCollisions()
                     end
                 end
             end
