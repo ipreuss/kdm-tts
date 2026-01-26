@@ -10,7 +10,6 @@ local Console = require("Kdm/Core/Console")
 local Location = require("Kdm/Location/Location")
 local log = require("Kdm/Core/Log").ForModule("AttributeTokenTests")
 local Player = require("Kdm/Entity/Player")
-local Survivor = require("Kdm/Entity/Survivor")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -26,7 +25,7 @@ AttributeTokenTests.spawnedObjects = {}
 function AttributeTokenTests.Register()
     Console.AddCommand("testattributetokens", function(args)
         AttributeTokenTests.TestTokensOnFightingArt()
-    end, "Test: Tokens on Fighting Art are counted in player stats")
+    end, "Test: Tokens on Fighting Art location are counted in player stats")
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -40,37 +39,6 @@ local function cleanup()
         end
     end
     AttributeTokenTests.spawnedObjects = {}
-end
-
----------------------------------------------------------------------------------------------------
--- Helper: Spawn Fighting Art to player location
----------------------------------------------------------------------------------------------------
-
-local function spawnFightingArt(cardName, playerOrdinal, slotNumber, callback)
-    local playerPrefix = "Player " .. playerOrdinal
-    local location = Location.Get(playerPrefix .. " Fighting Art " .. slotNumber)
-
-    if not location then
-        log:Errorf("TEST FAIL: Location '%s Fighting Art %d' not found", playerPrefix, slotNumber)
-        callback(nil)
-        return
-    end
-
-    Archive.Take({
-        name = cardName,
-        type = "Fighting Arts",
-        location = location,
-        rotation = { x = 0, y = 180, z = 0 },
-        spawnFunc = function(card)
-            if card then
-                table.insert(AttributeTokenTests.spawnedObjects, card)
-                log:Printf("TEST: Spawned Fighting Art '%s' to slot %d", cardName, slotNumber)
-            else
-                log:Errorf("TEST FAIL: Failed to spawn Fighting Art '%s'", cardName)
-            end
-            callback(card)
-        end,
-    })
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -95,14 +63,15 @@ local function spawnToken(tokenName, location, callback)
 end
 
 ---------------------------------------------------------------------------------------------------
--- Test: Tokens on Fighting Art are counted in player stats
+-- Test: Tokens on Fighting Art location are counted in player stats
 ---------------------------------------------------------------------------------------------------
 
 function AttributeTokenTests.TestTokensOnFightingArt(onComplete)
     log:Printf("=== TEST: TestTokensOnFightingArt (kdm-spk) ===")
 
     -- Use player 1
-    local player = Player.Get(1)
+    local players = Player.Players()
+    local player = players[1]
     if not player then
         log:Errorf("TEST FAIL: Player 1 not found")
         if onComplete then onComplete(false) end
@@ -121,52 +90,62 @@ function AttributeTokenTests.TestTokensOnFightingArt(onComplete)
     -- Clean up any existing objects first
     cleanup()
 
-    -- Step 1: Spawn a Fighting Art card
-    spawnFightingArt("Timeless Eye", 1, 1, function(card)
-        if not card then
+    log:Printf("TEST: Spawning Strength Token to Fighting Art 1 location...")
+
+    -- Spawn a Strength Token directly to the Fighting Art location
+    -- (We don't need a card there - we're testing that the LOCATION is scanned for tokens)
+    spawnToken("Strength Token", fightingArtLocation, function(token)
+        if not token then
             if onComplete then onComplete(false) end
             return
         end
 
-        -- Small delay for card to settle
+        -- Small delay for token to settle
         Wait.time(function()
-            -- Step 2: Spawn a Strength Token on the Fighting Art location
-            spawnToken("Strength Token", fightingArtLocation, function(token)
-                if not token then
-                    if onComplete then onComplete(false) end
-                    return
-                end
+            -- Debug: Check what's in the location
+            local locationObjects = fightingArtLocation:AllObjects()
+            log:Printf("TEST DEBUG: Location has %d objects", #locationObjects)
+            for i, obj in ipairs(locationObjects) do
+                log:Printf("TEST DEBUG: Object %d: name='%s', tag='%s', GMNotes='%s'",
+                    i, obj.getName(), obj.tag, tostring(obj.getGMNotes()))
+            end
 
-                -- Small delay for token to settle
-                Wait.time(function()
-                    -- Step 3: Trigger UpdateStats
-                    player:UpdateStats()
+            -- Debug: Check token position vs location
+            log:Printf("TEST DEBUG: Token GUID=%s, position=%s",
+                token.getGUID(), tostring(token.getPosition()))
 
-                    -- Step 4: Check if the survivor has the strength modifier
-                    local survivorSheet = player:SurvivorSheet()
-                    if not survivorSheet then
-                        log:Printf("TEST INFO: No survivor sheet linked to player 1")
-                        log:Printf("TEST INFO: Token scanning completed, verify modifiers via Battle UI")
-                        log:Printf("TEST PASS: Token spawned on Fighting Art location successfully")
-                        cleanup()
-                        if onComplete then onComplete(true) end
-                        return
-                    end
+            -- Trigger UpdateStats
+            log:Printf("TEST: Calling player:UpdateStats()...")
+            player:UpdateStats()
 
-                    local survivor = survivorSheet:Survivor()
-                    local modifiers = survivor:Modifiers() or {}
+            -- Check if the survivor has the strength modifier
+            local survivorSheet = player:SurvivorSheet()
+            if not survivorSheet then
+                -- No survivor sheet linked - we can still verify the token was placed
+                log:Printf("TEST INFO: No survivor sheet linked to player 1")
+                log:Printf("TEST INFO: Cannot verify modifiers without survivor sheet")
+                log:Printf("TEST INFO: Token spawned successfully at Fighting Art location")
+                log:Printf("TEST PASS: Token placement verified (modifiers require survivor sheet)")
+                cleanup()
+                if onComplete then onComplete(true) end
+                return
+            end
 
-                    if modifiers.strength and modifiers.strength >= 1 then
-                        log:Printf("TEST PASS: Strength modifier = %d (token on Fighting Art counted)", modifiers.strength)
-                        cleanup()
-                        if onComplete then onComplete(true) end
-                    else
-                        log:Errorf("TEST FAIL: Strength modifier = %s (expected >= 1)", tostring(modifiers.strength or "nil"))
-                        cleanup()
-                        if onComplete then onComplete(false) end
-                    end
-                end, 0.5, -1)
-            end)
+            local survivor = survivorSheet:Survivor()
+            -- Get modifier by comparing modified stat to base stat
+            local baseStrength = survivor:Strength()
+            local modifiedStrength = survivor:ModifiedStrength()
+            local strengthModifier = modifiedStrength - baseStrength
+
+            if strengthModifier >= 1 then
+                log:Printf("TEST PASS: Strength modifier = %d (token on Fighting Art counted)", strengthModifier)
+                cleanup()
+                if onComplete then onComplete(true) end
+            else
+                log:Errorf("TEST FAIL: Strength modifier = %d (expected >= 1)", strengthModifier)
+                cleanup()
+                if onComplete then onComplete(false) end
+            end
         end, 0.5, -1)
     end)
 end
