@@ -134,20 +134,42 @@ For **standard** and **comprehensive** depth, also invoke external AI reviewers 
 
 ```bash
 # Gemini CLI Review
-git diff --staged | gemini "Review this code change. Focus on:
-- Bugs and logic errors
-- Design issues and code smells
-- Missing edge cases
-- Suggestions for improvement
-Be concise and actionable."
+git diff --staged | gemini "You are reviewing Lua code for KDM TTS mod (Tabletop Simulator).
+
+## Context Files to Read First
+- CODE_REVIEW_GUIDELINES.md (review standards, OCP patterns)
+- docs/SOLID_ANALYSIS.md (anti-patterns to avoid)
+- ARCHITECTURE.md (project patterns)
+
+## Code Review Checklist
+1. **Bugs & Logic**: Logic errors, nil references, off-by-one?
+2. **OCP Compliance**: No type-based dispatch chains (use handler registry)
+3. **Testability**: No direct Wait.frames/time (use TTSAdapter)
+4. **Test Coverage**: Does this change have corresponding tests?
+5. **SOLID Principles**: SRP violations, large files?
+6. **DRY Principle**: Duplicated code that should be extracted?
+7. **Data Integrity**: Expansion data accessed safely?
+
+Be concise and actionable. Provide file:line references."
 
 # Codex CLI Review
-git diff --staged | codex exec "Review this code change. Focus on:
-- Bugs and logic errors
-- Design issues and code smells
-- Missing edge cases
-- Suggestions for improvement
-Be concise and actionable."
+git diff --staged | codex exec "You are reviewing Lua code for KDM TTS mod (Tabletop Simulator).
+
+## Context Files to Read First
+- CODE_REVIEW_GUIDELINES.md (review standards, OCP patterns)
+- docs/SOLID_ANALYSIS.md (anti-patterns to avoid)
+- ARCHITECTURE.md (project patterns)
+
+## Code Review Checklist
+1. **Bugs & Logic**: Logic errors, nil references, off-by-one?
+2. **OCP Compliance**: No type-based dispatch chains (use handler registry)
+3. **Testability**: No direct Wait.frames/time (use TTSAdapter)
+4. **Test Coverage**: Does this change have corresponding tests?
+5. **SOLID Principles**: SRP violations, large files?
+6. **DRY Principle**: Duplicated code that should be extracted?
+7. **Data Integrity**: Expansion data accessed safely?
+
+Be concise and actionable. Provide file:line references."
 ```
 
 **Integration notes:**
